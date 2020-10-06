@@ -1,0 +1,32 @@
+RetroBASIC TODO list
+
+- need to allow multiple INPUTs on a single line, currently it requires a CR between values
+
+- DEF FN is parsed but not evaluated
+
+- add support for string "slicing" commands used in HP/AB/NS. This is a bit tricky because it is the same syntax as string arrays found in other systems. This might only be possible by using a command-line switch. Alternately, use square brakets for slicing, which would require rewrites for AB.
+
+- support AB's DEG and RAD modes?
+
+- PATB allows multiple assignments in a LET, separated by commas, see assignlist
+
+- PATB allows single or double quotes around strings
+
+- PATB allows # to define field widths in PRINT, so PRINT A,#3,B,C will print B and C in 3-character widths. All expressions following the format use that format until reset by another # or another PRINT
+
+- PATB prints a colon after INPUTs, not ?, and prints the variable name if no prompt is given. So "INPUT A" prints "A:", while INPUT "TYPE A NUMBER"A prints "TYPE A NUMBER:"
+
+- GW-BASIC states that if the last item on a line is a TAB or SPC, it is like having a semicolon, and subsequent PRINTs should be on the same line. we do not currently handle this case
+
+- add support for DEFINT, etc. These are easy, they are essentially identical to DIM, they simply need to call variable_value to insert an entry into the g_tree
+  DEFINT..DEFSTR are not currently implemented
+
+- LPOS, LPRINT, etc.
+
+- file handling, OPEN, PRINT# etc.
+
+- support different TAB widths - Dartmouth was 17, we have 16, GW-BASIC uses 14, --tabs=16?
+
+- add support for OPTION BASE and modify variable_value to handle base 0
+
+- a number of math and string functions are not yet implemented: FIX CINT CSNG CDBL FRE
