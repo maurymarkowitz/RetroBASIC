@@ -155,7 +155,7 @@ typedef struct {
 /* and here's the link to an instance of interpstate_t defined in the c side */
 extern interpreterstate_t interpreter_state;
 
-/* additional externs used for the static analyzer */
+/* additional externs used for the static analyzer, used in parse.y */
 extern int variables_total;
 extern int variables_default;
 extern int variables_int;

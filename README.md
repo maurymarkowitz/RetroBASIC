@@ -23,7 +23,7 @@ RetroBASIC is based on gnbasic by James Bowman.
  
 ## Running RetroBASIC
 
-RetroBASIC is meant to be used with an existing program source file, not interactively. To run it, use ```./retrobasic program.bas```. It will accept any text file as input and report errors if it cannot properly parse it. If parsing succeeds, the program begins running immediately. Most programs should run correctly, although file I/O is not currently implemented, and INPUT statements with multiple assignments currently require returns between each value.
+RetroBASIC is meant to be used with an existing program source file, not interactively. To run it, use ```./retrobasic program.bas```. It will accept any text file as input and report errors if it cannot properly parse it. If parsing succeeds, the program begins running immediately. Most programs should run correctly, although file I/O is not currently implemented, user functions return zero, and INPUT statements with multiple assignments currently require returns between each value.
 
 ## Building RetroBASIC
 
@@ -34,6 +34,7 @@ The RetroBASIC interpreter is written using lex/yacc and is compatible with flex
 * INPUT statements with multiple values currently have to be entered with return/enter between each value.
 * The system does not support "immediate mode" (command line) input.
 * LIST, LOAD and SAVE are currently not implemented, in keeping with the use-case.
-* REMs currently lose their comment, although it should be easy to add this if LIST support is desired.
-* Variable names are currently limited to two characters, which is needed to support "crunched" statements without spaces.
+* REMs do not remember the comment, although it should be easy to add this if LIST support is desired.
+* Variable names are currently limited to two characters, which is needed to support "crunched" statements without spaces in MS style.
+* String "slicing" as seen in HP, Atari and Integer is not yet supported, but this is an important feature to add.
 
