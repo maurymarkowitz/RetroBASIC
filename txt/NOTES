@@ -1,0 +1,16 @@
+RetroBASIC NOTES
+
+TB = Tiny BASIC
+ATB = Palo Alto Tiny BASIC
+AB = Atari BASIC
+HP = HP Time Shared BASIC
+MS = any of the early Microsoft BASICs
+CB = Commodore BASIC
+GW = GW-BASIC, similar to earlier MS but with some notable changes
+
+- CB does not allow commas to surpress the ? for INPUT, and always prints a space after it. We do not print the space.
+
+- MS only allows a single prompt in an INPUT, but PATB allows mixtures of prompts and variables. RetroBASIC follows the PATB pattern.
+
+- PATB and other Tiny variants allow a single numeric array known as "@". This is a valid variable name in Retro and should work as expected.
+

@@ -22,7 +22,7 @@ along with RetroBASIC; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#include "gnbasic.h"
+#include "retrobasic.h"
 
  /* used to track the line number being processed so
     that errors can report it */
@@ -58,6 +58,10 @@ static expression_t *make_operator(int arity, int o)
   return new;
 }
 
+
+#define YYDEBUG 1
+
+
 /************************************************************************/
 
 %}
@@ -79,7 +83,7 @@ static expression_t *make_operator(int arity, int o)
 
 %type <l> program line statements
 %type <l> printlist exprlist varlist //assignlist //numlist
-%type <i> printsep binary_op comparison_op e2op e3op unary_op fn_1 fn_2 fn_x //e5op3
+%type <i> printsep binary_op comparison_op e2op e3op unary_op fn_1 fn_2 fn_x
 %type <expression> expression expression0 expression1 expression2 expression3 expression4 function factor
 %type <statement> statement
 %type <variable> variable
@@ -129,8 +133,7 @@ static expression_t *make_operator(int arity, int o)
 %token ATN COS SIN TAN
 %token CLOG EXP LOG SQR
 %token RND
-%token INT FIX // fix=SGN(x)*INT(ABS(x))
-%token CINT CSNG CDBL
+%token INT FIX CINT CSNG CDBL // fix=SGN(x)*INT(ABS(x))
 
 %token LEFT MID RIGHT
 %token LEN STR VAL CHR
@@ -152,7 +155,7 @@ program:
 	|
 	program '\n' line
 	|
-    	program error '\n'
+    program error '\n'
 	;
 
 line:
@@ -160,10 +163,10 @@ line:
 	{
 	}
 	|
-    	// keep track of the line number as we parse so we can report offending lines
+    // keep track of the line number as we parse so we can report offending lines
 	NUMBER { errline = $1; } statements
 	{
-	  is.lines[(int)$1] = $3;
+	  interpreter_state.lines[(int)$1] = $3;
 	}       
 	;
 
@@ -173,16 +176,16 @@ statements:
 	  $$ = g_list_prepend(NULL, $1);
 	}
 	|
-    	statement ':' statements
-    	{
+    statement ':' statements
+    {
 	  $$ = g_list_prepend($3, $1);
-    	}	
+    }
 	;
 
 statement:
 	/* can be empty, in which case we remove it */
-    	// NOTE: should we? or should we insert a placeholder?
-    	{
+    // NOTE: should we? or should we insert a placeholder?
+    {
 	  $$ = NULL;
 	}
 	|
@@ -192,9 +195,9 @@ statement:
 	  $$ = new;
 	}
 	|
-    	/* DATA can have any type in it, but it is unlikely true expressions are allowed, although they work here */
+    /* DATA can have any type in it, but it is unlikely true expressions are allowed, although we allow them here */
 	DATA exprlist
-    	{
+    {
 	  statement_t *new = make_statement(DATA);
 	  new->parms.data = $2;
 	  $$ = new;
@@ -203,8 +206,8 @@ statement:
 	DEF variable '=' expression
 	{
 	  statement_t *new = make_statement(DEF);
-	  new->parms.def.name = $2;
-	  new->parms.def.expression = $4;
+      new->parms.def.name = $2;
+      new->parms.def.expression = $4;
 	  $$ = new;
 	}
 	|
@@ -224,7 +227,7 @@ statement:
 	FOR variable '=' expression TO expression
 	{
 	  statement_t *new = make_statement(FOR);
-	  new->parms._for.v = $2;
+	  new->parms._for.variable = $2;
 	  new->parms._for.begin = $4;
 	  new->parms._for.end = $6;
 	  new->parms._for.step = NULL;
@@ -234,7 +237,7 @@ statement:
 	FOR variable '=' expression TO expression STEP expression
 	{
 	  statement_t *new = make_statement(FOR);
-	  new->parms._for.v = $2;
+	  new->parms._for.variable = $2;
 	  new->parms._for.begin = $4;
 	  new->parms._for.end = $6;
 	  new->parms._for.step = $8;
@@ -247,10 +250,17 @@ statement:
 	  new->parms.gosub = $2;
 	  $$ = new;
       
-	  /* static analyzer - assume gosubs are forward? */
-	  linenum_constants_total++;
-	  linenum_gosub_totals++;
-	}
+      /* static analyzer */
+      linenum_constants_total++;
+      linenum_gosub_totals++;
+      if ($2->parms.number) {
+          if ($2->parms.number > errline) {
+              linenum_forwards++;
+          } else {
+              linenum_backwards++;
+          }
+      }
+    }
 	|
 	GOTO expression
 	{
@@ -258,18 +268,18 @@ statement:
 	  new->parms._goto = $2;
 	  $$ = new;
       
-	  /* static analyzer */
-	  linenum_constants_total++;
-	  linenum_goto_totals++;
-	  if ($2->parms.number) {
-            if ($2->parms.number > errline ) {
+      /* static analyzer */
+      linenum_constants_total++;
+      linenum_goto_totals++;
+      if ($2->parms.number) {
+          if ($2->parms.number > errline) {
               linenum_forwards++;
-            } else {
-              linenum_backwards++;
-            }
           } else {
-          // formula case?
+              linenum_backwards++;
           }
+      } else {
+          // formula case?
+      }
 	}
 	|
 	INPUT printlist
@@ -280,20 +290,29 @@ statement:
 	}
 	|
 	IF expression THEN NUMBER
-    	{
+    {
 	  statement_t *new = make_statement(IF);
 	  new->parms._if.condition = $2;
 	  new->parms._if.then_expression = NULL;
 	  new->parms._if.then_linenumber = $4;
 	  $$ = new;
       
-	  /* static analyzer */
-	  // equivalent to a GOTO, GOSUBs would be caught in the next line and the line number caught there
-	  linenum_constants_total++;
-	  linenum_goto_totals++;
+      /* static analyzer */
+      // equivalent to a GOTO, GOSUBs would be caught in the next line and the line number caught there
+      linenum_constants_total++;
+      linenum_then_goto_totals++;
+      if ($2->parms.number) {
+          if ($2->parms.number > errline) {
+              linenum_forwards++;
+          } else {
+              linenum_backwards++;
+          }
+      } else {
+          // formula case?
+      }
 	}
 	|
-	IF expression THEN statements // yes, statement**s**, they all run or don't as a group
+	IF expression THEN statements // yes, statement**s**, they all run or don't run as a group
 	{
 	  statement_t *new = make_statement(IF);
 	  new->parms._if.condition = $2;
@@ -325,9 +344,9 @@ statement:
 	  new->parms.on.numbers = $4;
 	  $$ = new;
       
-	  /* static analyzer */
-	  linenum_constants_total++;
-	  linenum_on_totals++;
+      linenum_constants_total++;
+      linenum_on_totals++;
+
 	}
 	|
 	ON expression GOSUB exprlist
@@ -338,10 +357,9 @@ statement:
 	  new->parms.on.numbers = $4;
 	  $$ = new;
       
-	  /* static analyzer */
-	  linenum_constants_total++;
-	  linenum_on_totals++;
-	}
+      linenum_constants_total++;
+      linenum_on_totals++;
+    }
 	|
 	PRINT printlist
 	{
@@ -366,7 +384,7 @@ statement:
 	  $$ = new;
 	}
 	|
-    	REM
+    REM
 	{
 	  statement_t *new = make_statement(REM);
 	  //new->parms.rem = $2;
@@ -493,9 +511,9 @@ expression4:
 	;
 
 unary_op:
-	'-' { $$ = '-'; } |
-	NOT { $$ = NOT; }
-	;
+    '-' { $$ = '-'; } |
+    NOT { $$ = NOT; }
+    ;
 
 function:
 	factor
@@ -514,40 +532,41 @@ function:
 	  new->parms.op.p[1] = $5;
 	  $$ = new;
 	}
-    	/* multi-arity function being called with two inputs... */
-    	|
-    	fn_x '(' expression ',' expression ')'
-    	{
-	  expression_t *new = make_operator(2, $1);
-	  new->parms.op.p[0] = $3;
-	  new->parms.op.p[1] = $5;
-	  $$ = new;
-    	}
-    	/* ...and three */
+    /* multi-arity function being called with two inputs... */
+    |
+    fn_x '(' expression ',' expression ')'
+    {
+      expression_t *new = make_operator(2, $1);
+      new->parms.op.p[0] = $3;
+      new->parms.op.p[1] = $5;
+      $$ = new;
+    }
+    /* ...or three */
 	|
 	fn_x '(' expression ',' expression ',' expression ')'
 	{
 	  expression_t *new = make_operator(3, $1);
 	  new->parms.op.p[0] = $3;
 	  new->parms.op.p[1] = $5;
-	  new->parms.op.p[2] = $7;
+      new->parms.op.p[2] = $7;
 	  $$ = new;
 	}
 	;
 
  /* arity-1 functions */
 fn_1:
-	_ABS { $$ = _ABS; } |
+   _ABS { $$ = _ABS; } |
 	ATN  { $$ = ATN; } |
 	CHR  { $$ = CHR; } |
 	CLOG { $$ = CLOG;} |
 	COS  { $$ = COS; } |
 	EXP  { $$ = EXP; } |
 	INT  { $$ = INT; } |
-	LEN  { $$ = LEN; } |
+    LEN  { $$ = LEN; } |
+    STR  { $$ = STR; } |
 	LOG  { $$ = LOG; } |
-	RND  { $$ = RND; } |
-	SGN  { $$ = SGN; } |
+    RND  { $$ = RND; } |
+    SGN  { $$ = SGN; } |
 	SIN  { $$ = SIN; } |
 	SPC  { $$ = SPC; } |
 	SQR  { $$ = SQR; } |
@@ -557,13 +576,13 @@ fn_1:
 	
  /* arity-2 functions */
 fn_2:
-	LEFT { $$ = LEFT; } |
-	RIGHT { $$ = RIGHT; }
+    LEFT { $$ = LEFT; } |
+    RIGHT { $$ = RIGHT; }
 	;
 
  /* arity-2 or 3 functions */
 fn_x:
-	MID { $$ = MID; };
+    MID { $$ = MID; };
 
  /* ultimately all expressions end up here in factor, which is either a
     constant value, a variable value, or a parened expression. in
@@ -572,50 +591,58 @@ fn_x:
 factor:
 	NUMBER
 	{
+      /* actual parsing code */
 	  expression_t *new = make_expression(number);
 	  new->parms.number = $1;
 	  $$ = new;
       
-      	/* static analyzer code */
-      	/* numbers here are not ALL numbers in the program, line numbers
-         (for instance) don't end up here. This is exactly what we want.
-         This does mean we have to  track line numbers separately,
-         like in the case of GOTO etc. This will, however, capture
-         all the numbers found in expressions, PRINT statements,
-         user formulas, POKEs, etc.
-	*/
-      	numeric_constants_total++;
+      /* static analyzer code */
+      /* numbers here are not *all* of numbers in a program, line numbers
+         (for instance) don't end up here. This *is* what we want for the
+         analyzer.
+         This means we have to track line numbers separately, like in the
+         case of GOTO etc. This will, however, capture all the numbers found
+         in expressions, PRINT statements, user formulas, POKEs, etc.
+       */
+      numeric_constants_total++;
       
       /* basic sizes for ints */
-      int num = new->parms.number;
+      double num = new->parms.number;
       if (floorf(num) == num) {
+          // count decimal digits
           if (num == 0) {
               numeric_constants_zero++;
-              numeric_constants_one_digit++;
           } else if (num == 1) {
               numeric_constants_one++;
-              numeric_constants_one_digit++;
-          } else if (num == 1) {
+          } else if (num == -1) {
               numeric_constants_minus_one++;
-              numeric_constants_one_digit++;
           } else if (num >= -9 && num <= 9) {
-              numeric_constants_one_digit++;
+              numeric_constants_one_digit++; // note: not 1 or zero
           } else if (num >= -99 && num <= 99) {
               numeric_constants_two_digit++;
           } else if (num >= -999 && num <= 999) {
               numeric_constants_three_digit++;
+          } else if (num >= -9999 && num <= 9999) {
+              numeric_constants_four_digit++;
+          } else if (num >= -99999 && num <= 99999) {
+              numeric_constants_five_digit++;
           } else {
               numeric_constants_big++;
           }
           
+          // count number of bytes separately
           if (num >= -128 && num <= 256) {
-              numeric_constants_byte++;
-          } else if (num >= -32767 && num <= -32767) {
+              numeric_constants_one_byte++;
+          } else if (num >= -32767 && num <= 65536) {
               numeric_constants_two_byte++;
           } else if (num >= INT_MIN && num <= INT_MAX) {
               /* this one is probably redundant! */
               numeric_constants_four_byte++;
           }
+      }
+      /* everything else is a float */
+      else {
+          numeric_constants_float++;
       }
 	}
 	|
@@ -625,17 +652,22 @@ factor:
 	  new->parms.string = $1;
 	  $$ = new;
       
-      	/* static analyzer code */
-      	string_constants_total++;
-      	if ($1->len == 1) {
+      /* static analyzer code */
+      string_constants_total++;
+      if ($1->len == 1) {
           string_constants_one_byte++;
-      	} else if ($1->len == 2) {
+      } else if ($1->len == 2) {
         string_constants_two_byte++;
-      	} else if ($1->len <= 4) {
+      } else if ($1->len <= 4) {
         string_constants_four_byte++;
-      	} else {
+      } else if ($1->len <= 8) {
+        string_constants_eight_byte++;
+      } else if ($1->len <= 16) {
+        string_constants_sixteen_byte++;
+      } else {
           string_constants_big++;
-      	}
+      }
+      if ($1->len > string_constants_max) string_constants_max = (int)$1->len;
 	}
 	|
 	variable
@@ -643,6 +675,8 @@ factor:
 	  expression_t *new = make_expression(variable);
 	  new->parms.variable = $1;
 	  $$ = new;
+      
+      /* insert the variable */
       
       /* static analyzer code */
 
@@ -654,7 +688,7 @@ factor:
 	}
 	;
 
- /* variables may contain an array reference */
+ /* variables may contain an array reference or parameter list for functions */
 variable:
 	IDENTIFIER
     {
@@ -724,8 +758,7 @@ printsep:
 	}
     ;
 	
- /* used in lots of places that take a list of expressions,
-    functions, DATA, defn, etc. */
+ /* used in lots of places that take a list of expressions, functions, DATA, defn, etc. */
 exprlist:
 	expression
 	{

@@ -48,16 +48,16 @@ typedef struct {
 } value_t;
 
 /* either_t is used within value_t for the actual data
-  FIXME: is this worthwhile? why not use two slots instead of a union? 4 wasted bytes? */
+  FIXME: is the union worthwhile? why not use two slots instead of a union? 4 wasted bytes? */
 typedef union {
-    double d;
     GString *s;
+    double d;
 } either_t;
 
 /* storage_t holds the value of a *variable* in memory */
 typedef struct {
     int type;			/* NUMBER, STRING */
-    either_t *it;       // actual value
+    either_t *value;    // actual value, for non-arrays
     GList *sub;         // subscripts, if any
 } storage_t;
 
@@ -142,12 +142,14 @@ either_t *variable_value(variable_t *variable, int *type)
     if (variable->sub != NULL)
         storage_name = g_string_append(storage_name, "(");
     
-    
     //testing
-    //print_variables();
+    //printf("looking for %s\n",storage_name->str);
     
     // see if we can find the entry in the symbol list
     storage = g_tree_lookup(interpreter_state.values, storage_name->str);
+    
+    //testing
+    //if (storage == NULL) printf(" -- did not find it\n");
     
     // if not, make a new variable slot in values and set it up
     if (storage == NULL) {
@@ -157,8 +159,15 @@ either_t *variable_value(variable_t *variable, int *type)
         storage = malloc(sizeof(*storage));
         
         // set the type based on the name
-        if (variable->name->str[strlen(variable->name->str) - 1] == '$')
+        char trailer = variable->name->str[strlen(variable->name->str) - 1];
+        if (trailer == '$')
             storage->type = STRING;
+//        else if (trailer == '%')
+//            storage->type = INTEGER;
+//        else if (trailer == '!')
+//            storage->type = SINGLE;
+//        else if (trailer == '#')
+//            storage->type = DOUBLE;
         else
             storage->type = NUMBER; // this works for all of them, int, dbl, etc.
         
@@ -187,17 +196,18 @@ either_t *variable_value(variable_t *variable, int *type)
         }
         
         // now malloc the result and insert it into the values tree
-        storage->it = malloc(slots * sizeof(storage->it[0]));
+        storage->value = malloc(slots * sizeof(storage->value[0]));
         g_tree_insert(interpreter_state.values, storage_name->str, storage);
     }
     
     // at this point we have either found or created the variable, so...
+    // get the type
     *type = storage->type;
-    /* Compute array index */
+    /* compute array index */
     index = 0;
     {
         GList *LA;			/* list of actual sizes in storage (from the DIM) */
-        GList *LI;			/* list of indices in this reference*/
+        GList *LI;			/* list of indices in this reference */
         
         LA = storage->sub;
         LI = variable->sub;
@@ -226,10 +236,19 @@ either_t *variable_value(variable_t *variable, int *type)
     }
     
     //testing free on name, see if that fixes var problem
-    g_string_free(storage_name, FALSE);
+    //g_string_free(storage_name, FALSE);
     
-    // done!
-    return &storage->it[index];
+//    if (storage->type == STRING)
+//        //printf(" -- returning string %s\n",storage->value[index].s->str);
+//        if (storage->value[index].s == NULL)
+//            printf(" -- returning null string\n");
+//        else
+//            printf(" -- returning string %s\n", storage->value[index].s->str);
+//    else
+//        printf(" -- returning number %f\n",storage->value[index].d);
+
+    // all done, return the value at that index
+    return &storage->value[index];
 }
 
 static value_t do_binop(double v)
@@ -250,18 +269,17 @@ static value_t evaluate(expression_t *e)
     double a, b, c;
     
     switch (e->type) {
-        // for numbers and strings, simply copy the value
+        // for number and string constants, simply copy the value
         case number:
             r.type = NUMBER;
             r.number = e->parms.number;
             break;
-            
         case string:
             r.type = STRING;
             r.string = e->parms.string;
             break;
             
-        // variables are simple, just copy over their value from storage
+        // variables are also easy, just copy over their value from storage
         case variable:
             {
                 int type;
@@ -282,7 +300,6 @@ static value_t evaluate(expression_t *e)
         case fn:
             r.type = NUMBER;
             r.number = 0;
-            
             break;
             
         // and now for the fun bit, the operators list...
@@ -716,6 +733,7 @@ static GList *do_statement(GList *L)
                 break;
                 
             case DIM:
+                // all we do here is loop over the list and call variable_value to initialize them
 				{
 					GList *L;
 					for (L = ps->parms.dim; L != NULL; L = g_list_next(L)) {
@@ -1098,7 +1116,7 @@ static gboolean is_integer(gpointer key, gpointer value, gpointer user_data)
 /* cheater method for printing out all the variable names */
 static gboolean print_symbol(gpointer key, gpointer value, gpointer unused)
 {
-    printf("%s ", (char *)key);
+    printf("\n%s ", (char *)key);
     return FALSE;
 }
 /* used for VARLIST in those versions of BASIC that support it */
@@ -1114,15 +1132,20 @@ static void delete_variables() {
 /* the main loop for the program */
 void run(void)
 {
+    // last line number run, used for tracing
+    int last_line = interpreter_state.first_line;
+
     // very simple - do_statement returns the next statement and the
     // main below set us up to point to the first one, so just call
     // that one function until you get a NULL
     while (interpreter_state.current_statement) {
         interpreter_state.current_statement = do_statement(interpreter_state.current_statement);
         
-        //printf("%d",is.ps);
-        printf("[%i]\n",current_line());
-        //getchar();
+        // trace, only on line changes
+        if (last_line != current_line()) {
+            last_line = current_line();
+            printf("[%i]\n", last_line);
+        }
     }
 }
 
