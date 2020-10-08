@@ -10,9 +10,10 @@
 		5568AD6D240753E6001138F5 /* lunar.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5568AD6C240753C2001138F5 /* lunar.bas */; };
 		5599AEFA239C0A6F00490A3A /* retrobasic.c in Sources */ = {isa = PBXBuildFile; fileRef = 5599AEF9239C0A6F00490A3A /* retrobasic.c */; };
 		5599AEFE239C0ABF00490A3A /* scan.l in Sources */ = {isa = PBXBuildFile; fileRef = 5599AEFC239C0ABF00490A3A /* scan.l */; };
-		5599AEFF239C0ABF00490A3A /* parse.y in Sources */ = {isa = PBXBuildFile; fileRef = 5599AEFD239C0ABF00490A3A /* parse.y */; };
 		55B3D421238E1BA700E6054E /* test.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 55B3D420238E1B9900E6054E /* test.bas */; };
 		55B3D42C23943EB100E6054E /* superstartrek.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 55B3D42B23942C7200E6054E /* superstartrek.bas */; };
+		55B9698C252F44E70021CD8B /* parse.y in Sources */ = {isa = PBXBuildFile; fileRef = 55B9698B252F44E70021CD8B /* parse.y */; };
+		55B96991252F4FCA0021CD8B /* makefile in Sources */ = {isa = PBXBuildFile; fileRef = 55B96990252F4FCA0021CD8B /* makefile */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -36,7 +37,6 @@
 		5599AEF9239C0A6F00490A3A /* retrobasic.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = retrobasic.c; sourceTree = "<group>"; };
 		5599AEFB239C0A8800490A3A /* stdhdr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stdhdr.h; sourceTree = "<group>"; };
 		5599AEFC239C0ABF00490A3A /* scan.l */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.lex; path = scan.l; sourceTree = "<group>"; };
-		5599AEFD239C0ABF00490A3A /* parse.y */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.yacc; name = parse.y; path = "../../gnbasic-0.0.1/parse.y"; sourceTree = "<group>"; };
 		5599AF00239C0AD800490A3A /* parse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = parse.h; sourceTree = "<group>"; };
 		55B3D40C238E051D00E6054E /* retrobasic */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = retrobasic; sourceTree = BUILT_PRODUCTS_DIR; };
 		55B3D420238E1B9900E6054E /* test.bas */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.bas; sourceTree = "<group>"; };
@@ -45,6 +45,8 @@
 		55B3D429238EB43100E6054E /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		55B3D42B23942C7200E6054E /* superstartrek.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = superstartrek.bas; sourceTree = "<group>"; };
 		55B9698A252D26790021CD8B /* LICENCE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENCE; sourceTree = "<group>"; };
+		55B9698B252F44E70021CD8B /* parse.y */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.yacc; path = parse.y; sourceTree = "<group>"; };
+		55B96990252F4FCA0021CD8B /* makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = makefile; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,11 +63,14 @@
 		55B3D403238E051D00E6054E = {
 			isa = PBXGroup;
 			children = (
+				55B96990252F4FCA0021CD8B /* makefile */,
 				55B3D429238EB43100E6054E /* README.md */,
 				55B9698A252D26790021CD8B /* LICENCE */,
+				55B3D41F238E1B4500E6054E /* doc */,
 				55B3D40E238E051D00E6054E /* src */,
 				55B96987252CC1D30021CD8B /* bas */,
-				55B3D41F238E1B4500E6054E /* txt */,
+				55B9698F252F4F340021CD8B /* obj */,
+				55B9698D252F4F080021CD8B /* bin */,
 				55B3D40D238E051D00E6054E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -85,20 +90,20 @@
 				5599AEFB239C0A8800490A3A /* stdhdr.h */,
 				5599AF00239C0AD800490A3A /* parse.h */,
 				5599AEFC239C0ABF00490A3A /* scan.l */,
-				5599AEFD239C0ABF00490A3A /* parse.y */,
+				55B9698B252F44E70021CD8B /* parse.y */,
 				5599AEF8239C0A6E00490A3A /* retrobasic.h */,
 				5599AEF9239C0A6F00490A3A /* retrobasic.c */,
 			);
 			path = src;
 			sourceTree = "<group>";
 		};
-		55B3D41F238E1B4500E6054E /* txt */ = {
+		55B3D41F238E1B4500E6054E /* doc */ = {
 			isa = PBXGroup;
 			children = (
 				55B3D428238EB43100E6054E /* TODO */,
 				55B3D427238EB43100E6054E /* pass-fail.txt */,
 			);
-			path = txt;
+			path = doc;
 			sourceTree = "<group>";
 		};
 		55B96987252CC1D30021CD8B /* bas */ = {
@@ -109,6 +114,20 @@
 				55B3D42B23942C7200E6054E /* superstartrek.bas */,
 			);
 			path = bas;
+			sourceTree = "<group>";
+		};
+		55B9698D252F4F080021CD8B /* bin */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = bin;
+			sourceTree = "<group>";
+		};
+		55B9698F252F4F340021CD8B /* obj */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = obj;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -168,8 +187,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5599AEFF239C0ABF00490A3A /* parse.y in Sources */,
+				55B9698C252F44E70021CD8B /* parse.y in Sources */,
 				5599AEFA239C0A6F00490A3A /* retrobasic.c in Sources */,
+				55B96991252F4FCA0021CD8B /* makefile in Sources */,
 				5599AEFE239C0ABF00490A3A /* scan.l in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

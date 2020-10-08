@@ -1,5 +1,14 @@
 RetroBASIC TODO list
 
+PATB = Palo Alto Tiny BASIC
+HPB = HP Time-Sharing BASIC
+AB = Atari BASIC
+IB = Integer BASIC
+MS = MS BASIC, following 6502 40-bit version
+
+- statements following the first statement in a THEN do not run
+    IF 1=1 THEN A=1:B=2 will only run A=1
+
 - need to allow multiple INPUTs on a single line, currently it requires a CR between values
 
 - DEF FN is parsed but not evaluated
@@ -18,8 +27,7 @@ RetroBASIC TODO list
 
 - GW-BASIC states that if the last item on a line is a TAB or SPC, it is like having a semicolon, and subsequent PRINTs should be on the same line. we do not currently handle this case
 
-- add support for DEFINT, etc. These are easy, they are essentially identical to DIM, they simply need to call variable_value to insert an entry into the g_tree
-  DEFINT..DEFSTR are not currently implemented
+- add support for DEFINT, etc. These are easy, they are essentially identical to DIM, they simply need to call variable_value to insert an entry into the g_tree and set the type correctly
 
 - LPOS, LPRINT, etc.
 
