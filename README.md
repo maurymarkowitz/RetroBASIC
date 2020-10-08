@@ -1,6 +1,5 @@
-~~~~~~~~~~
-#RetroBASIC
-~~~~~~~~~~
+RetroBASIC
+=========
 
 **Copyright (C) 2020 Maury Markowitz**
 
