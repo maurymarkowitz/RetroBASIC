@@ -47,6 +47,7 @@
 		55B9698A252D26790021CD8B /* LICENCE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENCE; sourceTree = "<group>"; };
 		55B9698B252F44E70021CD8B /* parse.y */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.yacc; path = parse.y; sourceTree = "<group>"; };
 		55B96990252F4FCA0021CD8B /* makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = makefile; sourceTree = "<group>"; };
+		55B96993252F5AB80021CD8B /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,6 +70,7 @@
 				55B3D41F238E1B4500E6054E /* doc */,
 				55B3D40E238E051D00E6054E /* src */,
 				55B96987252CC1D30021CD8B /* bas */,
+				55B96992252F5A880021CD8B /* git */,
 				55B9698F252F4F340021CD8B /* obj */,
 				55B9698D252F4F080021CD8B /* bin */,
 				55B3D40D238E051D00E6054E /* Products */,
@@ -128,6 +130,14 @@
 			children = (
 			);
 			path = obj;
+			sourceTree = "<group>";
+		};
+		55B96992252F5A880021CD8B /* git */ = {
+			isa = PBXGroup;
+			children = (
+				55B96993252F5AB80021CD8B /* .gitignore */,
+			);
+			path = git;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
