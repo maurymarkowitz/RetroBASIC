@@ -2,7 +2,7 @@
 #RetroBASIC
 ~~~~~~~~~~
 
-**Copyright (C) 2019 Maury Markowitz**
+**Copyright (C) 2020 Maury Markowitz**
 
 [![GPL license](http://img.shields.io/badge/license-GPL-brightgreen.svg)](https://opensource.org/licenses/gpl-license)
 
@@ -17,13 +17,15 @@
 
 RetroBASIC is a C language BASIC interpreter who's goal is to run any program for the major 1970s/80s BASIC interpreters, including Tiny BASIC, Palo Alto Tiny BASIC, MS-BASIC (Altair, Commodore, etc.), HP TimeShare BASIC, Atari BASIC and others.
 
-RetroBASIC also includes an optional static analizer that prints statistics for the program after it completes. This includes the length of the program and its line number range, the number and types of variables used, and similar details. The original impetus for RetroBASIC was to collect statistics on common programs to provide hints to the retrocomputing field, where new BASICs continue to be developed.
+RetroBASIC also includes a static analizer that prints statistics for the program after it completes. This includes the length of the program and its line number range, the number and types of variables used, and similar details. The original impetus for RetroBASIC was to collect statistics on common programs to provide hints to the retrocomputing field, where new BASICs continue to be developed.
 
 RetroBASIC is based on gnbasic by James Bowman.
  
 ## Running RetroBASIC
 
-RetroBASIC is meant to be used with an existing program source file, not interactively. To run it, use ```./retrobasic program.bas```. It will accept any text file as input and report errors if it cannot properly parse it. If parsing succeeds, the program begins running immediately. Most programs should run correctly, although file I/O is not currently implemented, user functions return zero, and INPUT statements with multiple assignments currently require returns between each value.
+RetroBASIC is meant to be used with an existing program source file, not interactively. To run it, use ```./retrobasic program.bas```. It will accept any text file as input and report errors if it cannot properly parse it. If parsing succeeds, the program (normally) begins running immediately. Most programs should run correctly, although file I/O is not currently implemented, user functions return zero, and INPUT statements with multiple assignments currently require returns between each value.
+
+If your goal is to simply check the syntax of the program, or to list statistics, use the --no_run switch, -n for short. This will load and parse the BASIC source, but not run it.
 
 ## Building RetroBASIC
 

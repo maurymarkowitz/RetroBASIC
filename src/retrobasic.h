@@ -1,5 +1,5 @@
 /* Interpreter (header) for RetroBASIC
-   Copyright (C) 2019 Maury Markowitz
+   Copyright (C) 2020 Maury Markowitz
    
    Based on gnbasic
    Copyright (C) 1998 James Bowman
@@ -53,7 +53,7 @@ typedef struct expression_struct {
         struct {
             int arity;
             int o;
-            struct expression_struct *p[3];
+            struct expression_struct *p[3]; // arity can be up to 3 in BASIC
         } op;
     } parms;
 } expression_t;

@@ -1,6 +1,6 @@
 %{
 /* Lexical analyser for RetroBASIC
-   Copyright (C) 2019 Maury Markowitz
+   Copyright (C) 2020 Maury Markowitz
 
    Based on gnbasic
    Copyright (C) 1998 James Bowman

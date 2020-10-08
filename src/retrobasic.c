@@ -1,5 +1,5 @@
 /* Interpreter for RetroBASIC
-   Copyright (C) 2019 Maury Markowitz
+   Copyright (C) 2020 Maury Markowitz
    
    Based on gnbasic
    Copyright (C) 1998 James Bowman
@@ -787,7 +787,6 @@ static GList *do_statement(GList *L)
             case GOTO:
 				{
 					next = find_line(evaluate(ps->parms._goto).number);
-					//printf("in goto in line %i, target=%i, next=%i\n",current_line(),(int)evaluate(ps->parms._goto).number,line_for_statement(next));
 				}
 				break;
                 
@@ -805,6 +804,7 @@ static GList *do_statement(GList *L)
                             // null ->next should be the last statement in the program
                             do_statement(ps->parms._if.then_expression);
 						} else {
+                            // if the THEN is not an expression, jump to that line
 							next = find_line(ps->parms._if.then_linenumber);
 						}
 					}
@@ -1052,7 +1052,7 @@ static GList *do_statement(GList *L)
             case RESTORE:
 				{
 					// resets the DATA pointer
-					// TODO: are there versions that take a line number?
+					// TODO: there versions that take a line number?
 					interpreter_state.current_data_statement = find_line(0);
 					interpreter_state.current_data_element = NULL;
 				}
@@ -1132,8 +1132,9 @@ static void delete_variables() {
 /* the main loop for the program */
 void run(void)
 {
-    // last line number run, used for tracing
+    // last line number we ran, used for tracing/stepping
     int last_line = interpreter_state.first_line;
+    printf("[%i]\n", last_line);
 
     // very simple - do_statement returns the next statement and the
     // main below set us up to point to the first one, so just call
@@ -1348,6 +1349,7 @@ void print_statistics()
  -v/--version = print the version
  -h/--help = print the usage notes
  -f/--file = name of the program to run
+ -t/--tabs = sets the number of columns per tab for comma-separated output
  -p/--print-stats = prints statistics in human form to the standard output
  -w/--write-stats = prints stats in machine form to the named file
  -i/--input-file = redirects INPUT statements to take values from the named file
@@ -1360,6 +1362,7 @@ static struct option program_options[] =
     {"help", no_argument, NULL, 'h'},
     {"version", no_argument, NULL, 'v'},
     {"file", required_argument, NULL, 'f'},
+    {"tabs", required_argument, NULL, 't'},
     {"input-file", required_argument, NULL, 'i'},
     {"output-file", required_argument,  NULL, 'o'},
     {"print-stats", no_argument, &print_stats, 1},
@@ -1434,7 +1437,7 @@ int main(int argc, char *argv[])
     
     // turn this on to add verbose debugging
     #if YYDEBUG
-       //yydebug = 1;
+       yydebug = 1;
     #endif
     
     // parse the options and make sure we got a filename somewhere
