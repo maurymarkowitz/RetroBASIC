@@ -8,6 +8,8 @@ MS = MS BASIC, following 6502 40-bit version
 
 - statements following the first statement in a THEN do not run
     IF 1=1 THEN A=1:B=2 will only run A=1
+    
+- ELSE would be realtively easy to add, at least the single-line variety
 
 - need to allow multiple INPUTs on a single line, currently it requires a CR between values
 
