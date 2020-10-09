@@ -20,8 +20,6 @@
 205 REM *** SOME LINES ARE LONGER THAN 72 CHARACTERS; THIS WAS DONE
 210 REM *** BY USING "?" INSTEAD OF "PRINT" WHEN ENTERING LINES
 215 REM ***
-216 print"one":print"two"
-217 if 1=1 then print"three":print"four"
 220 PRINT:PRINT:PRINT:PRINT:PRINT:PRINT:PRINT:PRINT:PRINT:PRINT:PRINT
 221 PRINT"                                    ,------*------,"
 222 PRINT"                    ,-------------   '---  ------'"
