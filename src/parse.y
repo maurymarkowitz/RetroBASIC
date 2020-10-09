@@ -298,7 +298,7 @@ statement:
 	  $$ = new;
       
       /* static analyzer */
-      // equivalent to a GOTO, GOSUBs would be caught in the next line and the line number caught there
+      // this handles the implicit GOTO case, GOSUBs are explicit so they are caught in the next rule and the line number caught in the GOSUB
       linenum_constants_total++;
       linenum_then_goto_totals++;
       if ($2->parms.number) {
@@ -720,6 +720,7 @@ printlist:
 	  $$ = g_list_prepend(NULL, new);
 	}
     |
+    // this handles MS semi-is-the-same as nothing, PRINT"I="I
     expression printlist
     {
       printitem_t *new = malloc(sizeof(*new));
