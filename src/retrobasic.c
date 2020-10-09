@@ -34,6 +34,8 @@ interpreterstate_t interpreter_state;
 static int run_program = 1; // default to running the program, not just parsing it
 static int print_stats = 1;
 static int write_stats = 0;
+static int tab_columns = 16;
+static double random_seed = -1;
 static char *program_file = "";
 static char *input_file = "";
 static char *print_file = "";
@@ -702,7 +704,7 @@ static GList *do_statement(GList *L)
     ps = L->data;
     if (ps) {
         
-        //printf("line %d statmt %d\n", is.linenumber, ps->type);
+        printf("line %d statmt %d\n", current_line(), ps->type);
         
         switch (ps->type) {
             case BYE:
@@ -980,9 +982,9 @@ static GList *do_statement(GList *L)
 						// otherwise, see if there's a separator and print using the width
 						else {
 							int fieldwidth;
-							// if the separator is a comma, the width is 16 spaces
+							// if the separator is a comma, the width is the tab width, normally 16 spaces
 							if (pp->sep == ',')
-								fieldwidth = 16;
+								fieldwidth = tab_columns;
 							else
 								fieldwidth = 0;
 							print_expression(pp->e, fieldwidth, NULL);
@@ -1361,8 +1363,8 @@ static struct option program_options[] =
 {
     {"help", no_argument, NULL, 'h'},
     {"version", no_argument, NULL, 'v'},
-    {"file", required_argument, NULL, 'f'},
     {"tabs", required_argument, NULL, 't'},
+    {"random", required_argument, NULL, 'r'},
     {"input-file", required_argument, NULL, 'i'},
     {"output-file", required_argument,  NULL, 'o'},
     {"print-stats", no_argument, &print_stats, 1},
@@ -1403,10 +1405,6 @@ void parse_options(int argc, char *argv[])
                 print_version();
                 break;
                 
-            case 'f':
-                program_file = optarg;
-                break;
-                
             case 'i':
                 input_file = optarg;
                 break;
@@ -1419,13 +1417,16 @@ void parse_options(int argc, char *argv[])
                 write_stats = 1;
                 stats_file = optarg;
                 break;
+                
+            case 'r':
+                random_seed = strtol(optarg, 0, INT_MAX);
 
             case '?':
                 /* getopt_long already printed an error message. */
                 break;
                 
             default:
-                abort ();
+                abort();
         }
     } // while
 }
@@ -1486,7 +1487,10 @@ int main(int argc, char *argv[])
     interpreter_state.cursor_column = 0;                        // cursor starts in col 0
 
     // seed the random
-    srand((unsigned int)time(0));
+    if (random_seed >= 0)
+        srand(random_seed);
+    else
+        srand((unsigned int)time(0));
     
     // and go!
     if (run_program)
