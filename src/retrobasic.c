@@ -36,7 +36,7 @@ static int print_stats = 1;
 static int write_stats = 0;
 static int tab_columns = 16;
 static double random_seed = -1;
-static char *program_file = "";
+//static char *program_file = "";
 static char *input_file = "";
 static char *print_file = "";
 static char *stats_file = "";
@@ -237,18 +237,6 @@ either_t *variable_value(variable_t *variable, int *type)
             }
     }
     
-    //testing free on name, see if that fixes var problem
-    //g_string_free(storage_name, FALSE);
-    
-//    if (storage->type == STRING)
-//        //printf(" -- returning string %s\n",storage->value[index].s->str);
-//        if (storage->value[index].s == NULL)
-//            printf(" -- returning null string\n");
-//        else
-//            printf(" -- returning string %s\n", storage->value[index].s->str);
-//    else
-//        printf(" -- returning number %f\n",storage->value[index].d);
-
     // all done, return the value at that index
     return &storage->value[index];
 }
@@ -698,14 +686,13 @@ static int lines_between(int first_line, int second_line)
 /* performs a single statement */
 static GList *do_statement(GList *L)
 {
-    statement_t *ps;
-    GList *next = g_list_next(L);	/* by default, may be changed below, in GOTO, GOSUB, ON, IF... */
+    // get the next statement to run, which, by default, is the next statement in the program
+    // this may be changed GOTO, GOSUB, ON, IF...
+    GList *next = g_list_next(L);
     
-    ps = L->data;
+    // now process this statement
+    statement_t *ps = L->data;
     if (ps) {
-        
-        printf("line %d statmt %d\n", current_line(), ps->type);
-        
         switch (ps->type) {
             case BYE:
 				// unlike END, this exits BASIC entirely
@@ -720,20 +707,13 @@ static GList *do_statement(GList *L)
                 break;
                 
             case DATA:
-				// basically works like a REM, so just move on
+				// basically works like a REM, so just move on, all the logic is in the READ
                 break;
                 
             case DEF:
-                // a user function is just an expression. The trick is that the variables
-                // in the definition are local, something BASIC doesn't normally have. To
-                // handle this case we add the name of the function itself to the local
-                // variable name and then use that during the evaluation. If RetroBASIC
-                // ever implements LIST, this is a place where the code cannot simply be
-                // printed back out, but the same is true for arrays and others as well
-
-
+                // a user function is just an expression, so the statement doesn't really do anything
                 break;
-                
+
             case DIM:
                 // all we do here is loop over the list and call variable_value to initialize them
 				{
@@ -799,12 +779,13 @@ static GList *do_statement(GList *L)
 					if (cond.number != 0) {
 						/* THEN might be an expression including a GOTO or an implicit GOTO */
 						if (ps->parms._if.then_expression) {
-                            // this was formerly next = do_statement, however this caused the next to point
-                            // into the wild in SST. it's not clear why, the LET that caused the problem
-                            // does not change next, so it seems to imply the ->next pointer in the statement
-                            // itself was wrong. this deserves some investigation, the only line with a
-                            // null ->next should be the last statement in the program
-                            do_statement(ps->parms._if.then_expression);
+                            // this was formerly next = do_statement, which meant it could only
+                            // perform a single statement after the IF. for this to work properly,
+                            // the then_expression has to be a list that is not connected to the
+                            // next line, it has to end on a NULL
+                            for (GList *L = ps->parms._if.then_expression; L != NULL; L = g_list_next(L)) {
+                                do_statement(L);
+                            }
 						} else {
                             // if the THEN is not an expression, jump to that line
 							next = find_line(ps->parms._if.then_linenumber);
@@ -1438,7 +1419,7 @@ int main(int argc, char *argv[])
     
     // turn this on to add verbose debugging
     #if YYDEBUG
-       yydebug = 1;
+       //yydebug = 1;
     #endif
     
     // parse the options and make sure we got a filename somewhere
