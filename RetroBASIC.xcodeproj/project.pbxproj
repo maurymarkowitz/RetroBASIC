@@ -13,7 +13,6 @@
 		55B3D421238E1BA700E6054E /* test.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 55B3D420238E1B9900E6054E /* test.bas */; };
 		55B3D42C23943EB100E6054E /* superstartrek.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 55B3D42B23942C7200E6054E /* superstartrek.bas */; };
 		55B9698C252F44E70021CD8B /* parse.y in Sources */ = {isa = PBXBuildFile; fileRef = 55B9698B252F44E70021CD8B /* parse.y */; };
-		55B96991252F4FCA0021CD8B /* makefile in Sources */ = {isa = PBXBuildFile; fileRef = 55B96990252F4FCA0021CD8B /* makefile */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -166,7 +165,7 @@
 		55B3D404238E051D00E6054E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1120;
+				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = "Maury Markowitz";
 				TargetAttributes = {
 					55B3D40B238E051D00E6054E = {
@@ -199,7 +198,6 @@
 			files = (
 				55B9698C252F44E70021CD8B /* parse.y in Sources */,
 				5599AEFA239C0A6F00490A3A /* retrobasic.c in Sources */,
-				55B96991252F4FCA0021CD8B /* makefile in Sources */,
 				5599AEFE239C0ABF00490A3A /* scan.l in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
