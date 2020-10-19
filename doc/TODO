@@ -1,21 +1,23 @@
 RetroBASIC TODO list
 
-PATB = Palo Alto Tiny BASIC
-HPB = HP Time-Sharing BASIC
+MS = MS BASIC, following 6502 40-bit version
+HP = HP Time-Sharing BASIC
 AB = Atari BASIC
 IB = Integer BASIC
-MS = MS BASIC, following 6502 40-bit version
+PATB = Palo Alto Tiny BASIC
 
-- statements following the first statement in a THEN do not run
-    IF 1=1 THEN A=1:B=2 will only run A=1
-    
+- IF statements follow the MS pattern, where all statements are considered part of the IF
+  this is as opposed to the Dartmouth pattern where only the statement after the IF is considered,
+  any additional statements on the line will run regardless of the IF
+    IF 1=2 THEN PRINT"one";:PRINT"two" will print nothing, whereas Dartmouth would print two
+
+- DEF FN is parsed but not evaluated
+
 - ELSE would be realtively easy to add, at least the single-line variety
 
 - need to allow multiple INPUTs on a single line, currently it requires a CR between values
 
-- DEF FN is parsed but not evaluated
-
-- add support for string "slicing" commands used in HP/AB/NS. This is a bit tricky because it is the same syntax as string arrays found in other systems. This might only be possible by using a command-line switch. Alternately, use square brakets for slicing, which would require rewrites for AB.
+- add support for string "slicing" commands used in HP/AB/IB. This is a bit tricky because it is the same syntax as string arrays found in other systems. This might only be possible by using a command-line switch. Alternately, use square brakets for slicing, which would require rewrites for AB/IB.
 
 - support AB's DEG and RAD modes?
 
@@ -35,7 +37,7 @@ MS = MS BASIC, following 6502 40-bit version
 
 - file handling, OPEN, PRINT# etc.
 
-- support different TAB widths - Dartmouth was 17, we have 16, GW-BASIC uses 14, --tabs=16?
+- support different TAB widths - Dartmouth was 17, we have 16, GW-BASIC uses 14, --tabs 16?
 
 - add support for OPTION BASE and modify variable_value to handle base 0
 
