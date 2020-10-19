@@ -66,8 +66,8 @@ typedef struct expression_struct {
          (semi?)equivalent to a semicolon.
  */
 typedef struct {
-    expression_t *e;
-    int sep;			/* ';' ',' or 0 */
+    expression_t *expression;
+    int separator;			/* ';' ',' or 0 */
 } printitem_t;
 
 /* every statement in the program gets a statement entry. the most
@@ -99,8 +99,8 @@ typedef struct statement_struct {
         } _if;
         GList *input;
         struct {
-            variable_t *lvalue;
-            expression_t *e;
+            variable_t *variable;
+            expression_t *expression;
         } let;
         struct {
             int type; /* GOTO or GOSUB */
@@ -109,8 +109,8 @@ typedef struct statement_struct {
         } on;
         variable_t *next;
         struct {
-            expression_t *using;
-            GList *l;
+            expression_t *format;
+            GList *item_list;
         } print;
         GList *read;
         GString *rem;

@@ -35,6 +35,7 @@ static int run_program = 1; // default to running the program, not just parsing 
 static int print_stats = 1;
 static int write_stats = 0;
 static int tab_columns = 16;
+static int trace_lines = FALSE;
 static double random_seed = -1;
 //static char *program_file = "";
 static char *input_file = "";
@@ -288,8 +289,16 @@ static value_t evaluate(expression_t *e)
 		// this case, we prefix the name of the local variables with the name
 		// of the function itself when we look them up in storage
         case fn:
-            r.type = NUMBER;
-            r.number = 0;
+            {
+                int type;
+                either_t *p;
+                p = variable_value(e->parms.variable, &type);
+                r.type = type;
+                if (type == STRING)
+                    r.string = p->s;
+                else
+                    r.number = p->d;
+            }
             break;
             
         // and now for the fun bit, the operators list...
@@ -376,7 +385,7 @@ static value_t evaluate(expression_t *e)
                             r.number = 1;
                         break;
                     case POS:
-                        r.number = (double)interpreter_state.cursor_column;
+                        r.number = (double)interpreter_state.cursor_column; //FIXME: should this be +1?
                         break;
                     case TAB:
                         // TAB does nothing if the current cursor position is past
@@ -386,7 +395,7 @@ static value_t evaluate(expression_t *e)
                         r.string = g_string_new("");
                         int tabs = (int)p[0].number;
                         if (tabs > interpreter_state.cursor_column) {
-                            for (int i = interpreter_state.cursor_column; i <= tabs; i++) {
+                            for (int i = interpreter_state.cursor_column; i <= tabs - 1; i++) {
                                 r.string = g_string_append(r.string, " ");
                             }
                         }
@@ -542,19 +551,20 @@ static value_t evaluate(expression_t *e)
 }
 
 /* handles the PRINT and PRINT USING statements, which can get complex */
-static void print_expression(expression_t *e, int fieldwidth, char *using)
+static void print_expression(expression_t *e, int fieldwidth, char *format)
 {
     // get the value of the expression for this item
     value_t v = evaluate(e);
     
     // if there is a USING string, build a c-style format string from it
-    if (using) {
+    if (format) {
         char copy[MAXSTRING];
         char *hash;
         int width = 0, prec = 0;
         
         // FIXME: this doesn't handle string formatters, see GW-BASIC manual
-        strcpy(copy, using);
+        strcpy(copy, format);
+        // look for any hash characters in front and behind a period
         hash = strchr(copy, '#');
         if (hash) {
             char *pc = hash;
@@ -571,8 +581,8 @@ static void print_expression(expression_t *e, int fieldwidth, char *using)
                 width++;
                 pc++;
             }
-            sprintf(hash, "%%*.*f");	/* replace ##.## with % spec */
-            strcat(hash, pc);		/* rest of string */
+            sprintf(hash, "%%*.*f");    // replace ##.## with % spec
+            strcat(hash, pc);		    // append the rest of string
         }
         // and now print it out using that format
         switch (v.type) {
@@ -589,7 +599,8 @@ static void print_expression(expression_t *e, int fieldwidth, char *using)
     else {
         switch (v.type) {
             case NUMBER:
-                interpreter_state.cursor_column += printf(" %-*g ", fieldwidth, v.number); //FIXME: this assumes a leading space, we should find the actual rule
+                // in MS rules, numbers have a leading - or invisible +, and a trailing space
+                interpreter_state.cursor_column += printf("% -*g ", fieldwidth, v.number);
                 break;
             case STRING:
                 interpreter_state.cursor_column += printf("%-*s", fieldwidth, v.string->str);
@@ -715,7 +726,8 @@ static GList *do_statement(GList *L)
                 break;
 
             case DIM:
-                // all we do here is loop over the list and call variable_value to initialize them
+                // the parser has already pulled out the variable names, so all we have to
+                // do here is loop over the list and call variable_value to initialize them
 				{
 					GList *L;
 					for (L = ps->parms.dim; L != NULL; L = g_list_next(L)) {
@@ -807,7 +819,7 @@ static GList *do_statement(GList *L)
 					// we want to display it. we don't have to do that for other
 					// items in the list because it's handled in the loop
 					printitem_t *ppi= ps->parms.input->data;
-					if (ppi->e->type == variable)
+					if (ppi->expression->type == variable)
 						printf("?");
 					
 					// and now loop over what else we find on the line
@@ -816,7 +828,7 @@ static GList *do_statement(GList *L)
 						int type;
 						
 						ppi = I->data;
-						if (ppi->e->type == variable) {
+						if (ppi->expression->type == variable) {
 							char line[80];
 							
 							// see if we can get some data
@@ -828,7 +840,7 @@ static GList *do_statement(GList *L)
 							line[strlen(line) - 1] = '\0';
 							
 							// find the storage for this variable, and assign the value
-							value = variable_value(ppi->e->parms.variable, &type);
+							value = variable_value(ppi->expression->parms.variable, &type);
 							if (type == NUMBER) {
 								sscanf(line, "%lg", &value->d);
 							} else {
@@ -837,9 +849,9 @@ static GList *do_statement(GList *L)
 						}
 						// if it's not a variable, it's some sort of prompt, so print it
 						else {
-							print_expression(ppi->e, 0, NULL);
+							print_expression(ppi->expression, 0, NULL);
 							// and if the sep is a comma, suppress the ?, otherwise add it
-							if (ppi->sep != ',')
+							if (ppi->separator != ',')
 								printf("?");
 						}
 					}
@@ -854,10 +866,10 @@ static GList *do_statement(GList *L)
 					value_t exp_val;
 					
 					// get the storage entry for this variable
-					stored_val = variable_value(ps->parms.let.lvalue, &type);
+					stored_val = variable_value(ps->parms.let.variable, &type);
 					
 					// evaluate the expression
-					exp_val = evaluate(ps->parms.let.e);
+					exp_val = evaluate(ps->parms.let.expression);
 					
 					// make sure we got the right type, and assign it if we did
 					if (exp_val.type == type) {
@@ -951,37 +963,46 @@ static GList *do_statement(GList *L)
 					printitem_t *pp;
 					
 					// loop over the items in the print list
-					for (L = ps->parms.print.l; L != NULL; L = g_list_next(L)) {
+					for (L = ps->parms.print.item_list; L != NULL; L = g_list_next(L)) {
 						pp = L->data;
 						
 						// if there's a USING, evaluate the format string it and print using it
-						if (ps->parms.print.using) {
-							value_t using;
-							using = evaluate(ps->parms.print.using);
-							print_expression(pp->e, 0, using.string->str);
+						if (ps->parms.print.format) {
+							value_t format_string;
+                            format_string = evaluate(ps->parms.print.format);
+							print_expression(pp->expression, 0, format_string.string->str);
 						}
 						// otherwise, see if there's a separator and print using the width
 						else {
-							int fieldwidth;
-							// if the separator is a comma, the width is the tab width, normally 16 spaces
-							if (pp->sep == ',')
-								fieldwidth = tab_columns;
-							else
-								fieldwidth = 0;
-							print_expression(pp->e, fieldwidth, NULL);
+//							int fieldwidth;
+//							// if the separator is a comma, the width is the tab width, normally 16 spaces
+//							if (pp->separator == ',')
+//								fieldwidth = tab_columns;
+//							else
+//								fieldwidth = 0;
+							print_expression(pp->expression, 0, NULL);
 						}
+                        
+                        // for each item in the list, look at the separator, if there is one
+                        // and it's a comma, advance the cursor to the next tab column
+                        if (pp->separator == ',')
+                            //FIXME: this should wrap at 80 columns
+                            while (interpreter_state.cursor_column % tab_columns != 0) {
+                                printf(" ");
+                                interpreter_state.cursor_column++;
+                            }
 					}
 					
 					// now get the last item in the list so we can see if it's a ; or ,
-					if (g_list_last(ps->parms.print.l))
-						pp = (printitem_t *)(g_list_last(ps->parms.print.l)->data);
+					if (g_list_last(ps->parms.print.item_list))
+						pp = (printitem_t *)(g_list_last(ps->parms.print.item_list)->data);
 					else
 						pp = NULL;
 					
 					// if there are no more items, or it's NOT a separator, do a CR
-					if ((pp == NULL) || (pp->sep == 0)) {
-						interpreter_state.cursor_column = 0; // and reset this!
+					if ((pp == NULL) || (pp->separator == 0)) {
 						printf("\n");
+                        interpreter_state.cursor_column = 0; // and reset this!
 					}
 				}
                 break;
@@ -1035,7 +1056,7 @@ static GList *do_statement(GList *L)
             case RESTORE:
 				{
 					// resets the DATA pointer
-					// TODO: there versions that take a line number?
+					// TODO: there versions that take a line number, and/or element number
 					interpreter_state.current_data_statement = find_line(0);
 					interpreter_state.current_data_element = NULL;
 				}
@@ -1117,7 +1138,8 @@ void run(void)
 {
     // last line number we ran, used for tracing/stepping
     int last_line = interpreter_state.first_line;
-    printf("[%i]\n", last_line);
+    if (trace_lines)
+        printf("[%i]\n", last_line);
 
     // very simple - do_statement returns the next statement and the
     // main below set us up to point to the first one, so just call
@@ -1126,7 +1148,7 @@ void run(void)
         interpreter_state.current_statement = do_statement(interpreter_state.current_statement);
         
         // trace, only on line changes
-        if (last_line != current_line()) {
+        if (trace_lines && last_line != current_line()) {
             last_line = current_line();
             printf("[%i]\n", last_line);
         }

@@ -324,8 +324,8 @@ statement:
 	LET variable '=' expression /* visible LET, invisible LET is at the bottom */
 	{
 	  statement_t *new = make_statement(LET);
-	  new->parms.let.lvalue = $2;
-	  new->parms.let.e = $4;
+	  new->parms.let.variable = $2;
+	  new->parms.let.expression = $4;
 	  $$ = new;
 	}
 	|
@@ -364,16 +364,16 @@ statement:
 	PRINT printlist
 	{
 	  statement_t *new = make_statement(PRINT);
-	  new->parms.print.using = NULL;
-	  new->parms.print.l = $2;
+	  new->parms.print.format = NULL;
+	  new->parms.print.item_list = $2;
 	  $$ = new;
 	}
 	|
 	PRINT USING expression ';' printlist
 	{
 	  statement_t *new = make_statement(PRINT);
-	  new->parms.print.using = $3;
-	  new->parms.print.l = $5;
+	  new->parms.print.format = $3;
+	  new->parms.print.item_list = $5;
 	  $$ = new;
 	}
 	|
@@ -418,8 +418,8 @@ statement:
 	variable '=' expression /* invisible LET, visible LET is above */
 	{
 	  statement_t *new = make_statement(LET);
-	  new->parms.let.lvalue = $1;
-	  new->parms.let.e = $3;
+	  new->parms.let.variable = $1;
+	  new->parms.let.expression = $3;
 	  $$ = new;
 	}
 	;
@@ -715,8 +715,8 @@ printlist:
 	expression
 	{
 	  printitem_t *new = malloc(sizeof(*new));
-	  new->e = $1;
-	  new->sep = 0;
+	  new->expression = $1;
+	  new->separator = 0;
 	  $$ = g_list_prepend(NULL, new);
 	}
     |
@@ -724,16 +724,16 @@ printlist:
     expression printlist
     {
       printitem_t *new = malloc(sizeof(*new));
-      new->e = $1;
-      new->sep = 0;
+      new->expression = $1;
+      new->separator = 0;
       $$ = g_list_prepend($2, new);
     }
     |
 	expression printsep printlist
 	{
 	  printitem_t *new = malloc(sizeof(*new));
-	  new->e = $1;
-	  new->sep = $2;
+	  new->expression = $1;
+	  new->separator = $2;
 	  $$ = g_list_prepend($3, new);
 	}
     |
@@ -741,8 +741,8 @@ printlist:
     printsep printlist
     {
       printitem_t *new = malloc(sizeof(*new));
-      new->e = NULL;
-      new->sep = $1;
+      new->expression = NULL;
+      new->separator = $1;
       $$ = g_list_prepend($2, new);
     }
 	;
