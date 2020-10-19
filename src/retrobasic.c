@@ -551,7 +551,7 @@ static value_t evaluate(expression_t *e)
 }
 
 /* handles the PRINT and PRINT USING statements, which can get complex */
-static void print_expression(expression_t *e, int fieldwidth, char *format)
+static void print_expression(expression_t *e, char *format)
 {
     // get the value of the expression for this item
     value_t v = evaluate(e);
@@ -600,10 +600,10 @@ static void print_expression(expression_t *e, int fieldwidth, char *format)
         switch (v.type) {
             case NUMBER:
                 // in MS rules, numbers have a leading - or invisible +, and a trailing space
-                interpreter_state.cursor_column += printf("% -*g ", fieldwidth, v.number);
+                interpreter_state.cursor_column += printf("% -g ", v.number);
                 break;
             case STRING:
-                interpreter_state.cursor_column += printf("%-*s", fieldwidth, v.string->str);
+                interpreter_state.cursor_column += printf("%-s", v.string->str);
                 break;
         }
     }
@@ -849,7 +849,7 @@ static GList *do_statement(GList *L)
 						}
 						// if it's not a variable, it's some sort of prompt, so print it
 						else {
-							print_expression(ppi->expression, 0, NULL);
+							print_expression(ppi->expression, NULL);
 							// and if the sep is a comma, suppress the ?, otherwise add it
 							if (ppi->separator != ',')
 								printf("?");
@@ -970,17 +970,11 @@ static GList *do_statement(GList *L)
 						if (ps->parms.print.format) {
 							value_t format_string;
                             format_string = evaluate(ps->parms.print.format);
-							print_expression(pp->expression, 0, format_string.string->str);
+							print_expression(pp->expression, format_string.string->str);
 						}
 						// otherwise, see if there's a separator and print using the width
 						else {
-//							int fieldwidth;
-//							// if the separator is a comma, the width is the tab width, normally 16 spaces
-//							if (pp->separator == ',')
-//								fieldwidth = tab_columns;
-//							else
-//								fieldwidth = 0;
-							print_expression(pp->expression, 0, NULL);
+							print_expression(pp->expression, NULL);
 						}
                         
                         // for each item in the list, look at the separator, if there is one
