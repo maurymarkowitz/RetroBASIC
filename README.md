@@ -34,7 +34,7 @@ The RetroBASIC interpreter is written for lex/yacc and is normally compiled with
 
 ## Missing features and Erata
 
-* IF...THEN only runs the next statement on the line, not any that might follow with colons.
+* DEF FNx is not currently operational (next on the list).
 * INPUT statements with multiple values currently have to be entered with return/enter between each value.
 * LIST, LOAD and SAVE are currently not implemented, in keeping with the use-case.
 * REMs do not remember the comment, although it should be easy to add this if LIST support is desired.
