@@ -124,9 +124,8 @@ XOR			{ return XOR; }
 #           { return CMP_HASH; }
 
  /* numeric constants and line numbers */
- /* this should really use strtod */
 [0-9]*[0-9.][0-9]*([Ee][-+]?[0-9]+)? {
-              yylval.d = strtod(yytext, NULL); //atof(yytext);
+              yylval.d = strtod(yytext, NULL);
               return NUMBER;
             }
 
