@@ -129,12 +129,18 @@ XOR			{ return XOR; }
               return NUMBER;
             }
 
- /* variables and user-defined function names */
+ /* user defined functions */
+"FN"[A-Za-z@][A-Za-z0-9_]?[\$%\!#]? {
+             yylval.s = g_string_new(yytext);
+             return FUNCTION_NAME;
+           }
+
+ /* variable references */
  /* currently set to allow only one or two chars plus an optional type indicator
     replace the ? with a * for multi-char variables */
-"FN"?[A-Za-z@][A-Za-z0-9_]?[\$%\!#]? {
+[A-Za-z@][A-Za-z0-9_]?[\$%\!#]? {
               yylval.s = g_string_new(yytext);
-              return IDENTIFIER;
+              return VARIABLE_NAME;
             }
 
  /* string constants */
