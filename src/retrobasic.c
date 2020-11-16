@@ -93,6 +93,10 @@ int numeric_constants_one_byte = 0;
 int numeric_constants_two_byte = 0;
 int numeric_constants_four_byte = 0;
 int numeric_constants_big = 0;
+int numeric_constants_10 = 0;
+int numeric_constants_16 = 0;
+int numeric_constants_256 = 0;
+
 int string_constants_total = 0;
 int string_constants_one_byte = 0;
 int string_constants_two_byte = 0;
@@ -1265,7 +1269,10 @@ void print_statistics()
         printf(" 1 byte: %i\n",numeric_constants_one_byte);
         printf(" 2 byte: %i\n",numeric_constants_two_byte);
         printf(" 3 byte: %i\n",numeric_constants_four_byte);
-        
+        printf("     10: %i\n",numeric_constants_10);
+        printf("     16: %i\n",numeric_constants_16);
+        printf("    256: %i\n",numeric_constants_256);
+
         printf("\nSTRING CONSTANTS\n\n");
         printf("  total: %i\n",string_constants_total);
         printf(" 1 char: %i\n",string_constants_one_byte);
@@ -1320,7 +1327,10 @@ void print_statistics()
         fprintf(fp, "NUMERIC CONSTANTS,1 byte,%i\n",numeric_constants_one_byte);
         fprintf(fp, "NUMERIC CONSTANTS,2 byte,%i\n",numeric_constants_two_byte);
         fprintf(fp, "NUMERIC CONSTANTS,3 byte,%i\n",numeric_constants_four_byte);
-        
+        fprintf(fp, "NUMERIC CONSTANTS,10,%i\n",numeric_constants_10);
+        fprintf(fp, "NUMERIC CONSTANTS,16,%i\n",numeric_constants_16);
+        fprintf(fp, "NUMERIC CONSTANTS,256,%i\n",numeric_constants_256);
+
         fprintf(fp, "STRING CONSTANTS,total,%i\n",string_constants_total);
         fprintf(fp, "STRING CONSTANTS,1 char,%i\n",string_constants_one_byte);
         fprintf(fp, "STRING CONSTANTS,2 chars,%i\n",string_constants_two_byte);
@@ -1435,7 +1445,7 @@ int main(int argc, char *argv[])
     
     // turn this on to add verbose debugging
     #if YYDEBUG
-       //yydebug = 1;
+       yydebug = 1;
     #endif
     
     // parse the options and make sure we got a filename somewhere

@@ -41,7 +41,7 @@ typedef struct {
 
 /* expressions */
 typedef enum {
-    number, string, variable, op, fn
+    number, string, variable, op, fn, ufn
 } expression_type_t;
 
 typedef struct expression_struct {
@@ -176,6 +176,9 @@ extern int numeric_constants_big;
 extern int numeric_constants_one_byte;
 extern int numeric_constants_two_byte;
 extern int numeric_constants_four_byte;
+extern int numeric_constants_10;
+extern int numeric_constants_16;
+extern int numeric_constants_256;
 extern int string_constants_total;
 extern int string_constants_one_byte;
 extern int string_constants_two_byte;
