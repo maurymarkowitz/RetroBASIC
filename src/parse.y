@@ -58,18 +58,15 @@ static expression_t *make_operator(int arity, int o)
   return new;
 }
 
-
 #define YYDEBUG 1
 
-
-/************************************************************************/
+ /************************************************************************/
 
 %}
 
  /* Bison declarations */
 
- // %define parse.error verbose
-
+ //%define parse.error verbose
 
 %union {
   double d;
@@ -83,14 +80,15 @@ static expression_t *make_operator(int arity, int o)
 
 %type <l> program line statements
 %type <l> printlist exprlist varlist //assignlist //numlist
-%type <i> printsep binary_op comparison_op e2op e3op unary_op fn_1 fn_2 fn_x
+%type <i> printsep binary_op comparison_op e2op term unary_op fn_1 fn_2 fn_x
 %type <expression> expression expression0 expression1 expression2 expression3 expression4 function factor
 %type <statement> statement
-%type <variable> variable
+%type <variable> variable user_function
 
 %token <d> NUMBER
 %token <s> STRING
-%token <s> IDENTIFIER
+%token <s> VARIABLE_NAME
+%token <s> FUNCTION_NAME
 
 %token BYE
 %token CLEAR
@@ -203,7 +201,7 @@ statement:
 	  $$ = new;
 	}
 	|
-	DEF variable '=' expression
+	DEF user_function '=' expression
 	{
 	  statement_t *new = make_statement(DEF);
       new->parms.def.name = $2;
@@ -486,7 +484,7 @@ e2op:   '+' { $$ = '+'; } |
 expression3:
 	expression4
 	|
-	expression3 e3op expression4
+	expression3 term expression4
 	{
 	  expression_t *new = make_operator(2, $2);
 	  new->parms.op.p[0] = $1;
@@ -495,7 +493,7 @@ expression3:
 	}
 	;
 
-e3op:   '*' { $$ = '*'; } |
+term:   '*' { $$ = '*'; } |
         '/' { $$ = '/'; } |
         '^' { $$ = '^'; } ;
 
@@ -551,6 +549,14 @@ function:
       new->parms.op.p[2] = $7;
 	  $$ = new;
 	}
+    /* user fuction *calls*, which in Commodore BASIC are limited to a single parameter but more in BBC */
+    |
+    user_function '(' expression ')'
+    {
+      expression_t *new = make_operator(1, $1);
+      new->parms.op.p[0] = $3;
+      $$ = new;
+    }
 	;
 
  /* arity-1 functions */
@@ -639,6 +645,15 @@ factor:
               /* this one is probably redundant! */
               numeric_constants_four_byte++;
           }
+          
+          // and look for a few other key ones
+          if (num == 10) {
+              numeric_constants_10++;
+          } else if (num == 16) {
+              numeric_constants_16++;
+          } else if (num == 256) {
+              numeric_constants_256++;
+          }
       }
       /* everything else is a float */
       else {
@@ -681,6 +696,13 @@ factor:
       /* static analyzer code */
 
 	}
+    |
+    user_function
+    {
+      expression_t *new = make_expression(variable);
+      new->parms.variable = $1;
+      $$ = new;
+    }
 	|
 	'(' expression ')'
 	{
@@ -688,9 +710,21 @@ factor:
 	}
 	;
 
+ /* functions MUST have at least the empty parameter list
+    in Commodore BASIC, you can only have a single parameter, BBC seems to allow three
+  */
+user_function:
+    FUNCTION_NAME '(' exprlist ')'
+    {
+      variable_t *new = malloc(sizeof(*new));
+      new->name = $1;
+      new->sub = $3;
+      $$ = new;
+    }
+
  /* variables may contain an array reference or parameter list for functions */
 variable:
-	IDENTIFIER
+    VARIABLE_NAME
     {
 	  variable_t *new = malloc(sizeof(*new));
 	  new->name = $1;
@@ -698,7 +732,7 @@ variable:
 	  $$ = new;
 	}
 	|
-	IDENTIFIER '(' exprlist ')'
+    VARIABLE_NAME '(' exprlist ')'
 	{
 	  variable_t *new = malloc(sizeof(*new));
 	  new->name = $1;
