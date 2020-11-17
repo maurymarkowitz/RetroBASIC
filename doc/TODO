@@ -42,3 +42,5 @@ PATB = Palo Alto Tiny BASIC
 - add support for OPTION BASE and modify variable_value to handle base 0
 
 - a number of math and string functions are not yet implemented: FIX CINT CSNG CDBL FRE
+
+- some BASICs allow RESTORE to include a parameter. in some versions that reset to the pointer to that line number, in others the number represents the Nth item and sets the pointer there
