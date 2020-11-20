@@ -57,12 +57,19 @@ typedef union {
     double d;
 } either_t;
 
-/* storage_t holds the value of a *variable* in memory */
+/* variable_storage_t holds the *value* of a variable in memory */
 typedef struct {
     int type;			/* NUMBER, STRING */
-    either_t *value;    // actual value, for non-arrays
     GList *sub;         // subscripts, if any
-} storage_t;
+    either_t *value;    // actual value, for non-arrays
+} variable_storage_t;
+
+/* function_storage_t holds the expression from the DEF */
+typedef struct {
+    int type;               /* NUMBER, STRING */
+    GList *sub;             // parameters, if any
+    expression_t *formula;  // related formula
+} function_storage_t;
 
 /* forward declares */
 static value_t evaluate(expression_t *e);
@@ -137,7 +144,7 @@ gint symbol_compare(gconstpointer a, gconstpointer b)
    variable has not been encountered before it will be created here. */
 either_t *variable_value(variable_t *variable, int *type)
 {
-    storage_t *storage;
+    variable_storage_t *storage;
     GString *storage_name;
     int index = 0;
 
@@ -154,9 +161,6 @@ either_t *variable_value(variable_t *variable, int *type)
     
     // see if we can find the entry in the symbol list
     storage = g_tree_lookup(interpreter_state.values, storage_name->str);
-    
-    //testing
-    //if (storage == NULL) printf(" -- did not find it\n");
     
     // if not, make a new variable slot in values and set it up
     if (storage == NULL) {
@@ -208,7 +212,8 @@ either_t *variable_value(variable_t *variable, int *type)
     }
     
     // at this point we have either found or created the variable, so...
-    // get the type
+    
+    /* get the type */
     *type = storage->type;
     /* compute array index */
     index = 0;
@@ -242,8 +247,52 @@ either_t *variable_value(variable_t *variable, int *type)
             }
     }
     
+    // done with this, but don't pass TRUE!
+    g_string_free(storage_name, FALSE);
+    
     // all done, return the value at that index
     return &storage->value[index];
+}
+
+/* Similar to variable_value in concept, this code looks through the list of
+   user-defined functions to find a matching name and/or inserts it if it's new.
+   the difference is that this returns an expression which we then evaluate. */
+expression_t *function_definition(variable_t *function, expression_t *expression)
+{
+    // see if we can find the entry in the symbol list
+    function_storage_t *storage;
+    storage = g_tree_lookup(interpreter_state.functions, function->name->str);
+    
+    // if not, make a new slot in functions and set it up
+    if (storage == NULL) {
+        // malloc an entry
+        storage = malloc(sizeof(*storage));
+        
+        // set the type based on the name
+        char trailer = function->name->str[strlen(function->name->str) - 1];
+        if (trailer == '$')
+            storage->type = STRING;
+//        else if (trailer == '%')
+//            storage->type = INTEGER;
+//        else if (trailer == '!')
+//            storage->type = SINGLE;
+//        else if (trailer == '#')
+//            storage->type = DOUBLE;
+        else
+            storage->type = NUMBER; // this works for all of them, int, dbl, etc.
+        
+        // copy over the list of parameters
+        storage->sub = g_list_copy(function->sub);
+        
+        // now store the expression/formula
+        storage->formula = expression;
+
+        // and insert it into storage
+        g_tree_insert(interpreter_state.functions, function->name->str, storage);
+    }
+    
+    // at this point we have either found or created the formula, so...
+    return storage->formula;
 }
 
 static value_t do_binop(double v)
@@ -289,19 +338,13 @@ static value_t evaluate(expression_t *e)
             break;
             
         // user functions are not so simple, because the variable references
-		// in the definition have to replace those in the main list. to handle
-		// this case, we prefix the name of the local variables with the name
-		// of the function itself when we look them up in storage
+		// in the definition have to replace those in the main list.
+        // TODO: we need to eval the parameters and pass them in
         case fn:
             {
-                int type;
-                either_t *p;
-                p = variable_value(e->parms.variable, &type);
-                r.type = type;
-                if (type == STRING)
-                    r.string = p->s;
-                else
-                    r.number = p->d;
+                expression_t *p;
+                p = function_definition(e->parms.variable, p); // note the re-use of the "variable" slot here
+                r = evaluate(p);
             }
             break;
             
@@ -525,7 +568,7 @@ static value_t evaluate(expression_t *e)
                 c = p[2].number;
                 
                 switch (e->parms.op.o) {
-                    case MID: // this is the three-parameter version
+                    case MID:
                         r.type = STRING;
 						{
 							r.string = g_string_new(p[0].string->str);
@@ -625,8 +668,8 @@ static int line_for_statement(GList *statement)
     int target_index = g_list_position(program, statement);
     
     // loop forward through the program until we find a line who's
-    // first statement is higher than that index. We must be on
-    // the previous line
+    // first statement is higher than that index. That means we must
+    // be on the previous line
     int this_index, previous_line = interpreter_state.first_line;
     for (int i = interpreter_state.first_line; i < MAXLINE; i++) {
         // skip empty lines
@@ -683,23 +726,23 @@ static GList *find_line(int linenumber)
 /* returns the number of (non-empty) lines between two lines.
    used in the statistics to calculate how far a jump is */
 // NOTE: not currently used
-static int lines_between(int first_line, int second_line)
-{
-    // may as well try this just in case...
-    if(first_line == second_line)
-        return 0;
-    // otherwise, simply count the non-empty lines between the two
-    int distance = 0;
-    int first = (first_line < second_line) ? first_line : second_line;
-    int last = (first_line >= second_line) ? second_line : first_line;
-    for(int i = first; i <= last; i++) {
-        if(interpreter_state.lines[i]) distance++;
-    }
-    return distance;
-}
+//static int lines_between(int first_line, int second_line)
+//{
+//    // may as well try this just in case...
+//    if(first_line == second_line)
+//        return 0;
+//    // otherwise, simply count the non-empty lines between the two
+//    int distance = 0;
+//    int first = (first_line < second_line) ? first_line : second_line;
+//    int last = (first_line >= second_line) ? second_line : first_line;
+//    for(int i = first; i <= last; i++) {
+//        if(interpreter_state.lines[i]) distance++;
+//    }
+//    return distance;
+//}
 
 /* performs a single statement */
-static GList *do_statement(GList *L)
+static GList *perform_statement(GList *L)
 {
     // get the next statement to run, which, by default, is the next statement in the program
     // this may be changed GOTO, GOSUB, ON, IF...
@@ -726,7 +769,10 @@ static GList *do_statement(GList *L)
                 break;
                 
             case DEF:
-                // a user function is just an expression, so the statement doesn't really do anything
+                // sets up a function, we simply copy the name, parameters and formula into storage
+                {
+                    function_definition(ps->parms.def.function, ps->parms.def.expression);
+                }
                 break;
 
             case DIM:
@@ -795,12 +841,12 @@ static GList *do_statement(GList *L)
 					if (cond.number != 0) {
 						/* THEN might be an expression including a GOTO or an implicit GOTO */
 						if (ps->parms._if.then_expression) {
-                            // this was formerly next = do_statement, which meant it could only
+                            // this was formerly next = perform_statement, which meant it could only
                             // perform a single statement after the IF. for this to work properly,
                             // the then_expression has to be a list that is not connected to the
                             // next line, it has to end on a NULL
                             for (GList *L = ps->parms._if.then_expression; L != NULL; L = g_list_next(L)) {
-                                do_statement(L);
+                                perform_statement(L);
                             }
 						} else {
                             // if the THEN is not an expression, jump to that line
@@ -890,10 +936,14 @@ static GList *do_statement(GList *L)
                 
             case NEXT:
 				{
+                    // this version does not precisely match MS, it always gets the last
+                    // entry on the FOR stack and uses that variable, ignoring the variable
+                    // that might have been entered in the source.
+                    // FIXME: this is easy to fix, simply get the variable name from the FOR
+                    //  stack and then check if it's the same as the one in the NEXT, error out
 					forcontrol_t *pfc = g_list_last(interpreter_state.forstack)->data;
 					either_t *lv;
 					int type;
-
                     
 					lv = variable_value(pfc->variable, &type);
 					lv->d += pfc->step;
@@ -916,8 +966,6 @@ static GList *do_statement(GList *L)
 					
 					// clear out the program
 					// TODO : do this!
-					
-					
 				}
                 break;
                 
@@ -1087,28 +1135,28 @@ static GList *do_statement(GList *L)
 
 static gboolean is_string(gpointer key, gpointer value, gpointer user_data)
 {
-	storage_t *data = (storage_t *)value;
+	variable_storage_t *data = (variable_storage_t *)value;
 	int *tot = (int*)user_data;
     if(data->type == STRING) *tot += 1;
 	return FALSE;
 }
 static gboolean is_single(gpointer key, gpointer value, gpointer user_data)
 {
- 	storage_t *data = (storage_t *)value;
+ 	variable_storage_t *data = (variable_storage_t *)value;
 	int *tot = (int*)user_data;
     if(data->type == NUMBER && strstr(key, "!") != NULL) *tot += 1;
 	return FALSE;
 }
 static gboolean is_double(gpointer key, gpointer value, gpointer user_data)
 {
-	storage_t *data = (storage_t *)value;
+	variable_storage_t *data = (variable_storage_t *)value;
 	int *tot = (int*)user_data;
     if(data->type == NUMBER && strstr(key, "#") != NULL) *tot += 1;
 	return FALSE;
 }
 static gboolean is_integer(gpointer key, gpointer value, gpointer user_data)
 {
- 	storage_t *data = (storage_t *)value;
+ 	variable_storage_t *data = (variable_storage_t *)value;
 	int *tot = (int*)user_data;
     if(data->type == NUMBER && strstr(key, "%") != NULL) *tot += 1;
 	return FALSE;
@@ -1139,11 +1187,11 @@ void run(void)
     if (trace_lines)
         printf("[%i]\n", last_line);
 
-    // very simple - do_statement returns the next statement and the
+    // very simple - perform_statement returns the next statement and the
     // main below set us up to point to the first one, so just call
     // that one function until you get a NULL
     while (interpreter_state.current_statement) {
-        interpreter_state.current_statement = do_statement(interpreter_state.current_statement);
+        interpreter_state.current_statement = perform_statement(interpreter_state.current_statement);
         
         // trace, only on line changes
         if (trace_lines && last_line != current_line()) {
@@ -1450,6 +1498,10 @@ int main(int argc, char *argv[])
     
     // parse the options and make sure we got a filename somewhere
     parse_options(argc, argv);
+    
+    // set up an empty tree to store variables and user functions as we find them
+    interpreter_state.values = g_tree_new(symbol_compare);
+    interpreter_state.functions = g_tree_new(symbol_compare);
 
     // open the file and run it through the parser, or use stdin
     yyin = fopen(argv[1], "r");
@@ -1457,25 +1509,22 @@ int main(int argc, char *argv[])
         yyin = stdin;
     yyparse();
     
-    // set up an empty tree to store variable values as we find them
-    interpreter_state.values = g_tree_new(symbol_compare);
-    
     // run all the lines together into a single continuous list
     // by pointing the ->next for each line to the head of the next
     // non-empty line. that way we don't have to search through the line
     // array for the next non-null entry during the run loop, we just
 	// keep stepping through the ->next until we fall off the end
     {
-        // look for the first entry in the lines with a non-empty statement list
+        // look for the first entry in the lines array with a non-empty statement list
         int first_line;
         for (first_line = 0;
              (first_line < MAXLINE) && (interpreter_state.lines[first_line] == NULL);
              first_line++);
         
-        // that statement is going to be the whole list when we're done
+        // that statement is going to be the head of the list when we're done
         GList *first_statement = interpreter_state.lines[first_line];
         
-        // now find the next non-null line and contact it to the first one
+        // now find the next non-null line and contact it to the first one, and repeat
         for (int i = first_line + 1; (i < MAXLINE); i++) {
             if (interpreter_state.lines[i])
                 first_statement = g_list_concat(first_statement, interpreter_state.lines[i]);
@@ -1485,13 +1534,15 @@ int main(int argc, char *argv[])
         // NOTE: do we need to do this? isn't this already there?
         interpreter_state.lines[first_line] = first_statement;
         interpreter_state.first_line = first_line;
-    }
+        
+        // a program runs from the first line, so...
+        interpreter_state.current_statement = first_statement;          // the first statement
+        interpreter_state.current_data_statement = first_statement;     // the DATA can point anywhere
+        interpreter_state.current_data_element = NULL;                  // the element within the DATA is nothing
+   }
     
-    // set up the initial interpreter state
-    interpreter_state.current_statement = find_line(0);	        // the first statement
-    interpreter_state.current_data_statement = find_line(0);	// the DATA can point anywhere
-    interpreter_state.current_data_element = NULL;			    // the element within the DATA is nothing
-    interpreter_state.cursor_column = 0;                        // cursor starts in col 0
+    // cursor starts in col 0
+    interpreter_state.cursor_column = 0;
 
     // seed the random
     if (random_seed >= 0)
@@ -1507,5 +1558,6 @@ int main(int argc, char *argv[])
     if (print_stats || write_stats)
         print_statistics();
 
+    // and exit
     exit(EXIT_SUCCESS);
 }

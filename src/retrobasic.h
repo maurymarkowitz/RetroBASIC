@@ -41,7 +41,7 @@ typedef struct {
 
 /* expressions */
 typedef enum {
-    number, string, variable, op, fn, ufn
+    number, string, variable, op, fn
 } expression_type_t;
 
 typedef struct expression_struct {
@@ -49,7 +49,7 @@ typedef struct expression_struct {
     union {
         double number;
         GString *string;
-        variable_t *variable;
+        variable_t *variable;   // also used for user-defined function names and parameters
         struct {
             int arity;
             int o;
@@ -58,12 +58,9 @@ typedef struct expression_struct {
     } parms;
 } expression_t;
 
-/* printlits */
+/* printlists */
 /* print lists are different from other lists in BASIC because they
-   have two possible separators, commas and semis, but are otherwise
-   similar to other expression lists.
-   NOTE: on further examination of old sources, *no* separator is
-         (semi?)equivalent to a semicolon.
+   have three possible separators, nulls, commas and semis
  */
 typedef struct {
     expression_t *expression;
@@ -81,8 +78,7 @@ typedef struct statement_struct {
     union {
         GList *data; // list of values for data statements
         struct {
-            variable_t *name;
-            GList *variables;
+            variable_t *function;
             expression_t *expression;
         } def;
         GList *dim; // list of variable definitions
@@ -95,7 +91,7 @@ typedef struct statement_struct {
         struct {
             expression_t *condition;
             GList *then_expression;
-            int then_linenumber;
+            int then_linenumber; // implicit goto case
         } _if;
         GList *input;
         struct {
@@ -145,8 +141,8 @@ typedef struct {
     GList *current_statement;		// currently executing statement
     GList *current_data_statement;	// current 'DATA' statement
     GList *current_data_element;	// current 'DATA' expression within psd
-    GList *variables;	            // list of all the variables found while parsing - CURRENTLY UNUSED
     GTree *values;		            // name/value pairs used to store variable *values*
+    GTree *functions;               // name/expression pairs for user-defined functions
     GList *forstack;	            // of forcontrol_t
     GList *gosubstack;	            // of gosubcontrol_t
     int cursor_column;			    // current column of the output cursor

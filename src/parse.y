@@ -204,7 +204,7 @@ statement:
 	DEF user_function '=' expression
 	{
 	  statement_t *new = make_statement(DEF);
-      new->parms.def.name = $2;
+      new->parms.def.function = $2;
       new->parms.def.expression = $4;
 	  $$ = new;
 	}
@@ -296,7 +296,7 @@ statement:
 	  $$ = new;
       
       /* static analyzer */
-      // this handles the implicit GOTO case, GOSUBs are explicit so they are caught in the next rule and the line number caught in the GOSUB
+      // this handles the implicit GOTO case, GOSUBs are always explicit so they are caught in the next rule
       linenum_constants_total++;
       linenum_then_goto_totals++;
       if ($2->parms.number) {
@@ -310,7 +310,7 @@ statement:
       }
 	}
 	|
-	IF expression THEN statements // yes, statement**s**, they all run or don't run as a group
+	IF expression THEN statements // yes, statement**s**, they all run or don't run as a group in MS
 	{
 	  statement_t *new = make_statement(IF);
 	  new->parms._if.condition = $2;
@@ -333,6 +333,13 @@ statement:
 	  new->parms.next = $2;
 	  $$ = new;
 	}
+    |
+    NEXT /* later versions of MS allowed the variable to be ignored */
+    {
+      statement_t *new = make_statement(NEXT);
+      new->parms.next = NULL;
+      $$ = new;
+    }
 	|
 	ON expression GOTO exprlist
 	{
@@ -382,14 +389,14 @@ statement:
 	  $$ = new;
 	}
 	|
-    REM
+    REM /* this should be expanded to store the actual content */
 	{
 	  statement_t *new = make_statement(REM);
 	  //new->parms.rem = $2;
 	  $$ = new;
 	}	
 	|
-	RESTORE
+	RESTORE /* some basics allow a parameter here, representing a line number in some or an ordinal */
 	{
 	  statement_t *new = make_statement(RESTORE);
 	  $$ = new;
@@ -407,7 +414,7 @@ statement:
 	  $$ = new;
 	}
 	|
-	VARLIST
+	VARLIST /* lists out all the variables and their values */
 	{
 	  statement_t *new = make_statement(VARLIST);
 	  $$ = new;
@@ -549,14 +556,6 @@ function:
       new->parms.op.p[2] = $7;
 	  $$ = new;
 	}
-    /* user fuction *calls*, which in Commodore BASIC are limited to a single parameter but more in BBC */
-    |
-    user_function '(' expression ')'
-    {
-      expression_t *new = make_operator(1, $1);
-      new->parms.op.p[0] = $3;
-      $$ = new;
-    }
 	;
 
  /* arity-1 functions */
@@ -690,16 +689,11 @@ factor:
 	  expression_t *new = make_expression(variable);
 	  new->parms.variable = $1;
 	  $$ = new;
-      
-      /* insert the variable */
-      
-      /* static analyzer code */
-
 	}
     |
     user_function
     {
-      expression_t *new = make_expression(variable);
+      expression_t *new = make_expression(fn);
       new->parms.variable = $1;
       $$ = new;
     }
@@ -771,7 +765,7 @@ printlist:
 	  $$ = g_list_prepend($3, new);
 	}
     |
-	// this is found in the BCG "bug.bas", it's a print with a leading semi
+	// this is found in the BCG "bug.bas", it's a print with a *leading* semi
     printsep printlist
     {
       printitem_t *new = malloc(sizeof(*new));
