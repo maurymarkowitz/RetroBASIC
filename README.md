@@ -30,12 +30,14 @@ If your goal is to simply check the syntax of the program, or to list statistics
 
 ## Building RetroBASIC
 
-The RetroBASIC interpreter is written for lex/yacc and is normally compiled with flex/bison. It has a single non-standard dependancy; it uses GLib for string, list and tree suppport. It should compile on any platform with GLib, and has been tested on macOS (native) and Windows (with Cygwin). A sample makefile and Xcode project is included.
+The RetroBASIC interpreter is written for lex/yacc and is normally compiled with flex/bison. It has a single non-standard dependancy; it uses GLib for string, list and tree suppport. It should compile on any platform with GLib, and has been tested on macOS (native) and Windows (with Cygwin). A sample Xcode project is included.
 
 ## Missing features and Erata
 
-* DEF FNx is not currently operational (next on the list).
+* LIST is not supported
+* DEF FNx does not parse "local" values for paramters, the global versions are used
 * INPUT statements with multiple values currently have to be entered with return/enter between each value.
+* POKE does nothing, PEEK returns zero
 * String "slicing" as seen in HP, Atari and Integer is not yet supported, but this is an important feature to add.
 * LIST, LOAD and SAVE are currently not implemented, in keeping with the use-case.
 * REMs do not remember the comment, although it should be easy to add this if LIST support is desired.

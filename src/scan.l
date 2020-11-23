@@ -47,7 +47,9 @@ Boston, MA 02111-1307, USA.  */
     https://stackoverflow.com/questions/59117309/rest-of-line-in-bison/59122569#59122569
   */
 \'.*        { yylval.s = g_string_new(strndup(yytext + 1, yyleng - 1)); return REM; }
+BREAK       { return BREAK; }
 BYE         { return BYE; }
+CLS         { return CLS; }
 DEF         { return DEF; }
 DATA        { return DATA; }
 DIM         { return DIM; }
@@ -62,7 +64,9 @@ LET	        { return LET; }
 NEXT	    { return NEXT; }
 NEW			{ return NEW; }
 ON			{ return ON; }
-PRINT		{ return PRINT; }
+PEEK        { return PEEK; }
+POKE        { return POKE; }
+PRINT       { return PRINT; }
 PRINT#		{ return PRINT_FILE; }
 READ		{ return READ; }
 REM.*       { yylval.s = g_string_new(strndup(yytext + 2, yyleng - 2)); return REM; }
@@ -123,6 +127,16 @@ XOR			{ return XOR; }
 \>\<        { return CMP_NE; }
 #           { return CMP_HASH; }
 
+ /* defs added in Extended BASIC we can safely ignore */
+ /* FIXME: these are actually easy to do, simply run them as DIMs
+           so they get entered into the btree */
+ /*
+ DEFINT.*\n              { return '\n'; }
+ DEFSNG.*\n              { return '\n'; }
+ DEFDBL.*\n              { return '\n'; }
+ DEFSTR.*\n              { return '\n'; }
+ */
+
  /* numeric constants and line numbers */
 [0-9]*[0-9.][0-9]*([Ee][-+]?[0-9]+)? {
               yylval.d = strtod(yytext, NULL);
@@ -155,16 +169,5 @@ XOR			{ return XOR; }
 
  /* eat other whitespace */
 [ \t\r\l]   {  }
-
- /* defs added in Extended BASIC we can safely ignore */
- /* FIXME: these are actually easy to do, simply run them as DIMs 
-           so they get entered into the btree */
-
- /*
-DEFINT.*\n              { return '\n'; }
-DEFSNG.*\n              { return '\n'; }
-DEFDBL.*\n              { return '\n'; }
-DEFSTR.*\n              { return '\n'; }
- */
 
 %%

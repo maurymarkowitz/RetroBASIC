@@ -90,6 +90,7 @@ static expression_t *make_operator(int arity, int o)
 %token <s> VARIABLE_NAME
 %token <s> FUNCTION_NAME
 
+%token BREAK
 %token BYE
 %token CLEAR
 %token CLS
@@ -107,6 +108,8 @@ static expression_t *make_operator(int arity, int o)
 %token NEXT
 %token NEW
 %token ON
+%token PEEK
+%token POKE
 %token PRINT
 %token READ
 %token REM
@@ -186,12 +189,24 @@ statement:
     {
 	  $$ = NULL;
 	}
+    |
+    BREAK
+    {
+      statement_t *new = make_statement(BREAK);
+      $$ = new;
+    }
 	|
 	BYE
 	{
 	  statement_t *new = make_statement(BYE);
 	  $$ = new;
 	}
+    |
+    CLS
+    {
+      statement_t *new = make_statement(CLS);
+      $$ = new;
+    }
 	|
     /* DATA can have any type in it, but it is unlikely true expressions are allowed, although we allow them here */
 	DATA exprlist
@@ -365,6 +380,13 @@ statement:
       linenum_constants_total++;
       linenum_on_totals++;
     }
+    |
+    POKE expression ',' expression
+    {
+      // since we don't actually perform the poke, we toss the parameters
+      statement_t *new = make_statement(POKE);
+      $$ = new;
+    }
 	|
 	PRINT printlist
 	{
@@ -392,7 +414,7 @@ statement:
     REM /* this should be expanded to store the actual content */
 	{
 	  statement_t *new = make_statement(REM);
-	  //new->parms.rem = $2;
+	  new->parms.rem = yylval.s;
 	  $$ = new;
 	}	
 	|
