@@ -11,7 +11,7 @@ PATB = Palo Alto Tiny BASIC
   any additional statements on the line will run regardless of the IF
     IF 1=2 THEN PRINT"one";:PRINT"two" will print nothing, whereas Dartmouth would print two
 
-- DEF FN is parsed but not evaluated at runtime
+- DEF FN ignores parameters when evaluating the formula
 
 - ELSE would be realtively easy to add, at least the single-line variety
 

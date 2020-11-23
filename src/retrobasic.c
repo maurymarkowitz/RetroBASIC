@@ -72,7 +72,7 @@ typedef struct {
 } function_storage_t;
 
 /* forward declares */
-static value_t evaluate(expression_t *e);
+static value_t evaluate_expression(expression_t *e);
 static int line_for_statement(GList *s);
 static int current_line(void);
 
@@ -156,9 +156,6 @@ either_t *variable_value(variable_t *variable, int *type)
     if (variable->sub != NULL)
         storage_name = g_string_append(storage_name, "(");
     
-    //testing
-    //printf("looking for %s\n",storage_name->str);
-    
     // see if we can find the entry in the symbol list
     storage = g_tree_lookup(interpreter_state.values, storage_name->str);
     
@@ -173,12 +170,6 @@ either_t *variable_value(variable_t *variable, int *type)
         char trailer = variable->name->str[strlen(variable->name->str) - 1];
         if (trailer == '$')
             storage->type = STRING;
-//        else if (trailer == '%')
-//            storage->type = INTEGER;
-//        else if (trailer == '!')
-//            storage->type = SINGLE;
-//        else if (trailer == '#')
-//            storage->type = DOUBLE;
         else
             storage->type = NUMBER; // this works for all of them, int, dbl, etc.
         
@@ -194,7 +185,7 @@ either_t *variable_value(variable_t *variable, int *type)
             storage->sub = NULL;
             slots = 1;
             for (GList *L = variable->sub; L != NULL; L = g_list_next(L)) {
-                v = evaluate(L->data);
+                v = evaluate_expression(L->data);
                 actual = (int)v.number;
                 storage->sub = g_list_append(storage->sub, GINT_TO_POINTER(actual));
                 slots *= actual;
@@ -229,7 +220,7 @@ either_t *variable_value(variable_t *variable, int *type)
         else
             while (LA != NULL && LI != NULL) {
                 // evaluate the variable reference's index for a given dimension
-                value_t v = evaluate(LI->data);
+                value_t v = evaluate_expression(LI->data);
                 // and get the originally DIMmed size for that same dimension
                 int actual = GPOINTER_TO_INT(LA->data);
                 
@@ -272,12 +263,6 @@ expression_t *function_definition(variable_t *function, expression_t *expression
         char trailer = function->name->str[strlen(function->name->str) - 1];
         if (trailer == '$')
             storage->type = STRING;
-//        else if (trailer == '%')
-//            storage->type = INTEGER;
-//        else if (trailer == '!')
-//            storage->type = SINGLE;
-//        else if (trailer == '#')
-//            storage->type = DOUBLE;
         else
             storage->type = NUMBER; // this works for all of them, int, dbl, etc.
         
@@ -295,7 +280,7 @@ expression_t *function_definition(variable_t *function, expression_t *expression
     return storage->formula;
 }
 
-static value_t do_binop(double v)
+static value_t perform_infix_operation(double v)
 {
     value_t r;
     
@@ -305,7 +290,7 @@ static value_t do_binop(double v)
 }
 
 /* recursively evaluates an expression and returns a value_t with the result */
-static value_t evaluate(expression_t *e)
+static value_t evaluate_expression(expression_t *e)
 {
     value_t r;
     value_t p[10];
@@ -344,7 +329,7 @@ static value_t evaluate(expression_t *e)
             {
                 expression_t *p;
                 p = function_definition(e->parms.variable, p); // note the re-use of the "variable" slot here
-                r = evaluate(p);
+                r = evaluate_expression(p);
             }
             break;
             
@@ -353,7 +338,7 @@ static value_t evaluate(expression_t *e)
             // build a list of values for each of the parameters by recursing
             // on them until they return a value
             for (i = 0; i < e->parms.op.arity; i++)
-                p[i] = evaluate(e->parms.op.p[i]);
+                p[i] = evaluate_expression(e->parms.op.p[i]);
             
             // now calculate the results based on those values
             if (e->parms.op.arity == 1) {
@@ -424,12 +409,17 @@ static value_t evaluate(expression_t *e)
                         r.number = atof(p[0].string->str);
                         break;
                     case SGN:
+                        // early MS variants return 1 for 0, this implements the newer version where 0 returns 0
                         if (a < 0)
                             r.number = -1;
                         else if (a == 0)
                             r.number = 0;
                         else
                             r.number = 1;
+                        break;
+                    case PEEK:
+                        // always return zero
+                        r.number = 0;
                         break;
                     case POS:
                         r.number = (double)interpreter_state.cursor_column; //FIXME: should this be +1?
@@ -473,59 +463,59 @@ static value_t evaluate(expression_t *e)
                             r.string = g_string_new(g_strconcat(p[0].string->str, p[1].string->str, NULL));
                         }
                         else if (p[0].type == NUMBER && p[1].type == NUMBER)
-                            r = do_binop(a + b);
+                            r = perform_infix_operation(a + b);
                         else {
                             r.number = 0;
                             basic_error("Type mismatch");
                         }
                         break;
                     case '-':
-                        r = do_binop(a - b);
+                        r = perform_infix_operation(a - b);
                         break;
                     case '*':
-                        r = do_binop(a * b);
+                        r = perform_infix_operation(a * b);
                         break;
                     case '/':
-                        r = do_binop(a / b);
+                        r = perform_infix_operation(a / b);
                         break;
                     case '^':
-                        r = do_binop(pow(a, b));
+                        r = perform_infix_operation(pow(a, b));
                         break;
                     case '=':
                         if (p[0].type == NUMBER)
-                            r = do_binop(-(a == b));
+                            r = perform_infix_operation(-(a == b));
                         else
-                            r = do_binop(-!strcmp(p[0].string->str, p[1].string->str));
+                            r = perform_infix_operation(-!strcmp(p[0].string->str, p[1].string->str));
                         break;
                     case '<':
-                        r = do_binop(-(a < b));
+                        r = perform_infix_operation(-(a < b));
                         break;
                     case '>':
-                        r = do_binop(-(a > b));
+                        r = perform_infix_operation(-(a > b));
                         break;
                     case CMP_LE:
-                        r = do_binop(-(a <= b));
+                        r = perform_infix_operation(-(a <= b));
                         break;
                     case CMP_GE:
-                        r = do_binop(-(a >= b));
+                        r = perform_infix_operation(-(a >= b));
                         break;
                     case CMP_NE:
                         if (p[0].type == NUMBER)
-                            r = do_binop(-(a != b));
+                            r = perform_infix_operation(-(a != b));
                         else
-                            r = do_binop(-!!strcmp(p[0].string->str, p[1].string->str));
+                            r = perform_infix_operation(-!!strcmp(p[0].string->str, p[1].string->str));
                         break;
-                    case CMP_HASH: // be nice if you could have multiple consts in the case...
+                    case CMP_HASH: // be nice if you could have multiple consts in this case...
                         if (p[0].type == NUMBER)
-                            r = do_binop(-(a != b));
+                            r = perform_infix_operation(-(a != b));
                         else
-                            r = do_binop(-!!strcmp(p[0].string->str, p[1].string->str));
+                            r = perform_infix_operation(-!!strcmp(p[0].string->str, p[1].string->str));
                         break;
                     case AND:
-                        r = do_binop((int)a & (int)b);
+                        r = perform_infix_operation((int)a & (int)b);
                         break;
                     case OR:
-                        r = do_binop((int)a | (int)b);
+                        r = perform_infix_operation((int)a | (int)b);
                         break;
                     case LEFT:
                         r.type = STRING;
@@ -601,7 +591,7 @@ static value_t evaluate(expression_t *e)
 static void print_expression(expression_t *e, char *format)
 {
     // get the value of the expression for this item
-    value_t v = evaluate(e);
+    value_t v = evaluate_expression(e);
     
     // if there is a USING string, build a c-style format string from it
     if (format) {
@@ -752,16 +742,25 @@ static GList *perform_statement(GList *L)
     statement_t *ps = L->data;
     if (ps) {
         switch (ps->type) {
+            case BREAK:
+                abort();
+                break;
+
             case BYE:
 				// unlike END, this exits BASIC entirely
                 exit(EXIT_SUCCESS);
-                
+                break;
+
             case CLEAR:
 				{
 					// wipe out any variables and create a fresh list
 					delete_variables();
 					interpreter_state.values = g_tree_new(symbol_compare);
 				}
+                break;
+                
+            case CLS:
+                // does nothing
                 break;
                 
             case DATA:
@@ -800,10 +799,10 @@ static GList *perform_statement(GList *L)
 					int type;
 					
 					new_for->variable = ps->parms._for.variable;
-					new_for->begin = evaluate(ps->parms._for.begin).number;
-					new_for->end = evaluate(ps->parms._for.end).number;
+					new_for->begin = evaluate_expression(ps->parms._for.begin).number;
+					new_for->end = evaluate_expression(ps->parms._for.end).number;
 					if(ps->parms._for.step)
-						new_for->step = evaluate(ps->parms._for.step).number;
+						new_for->step = evaluate_expression(ps->parms._for.step).number;
 					else {
 						if (new_for->begin < new_for->end)
 							new_for->step = 1;
@@ -824,19 +823,19 @@ static GList *perform_statement(GList *L)
 					
 					new->returnpoint = g_list_next(L);
 					interpreter_state.gosubstack = g_list_append(interpreter_state.gosubstack, new);
-					next = find_line(evaluate(ps->parms.gosub).number);
+					next = find_line(evaluate_expression(ps->parms.gosub).number);
 				}
 				break;
                 
             case GOTO:
 				{
-					next = find_line(evaluate(ps->parms._goto).number);
+					next = find_line(evaluate_expression(ps->parms._goto).number);
 				}
 				break;
                 
             case IF:
 				{
-					value_t cond = evaluate(ps->parms._if.condition);
+					value_t cond = evaluate_expression(ps->parms._if.condition);
 					/* if only does something when the condition is true */
 					if (cond.number != 0) {
 						/* THEN might be an expression including a GOTO or an implicit GOTO */
@@ -919,7 +918,7 @@ static GList *perform_statement(GList *L)
 					stored_val = variable_value(ps->parms.let.variable, &type);
 					
 					// evaluate the expression
-					exp_val = evaluate(ps->parms.let.expression);
+					exp_val = evaluate_expression(ps->parms.let.expression);
 					
 					// make sure we got the right type, and assign it if we did
 					if (exp_val.type == type) {
@@ -972,7 +971,7 @@ static GList *perform_statement(GList *L)
             case ON:
 				{
 					/* first we evaluate the expression */
-					value_t val = evaluate(ps->parms.on.expression);
+					value_t val = evaluate_expression(ps->parms.on.expression);
 					
 					/* ON does an INT, and since a valid line is +ve, INT always rounds down... */
 					int n = (int)floor(val.number);
@@ -992,7 +991,7 @@ static GList *perform_statement(GList *L)
 					
 					/* we found the nth entry, so evaluate it */
 					value_t lineval;
-					lineval = evaluate(item);
+					lineval = evaluate_expression(item);
 					
 					/* turn it into a line number */
 					int linenum = (int)floor(lineval.number);
@@ -1009,6 +1008,10 @@ static GList *perform_statement(GList *L)
 				}
                 break;
                 
+            case POKE:
+                // do nothing
+                break;
+                
             case PRINT:
 				{
 					GList *L;
@@ -1021,7 +1024,7 @@ static GList *perform_statement(GList *L)
 						// if there's a USING, evaluate the format string it and print using it
 						if (ps->parms.print.format) {
 							value_t format_string;
-                            format_string = evaluate(ps->parms.print.format);
+                            format_string = evaluate_expression(ps->parms.print.format);
 							print_expression(pp->expression, format_string.string->str);
 						}
 						// otherwise, see if there's a separator and print using the width
@@ -1078,7 +1081,7 @@ static GList *perform_statement(GList *L)
 							interpreter_state.current_data_element = g_list_first(((statement_t *)(interpreter_state.current_data_statement->data))->parms.data);
 						}
 						lv = variable_value(LL->data, &type);
-						v = evaluate(interpreter_state.current_data_element->data);
+						v = evaluate_expression(interpreter_state.current_data_element->data);
 						if (v.type == type) {
 							if (type == STRING)
 								lv->s = v.string;
