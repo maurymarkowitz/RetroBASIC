@@ -49,6 +49,7 @@ Boston, MA 02111-1307, USA.  */
 \'.*        { yylval.s = g_string_new(strndup(yytext + 1, yyleng - 1)); return REM; }
 BREAK       { return BREAK; }
 BYE         { return BYE; }
+CALL        { return CALL; }
 CLS         { return CLS; }
 DEF         { return DEF; }
 DATA        { return DATA; }
@@ -64,7 +65,6 @@ LET	        { return LET; }
 NEXT	    { return NEXT; }
 NEW			{ return NEW; }
 ON			{ return ON; }
-PEEK        { return PEEK; }
 POKE        { return POKE; }
 PRINT       { return PRINT; }
 PRINT#		{ return PRINT_FILE; }
@@ -95,7 +95,9 @@ SQR			{ return SQR; }
 RND			{ return RND; }
 VAL			{ return VAL; }
 
- /* string functions */
+ /* string-related functions */
+ASC         { return ASC; }
+CHR\$       { return CHR; }
 LEFT\$		{ return LEFT; }
 RIGHT\$		{ return RIGHT; }
 MID\$		{ return MID; }
@@ -105,11 +107,14 @@ STR         { return STR; }
  /* system functions */
 TAB			{ return TAB; }
 SPC			{ return SPC; }
+PEEK        { return PEEK; }
+FRE         { return FRE; }
 
  /* extensions from different versions */
-CLS         { return CLS; }
+CLS         { return CLS; } // clear screen
  /* SYS         { return SYS; } */
  /* USR         { return USR; } */
+ /* CMD         { return CMD; } */ // redirects output of PRINT to another device
 
  /* various operators and punctuation */
 [:,;()\^=+\-*/\<\>]     { return yytext[0]; }
