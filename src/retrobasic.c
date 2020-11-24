@@ -842,10 +842,6 @@ static void perform_statement(GList *L)
 				{
 					value_t cond = evaluate_expression(ps->parms._if.condition);
 					/* if only does something when the condition is true */
-                    
-                    if (current_line() == 1990)
-                        printf("%d",current_line());
-                    
 					if (cond.number != 0) {
 						/* THEN might be an expression including a GOTO or an implicit GOTO */
 						if (ps->parms._if.then_expression) {
