@@ -138,7 +138,8 @@ typedef struct {
 typedef struct {
     GList *lines[MAXLINE];          // the lines in the program, stored as an array of statement lists
     int first_line;		            // index of the first line in the lines array
-    GList *current_statement;		// currently executing statement
+    GList *current_statement;       // currently executing statement
+    GList *next_statement;          // next statement to run, might change for GOTO and such
     GList *current_data_statement;	// current 'DATA' statement
     GList *current_data_element;	// current 'DATA' expression within psd
     GTree *values;		            // name/value pairs used to store variable *values*

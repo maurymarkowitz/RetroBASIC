@@ -31,12 +31,13 @@ Boston, MA 02111-1307, USA.  */
 interpreterstate_t interpreter_state;
 
 /* internal state variables used for I/O and other tasks */
-static int run_program = 1; // default to running the program, not just parsing it
+static int run_program = 1;         // default to running the program, not just parsing it
 static int print_stats = 1;
 static int write_stats = 0;
 static int tab_columns = 16;
 static int trace_lines = FALSE;
 static double random_seed = -1;
+static int string_slicing = FALSE;  // are references like A$(1,1) referring to an array entry or doing "slicing"?
 //static char *program_file = "";
 static char *input_file = "";
 static char *print_file = "";
@@ -327,7 +328,7 @@ static value_t evaluate_expression(expression_t *e)
         // TODO: we need to eval the parameters and pass them in
         case fn:
             {
-                expression_t *p;
+                expression_t *p = NULL;
                 p = function_definition(e->parms.variable, p); // note the re-use of the "variable" slot here
                 r = evaluate_expression(p);
             }
@@ -375,6 +376,10 @@ static value_t evaluate_expression(expression_t *e)
                         break;
                     case EXP:
                         r.number = exp(a);
+                        break;
+                    case FRE:
+                        // always return zero
+                        r.number = 0;
                         break;
                     case LEN:
                         r.number = strlen(p[0].string->str);
@@ -732,12 +737,8 @@ static GList *find_line(int linenumber)
 //}
 
 /* performs a single statement */
-static GList *perform_statement(GList *L)
+static void perform_statement(GList *L)
 {
-    // get the next statement to run, which, by default, is the next statement in the program
-    // this may be changed GOTO, GOSUB, ON, IF...
-    GList *next = g_list_next(L);
-    
     // now process this statement
     statement_t *ps = L->data;
     if (ps) {
@@ -749,6 +750,10 @@ static GList *perform_statement(GList *L)
             case BYE:
 				// unlike END, this exits BASIC entirely
                 exit(EXIT_SUCCESS);
+                break;
+
+            case CALL:
+                // do nothing
                 break;
 
             case CLEAR:
@@ -789,7 +794,7 @@ static GList *perform_statement(GList *L)
                 
             case END:
 				// set the instruction pointer to null so it exits below
-				next = NULL;
+                interpreter_state.next_statement = NULL;
 				break;
                 
             case FOR:
@@ -823,13 +828,13 @@ static GList *perform_statement(GList *L)
 					
 					new->returnpoint = g_list_next(L);
 					interpreter_state.gosubstack = g_list_append(interpreter_state.gosubstack, new);
-					next = find_line(evaluate_expression(ps->parms.gosub).number);
+                    interpreter_state.next_statement = find_line(evaluate_expression(ps->parms.gosub).number);
 				}
 				break;
                 
             case GOTO:
 				{
-					next = find_line(evaluate_expression(ps->parms._goto).number);
+                    interpreter_state.next_statement = find_line(evaluate_expression(ps->parms._goto).number);
 				}
 				break;
                 
@@ -837,6 +842,10 @@ static GList *perform_statement(GList *L)
 				{
 					value_t cond = evaluate_expression(ps->parms._if.condition);
 					/* if only does something when the condition is true */
+                    
+                    if (current_line() == 1990)
+                        printf("%d",current_line());
+                    
 					if (cond.number != 0) {
 						/* THEN might be an expression including a GOTO or an implicit GOTO */
 						if (ps->parms._if.then_expression) {
@@ -849,7 +858,7 @@ static GList *perform_statement(GList *L)
                             }
 						} else {
                             // if the THEN is not an expression, jump to that line
-							next = find_line(ps->parms._if.then_linenumber);
+                            interpreter_state.next_statement = find_line(ps->parms._if.then_linenumber);
 						}
 					}
 				}
@@ -949,7 +958,7 @@ static GList *perform_statement(GList *L)
 					if (((pfc->step < 0) && (lv->d >= pfc->end)) ||
 						((pfc->step > 0) && (lv->d <= pfc->end))) {
                         /* Go back to the head of the loop */
-						next = g_list_next(pfc->head);
+                        interpreter_state.next_statement = g_list_next(pfc->head);
 					} else {
                         interpreter_state.forstack = g_list_remove(interpreter_state.forstack, pfc);
 					}
@@ -998,12 +1007,12 @@ static GList *perform_statement(GList *L)
 					
 					/* and then it's either GOTO or GOSUB... */
 					if (ps->parms.on.type == GOTO) {
-						next = find_line(linenum);
+                        interpreter_state.next_statement = find_line(linenum);
 					} else {
 						gosubcontrol_t *new = malloc(sizeof(*new));
 						new->returnpoint = g_list_next(L);
 						interpreter_state.gosubstack = g_list_append(interpreter_state.gosubstack, new);
-						next = find_line(linenum);
+                        interpreter_state.next_statement = find_line(linenum);
 					}
 				}
                 break;
@@ -1114,7 +1123,7 @@ static GList *perform_statement(GList *L)
             case RETURN:
 				{
 					gosubcontrol_t *pgc = g_list_last(interpreter_state.gosubstack)->data;
-					next = pgc->returnpoint;
+                    interpreter_state.next_statement = pgc->returnpoint;
 					interpreter_state.gosubstack = g_list_remove(interpreter_state.gosubstack, pgc);
 				}
                 break;
@@ -1132,8 +1141,6 @@ static GList *perform_statement(GList *L)
                 assert(0);
         } //end switch
     }
-    // return the pointer to the next statement so you can just keep looping
-    return next;
 }
 
 static gboolean is_string(gpointer key, gpointer value, gpointer user_data)
@@ -1194,7 +1201,12 @@ void run(void)
     // main below set us up to point to the first one, so just call
     // that one function until you get a NULL
     while (interpreter_state.current_statement) {
-        interpreter_state.current_statement = perform_statement(interpreter_state.current_statement);
+        // get the next statement from the one we're about to run
+        interpreter_state.next_statement = g_list_next(interpreter_state.current_statement);
+        // run the one we're on
+        perform_statement(interpreter_state.current_statement);
+        // and move to the next statement, which might have changed inside perform
+        interpreter_state.current_statement = interpreter_state.next_statement;
         
         // trace, only on line changes
         if (trace_lines && last_line != current_line()) {
@@ -1202,17 +1214,6 @@ void run(void)
             printf("[%i]\n", last_line);
         }
     }
-}
-
-/* simple version info for --version command line option */
-void print_version()
-{
-    puts("RetroBASIC 1.0\n");
-}
-
-void print_usage()
-{
-    puts("RetroBASIC 1.0\n");
 }
 
 /* prints out various statistics from the static code,
@@ -1403,26 +1404,36 @@ void print_statistics()
     }
 }
 
-/* pretty bog-standard options processing based on getopt */
-/* options are:
- 
- -v/--version = print the version
- -h/--help = print the usage notes
- -f/--file = name of the program to run
- -t/--tabs = sets the number of columns per tab for comma-separated output
- -p/--print-stats = prints statistics in human form to the standard output
- -w/--write-stats = prints stats in machine form to the named file
- -i/--input-file = redirects INPUT statements to take values from the named file
- -o/--output-file = redirects PRINT statements to write to the named file
- -n/--no-run = doesn't run the file, just parses it (and optionally prints stats)
- -r/--random = seed the random number generator with the given value
- */
+/* simple version info for --version command line option */
+void print_version()
+{
+    puts("RetroBASIC 1.0");
+}
+
+/* usage, both for the user and for documenting the code below */
+void print_usage(char *argv[])
+{
+    printf("Usage: %s [-hvsn] [-t spaces] [-r seed] [-p | -w statistics_file] [-o output_file] [-i input_file] basic_file", argv[0]);
+    puts("Options:");
+    puts("  -h, --help: print this description");
+    puts("  -v, --version: print version info");
+    puts("  -s, --slicing: turn on string slicing (turning off sting arrays)");
+    puts("  -n, --no-run: don't run the program after parsing (often combined with -p or -w)");
+    puts("  -t, --tabs spaces: set the number of spaces for comma-separated items");
+    puts("  -r, --random seed: seed the random number generator with the provided value (normally 0)");
+    puts("  -p, --print-stats: when the program exits, print a set of statistics");
+    puts("  -w, --write-stats stats_file: when the program exits, write statistics to the named file");
+    puts("  -o, --output-file output_file: redirect PRINT and PUT to the named file");
+    puts("  -i, --input-file input_file: redirect INPUT and GET from the named file");
+}
+
 static struct option program_options[] =
 {
     {"help", no_argument, NULL, 'h'},
     {"version", no_argument, NULL, 'v'},
     {"tabs", required_argument, NULL, 't'},
     {"random", required_argument, NULL, 'r'},
+    {"slicing", no_argument, &string_slicing, 's'},
     {"input-file", required_argument, NULL, 'i'},
     {"output-file", required_argument,  NULL, 'o'},
     {"print-stats", no_argument, &print_stats, 1},
@@ -1430,7 +1441,6 @@ static struct option program_options[] =
     {"no-run", no_argument, &run_program, 'n'},
     {0, 0, 0, 0}
 };
-//static char usage[] = "usage: %s [-dmp] -f fname [-s sname] name [name ...]\n";
 
 void parse_options(int argc, char *argv[])
 {
@@ -1439,7 +1449,7 @@ void parse_options(int argc, char *argv[])
     
     while(1) {
         // eat an option and exit if we're done
-        c = getopt_long(argc, argv, "hvf:i:o:pw:n", program_options, &option_index);
+        c = getopt_long(argc, argv, "hvt:r:si:o:pw:n", program_options, &option_index); // should match the items above
         if (c == -1) break;
         
         //testing
@@ -1456,7 +1466,7 @@ void parse_options(int argc, char *argv[])
                 break;
                 
             case 'h':
-                print_usage();
+                print_usage(argv);
                 break;
                 
             case 'v':
@@ -1502,7 +1512,7 @@ int main(int argc, char *argv[])
     // parse the options and make sure we got a filename somewhere
     parse_options(argc, argv);
     
-    // set up an empty tree to store variables and user functions as we find them
+    // set up empty trees to store variables and user functions as we find them
     interpreter_state.values = g_tree_new(symbol_compare);
     interpreter_state.functions = g_tree_new(symbol_compare);
 
@@ -1527,7 +1537,7 @@ int main(int argc, char *argv[])
         // that statement is going to be the head of the list when we're done
         GList *first_statement = interpreter_state.lines[first_line];
         
-        // now find the next non-null line and contact it to the first one, and repeat
+        // now find the next non-null line and concat it to the first one, and repeat
         for (int i = first_line + 1; (i < MAXLINE); i++) {
             if (interpreter_state.lines[i])
                 first_statement = g_list_concat(first_statement, interpreter_state.lines[i]);
@@ -1536,6 +1546,7 @@ int main(int argc, char *argv[])
         // and set the resulting list back into the first line
         // NOTE: do we need to do this? isn't this already there?
         interpreter_state.lines[first_line] = first_statement;
+        // and keep track of this for posterity
         interpreter_state.first_line = first_line;
         
         // a program runs from the first line, so...
@@ -1544,11 +1555,11 @@ int main(int argc, char *argv[])
         interpreter_state.current_data_element = NULL;                  // the element within the DATA is nothing
    }
     
-    // cursor starts in col 0
+    // the cursor starts in col 0
     interpreter_state.cursor_column = 0;
 
-    // seed the random
-    if (random_seed >= 0)
+    // seed the random with the provided number or randomize it
+    if (random_seed > -1)
         srand(random_seed);
     else
         srand((unsigned int)time(0));
