@@ -92,6 +92,7 @@ static expression_t *make_operator(int arity, int o)
 
 %token BREAK
 %token BYE
+%token CALL
 %token CLEAR
 %token CLS
 %token DATA
@@ -99,6 +100,7 @@ static expression_t *make_operator(int arity, int o)
 %token DIM
 %token END
 %token FOR
+%token GET
 %token GOSUB
 %token GOTO
 %token IF
@@ -111,24 +113,28 @@ static expression_t *make_operator(int arity, int o)
 %token PEEK
 %token POKE
 %token PRINT
+%token PUT
 %token READ
 %token REM
 %token RESTORE
 %token RETURN
 %token RUN
-//%token SHORTREM
+//%token SHORTREM // only need this if we support LIST
 %token STEP
 %token STOP
+%token SYS
 %token THEN
 %token TO
 %token USING
 %token VARLIST
+%token WAIT
 
  /* putting these down here for clarity, they are the PRINT# etc. */
 %token OPEN CLOSE STATUS
 %token PRINT_FILE
 %token INPUT_FILE
 %token GET_FILE
+%token PUT_FILE
 
 %token _ABS SGN
 %token ATN COS SIN TAN
@@ -136,17 +142,18 @@ static expression_t *make_operator(int arity, int o)
 %token RND
 %token INT FIX CINT CSNG CDBL // fix=SGN(x)*INT(ABS(x))
 
+%token ASC
 %token LEFT MID RIGHT
 %token LEN STR VAL CHR
 
 %token AND OR NOT XOR
 %token CMP_LE CMP_GE CMP_NE CMP_HASH /* we keep hash separate for LISTing purposes */
 
-%token ASC
 %token FRE
 %token SPC
 %token TAB
 %token POS
+%token USR
 
 %%
 
@@ -201,6 +208,12 @@ statement:
 	  statement_t *new = make_statement(BYE);
 	  $$ = new;
 	}
+    |
+    CALL
+    {
+      statement_t *new = make_statement(CALL);
+      $$ = new;
+    }
     |
     CLS
     {
@@ -435,12 +448,24 @@ statement:
 	  statement_t *new = make_statement(STOP);
 	  $$ = new;
 	}
+    |
+    SYS expression /* same as CALL */
+    {
+      statement_t *new = make_statement(SYS);
+      $$ = new;
+    }
 	|
 	VARLIST /* lists out all the variables and their values */
 	{
 	  statement_t *new = make_statement(VARLIST);
 	  $$ = new;
 	}
+    |
+    WAIT exprlist /* watches a memory location, does nothing here so ignore the list */
+    {
+      statement_t *new = make_statement(WAIT);
+      $$ = new;
+    }
 	|
 	variable '=' expression /* invisible LET, visible LET is above */
 	{
@@ -587,7 +612,8 @@ fn_1:
 	CHR  { $$ = CHR; } |
 	CLOG { $$ = CLOG;} |
 	COS  { $$ = COS; } |
-	EXP  { $$ = EXP; } |
+    EXP  { $$ = EXP; } |
+    FRE  { $$ = FRE; } |
 	INT  { $$ = INT; } |
     LEN  { $$ = LEN; } |
     STR  { $$ = STR; } |
@@ -598,7 +624,8 @@ fn_1:
 	SPC  { $$ = SPC; } |
 	SQR  { $$ = SQR; } |
 	TAB  { $$ = TAB; } |
-	VAL  { $$ = VAL; }
+	VAL  { $$ = VAL; } |
+    USR  { $$ = USR; }
     ;
 	
  /* arity-2 functions */
