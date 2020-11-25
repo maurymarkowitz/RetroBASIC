@@ -387,7 +387,7 @@ static value_t evaluate_expression(expression_t *e)
                     case STR:
                         {
                             char str[80];
-                            sprintf(str, "%lf", a); // FIXME: need to put in the right format here, might differ among platforms
+                            sprintf(str, "% -f", a); // following PET version, leading space for +
                             r.type = STRING;
                             r.string = g_string_new(str);
                         }
@@ -443,7 +443,7 @@ static value_t evaluate_expression(expression_t *e)
                         }
                         break;
                     case SPC:
-                        // spc always adds the indicated number of spaces
+                        // SPC always adds the indicated number of spaces
                         r.type = STRING;
                         r.string = g_string_new("");
                         for (int i = 0; i <= p[0].number - 1; i++) {
@@ -1052,9 +1052,14 @@ static void perform_statement(GList *L)
 						pp = (printitem_t *)(g_list_last(ps->parms.print.item_list)->data);
 					else
 						pp = NULL;
+                    
+                    // if the last item is SPC or TAB, fake a trailing semi, which is the way PET does it
+                    if (pp != NULL && pp->expression->type == op && (pp->expression->parms.op.o == SPC || pp->expression->parms.op.o == TAB)) {
+                        pp->separator = ';';
+                    }
 					
 					// if there are no more items, or it's NOT a separator, do a CR
-					if ((pp == NULL) || (pp->separator == 0)) {
+					if (pp == NULL || pp->separator == 0) {
 						printf("\n");
                         interpreter_state.cursor_column = 0; // and reset this!
 					}
@@ -1269,9 +1274,7 @@ void print_statistics()
 	}
     
     // variables
-    // finding the references in the code is non-trivial,
-    // but we can look at the values after they've been
-    // populated by running the program
+    // FIXME: this currently only lists the items that have been encountered during the run, not the parse
     int num_total = g_tree_nnodes(interpreter_state.values);
     int num_int = 0, num_sng = 0, num_dbl = 0, num_str = 0;
     g_tree_foreach(interpreter_state.values, is_integer, &num_int);
