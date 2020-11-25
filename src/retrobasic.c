@@ -871,7 +871,7 @@ static void perform_statement(GList *L)
 					// first off, see if the first item in the list is a variable,
 					// if so, that means there's nothing suppressing the prompt, so
 					// we want to display it. we don't have to do that for other
-					// items in the list because it's handled in the loop
+					// items in the list because it's handled in the loop below
 					printitem_t *ppi= ps->parms.input->data;
 					if (ppi->expression->type == variable)
 						printf("?");
@@ -890,7 +890,7 @@ static void perform_statement(GList *L)
 							if (fgets(line, sizeof(line), stdin) != line)
 								exit(EXIT_FAILURE);
 							
-							// we did, so complete the string
+							// we did, so null-terminate the string
 							line[strlen(line) - 1] = '\0';
 							
 							// find the storage for this variable, and assign the value
