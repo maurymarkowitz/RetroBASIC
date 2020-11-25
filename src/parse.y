@@ -424,7 +424,7 @@ statement:
 	  $$ = new;
 	}
 	|
-    REM /* this should be expanded to store the actual content */
+    REM
 	{
 	  statement_t *new = make_statement(REM);
 	  new->parms.rem = yylval.s;
