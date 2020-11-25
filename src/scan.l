@@ -47,9 +47,7 @@ Boston, MA 02111-1307, USA.  */
     https://stackoverflow.com/questions/59117309/rest-of-line-in-bison/59122569#59122569
   */
 \'.*        { yylval.s = g_string_new(strndup(yytext + 1, yyleng - 1)); return REM; }
-BREAK       { return BREAK; }
 BYE         { return BYE; }
-CALL        { return CALL; }
 CLS         { return CLS; }
 DEF         { return DEF; }
 DATA        { return DATA; }
@@ -60,16 +58,14 @@ GOSUB		{ return GOSUB; }
 GOTO		{ return GOTO; }
 IF          { return IF; }
 INPUT       { return INPUT; }
-INPUT#      { return INPUT_FILE; }
 LET	        { return LET; }
 NEXT	    { return NEXT; }
 NEW			{ return NEW; }
 ON			{ return ON; }
 POKE        { return POKE; }
 PRINT       { return PRINT; }
-PRINT#		{ return PRINT_FILE; }
 READ		{ return READ; }
-REM.*       { yylval.s = g_string_new(strndup(yytext + 2, yyleng - 2)); return REM; }
+REM.*       { yylval.s = g_string_new(strndup(yytext + 3, yyleng - 3)); return REM; }
 RESTORE		{ return RESTORE; }
 RETURN		{ return RETURN; }
 RUN			{ return RUN; }
@@ -77,8 +73,20 @@ STEP		{ return STEP; }
 STOP        { return STOP; }
 THEN		{ return THEN; }
 TO			{ return TO; }
-USING		{ return USING; }
+
+ /* extended statements found in some versions*/
+BREAK       { return BREAK; }
+CALL        { return CALL; }
+CLS         { return CLS; } // clear screen
+ /* CMD         { return CMD; } */ // redirects output of PRINT to another device
+GET         { return GET; }
+PUT         { return PUT; }
+INPUT#      { return INPUT_FILE; }
+PRINT#      { return PRINT_FILE; }
+SYS         { return SYS; }
+USING       { return USING; }
 VARLIST     { return VARLIST; }
+USR         { return USR; }
 
  /* math functions */
 ABS			{ return _ABS; } /* has to have the _ because GLib has an ABS */
@@ -109,12 +117,6 @@ TAB			{ return TAB; }
 SPC			{ return SPC; }
 PEEK        { return PEEK; }
 FRE         { return FRE; }
-
- /* extensions from different versions */
-CLS         { return CLS; } // clear screen
- /* SYS         { return SYS; } */
- /* USR         { return USR; } */
- /* CMD         { return CMD; } */ // redirects output of PRINT to another device
 
  /* various operators and punctuation */
 [:,;()\^=+\-*/\<\>]     { return yytext[0]; }
