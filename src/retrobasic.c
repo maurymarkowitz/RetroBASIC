@@ -26,8 +26,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include <getopt.h>
 
-/* here's the actual definition of the interpreter state,
-   which is extern in the header */
+/* here's the actual definition of the interpreter state which is extern in the header */
 interpreterstate_t interpreter_state;
 
 /* internal state variables used for I/O and other tasks */
@@ -279,6 +278,18 @@ expression_t *function_definition(variable_t *function, expression_t *expression
     
     // at this point we have either found or created the formula, so...
     return storage->formula;
+}
+
+/* public methods used during parsing to insert variables into storage
+   simply calls the method below and discards the return value */
+void make_variable(variable_t *variable)
+{
+    int ignore;
+    variable_value(variable, &ignore);
+}
+void make_function(variable_t *variable, expression_t *expression)
+{
+    function_definition(variable, expression);
 }
 
 static value_t perform_infix_operation(double v)
@@ -1279,6 +1290,7 @@ void print_statistics()
     
     // variables
     // FIXME: this currently only lists the items that have been encountered during the run, not the parse
+    //   to make this run in the --no-run case, variables should be put into the list as they are parsed
     int num_total = g_tree_nnodes(interpreter_state.values);
     int num_int = 0, num_sng = 0, num_dbl = 0, num_str = 0;
     g_tree_foreach(interpreter_state.values, is_integer, &num_int);
@@ -1288,7 +1300,6 @@ void print_statistics()
     g_tree_foreach(interpreter_state.values, is_string, &num_str);
 	
     // output to screen if selected
-    print_stats = 1;
     if(print_stats) {
         printf("\nLINE NUMBERS\n\n");
         printf("  total: %i\n", lines_total);
@@ -1416,18 +1427,18 @@ void print_version()
 /* usage, both for the user and for documenting the code below */
 void print_usage(char *argv[])
 {
-    printf("Usage: %s [-hvsn] [-t spaces] [-r seed] [-p | -w statistics_file] [-o output_file] [-i input_file] basic_file", argv[0]);
+    printf("Usage: %s [-hvsn] [-t spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] source_file\n", argv[0]);
     puts("Options:");
     puts("  -h, --help: print this description");
     puts("  -v, --version: print version info");
     puts("  -s, --slicing: turn on string slicing (turning off sting arrays)");
     puts("  -n, --no-run: don't run the program after parsing");
-    puts("  -t, --tabs spaces: set the number of spaces for comma-separated items");
-    puts("  -r, --random seed: seed the random number generator");
+    puts("  -t, --tabs: set the number of spaces for comma-separated items");
+    puts("  -r, --random: seed the random number generator");
     puts("  -p, --print-stats: when the program exits, print statistics");
-    puts("  -w, --write-stats stats_file: on exit, write statistics to a file");
-    puts("  -o, --output-file output_file: redirect PRINT and PUT to the named file");
-    puts("  -i, --input-file input_file: redirect INPUT and GET from the named file");
+    puts("  -w, --write-stats: on exit, write statistics to a file");
+    puts("  -o, --output-file: redirect PRINT and PUT to the named file");
+    puts("  -i, --input-file: redirect INPUT and GET from the named file");
 }
 
 static struct option program_options[] =
