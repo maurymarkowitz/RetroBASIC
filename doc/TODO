@@ -36,12 +36,10 @@ PATB = Palo Alto Tiny BASIC
 
 - file handling, OPEN, PRINT# etc.
 
-- support different TAB widths - Dartmouth was 17, we default to 16, GW-BASIC uses 14, PET is 10
-
 - add support for OPTION BASE and modify variable_value to handle base 0
 
 - a number of less-commonly-used math and string functions are not yet implemented: FIX CINT CSNG CDBL
 
-- some BASICs allow RESTORE to include a parameter.
+- some BASICs allow RESTORE to include a parameter...
   - in some versions that reset to the pointer to the start of that line number
   - in others the number represents the Nth item and sets the pointer there
