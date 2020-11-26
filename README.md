@@ -24,15 +24,15 @@ RetroBASIC is based on gnbasic by James Bowman.
 
 RetroBASIC is meant to be used with an existing program source file, not interactively. To run it, use ```./retrobasic program.bas```. It will accept any text file as input and report (cryptic) errors if it cannot properly parse it.
 
-If parsing succeeds, the program (normally) begins running immediately. Most programs should run correctly, although file I/O is not currently implemented, user functions return zero, and INPUT statements with multiple assignments currently require returns between each value.
+If parsing succeeds, the program (normally) begins running immediately. Most programs should run correctly, although file I/O is not currently implemented, user functions ignore local variables, and INPUT statements with multiple assignments currently require returns between each value.
 
 If your goal is to simply check the syntax of the program, or to list statistics, use the `--no_run` switch, `-n` for short. This will load and parse the BASIC source, but not run it. This is normally combined with `--print_statistics`. You can also `--write_statistics` to a file of your choice, which outputs a slightly different format more suitable for automating.
 
 ## Building RetroBASIC
 
-The RetroBASIC interpreter is written for lex/yacc and is normally compiled with flex/bison. It has a single non-standard dependancy; it uses GLib for string, list and tree suppport. It should compile on any platform with GLib, and has been tested on macOS (native) and Windows (with Cygwin). A sample Xcode project is included.
+The RetroBASIC interpreter is written for lex/yacc and is normally compiled with flex/bison. It has a single non-standard dependancy; it uses GLib for string, list and tree suppport. It should compile on any platform with GLib, and has been tested on macOS (native) and Windows (with Cygwin).
 
-The project includes an xCode project, and a makefile. If anyone would like to contributed a VS project I'd appreciate it.
+A sample Xcode project is included, as well as a basic makefile. If anyone would like to contribute a VS project, it would be greatly appeciated.
 
 ## Missing features and Erata
 
