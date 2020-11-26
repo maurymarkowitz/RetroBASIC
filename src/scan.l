@@ -46,7 +46,7 @@ Boston, MA 02111-1307, USA.  */
     a separate token, this is the simplest solution. See:
     https://stackoverflow.com/questions/59117309/rest-of-line-in-bison/59122569#59122569
   */
-\'.*        { yylval.s = g_string_new(strndup(yytext + 1, yyleng - 1)); return REM; }
+\'.*        { yylval.s = g_string_new(strndup(yytext + 1, yyleng - 1)); return SHORTREM; }
 BYE         { return BYE; }
 CLS         { return CLS; }
 DEF         { return DEF; }
@@ -78,7 +78,7 @@ TO			{ return TO; }
 BREAK       { return BREAK; }
 CALL        { return CALL; }
 CLS         { return CLS; } // clear screen
- /* CMD         { return CMD; } */ // redirects output of PRINT to another device
+CMD         { return CMD; } // redirects output of PRINT to another device
 GET         { return GET; }
 PUT         { return PUT; }
 INPUT#      { return INPUT_FILE; }
@@ -86,7 +86,8 @@ PRINT#      { return PRINT_FILE; }
 SYS         { return SYS; }
 USING       { return USING; }
 VARLIST     { return VARLIST; }
-USR         { return USR; }
+POP         { return POP; }
+EXIT        { return EXIT; }
 
  /* math functions */
 ABS			{ return _ABS; } /* has to have the _ because GLib has an ABS */
@@ -117,6 +118,7 @@ TAB			{ return TAB; }
 SPC			{ return SPC; }
 PEEK        { return PEEK; }
 FRE         { return FRE; }
+USR         { return USR; }
 
  /* various operators and punctuation */
 [:,;()\^=+\-*/\<\>]     { return yytext[0]; }

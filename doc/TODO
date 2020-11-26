@@ -1,19 +1,20 @@
 RetroBASIC TODO list
 
-MS = MS BASIC, following 6502 40-bit version
+MS = MS BASIC, following 6502 40-bit version as seen on the PET
 HP = HP Time-Sharing BASIC
 AB = Atari BASIC
 IB = Integer BASIC
 PATB = Palo Alto Tiny BASIC
 
-- IF statements follow the MS pattern, where all statements are considered part of the IF
-  this is as opposed to the Dartmouth pattern where only the statement after the IF is considered,
-  any additional statements on the line will run regardless of the IF
-    IF 1=2 THEN PRINT"one";:PRINT"two" will print nothing, whereas Dartmouth would print two
+- assignments into arrays not working? see line 4120 in SST
 
-- DEF FN ignores parameters when evaluating the formula
+- IF statements follow the MS pattern, where all statements on the line after the THEN are considered as a unit. This is different than the Dartmouth version where only the statement immediately after the THEN is part of the IF. In Dartmouth, any statements after a colon would be run separately, whereas in MS then only run if the IF is true. e.g. IF 1=2 THEN PRINT 1:PRINT 2 will print nothing in MS, Dartmouth would print "2"
 
 - ELSE would be realtively easy to add, at least the single-line variety
+
+- DEF FN ignores *local* parameters when evaluating the formula, using global ones instead
+
+- flesh out GET and PUT, which are just placeholders for now. this should be easy, perhaps reuse the .input and .print structs in statement_t
 
 - need to allow multiple INPUTs on a single line, currently it requires a CR between values
 
@@ -33,14 +34,16 @@ PATB = Palo Alto Tiny BASIC
 
 - add support for DEFINT, etc. These are easy, they are essentially identical to DIM, they simply need to call variable_value to insert an entry into the g_tree and set the type correctly
 
-- LPOS, LPRINT, etc.
+- LPOS, LPRINT, etc. from AB and others
 
 - file handling, OPEN, PRINT# etc.
 
-- support different TAB widths - Dartmouth was 17, we have 16, GW-BASIC uses 14, --tabs 16?
+- support different TAB widths - Dartmouth was 17, we default to 16, GW-BASIC uses 14, PET is 10
 
 - add support for OPTION BASE and modify variable_value to handle base 0
 
-- a number of math and string functions are not yet implemented: FIX CINT CSNG CDBL FRE
+- a number of less-commonly-used math and string functions are not yet implemented: FIX CINT CSNG CDBL
 
-- some BASICs allow RESTORE to include a parameter. in some versions that reset to the pointer to that line number, in others the number represents the Nth item and sets the pointer there
+- some BASICs allow RESTORE to include a parameter.
+  - in some versions that reset to the pointer to the start of that line number
+  - in others the number represents the Nth item and sets the pointer there
