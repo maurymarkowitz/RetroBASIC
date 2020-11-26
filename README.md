@@ -26,11 +26,13 @@ RetroBASIC is meant to be used with an existing program source file, not interac
 
 If parsing succeeds, the program (normally) begins running immediately. Most programs should run correctly, although file I/O is not currently implemented, user functions return zero, and INPUT statements with multiple assignments currently require returns between each value.
 
-If your goal is to simply check the syntax of the program, or to list statistics, use the `--no_run switch`, `-n` for short. This will load and parse the BASIC source, but not run it. This is normally combined with `--print_statistics`.
+If your goal is to simply check the syntax of the program, or to list statistics, use the `--no_run` switch, `-n` for short. This will load and parse the BASIC source, but not run it. This is normally combined with `--print_statistics`. You can also `--write_statistics` to a file of your choice, which outputs a slightly different format more suitable for automating.
 
 ## Building RetroBASIC
 
 The RetroBASIC interpreter is written for lex/yacc and is normally compiled with flex/bison. It has a single non-standard dependancy; it uses GLib for string, list and tree suppport. It should compile on any platform with GLib, and has been tested on macOS (native) and Windows (with Cygwin). A sample Xcode project is included.
+
+The project includes an xCode project, and a makefile. If anyone would like to contributed a VS project I'd appreciate it.
 
 ## Missing features and Erata
 
@@ -40,6 +42,5 @@ The RetroBASIC interpreter is written for lex/yacc and is normally compiled with
 * POKE does nothing, PEEK returns zero
 * String "slicing" as seen in HP, Atari and Integer is not yet supported, but this is an important feature to add.
 * LIST, LOAD and SAVE are currently not implemented, in keeping with the use-case.
-* REMs do not remember the comment, although it should be easy to add this if LIST support is desired.
 * Variable names are currently limited to two characters, which is needed to support "crunched" statements without spaces in MS style.
 * The system does not support "immediate mode" (command line) input. It is not supposed to.
