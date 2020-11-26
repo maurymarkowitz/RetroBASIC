@@ -32,13 +32,13 @@ interpreterstate_t interpreter_state;
 
 /* internal state variables used for I/O and other tasks */
 static int run_program = 1;         // default to running the program, not just parsing it
-static int print_stats = 1;
+static int print_stats = 0;
 static int write_stats = 0;
-static int tab_columns = 16;
+static int tab_columns = 10;        // based on PET BASIC, which is a good enough target
 static int trace_lines = FALSE;
 static double random_seed = -1;
 static int string_slicing = FALSE;  // are references like A$(1,1) referring to an array entry or doing "slicing"?
-//static char *program_file = "";
+static char *source_file = "";
 static char *input_file = "";
 static char *print_file = "";
 static char *stats_file = "";
@@ -284,7 +284,6 @@ expression_t *function_definition(variable_t *function, expression_t *expression
 static value_t perform_infix_operation(double v)
 {
     value_t r;
-    
     r.type = NUMBER;
     r.number = v;
     return r;
@@ -391,6 +390,7 @@ static value_t evaluate_expression(expression_t *e)
                             r.type = STRING;
                             r.string = g_string_new(str);
                         }
+                        break;
                     case LOG:
                         r.number = log(a);
                         break;
@@ -443,13 +443,14 @@ static value_t evaluate_expression(expression_t *e)
                         }
                         break;
                     case SPC:
-                        // SPC always adds the indicated number of spaces
+                        // SPC adds the indicated number of spaces to the output
                         r.type = STRING;
                         r.string = g_string_new("");
                         for (int i = 0; i <= p[0].number - 1; i++) {
                             r.string = g_string_append(r.string, " ");
                         }
-                        
+                        break;
+
                     default:
                         basic_error("Unhandled arity-1 function");
                 } //switch
@@ -505,12 +506,7 @@ static value_t evaluate_expression(expression_t *e)
                         r = perform_infix_operation(-(a >= b));
                         break;
                     case CMP_NE:
-                        if (p[0].type == NUMBER)
-                            r = perform_infix_operation(-(a != b));
-                        else
-                            r = perform_infix_operation(-!!strcmp(p[0].string->str, p[1].string->str));
-                        break;
-                    case CMP_HASH: // be nice if you could have multiple consts in this case...
+                    case CMP_HASH:
                         if (p[0].type == NUMBER)
                             r = perform_infix_operation(-(a != b));
                         else
@@ -540,7 +536,7 @@ static value_t evaluate_expression(expression_t *e)
 								r.string = g_string_erase(r.string, 0, len - b);
 						}
                         break;
-                    case MID: // this is the two-parameter version
+                    case MID: // this is the two-parameter version, three follows
                         r.type = STRING;
 						{
 							time_t len = strlen(p[0].string->str);
@@ -768,6 +764,10 @@ static void perform_statement(GList *L)
                 // does nothing
                 break;
                 
+            case CMD:
+                // do nothing
+                break;
+
             case DATA:
 				// basically works like a REM, so just move on, all the logic is in the READ
                 break;
@@ -796,6 +796,10 @@ static void perform_statement(GList *L)
 				// set the instruction pointer to null so it exits below
                 interpreter_state.next_statement = NULL;
 				break;
+                
+            case EXIT:
+            case POP:
+                break;
                 
             case FOR:
 				{
@@ -905,6 +909,7 @@ static void perform_statement(GList *L)
 						else {
 							print_expression(ppi->expression, NULL);
 							// and if the sep is a comma, suppress the ?, otherwise add it
+                            // NOTE: we should have a global setting for the separator, as PATB uses colon and I'm sure there's others
 							if (ppi->separator != ',')
 								printf("?");
 						}
@@ -1109,7 +1114,6 @@ static void perform_statement(GList *L)
                 break;
                 
             case REM:
-                // next is already good, so...
 				break;
                 
             case RESTORE:
@@ -1417,11 +1421,11 @@ void print_usage(char *argv[])
     puts("  -h, --help: print this description");
     puts("  -v, --version: print version info");
     puts("  -s, --slicing: turn on string slicing (turning off sting arrays)");
-    puts("  -n, --no-run: don't run the program after parsing (often combined with -p or -w)");
+    puts("  -n, --no-run: don't run the program after parsing");
     puts("  -t, --tabs spaces: set the number of spaces for comma-separated items");
-    puts("  -r, --random seed: seed the random number generator with the provided value (normally 0)");
-    puts("  -p, --print-stats: when the program exits, print a set of statistics");
-    puts("  -w, --write-stats stats_file: when the program exits, write statistics to the named file");
+    puts("  -r, --random seed: seed the random number generator");
+    puts("  -p, --print-stats: when the program exits, print statistics");
+    puts("  -w, --write-stats stats_file: on exit, write statistics to a file");
     puts("  -o, --output-file output_file: redirect PRINT and PUT to the named file");
     puts("  -i, --input-file input_file: redirect INPUT and GET from the named file");
 }
@@ -1432,12 +1436,12 @@ static struct option program_options[] =
     {"version", no_argument, NULL, 'v'},
     {"tabs", required_argument, NULL, 't'},
     {"random", required_argument, NULL, 'r'},
-    {"slicing", no_argument, &string_slicing, 's'},
+    {"slicing", no_argument, NULL, 's'},
     {"input-file", required_argument, NULL, 'i'},
     {"output-file", required_argument,  NULL, 'o'},
-    {"print-stats", no_argument, &print_stats, 1},
+    {"print-stats", no_argument, NULL, 'p'},
     {"write-stats", required_argument, NULL, 'w'},
-    {"no-run", no_argument, &run_program, 'n'},
+    {"no-run", no_argument, NULL, 'n'},
     {0, 0, 0, 0}
 };
 
@@ -1445,33 +1449,41 @@ void parse_options(int argc, char *argv[])
 {
     int c;
     int option_index = 0;
+    int printed_help = FALSE;
     
     while(1) {
         // eat an option and exit if we're done
-        c = getopt_long(argc, argv, "hvt:r:si:o:pw:n", program_options, &option_index); // should match the items above
+        c = getopt_long(argc, argv, "hvt:r:i:o:w:spn", program_options, &option_index); // should match the items above, but with flag-setters excluded
         if (c == -1) break;
-        
-        //testing
-        printf ("option %s", program_options[option_index].name);
-        if (optarg)
-            printf (" with arg %s", optarg);
         
         switch (c) {
             case 0:
-                // flag-setting options return 0 - these are p and n
+                // flag-setting options return 0 - these are s, p and n
                 if (program_options[option_index].flag != 0)
                     break;
-                printf ("\n");
-                break;
                 
             case 'h':
                 print_usage(argv);
+                printed_help = TRUE;
                 break;
                 
             case 'v':
                 print_version();
+                printed_help =  TRUE;
                 break;
                 
+            case 'n':
+                run_program = FALSE;
+                break;
+
+            case 's':
+                string_slicing = TRUE;
+                break;
+                
+            case 'p':
+                print_stats = TRUE;
+                break;
+
             case 'i':
                 input_file = optarg;
                 break;
@@ -1496,6 +1508,17 @@ void parse_options(int argc, char *argv[])
                 abort();
         }
     } // while
+    
+    // now see if there's a filename
+    if (optind < argc)
+        // we'll just assume one file if any
+        source_file = argv[argc - 1];
+    else
+        // not always a failure, we might have just been asked for usage
+        if (printed_help)
+            exit(EXIT_SUCCESS);
+        else
+            exit(EXIT_FAILURE);
 }
 
 int main(int argc, char *argv[])
@@ -1514,9 +1537,9 @@ int main(int argc, char *argv[])
     // set up empty trees to store variables and user functions as we find them
     interpreter_state.values = g_tree_new(symbol_compare);
     interpreter_state.functions = g_tree_new(symbol_compare);
-
+    
     // open the file and run it through the parser, or use stdin
-    yyin = fopen(argv[1], "r");
+    yyin = fopen(source_file, "r");
     if (yyin == NULL)
         yyin = stdin;
     yyparse();

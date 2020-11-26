@@ -95,10 +95,12 @@ static expression_t *make_operator(int arity, int o)
 %token CALL
 %token CLEAR
 %token CLS
+%token CMD
 %token DATA
 %token DEF
 %token DIM
 %token END
+%token EXIT
 %token FOR
 %token GET
 %token GOSUB
@@ -112,6 +114,7 @@ static expression_t *make_operator(int arity, int o)
 %token ON
 %token PEEK
 %token POKE
+%token POP
 %token PRINT
 %token PUT
 %token READ
@@ -119,7 +122,7 @@ static expression_t *make_operator(int arity, int o)
 %token RESTORE
 %token RETURN
 %token RUN
-//%token SHORTREM // only need this if we support LIST
+%token SHORTREM
 %token STEP
 %token STOP
 %token SYS
@@ -220,6 +223,12 @@ statement:
       statement_t *new = make_statement(CLS);
       $$ = new;
     }
+    |
+    CMD
+    {
+      statement_t *new = make_statement(CMD);
+      $$ = new;
+    }
 	|
     /* DATA can have any type in it, but it is unlikely true expressions are allowed, although we allow them here */
 	DATA exprlist
@@ -249,6 +258,12 @@ statement:
 	  statement_t *new = make_statement(END);
 	  $$ = new;
 	}
+    |
+    EXIT
+    {
+      statement_t *new = make_statement(EXIT);
+      $$ = new;
+    }
 	|
 	FOR variable '=' expression TO expression
 	{
@@ -379,7 +394,6 @@ statement:
       
       linenum_constants_total++;
       linenum_on_totals++;
-
 	}
 	|
 	ON expression GOSUB exprlist
@@ -398,6 +412,12 @@ statement:
     {
       // since we don't actually perform the poke, we toss the parameters
       statement_t *new = make_statement(POKE);
+      $$ = new;
+    }
+    |
+    POP
+    {
+      statement_t *new = make_statement(POP);
       $$ = new;
     }
 	|
@@ -442,6 +462,13 @@ statement:
 	  statement_t *new = make_statement(RETURN);
 	  $$ = new;
 	}
+    |
+    SHORTREM /* FIXME: this should also store the indicator character in .rem */
+    {
+      statement_t *new = make_statement(REM);
+      new->parms.rem = yylval.s;
+      $$ = new;
+    }
 	|
 	STOP
 	{
