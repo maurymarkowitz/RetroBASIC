@@ -6,6 +6,10 @@ AB = Atari BASIC
 IB = Integer BASIC
 PATB = Palo Alto Tiny BASIC
 
+- properly format numbers to and from strings. this is the next feature to add
+
+- variables should be added at parse time, not runtime
+
 - assignments into arrays not working? see line 4120 in SST
 
 - IF statements follow the MS pattern, where all statements on the line after the THEN are considered as a unit. This is different than the Dartmouth version where only the statement immediately after the THEN is part of the IF. In Dartmouth, any statements after a colon would be run separately, whereas in MS then only run if the IF is true. e.g. IF 1=2 THEN PRINT 1:PRINT 2 will print nothing in MS, Dartmouth would print "2"

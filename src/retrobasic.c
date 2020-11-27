@@ -397,7 +397,14 @@ static value_t evaluate_expression(expression_t *e)
                     case STR:
                         {
                             char str[80];
-                            sprintf(str, "% -f", a); // following PET version, leading space for +
+                            // see print_expression for an explaination of this code, note this does NOT have a trailing space
+                            if (a == 0.0) {
+                                sprintf(str, "%s", " 0");
+                            } else if (a <= 999999999 && a >= -999999999) {
+                                sprintf(str, "% -G", a);
+                            } else {
+                                sprintf(str, "% -E", a);
+                            }
                             r.type = STRING;
                             r.string = g_string_new(str);
                         }
@@ -532,7 +539,7 @@ static value_t evaluate_expression(expression_t *e)
                     case LEFT:
                         r.type = STRING;
 						{
-							time_t len = strlen(p[0].string->str);
+                            size_t len = strlen(p[0].string->str);
 							r.string = g_string_new(p[0].string->str);
 							if (b < len)
 								g_string_truncate(r.string, b);
@@ -541,7 +548,7 @@ static value_t evaluate_expression(expression_t *e)
                     case RIGHT:
                         r.type = STRING;
 						{
-							time_t len = strlen(p[0].string->str);
+                            size_t len = strlen(p[0].string->str);
 							r.string = g_string_new(p[0].string->str);
 							if (b < len)
 								r.string = g_string_erase(r.string, 0, len - b);
@@ -550,7 +557,7 @@ static value_t evaluate_expression(expression_t *e)
                     case MID: // this is the two-parameter version, three follows
                         r.type = STRING;
 						{
-							time_t len = strlen(p[0].string->str);
+                            size_t len = strlen(p[0].string->str);
 							r.string = g_string_new(p[0].string->str);
 							if (b < len)
 								r.string = g_string_erase(r.string, 0, b - 1);
@@ -648,12 +655,33 @@ static void print_expression(expression_t *e, char *format)
     else {
         switch (v.type) {
             case NUMBER:
-                // in MS rules, numbers have a leading - or invisible +, and a trailing space
-                interpreter_state.cursor_column += printf("% -g ", v.number);
-                break;
-            case STRING:
-                interpreter_state.cursor_column += printf("%-s", v.string->str);
-                break;
+            {
+                /* this system follows the rules found in MS BASICs like the PET
+                   that is, generally:
+                   1) if the number is zero, return 0
+                   2) otherwise, move the decimal until the mantissa is 1e8 <= FAC < 1e9
+                   3) round the resulting 9-digit value
+                   4) if the number of decimal places moved is  -10 < TMPEXP > 1 then just print the result with the decimal moved back
+                   5) otherwise, use E format
+                 
+                   in C this is easier to accomplish:
+                   a) if the value is more than 9 places, use E format
+                   b) otherwise just print it
+                 
+                   in all cases, add a leading space for 0 or +ve values, - for -ve, and a trailing space
+                 */
+                if (v.number == 0.0) {
+                    interpreter_state.cursor_column += printf("%s ", " 0");
+                } else if (v.number <= 999999999 && v.number >= -999999999) {
+                    interpreter_state.cursor_column += printf("% -G ", v.number);
+                } else {
+                    interpreter_state.cursor_column += printf("% -E ", v.number);
+                }
+            }
+            break;
+        case STRING:
+            interpreter_state.cursor_column += printf("%-s", v.string->str);
+            break;
         }
     }
 }
@@ -810,6 +838,7 @@ static void perform_statement(GList *L)
                 
             case EXIT:
             case POP:
+                // TODO: make this would, should be easy enough
                 break;
                 
             case FOR:
@@ -1234,7 +1263,7 @@ void run(void)
 
 /* prints out various statistics from the static code,
    or if the write_stats flag is on, writes them to a file */
-void print_statistics()
+static void print_statistics()
 {
     int lines_total, line_min, line_max;
     
@@ -1419,13 +1448,13 @@ void print_statistics()
 }
 
 /* simple version info for --version command line option */
-void print_version()
+static void print_version()
 {
     puts("RetroBASIC 1.0");
 }
 
 /* usage, both for the user and for documenting the code below */
-void print_usage(char *argv[])
+static void print_usage(char *argv[])
 {
     printf("Usage: %s [-hvsn] [-t spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] source_file\n", argv[0]);
     puts("Options:");
