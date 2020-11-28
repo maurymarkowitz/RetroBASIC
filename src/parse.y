@@ -800,6 +800,9 @@ variable:
 	  new->name = $1;
 	  new->sub = NULL;
 	  $$ = new;
+      
+      /* add it to the interpreter's variable list for the analyizer*/
+      insert_variable(new);
 	}
 	|
     VARIABLE_NAME '(' exprlist ')'
@@ -808,7 +811,10 @@ variable:
 	  new->name = $1;
 	  new->sub = $3;
 	  $$ = new;
-	}
+
+      /* add it to the interpreter's variable list for the analyizer*/
+      insert_variable(new);
+    }
 
  /* a null printlist is valid, it means "new line" */
 printlist:

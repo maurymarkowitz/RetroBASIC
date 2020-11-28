@@ -1,28 +1,23 @@
-RetroBASIC TODO list
+RetroBASIC TODO/BUGS/ERRATA list
 
 MS = MS BASIC, following 6502 40-bit version as seen on the PET
 HP = HP Time-Sharing BASIC
 AB = Atari BASIC
 IB = Integer BASIC
+GW = GW-BASIC
 PATB = Palo Alto Tiny BASIC
 
-- properly format numbers to and from strings. this is the next feature to add
-
-- variables should be added at parse time, not runtime
-
-- assignments into arrays not working? see line 4120 in SST
-
-- IF statements follow the MS pattern, where all statements on the line after the THEN are considered as a unit. This is different than the Dartmouth version where only the statement immediately after the THEN is part of the IF. In Dartmouth, any statements after a colon would be run separately, whereas in MS then only run if the IF is true. e.g. IF 1=2 THEN PRINT 1:PRINT 2 will print nothing in MS, Dartmouth would print "2"
+- numbers do not properly truncate at 9 places on output
 
 - ELSE would be realtively easy to add, at least the single-line variety
 
-- DEF FN ignores *local* parameters when evaluating the formula, using global ones instead
+- DEF FN ignores *local* parameters when evaluating the formula, uses global ones instead (fix: add name of function to front of parameter names)
 
 - flesh out GET and PUT, which are just placeholders for now. this should be easy, perhaps reuse the .input and .print structs in statement_t
 
 - need to allow multiple INPUTs on a single line, currently it requires a CR between values
 
-- add support for string "slicing" commands used in HP/AB/IB. This is a bit tricky because it is the same syntax as string arrays found in other systems. This might only be possible by using a command-line switch. Alternately, use square brakets for slicing, which would require rewrites for AB/IB.
+- add support for string "slicing" commands used in HP/AB/IB. This is a bit tricky because it is the same syntax as string arrays found in other systems, so there is a command-line switch for this. Alternately, use square brakets for slicing, which would require rewrites for AB/IB.
 
 - support AB's DEG and RAD modes?
 
@@ -36,7 +31,7 @@ PATB = Palo Alto Tiny BASIC
 
 - add support for DEFINT, etc. These are easy, they are essentially identical to DIM, they simply need to call variable_value to insert an entry into the g_tree and set the type correctly
 
-- LPOS, LPRINT, etc. from AB and others
+- LPOS, LPRINT, etc. from AB, GW and others
 
 - file handling, OPEN, PRINT# etc.
 
@@ -45,5 +40,7 @@ PATB = Palo Alto Tiny BASIC
 - a number of less-commonly-used math and string functions are not yet implemented: FIX CINT CSNG CDBL
 
 - some BASICs allow RESTORE to include a parameter...
-  - in some versions that reset to the pointer to the start of that line number
-  - in others the number represents the Nth item and sets the pointer there
+  - some reset to the pointer to the start of that line number
+  - in others the parameter represents the Nth item of the entire DATA list
+
+- IF statements follow the MS pattern, where all statements on the line after the THEN are considered as a unit. This is different than the Dartmouth pattern where only the statement immediately after the THEN is part of the IF. e.g. IF 1=2 THEN PRINT 1:PRINT 2 will print nothing in MS, Dartmouth would print "2"
