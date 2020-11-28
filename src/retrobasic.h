@@ -123,7 +123,7 @@ typedef struct statement_struct {
  */
 typedef struct {
     GList *head;
-    variable_t *variable;
+    variable_t *index_variable;
     double begin, end, step;
 } forcontrol_t;
 
@@ -151,6 +151,9 @@ typedef struct {
 
 /* and here's the link to an instance of interpstate_t defined in the c side */
 extern interpreterstate_t interpreter_state;
+
+/* the only piece of the interpreter the parser needs to know about is the variable table */
+void insert_variable(variable_t *variable);
 
 /* additional externs used for the static analyzer, used in parse.y */
 extern int variables_total;

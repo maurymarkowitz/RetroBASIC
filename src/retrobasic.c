@@ -53,21 +53,21 @@ typedef struct {
 /* either_t is used within value_t for the actual data
   FIXME: is the union worthwhile? why not use two slots instead of a union? 4 wasted bytes? */
 typedef union {
-    GString *s;
-    double d;
+    GString *string;
+    double number;
 } either_t;
 
 /* variable_storage_t holds the *value* of a variable in memory */
 typedef struct {
     int type;			/* NUMBER, STRING */
-    GList *sub;         // subscripts, if any
+    GList *subscripts;  // subscripts, if any
     either_t *value;    // actual value, for non-arrays
 } variable_storage_t;
 
 /* function_storage_t holds the expression from the DEF */
 typedef struct {
     int type;               /* NUMBER, STRING */
-    GList *sub;             // parameters, if any
+    GList *parameters;      // parameters, if any
     expression_t *formula;  // related formula
 } function_storage_t;
 
@@ -182,18 +182,18 @@ either_t *variable_value(variable_t *variable, int *type)
             // eval each of the ones in the variable ref, and store that value
             // in our ->sub GList (as the pointer, not a structure), and then
             // calculate the total size we need
-            storage->sub = NULL;
+            storage->subscripts = NULL;
             slots = 1;
             for (GList *L = variable->sub; L != NULL; L = g_list_next(L)) {
                 v = evaluate_expression(L->data);
                 actual = (int)v.number;
-                storage->sub = g_list_append(storage->sub, GINT_TO_POINTER(actual));
+                storage->subscripts = g_list_append(storage->subscripts, GINT_TO_POINTER(actual));
                 slots *= actual;
             }
         }
         // if it doesn't include subscripts, null them out and set index = 1
         else {
-            storage->sub = NULL;
+            storage->subscripts = NULL;
             slots = 1;
         }
         
@@ -212,7 +212,7 @@ either_t *variable_value(variable_t *variable, int *type)
         GList *LA;			/* list of actual sizes in storage (from the DIM) */
         GList *LI;			/* list of indices in this reference */
         
-        LA = storage->sub;
+        LA = storage->subscripts;
         LI = variable->sub;
         
         if (g_list_length(LA) != g_list_length(LI))
@@ -245,10 +245,17 @@ either_t *variable_value(variable_t *variable, int *type)
     return &storage->value[index];
 }
 
+/* cover method for the function above, allows it to be exported */
+void insert_variable(variable_t *variable)
+{
+    int type;
+    variable_value(variable, &type);
+}
+
 /* Similar to variable_value in concept, this code looks through the list of
    user-defined functions to find a matching name and/or inserts it if it's new.
    the difference is that this returns an expression which we then evaluate. */
-expression_t *function_definition(variable_t *function, expression_t *expression)
+expression_t *function_expression(variable_t *function, expression_t *expression)
 {
     // see if we can find the entry in the symbol list
     function_storage_t *storage;
@@ -267,7 +274,7 @@ expression_t *function_definition(variable_t *function, expression_t *expression
             storage->type = NUMBER; // this works for all of them, int, dbl, etc.
         
         // copy over the list of parameters
-        storage->sub = g_list_copy(function->sub);
+        storage->parameters = g_list_copy(function->sub);
         
         // now store the expression/formula
         storage->formula = expression;
@@ -278,18 +285,6 @@ expression_t *function_definition(variable_t *function, expression_t *expression
     
     // at this point we have either found or created the formula, so...
     return storage->formula;
-}
-
-/* public methods used during parsing to insert variables into storage
-   simply calls the method below and discards the return value */
-void make_variable(variable_t *variable)
-{
-    int ignore;
-    variable_value(variable, &ignore);
-}
-void make_function(variable_t *variable, expression_t *expression)
-{
-    function_definition(variable, expression);
 }
 
 static value_t perform_infix_operation(double v)
@@ -327,9 +322,9 @@ static value_t evaluate_expression(expression_t *e)
                 p = variable_value(e->parms.variable, &type);
                 r.type = type;
                 if (type == STRING)
-                    r.string = p->s;
+                    r.string = p->string;
                 else
-                    r.number = p->d;
+                    r.number = p->number;
             }
             break;
             
@@ -339,7 +334,7 @@ static value_t evaluate_expression(expression_t *e)
         case fn:
             {
                 expression_t *p = NULL;
-                p = function_definition(e->parms.variable, p); // note the re-use of the "variable" slot here
+                p = function_expression(e->parms.variable, p); // note the re-use of the "variable" slot here
                 r = evaluate_expression(p);
             }
             break;
@@ -814,7 +809,7 @@ static void perform_statement(GList *L)
             case DEF:
                 // sets up a function, we simply copy the name, parameters and formula into storage
                 {
-                    function_definition(ps->parms.def.function, ps->parms.def.expression);
+                    function_expression(ps->parms.def.function, ps->parms.def.expression);
                 }
                 break;
 
@@ -847,7 +842,7 @@ static void perform_statement(GList *L)
 					either_t *lv;
 					int type;
 					
-					new_for->variable = ps->parms._for.variable;
+					new_for->index_variable = ps->parms._for.variable;
 					new_for->begin = evaluate_expression(ps->parms._for.begin).number;
 					new_for->end = evaluate_expression(ps->parms._for.end).number;
 					if(ps->parms._for.step)
@@ -859,8 +854,8 @@ static void perform_statement(GList *L)
 							new_for->step = -1;
 					}
 					new_for->head = L;
-					lv = variable_value(new_for->variable, &type);
-					lv->d = new_for->begin;
+					lv = variable_value(new_for->index_variable, &type);
+					lv->number = new_for->begin;
 					
 					interpreter_state.forstack = g_list_append(interpreter_state.forstack, new_for);
 				}
@@ -940,9 +935,9 @@ static void perform_statement(GList *L)
 							// find the storage for this variable, and assign the value
 							value = variable_value(ppi->expression->parms.variable, &type);
 							if (type == NUMBER) {
-								sscanf(line, "%lg", &value->d);
+								sscanf(line, "%lg", &value->number);
 							} else {
-								value->s = g_string_new(line);
+								value->string = g_string_new(line);
 							}
 						}
 						// if it's not a variable, it's some sort of prompt, so print it
@@ -973,9 +968,9 @@ static void perform_statement(GList *L)
 					// make sure we got the right type, and assign it if we did
 					if (exp_val.type == type) {
 						if (type == STRING)
-							stored_val->s = exp_val.string;
+							stored_val->string = exp_val.string;
 						else
-							stored_val->d = exp_val.number;
+							stored_val->number = exp_val.number;
 					} else {
 						// if the type we stored last time is different than this time...
 						basic_error("Type mismatch");
@@ -994,10 +989,10 @@ static void perform_statement(GList *L)
 					either_t *lv;
 					int type;
                     
-					lv = variable_value(pfc->variable, &type);
-					lv->d += pfc->step;
-					if (((pfc->step < 0) && (lv->d >= pfc->end)) ||
-						((pfc->step > 0) && (lv->d <= pfc->end))) {
+					lv = variable_value(pfc->index_variable, &type);
+					lv->number += pfc->step;
+					if (((pfc->step < 0) && (lv->number >= pfc->end)) ||
+						((pfc->step > 0) && (lv->number <= pfc->end))) {
                         /* Go back to the head of the loop */
                         interpreter_state.next_statement = g_list_next(pfc->head);
 					} else {
@@ -1139,9 +1134,9 @@ static void perform_statement(GList *L)
 						v = evaluate_expression(interpreter_state.current_data_element->data);
 						if (v.type == type) {
 							if (type == STRING)
-								lv->s = v.string;
+								lv->string = v.string;
 							else
-								lv->d = v.number;
+								lv->number = v.number;
 						} else {
 							//printf("Expected %s\n", (type == STRING) ? "string" : "number");
 							basic_error("Type mismatch in READ");
