@@ -7,7 +7,7 @@ IB = Integer BASIC
 GW = GW-BASIC
 PATB = Palo Alto Tiny BASIC
 
-- numbers do not properly truncate at 9 places on output
+- numbers do not properly truncate at 9 places on output, format is generally janky
 
 - ELSE would be realtively easy to add, at least the single-line variety
 
