@@ -296,6 +296,35 @@ static value_t perform_infix_operation(double v)
     return r;
 }
 
+/* converts a number to a string using MS's odd formatting rules */
+/* this system follows the rules found in MS BASICs like the PET
+   that is, generally:
+   1) if the number is zero, return 0
+   2) otherwise, move the decimal until the mantissa is 1e8 <= FAC < 1e9
+   3) round the resulting 9-digit value
+   4) if the number of decimal places moved is  -10 < TMPEXP > 1 then just print the result with the decimal moved back
+   5) otherwise, use E format
+ 
+   in C this is easier to accomplish:
+   a) if the value is more than 9 places, use E format
+   b) otherwise just print it
+ 
+   in all cases, add a leading space for 0 or +ve values, - for -ve, and a trailing space
+*/
+static char *number_to_string(double d)
+{
+    static char str[40]; // use static so we know it won't be collected
+    // see print_expression for an explaination of this code, note this does NOT have a trailing space
+    if (d == 0.0) {
+        sprintf(str, "%s", " 0");
+    } else if (d <= 999999999 && d >= -999999999) {
+        sprintf(str, "% -G", d);
+    } else {
+        sprintf(str, "% -E", d);
+    }
+    return str;
+}
+
 /* recursively evaluates an expression and returns a value_t with the result */
 static value_t evaluate_expression(expression_t *e)
 {
@@ -392,15 +421,7 @@ static value_t evaluate_expression(expression_t *e)
                         break;
                     case STR:
                         {
-                            char str[80];
-                            // see print_expression for an explaination of this code, note this does NOT have a trailing space
-                            if (a == 0.0) {
-                                sprintf(str, "%s", " 0");
-                            } else if (a <= 999999999 && a >= -999999999) {
-                                sprintf(str, "% -G", a);
-                            } else {
-                                sprintf(str, "% -E", a);
-                            }
+                            char* str = number_to_string(a);
                             r.type = STRING;
                             r.string = g_string_new(str);
                         }
@@ -652,27 +673,9 @@ static void print_expression(expression_t *e, char *format)
         switch (v.type) {
             case NUMBER:
             {
-                /* this system follows the rules found in MS BASICs like the PET
-                   that is, generally:
-                   1) if the number is zero, return 0
-                   2) otherwise, move the decimal until the mantissa is 1e8 <= FAC < 1e9
-                   3) round the resulting 9-digit value
-                   4) if the number of decimal places moved is  -10 < TMPEXP > 1 then just print the result with the decimal moved back
-                   5) otherwise, use E format
-                 
-                   in C this is easier to accomplish:
-                   a) if the value is more than 9 places, use E format
-                   b) otherwise just print it
-                 
-                   in all cases, add a leading space for 0 or +ve values, - for -ve, and a trailing space
-                 */
-                if (v.number == 0.0) {
-                    interpreter_state.cursor_column += printf("%s ", " 0");
-                } else if (v.number <= 999999999 && v.number >= -999999999) {
-                    interpreter_state.cursor_column += printf("% -G ", v.number);
-                } else {
-                    interpreter_state.cursor_column += printf("% -E ", v.number);
-                }
+                // for some reason, PRINT adds a space at the end of numbers
+                char* a = number_to_string(v.number);
+                interpreter_state.cursor_column += printf("%s ", a); // note the trailing space
             }
             break;
         case STRING:
