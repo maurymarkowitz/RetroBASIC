@@ -245,11 +245,12 @@ either_t *variable_value(variable_t *variable, int *type)
     return &storage->value[index];
 }
 
-/* cover method for the function above, allows it to be exported */
+/* cover method for the function above, allows it to be exported without knowing
+ about either_t which is private */
 void insert_variable(variable_t *variable)
 {
-    int type;
-    variable_value(variable, &type);
+    int ignore;
+    variable_value(variable, &ignore);
 }
 
 /* Similar to variable_value in concept, this code looks through the list of

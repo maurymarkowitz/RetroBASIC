@@ -75,19 +75,19 @@ THEN		{ return THEN; }
 TO			{ return TO; }
 
  /* extended statements found in some versions*/
-BREAK       { return BREAK; }
+BREAK       { return BREAK; }   // drops to the local debugger
 CALL        { return CALL; }
-CLS         { return CLS; } // clear screen
-CMD         { return CMD; } // redirects output of PRINT to another device
+CLS         { return CLS; }     // clear screen
+CMD         { return CMD; }     // redirects output of PRINT to another device
 GET         { return GET; }
 PUT         { return PUT; }
 INPUT#      { return INPUT_FILE; }
 PRINT#      { return PRINT_FILE; }
-SYS         { return SYS; }
+SYS         { return SYS; }     // same as CALL
 USING       { return USING; }
 VARLIST     { return VARLIST; }
 POP         { return POP; }
-EXIT        { return EXIT; }
+EXIT        { return EXIT; }    // same as POP
 
  /* math functions */
 ABS			{ return _ABS; } /* has to have the _ because GLib has an ABS */
