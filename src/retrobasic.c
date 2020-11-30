@@ -1523,6 +1523,10 @@ void parse_options(int argc, char *argv[])
                 print_stats = TRUE;
                 break;
 
+            case 't':
+                tab_columns = (int)strtol(optarg, 0, INT_MAX);;
+                break;
+
             case 'i':
                 input_file = optarg;
                 break;
