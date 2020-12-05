@@ -166,10 +166,18 @@ either_t *variable_value(variable_t *variable, int *type)
         // malloc a single slot, if it's an array we'll use this as the template
         storage = malloc(sizeof(*storage));
         
+        // see if we have a type being passed in, which is used in the DEFINT/SNG/DBL/STR
+        
         // set the type based on the name
         char trailer = variable->name->str[strlen(variable->name->str) - 1];
         if (trailer == '$')
             storage->type = STRING;
+        else if (trailer == '%')
+            storage->type = INTEGER;
+        else if (trailer == '!')
+            storage->type = SINGLE;
+        else if (trailer == '#')
+            storage->type = DOUBLE;
         else
             storage->type = NUMBER; // this works for all of them, int, dbl, etc.
         
@@ -225,7 +233,6 @@ either_t *variable_value(variable_t *variable, int *type)
                 int actual = GPOINTER_TO_INT(LA->data);
                 
                 if ((v.number < 0) || (actual < v.number - 1)) {
-                    //printf("Array subscript out of bounds for variable %s, name %s, is %i in call and %i in storage.\n", variable->name->str, storage_name->str, (int)v.number, (int)actual);
                     basic_error("Array subscript out of bounds");
                     v.number = 1;
                 }
@@ -245,12 +252,18 @@ either_t *variable_value(variable_t *variable, int *type)
     return &storage->value[index];
 }
 
-/* cover method for the function above, allows it to be exported without knowing
- about either_t which is private */
+/* cover method for variable_value, allows it to be exported to the parser
+ without it having to know about either_t, which is private  */
 void insert_variable(variable_t *variable)
 {
     int ignore;
     variable_value(variable, &ignore);
+}
+
+/* and another version which takes the type for use with DEFINT etc. */
+void insert_typed_variable(variable_t *variable, int type)
+{
+    variable_value(variable, &type);
 }
 
 /* Similar to variable_value in concept, this code looks through the list of
@@ -326,35 +339,35 @@ static char *number_to_string(double d)
 }
 
 /* recursively evaluates an expression and returns a value_t with the result */
-static value_t evaluate_expression(expression_t *e)
+static value_t evaluate_expression(expression_t *expression)
 {
-    value_t r;
-    value_t p[10];
+    value_t result;
+    value_t parameters[3];
     int i;
     double a, b, c;
     
-    switch (e->type) {
-        // for number and string constants, simply copy the value
+    switch (expression->type) {
+        // for number and string constants, simply copy the value and return it
         case number:
-            r.type = NUMBER;
-            r.number = e->parms.number;
+            result.type = NUMBER;
+            result.number = expression->parms.number;
             break;
         case string:
-            r.type = STRING;
-            r.string = e->parms.string;
+            result.type = STRING;
+            result.string = expression->parms.string;
             break;
             
         // variables are also easy, just copy over their value from storage
         case variable:
             {
-                int type;
+                int type = 0;
                 either_t *p;
-                p = variable_value(e->parms.variable, &type);
-                r.type = type;
+                p = variable_value(expression->parms.variable, &type);
+                result.type = type;
                 if (type == STRING)
-                    r.string = p->string;
+                    result.string = p->string;
                 else
-                    r.number = p->number;
+                    result.number = p->number;
             }
             break;
             
@@ -364,8 +377,8 @@ static value_t evaluate_expression(expression_t *e)
         case fn:
             {
                 expression_t *p = NULL;
-                p = function_expression(e->parms.variable, p); // note the re-use of the "variable" slot here
-                r = evaluate_expression(p);
+                p = function_expression(expression->parms.variable, p); // note the re-use of the "variable" slot here, not a separate one for fns
+                result = evaluate_expression(p);
             }
             break;
             
@@ -373,116 +386,116 @@ static value_t evaluate_expression(expression_t *e)
         case op:
             // build a list of values for each of the parameters by recursing
             // on them until they return a value
-            for (i = 0; i < e->parms.op.arity; i++)
-                p[i] = evaluate_expression(e->parms.op.p[i]);
+            for (i = 0; i < expression->parms.op.arity; i++)
+                parameters[i] = evaluate_expression(expression->parms.op.p[i]);
             
             // now calculate the results based on those values
-            if (e->parms.op.arity == 1) {
+            if (expression->parms.op.arity == 1) {
                 // most of the following functions return numbers, so default to that
-                r.type = NUMBER;
+                result.type = NUMBER;
                 
                 // get the first parameter, in this case, the only one
-                a = p[0].number;
+                a = parameters[0].number;
                 
-                switch (e->parms.op.o) {
+                switch (expression->parms.op.o) {
                     case '-':
-                        r.number = -a;
+                        result.number = -a;
                         break;
                     case NOT:
-                        r.number = ~(int)a;
+                        result.number = ~(int)a;
                         break;
                     case _ABS:
-                        r.number = fabs(a);
+                        result.number = fabs(a);
                         break;
                     case ATN:
-                        r.number = atan(a);
+                        result.number = atan(a);
                         break;
                     case CHR:
 						{
 							char c[2];
 							c[0] = (char)a;
 							c[1] = '\0';
-							r.type = STRING;
-							r.string = g_string_new(c);
+							result.type = STRING;
+							result.string = g_string_new(c);
 						}
                         break;
                     case CLOG:
-                        r.number = log10(a);
+                        result.number = log10(a);
                         break;
                     case EXP:
-                        r.number = exp(a);
+                        result.number = exp(a);
                         break;
                     case FRE:
                         // always return zero
-                        r.number = 0;
+                        result.number = 0;
                         break;
                     case LEN:
-                        r.number = strlen(p[0].string->str);
+                        result.number = strlen(parameters[0].string->str);
                         break;
                     case STR:
                         {
                             char* str = number_to_string(a);
-                            r.type = STRING;
-                            r.string = g_string_new(str);
+                            result.type = STRING;
+                            result.string = g_string_new(str);
                         }
                         break;
                     case LOG:
-                        r.number = log(a);
+                        result.number = log(a);
                         break;
                     case SIN:
-                        r.number = sin(a);
+                        result.number = sin(a);
                         break;
                     case COS:
-                        r.number = cos(a);
+                        result.number = cos(a);
                         break;
                     case INT:
-                        r.number = floor(a);
+                        result.number = floor(a);
                         break;
                     case SQR:
-                        r.number = sqrt(a);
+                        result.number = sqrt(a);
                         break;
                     case RND:
                         // TODO: support alternative RNDs that return limited values
-                        r.number = (rand() / (double)RAND_MAX); // don't forget the cast!
+                        result.number = (rand() / (double)RAND_MAX); // don't forget the cast!
                         break;
                     case VAL:
-                        r.number = atof(p[0].string->str);
+                        result.number = atof(parameters[0].string->str);
                         break;
                     case SGN:
                         // early MS variants return 1 for 0, this implements the newer version where 0 returns 0
                         if (a < 0)
-                            r.number = -1;
+                            result.number = -1;
                         else if (a == 0)
-                            r.number = 0;
+                            result.number = 0;
                         else
-                            r.number = 1;
+                            result.number = 1;
                         break;
                     case PEEK:
                         // always return zero
-                        r.number = 0;
+                        result.number = 0;
                         break;
                     case POS:
-                        r.number = (double)interpreter_state.cursor_column; //FIXME: should this be +1?
+                        result.number = (double)interpreter_state.cursor_column; //FIXME: should this be +1?
                         break;
                     case TAB:
                         // TAB does nothing if the current cursor position is past
                         // the number being passed in, otherwise it adds spaces to
                         // move the cursor to that column number
-                        r.type = STRING;
-                        r.string = g_string_new("");
-                        int tabs = (int)p[0].number;
+                        result.type = STRING;
+                        result.string = g_string_new("");
+                        int tabs = (int)parameters[0].number;
                         if (tabs > interpreter_state.cursor_column) {
                             for (int i = interpreter_state.cursor_column; i <= tabs - 1; i++) {
-                                r.string = g_string_append(r.string, " ");
+                                result.string = g_string_append(result.string, " ");
                             }
                         }
                         break;
                     case SPC:
                         // SPC adds the indicated number of spaces to the output
-                        r.type = STRING;
-                        r.string = g_string_new("");
-                        for (int i = 0; i <= p[0].number - 1; i++) {
-                            r.string = g_string_append(r.string, " ");
+                        result.type = STRING;
+                        result.string = g_string_new("");
+                        for (int i = 0; i <= parameters[0].number - 1; i++) {
+                            result.string = g_string_append(result.string, " ");
                         }
                         break;
 
@@ -492,135 +505,135 @@ static value_t evaluate_expression(expression_t *e)
             } //arity = 1
             
             // now the functions that take two parameters
-            else if (e->parms.op.arity == 2) {
+            else if (expression->parms.op.arity == 2) {
 				// cache the parameters
-                a = p[0].number;
-                b = p[1].number;
+                a = parameters[0].number;
+                b = parameters[1].number;
                 
-                switch (e->parms.op.o) {
+                switch (expression->parms.op.o) {
                     case '+':
-                        if (p[0].type == STRING && p[1].type == STRING) {
-                            r.type = STRING;
-                            r.string = g_string_new(g_strconcat(p[0].string->str, p[1].string->str, NULL));
+                        if (parameters[0].type == STRING && parameters[1].type == STRING) {
+                            result.type = STRING;
+                            result.string = g_string_new(g_strconcat(parameters[0].string->str, parameters[1].string->str, NULL));
                         }
-                        else if (p[0].type == NUMBER && p[1].type == NUMBER)
-                            r = perform_infix_operation(a + b);
+                        else if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
+                            result = perform_infix_operation(a + b);
                         else {
-                            r.number = 0;
+                            result.number = 0;
                             basic_error("Type mismatch");
                         }
                         break;
                     case '-':
-                        r = perform_infix_operation(a - b);
+                        result = perform_infix_operation(a - b);
                         break;
                     case '*':
-                        r = perform_infix_operation(a * b);
+                        result = perform_infix_operation(a * b);
                         break;
                     case '/':
-                        r = perform_infix_operation(a / b);
+                        result = perform_infix_operation(a / b);
                         break;
                     case '^':
-                        r = perform_infix_operation(pow(a, b));
+                        result = perform_infix_operation(pow(a, b));
                         break;
                     case '=':
-                        if (p[0].type == NUMBER)
-                            r = perform_infix_operation(-(a == b));
+                        if (parameters[0].type == NUMBER)
+                            result = perform_infix_operation(-(a == b));
                         else
-                            r = perform_infix_operation(-!strcmp(p[0].string->str, p[1].string->str));
+                            result = perform_infix_operation(-!strcmp(parameters[0].string->str, parameters[1].string->str));
                         break;
                     case '<':
-                        r = perform_infix_operation(-(a < b));
+                        result = perform_infix_operation(-(a < b));
                         break;
                     case '>':
-                        r = perform_infix_operation(-(a > b));
+                        result = perform_infix_operation(-(a > b));
                         break;
                     case CMP_LE:
-                        r = perform_infix_operation(-(a <= b));
+                        result = perform_infix_operation(-(a <= b));
                         break;
                     case CMP_GE:
-                        r = perform_infix_operation(-(a >= b));
+                        result = perform_infix_operation(-(a >= b));
                         break;
                     case CMP_NE:
                     case CMP_HASH:
-                        if (p[0].type == NUMBER)
-                            r = perform_infix_operation(-(a != b));
+                        if (parameters[0].type == NUMBER)
+                            result = perform_infix_operation(-(a != b));
                         else
-                            r = perform_infix_operation(-!!strcmp(p[0].string->str, p[1].string->str));
+                            result = perform_infix_operation(-!!strcmp(parameters[0].string->str, parameters[1].string->str));
                         break;
                     case AND:
-                        r = perform_infix_operation((int)a & (int)b);
+                        result = perform_infix_operation((int)a & (int)b);
                         break;
                     case OR:
-                        r = perform_infix_operation((int)a | (int)b);
+                        result = perform_infix_operation((int)a | (int)b);
                         break;
                     case LEFT:
-                        r.type = STRING;
+                        result.type = STRING;
 						{
-                            size_t len = strlen(p[0].string->str);
-							r.string = g_string_new(p[0].string->str);
+                            size_t len = strlen(parameters[0].string->str);
+							result.string = g_string_new(parameters[0].string->str);
 							if (b < len)
-								g_string_truncate(r.string, b);
+								g_string_truncate(result.string, b);
 						}
                         break;
                     case RIGHT:
-                        r.type = STRING;
+                        result.type = STRING;
 						{
-                            size_t len = strlen(p[0].string->str);
-							r.string = g_string_new(p[0].string->str);
+                            size_t len = strlen(parameters[0].string->str);
+							result.string = g_string_new(parameters[0].string->str);
 							if (b < len)
-								r.string = g_string_erase(r.string, 0, len - b);
+								result.string = g_string_erase(result.string, 0, len - b);
 						}
                         break;
                     case MID: // this is the two-parameter version, three follows
-                        r.type = STRING;
+                        result.type = STRING;
 						{
-                            size_t len = strlen(p[0].string->str);
-							r.string = g_string_new(p[0].string->str);
+                            size_t len = strlen(parameters[0].string->str);
+							result.string = g_string_new(parameters[0].string->str);
 							if (b < len)
-								r.string = g_string_erase(r.string, 0, b - 1);
+								result.string = g_string_erase(result.string, 0, b - 1);
 						}
                         break;
                         
                     default:
-                        r.number = 0;
+                        result.number = 0;
                         basic_error("Unhandled arity-2 function");
 						break;
                 }
             }
             
             // and finally, arity=3, which is currently only the MID
-            else if (e->parms.op.arity == 3)  {
-                b = p[1].number;
-                c = p[2].number;
+            else if (expression->parms.op.arity == 3)  {
+                b = parameters[1].number;
+                c = parameters[2].number;
                 
-                switch (e->parms.op.o) {
+                switch (expression->parms.op.o) {
                     case MID:
-                        r.type = STRING;
+                        result.type = STRING;
 						{
-							r.string = g_string_new(p[0].string->str);
+							result.string = g_string_new(parameters[0].string->str);
 							
-							time_t len = strlen(p[0].string->str);
+							time_t len = strlen(parameters[0].string->str);
 							if (b < len)
-								r.string = g_string_erase(r.string, 0, b - 1); // note the -1
+								result.string = g_string_erase(result.string, 0, b - 1); // note the -1
 							
-							len = strlen(r.string->str);
+							len = strlen(result.string->str);
 							if (c < len)
-								g_string_truncate(r.string, c);
+								g_string_truncate(result.string, c);
 						}
                         break;
                         
                     default:
-                        r.number = 0;
+                        result.number = 0;
                         basic_error("Unhandled arity-3 function");
 						break;
                 }
             }
             else {
-                r.number = 0;
+                result.number = 0;
                 break;
             }
     }
-    return r;
+    return result;
 }
 
 /* handles the PRINT and PRINT USING statements, which can get complex */
@@ -824,7 +837,7 @@ static void perform_statement(GList *L)
 					GList *L;
 					for (L = ps->parms.dim; L != NULL; L = g_list_next(L)) {
 						variable_t *pv = L->data;
-						int type;
+						int type = 0;
 						variable_value(pv, &type);
 					}
 				}
@@ -844,7 +857,7 @@ static void perform_statement(GList *L)
 				{
 					forcontrol_t *new_for = malloc(sizeof(*new_for));
 					either_t *lv;
-					int type;
+					int type = 0;
 					
 					new_for->index_variable = ps->parms._for.variable;
 					new_for->begin = evaluate_expression(ps->parms._for.begin).number;
@@ -922,7 +935,7 @@ static void perform_statement(GList *L)
 					// and now loop over what else we find on the line
 					for (GList *I = ps->parms.input; I != NULL; I = g_list_next(I)) {
 						either_t *value;
-						int type;
+						int type = 0;
 						
 						ppi = I->data;
 						if (ppi->expression->type == variable) {
@@ -960,7 +973,7 @@ static void perform_statement(GList *L)
 				{
 					// this handles both the explicit and implicit LET
 					either_t *stored_val;
-					int type;
+					int type = 0;
 					value_t exp_val;
 					
 					// get the storage entry for this variable
@@ -991,7 +1004,7 @@ static void perform_statement(GList *L)
                     //  stack and then check if it's the same as the one in the NEXT, error out
 					forcontrol_t *pfc = g_list_last(interpreter_state.forstack)->data;
 					either_t *lv;
-					int type;
+					int type = 0;
                     
 					lv = variable_value(pfc->index_variable, &type);
 					lv->number += pfc->step;
@@ -1121,7 +1134,7 @@ static void perform_statement(GList *L)
 					LL = ps->parms.read;
 					while (LL) {
 						either_t *lv;
-						int type;
+						int type = 0;
 						value_t v;
 						
 						if (interpreter_state.current_data_element == NULL) {
@@ -1336,8 +1349,8 @@ static void print_statistics()
         
         printf("\nSTATEMENTS\n\n");
         printf("  total: %i\n", g_list_length(interpreter_state.lines[line_max]));
-        printf(" max/ln: %i\n", stmts_max);
         printf("average: %2.2f\n", (double)g_list_length(interpreter_state.lines[line_max])/(double)lines_total);
+        printf("    max: %i\n", stmts_max);
 
         printf("\nVARIABLES\n\n");
         printf("  total: %i\n",num_total);
@@ -1396,8 +1409,8 @@ static void print_statistics()
         fprintf(fp, "LINE NUMBERS,last,%i\n", line_min);
         
         fprintf(fp, "STATEMENTS,total,%i\n", g_list_length(interpreter_state.lines[line_max]));
-        fprintf(fp, "STATEMENTS,max/ln,%i\n", stmts_max);
         fprintf(fp, "STATEMENTS,average,%g\n", (double)g_list_length(interpreter_state.lines[line_max])/(double)lines_total);
+        fprintf(fp, "STATEMENTS,max/ln,%i\n", stmts_max);
 
         fprintf(fp, "VARIABLES,total,%i\n",num_total);
         fprintf(fp, "VARIABLES,string,%i\n",num_str);
@@ -1543,10 +1556,6 @@ void parse_options(int argc, char *argv[])
             case 'r':
                 random_seed = strtol(optarg, 0, INT_MAX);
 
-            case '?':
-                /* getopt_long already printed an error message. */
-                break;
-                
             default:
                 abort();
         }

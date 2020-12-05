@@ -31,6 +31,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		550EED6E257AC4F300FE6D78 /* VERSIONS */ = {isa = PBXFileReference; lastKnownFileType = text; path = VERSIONS; sourceTree = "<group>"; };
 		5568AD6C240753C2001138F5 /* lunar.bas */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = lunar.bas; sourceTree = "<group>"; };
 		5577174C256AC0B1001E338F /* parse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = parse.h; sourceTree = "<group>"; };
 		5599AEF8239C0A6E00490A3A /* retrobasic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = retrobasic.h; sourceTree = "<group>"; };
@@ -101,6 +102,7 @@
 		55B3D41F238E1B4500E6054E /* doc */ = {
 			isa = PBXGroup;
 			children = (
+				550EED6E257AC4F300FE6D78 /* VERSIONS */,
 				55B3D428238EB43100E6054E /* TODO */,
 				55B3D427238EB43100E6054E /* pass-fail.txt */,
 			);

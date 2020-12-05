@@ -1,0 +1,7 @@
+RetroBASIC version history
+
+Version 1.0 - initial release
+
+- basic functionality needed to run all games in BASIC Computer Games
+- limited to the syntax and features of early MS BASICS like Commodore BASIC 1.x
+- user defined functions do not substitute local values

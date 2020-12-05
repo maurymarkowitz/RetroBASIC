@@ -16,7 +16,7 @@ RetroBASIC
 
 RetroBASIC is a C language BASIC interpreter who's goal is to run any program for the major 1970s/80s BASIC interpreters, including Tiny BASIC, Palo Alto Tiny BASIC, MS-BASIC (Altair, Commodore, etc.), HP TimeShare BASIC, Atari BASIC and others. In its current 1.0 version, it is aimed purely at MS-BASIC.
 
-RetroBASIC also includes a static analizer that prints statistics for the program after it completes. This includes the length of the program and its line number range, the number and types of variables used, and similar details. The original impetus for RetroBASIC was to collect statistics on common programs to provide hints to the retrocomputing field, where new BASICs continue to be developed.
+RetroBASIC also includes a static analizer that optionally prints statistics for the program after it completes. This includes the length of the program and its line number range, the number and types of variables used, and similar details. The original impetus for RetroBASIC was to collect statistics on common programs to provide hints to the retrocomputing field, where new BASICs continue to be developed.
 
 RetroBASIC is based on gnbasic by James Bowman.
  
@@ -26,7 +26,16 @@ RetroBASIC is meant to be used with an existing program source file, not interac
 
 If parsing succeeds, the program (normally) begins running immediately. Most programs should run correctly, although file I/O is not currently implemented, user functions ignore local variables, and INPUT statements with multiple assignments currently require returns between each value.
 
-If your goal is to simply check the syntax of the program, or to list statistics, use the `--no_run` switch, `-n` for short. This will load and parse the BASIC source, but not run it. This is normally combined with `--print_statistics`. You can also `--write_statistics` to a file of your choice, which outputs a slightly different format more suitable for automating.
+If your goal is to simply check the syntax of the program, or to list statistics, use the `--no_run` switch, `-n` for short. This will load and parse the BASIC source, but not run it. This is normally combined with `--print_statistics` (`-p`). You can also `--write_statistics` (`-w`) to a file of your choice, which outputs a slightly different format more suitable for automating.
+
+Other command-line options include:
+
+`--help` (`-h`): print usage notes
+`--version` (`-v`): print version info
+`--tabs` (`-t`): set the number of spaces for comma-separated items
+`--random` (`-r`): seed the random number generator
+`--output-file` (`-o`): redirect PRINT and PUT to the named file
+`--input-file` (`-i`): redirect INPUT and GET from the named file
 
 ## Building RetroBASIC
 
