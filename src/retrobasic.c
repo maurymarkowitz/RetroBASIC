@@ -146,7 +146,7 @@ either_t *variable_value(variable_t *variable, int *type)
 {
     variable_storage_t *storage;
     GString *storage_name;
-    int index = 0;
+    int index;
 
     // in MS basic, A() and A are two different variables,
     // so what we do is mangle the name here in the lookup
@@ -161,14 +161,16 @@ either_t *variable_value(variable_t *variable, int *type)
     
     // if not, make a new variable slot in values and set it up
     if (storage == NULL) {
-        int slots = 0;
+        int slots;
 
         // malloc a single slot, if it's an array we'll use this as the template
         storage = malloc(sizeof(*storage));
         
         // see if we have a type being passed in, which is used in the DEFINT/SNG/DBL/STR
-        
-        // set the type based on the name
+        if (*type != 0)
+            storage->type = *type;
+
+        // set the type based on the name, which will override any passed type
         char trailer = variable->name->str[strlen(variable->name->str) - 1];
         if (trailer == '$')
             storage->type = STRING;
@@ -199,7 +201,7 @@ either_t *variable_value(variable_t *variable, int *type)
                 slots *= actual;
             }
         }
-        // if it doesn't include subscripts, null them out and set index = 1
+        // if it doesn't include subscripts, null them out and set the number of slots to 1
         else {
             storage->subscripts = NULL;
             slots = 1;
@@ -214,7 +216,7 @@ either_t *variable_value(variable_t *variable, int *type)
     
     /* get the type */
     *type = storage->type;
-    /* compute array index */
+    /* compute array index, or leave it at zero if there is none */
     index = 0;
     {
         GList *LA;			/* list of actual sizes in storage (from the DIM) */
@@ -245,7 +247,7 @@ either_t *variable_value(variable_t *variable, int *type)
             }
     }
     
-    // done with this, but don't pass TRUE!
+    // done with this temp name, but don't pass TRUE or it will kill the original too
     g_string_free(storage_name, FALSE);
     
     // all done, return the value at that index
@@ -256,7 +258,7 @@ either_t *variable_value(variable_t *variable, int *type)
  without it having to know about either_t, which is private  */
 void insert_variable(variable_t *variable)
 {
-    int ignore;
+    int ignore = 0;
     variable_value(variable, &ignore);
 }
 
