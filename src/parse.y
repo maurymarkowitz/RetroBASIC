@@ -85,7 +85,7 @@ static expression_t *make_operator(int arity, int o)
 %type <statement> statement
 %type <variable> variable user_function
 
-%token <d> NUMBER
+%token <d> NUMBER, DOUBLE, SINGLE, INTEGER
 %token <s> STRING
 %token <s> VARIABLE_NAME
 %token <s> FUNCTION_NAME
