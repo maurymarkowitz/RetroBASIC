@@ -120,6 +120,7 @@ static expression_t *make_operator(int arity, int o)
 %token POP
 %token PRINT
 %token PUT
+%token RANDOMIZE
 %token READ
 %token RESTORE
 %token RETURN
@@ -192,6 +193,16 @@ statements:
     {
 	  $$ = g_list_prepend($3, $1);
     }
+    |
+    statement "'" statements
+    {
+      $$ = g_list_prepend($3, $1);
+    }
+    |
+    statement '!' statements
+    {
+      $$ = g_list_prepend($3, $1);
+    }
 	;
 
 statement:
@@ -200,6 +211,27 @@ statement:
     {
 	  $$ = NULL;
 	}
+    |
+    REM
+    {
+      statement_t *new = make_statement(REM);
+      new->parms.rem = yylval.s;
+      $$ = new;
+    }
+    |
+    QUOTEREM /* FIXME: this should also store the indicator character in .rem */
+    {
+      statement_t *new = make_statement(REM);
+      new->parms.rem = yylval.s;
+      $$ = new;
+    }
+    |
+    BANGREM /* FIXME: this should also store the indicator character in .rem */
+    {
+      statement_t *new = make_statement(REM);
+      new->parms.rem = yylval.s;
+      $$ = new;
+    }
     |
     BREAK
     {
@@ -437,6 +469,13 @@ statement:
 	  new->parms.print.item_list = $5;
 	  $$ = new;
 	}
+    |
+    RANDOMIZE
+    {
+      statement_t *new = make_statement(RANDOMIZE);
+      new->parms.rem = yylval.s;
+      $$ = new;
+    }
 	|
 	READ varlist
 	{
@@ -444,13 +483,6 @@ statement:
 	  new->parms.read = $2;
 	  $$ = new;
 	}
-	|
-    REM
-	{
-	  statement_t *new = make_statement(REM);
-	  new->parms.rem = yylval.s;
-	  $$ = new;
-	}	
 	|
 	RESTORE /* some basics allow a parameter here, representing a line number in some or an ordinal */
 	{
@@ -463,20 +495,6 @@ statement:
 	  statement_t *new = make_statement(RETURN);
 	  $$ = new;
 	}
-    |
-    BANGREM /* FIXME: this should also store the indicator character in .rem */
-    {
-      statement_t *new = make_statement(REM);
-      new->parms.rem = yylval.s;
-      $$ = new;
-    }
-    |
-    QUOTEREM /* FIXME: this should also store the indicator character in .rem */
-    {
-      statement_t *new = make_statement(REM);
-      new->parms.rem = yylval.s;
-      $$ = new;
-    }
 	|
 	STOP
 	{

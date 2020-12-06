@@ -1,5 +1,8 @@
 10 REMARK
-15 GOTO 5000
+13 ' quote comment
+14 ! bang comment
+15 PRINT"trailing bang comment":!comment
+16 PRINT"trailing quote comment":'comment
 20 DIM A(2,2)
 30 A(1,1)=1:A(1,2)=2:A(2,1)=3:A(2,2)=4
 40 PRINTA(1,1),A(1,2),A(2,1),A(2,2)

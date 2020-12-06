@@ -47,8 +47,8 @@ Boston, MA 02111-1307, USA.  */
     https://stackoverflow.com/questions/59117309/rest-of-line-in-bison/59122569#59122569
   */
 REM.*       { yylval.s = g_string_new(strndup(yytext + 3, yyleng - 3)); return REM; }
-\'.*        { yylval.s = g_string_new(strndup(yytext + 1, yyleng - 1)); return QUOTEREM; }
-\'.*        { yylval.s = g_string_new(strndup(yytext + 1, yyleng - 1)); return BANGREM; } // later MS allow bang or quote
+'.*         { yylval.s = g_string_new(strndup(yytext + 1, yyleng - 1)); return QUOTEREM; } // short form in MS
+!.*         { yylval.s = g_string_new(strndup(yytext + 1, yyleng - 1)); return BANGREM; } // later MS allow bang as well
 BYE         { return BYE; }
 CLEAR       { return CLEAR; }
 DEF         { return DEF; }
@@ -84,6 +84,7 @@ GET         { return GET; }
 PUT         { return PUT; }
 INPUT#      { return INPUT_FILE; }
 PRINT#      { return PRINT_FILE; }
+RANDOMIZE   { return RANDOMIZE; }
 SYS         { return SYS; }     // same as CALL
 USING       { return USING; }
 VARLIST     { return VARLIST; }
