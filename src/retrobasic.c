@@ -747,22 +747,29 @@ static GList *find_line(int linenumber)
     // negative numbers are not allowed
     if (linenumber < 0) {
         basic_error("Negative line in GOTO/GOSUB.");
-        //exit(EXIT_FAILURE);
         return NULL;
     }
     
-    // find this line or the next higher
-    while ((interpreter_state.lines[linenumber] == NULL) &&
-           (linenumber < MAXLINE))
-        linenumber++;
+    // NOTE: this code formerly looked for the line or the next higher one, but that
+    //   does not appear to work in MS BASICs, which return UNDEF'D STATEMENT  ERROR IN 10 (the calling line)
+    // find this line or the next higher one with any value
+//    while ((interpreter_state.lines[linenumber] == NULL) && (linenumber < MAXLINE))
+//        linenumber++;
+//
+//    // if we fell off the end, report an error
+//    if (linenumber == MAXLINE) {
+//        basic_error("Undefined line in branch");
+//        return NULL;
+//    }
     
-    // if we fell off the end, exit
-    if (linenumber == MAXLINE) {
-        basic_error("Undefined line in find_line");
-        //exit(EXIT_FAILURE);
+    // unfound lines return and error
+    if (interpreter_state.lines[linenumber] == NULL) {
+        char buffer[50];
+        sprintf(buffer, "Undefined target line %i in branch", linenumber);
+        basic_error(buffer);
         return NULL;
     }
-    
+
     // otherwise we did find a line, so return it
     return interpreter_state.lines[linenumber];
 }
@@ -892,7 +899,9 @@ static void perform_statement(GList *L)
                 
             case GOTO:
 				{
-                    interpreter_state.next_statement = find_line(evaluate_expression(ps->parms._goto).number);
+                    int goto_target = evaluate_expression(ps->parms._goto).number;
+                    GList *that_line =
+                    interpreter_state.next_statement = find_line(goto_target);
 				}
 				break;
                 

@@ -85,11 +85,14 @@ static expression_t *make_operator(int arity, int o)
 %type <statement> statement
 %type <variable> variable user_function
 
-%token <d> NUMBER, DOUBLE, SINGLE, INTEGER
+%token <d> NUMBER DOUBLE SINGLE INTEGER
 %token <s> STRING
 %token <s> VARIABLE_NAME
 %token <s> FUNCTION_NAME
 
+%token REM
+%token QUOTEREM
+%token BANGREM
 %token BREAK
 %token BYE
 %token CALL
@@ -118,11 +121,9 @@ static expression_t *make_operator(int arity, int o)
 %token PRINT
 %token PUT
 %token READ
-%token REM
 %token RESTORE
 %token RETURN
 %token RUN
-%token SHORTREM
 %token STEP
 %token STOP
 %token SYS
@@ -463,7 +464,14 @@ statement:
 	  $$ = new;
 	}
     |
-    SHORTREM /* FIXME: this should also store the indicator character in .rem */
+    BANGREM /* FIXME: this should also store the indicator character in .rem */
+    {
+      statement_t *new = make_statement(REM);
+      new->parms.rem = yylval.s;
+      $$ = new;
+    }
+    |
+    QUOTEREM /* FIXME: this should also store the indicator character in .rem */
     {
       statement_t *new = make_statement(REM);
       new->parms.rem = yylval.s;
