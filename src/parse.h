@@ -76,62 +76,63 @@
      POP = 292,
      PRINT = 293,
      PUT = 294,
-     READ = 295,
-     RESTORE = 296,
-     RETURN = 297,
-     RUN = 298,
-     STEP = 299,
-     STOP = 300,
-     SYS = 301,
-     THEN = 302,
-     TO = 303,
-     USING = 304,
-     VARLIST = 305,
-     WAIT = 306,
-     OPEN = 307,
-     CLOSE = 308,
-     STATUS = 309,
-     PRINT_FILE = 310,
-     INPUT_FILE = 311,
-     GET_FILE = 312,
-     PUT_FILE = 313,
-     _ABS = 314,
-     SGN = 315,
-     ATN = 316,
-     COS = 317,
-     SIN = 318,
-     TAN = 319,
-     CLOG = 320,
-     EXP = 321,
-     LOG = 322,
-     SQR = 323,
-     RND = 324,
-     INT = 325,
-     FIX = 326,
-     CINT = 327,
-     CSNG = 328,
-     CDBL = 329,
-     ASC = 330,
-     LEFT = 331,
-     MID = 332,
-     RIGHT = 333,
-     LEN = 334,
-     STR = 335,
-     VAL = 336,
-     CHR = 337,
-     AND = 338,
-     OR = 339,
-     NOT = 340,
-     XOR = 341,
-     CMP_LE = 342,
-     CMP_GE = 343,
-     CMP_NE = 344,
-     CMP_HASH = 345,
-     FRE = 346,
-     SPC = 347,
-     TAB = 348,
-     POS = 349,
-     USR = 350
+     RANDOMIZE = 295,
+     READ = 296,
+     RESTORE = 297,
+     RETURN = 298,
+     RUN = 299,
+     STEP = 300,
+     STOP = 301,
+     SYS = 302,
+     THEN = 303,
+     TO = 304,
+     USING = 305,
+     VARLIST = 306,
+     WAIT = 307,
+     OPEN = 308,
+     CLOSE = 309,
+     STATUS = 310,
+     PRINT_FILE = 311,
+     INPUT_FILE = 312,
+     GET_FILE = 313,
+     PUT_FILE = 314,
+     _ABS = 315,
+     SGN = 316,
+     ATN = 317,
+     COS = 318,
+     SIN = 319,
+     TAN = 320,
+     CLOG = 321,
+     EXP = 322,
+     LOG = 323,
+     SQR = 324,
+     RND = 325,
+     INT = 326,
+     FIX = 327,
+     CINT = 328,
+     CSNG = 329,
+     CDBL = 330,
+     ASC = 331,
+     LEFT = 332,
+     MID = 333,
+     RIGHT = 334,
+     LEN = 335,
+     STR = 336,
+     VAL = 337,
+     CHR = 338,
+     AND = 339,
+     OR = 340,
+     NOT = 341,
+     XOR = 342,
+     CMP_LE = 343,
+     CMP_GE = 344,
+     CMP_NE = 345,
+     CMP_HASH = 346,
+     FRE = 347,
+     SPC = 348,
+     TAB = 349,
+     POS = 350,
+     USR = 351
    };
 #endif
 /* Tokens.  */
@@ -172,62 +173,63 @@
 #define POP 292
 #define PRINT 293
 #define PUT 294
-#define READ 295
-#define RESTORE 296
-#define RETURN 297
-#define RUN 298
-#define STEP 299
-#define STOP 300
-#define SYS 301
-#define THEN 302
-#define TO 303
-#define USING 304
-#define VARLIST 305
-#define WAIT 306
-#define OPEN 307
-#define CLOSE 308
-#define STATUS 309
-#define PRINT_FILE 310
-#define INPUT_FILE 311
-#define GET_FILE 312
-#define PUT_FILE 313
-#define _ABS 314
-#define SGN 315
-#define ATN 316
-#define COS 317
-#define SIN 318
-#define TAN 319
-#define CLOG 320
-#define EXP 321
-#define LOG 322
-#define SQR 323
-#define RND 324
-#define INT 325
-#define FIX 326
-#define CINT 327
-#define CSNG 328
-#define CDBL 329
-#define ASC 330
-#define LEFT 331
-#define MID 332
-#define RIGHT 333
-#define LEN 334
-#define STR 335
-#define VAL 336
-#define CHR 337
-#define AND 338
-#define OR 339
-#define NOT 340
-#define XOR 341
-#define CMP_LE 342
-#define CMP_GE 343
-#define CMP_NE 344
-#define CMP_HASH 345
-#define FRE 346
-#define SPC 347
-#define TAB 348
-#define POS 349
-#define USR 350
+#define RANDOMIZE 295
+#define READ 296
+#define RESTORE 297
+#define RETURN 298
+#define RUN 299
+#define STEP 300
+#define STOP 301
+#define SYS 302
+#define THEN 303
+#define TO 304
+#define USING 305
+#define VARLIST 306
+#define WAIT 307
+#define OPEN 308
+#define CLOSE 309
+#define STATUS 310
+#define PRINT_FILE 311
+#define INPUT_FILE 312
+#define GET_FILE 313
+#define PUT_FILE 314
+#define _ABS 315
+#define SGN 316
+#define ATN 317
+#define COS 318
+#define SIN 319
+#define TAN 320
+#define CLOG 321
+#define EXP 322
+#define LOG 323
+#define SQR 324
+#define RND 325
+#define INT 326
+#define FIX 327
+#define CINT 328
+#define CSNG 329
+#define CDBL 330
+#define ASC 331
+#define LEFT 332
+#define MID 333
+#define RIGHT 334
+#define LEN 335
+#define STR 336
+#define VAL 337
+#define CHR 338
+#define AND 339
+#define OR 340
+#define NOT 341
+#define XOR 342
+#define CMP_LE 343
+#define CMP_GE 344
+#define CMP_NE 345
+#define CMP_HASH 346
+#define FRE 347
+#define SPC 348
+#define TAB 349
+#define POS 350
+#define USR 351
 
 
 
@@ -245,7 +247,7 @@ typedef union YYSTYPE
   variable_t *variable;
 }
 /* Line 1529 of yacc.c.  */
-#line 249 "/Volumes/Bigger/Users/maury/Library/Mobile Documents/com~apple~CloudDocs/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
+#line 251 "/Volumes/Bigger/Users/maury/Library/Mobile Documents/com~apple~CloudDocs/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

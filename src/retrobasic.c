@@ -744,14 +744,16 @@ static int current_line()
  first line even if that's numbered 10. */
 static GList *find_line(int linenumber)
 {
+    char buffer[50];
+
     // negative numbers are not allowed
     if (linenumber < 0) {
-        basic_error("Negative line in GOTO/GOSUB.");
+        sprintf(buffer, "Negative target line %i in branch", linenumber);
         return NULL;
     }
     
     // NOTE: this code formerly looked for the line or the next higher one, but that
-    //   does not appear to work in MS BASICs, which return UNDEF'D STATEMENT  ERROR IN 10 (the calling line)
+    //   does not appear to work in MS BASICs, which return UNDEF'D STATEMENT  ERROR IN 10
     // find this line or the next higher one with any value
 //    while ((interpreter_state.lines[linenumber] == NULL) && (linenumber < MAXLINE))
 //        linenumber++;
@@ -764,7 +766,6 @@ static GList *find_line(int linenumber)
     
     // unfound lines return and error
     if (interpreter_state.lines[linenumber] == NULL) {
-        char buffer[50];
         sprintf(buffer, "Undefined target line %i in branch", linenumber);
         basic_error(buffer);
         return NULL;
@@ -899,9 +900,7 @@ static void perform_statement(GList *L)
                 
             case GOTO:
 				{
-                    int goto_target = evaluate_expression(ps->parms._goto).number;
-                    GList *that_line =
-                    interpreter_state.next_statement = find_line(goto_target);
+                    interpreter_state.next_statement = find_line(evaluate_expression(ps->parms._goto).number);
 				}
 				break;
                 
