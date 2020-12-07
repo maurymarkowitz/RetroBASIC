@@ -739,9 +739,7 @@ static int current_line()
     return line_for_statement(interpreter_state.current_statement);
 }
 
-/* starts at the given number and looks forward until it finds
- that line or falls off the end. So find_line(0) will find the
- first line even if that's numbered 10. */
+/* returns a pointer to the named line or returns an error if it's not found */
 static GList *find_line(int linenumber)
 {
     char buffer[50];
@@ -1182,7 +1180,7 @@ static void perform_statement(GList *L)
 				{
 					// resets the DATA pointer
 					// TODO: there versions that take a line number, and/or element number
-					interpreter_state.current_data_statement = find_line(0);
+					interpreter_state.current_data_statement = interpreter_state.first_line;
 					interpreter_state.current_data_element = NULL;
 				}
                 break;
