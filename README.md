@@ -22,20 +22,22 @@ RetroBASIC is based on gnbasic by James Bowman.
  
 ## Running RetroBASIC
 
-RetroBASIC is meant to be used with an existing program source file, not interactively. To run it, use ```./retrobasic program.bas```. It will accept any text file as input and report (cryptic) errors if it cannot properly parse it.
+RetroBASIC is meant to be used with an existing program source file, not interactively. To run it, use:
 
-If parsing succeeds, the program (normally) begins running immediately. Most programs should run correctly, although file I/O is not currently implemented, user functions ignore local variables, and INPUT statements with multiple assignments currently require returns between each value.
+```./retrobasic program.bas```
 
-If your goal is to simply check the syntax of the program, or to list statistics, use the `--no_run` switch, `-n` for short. This will load and parse the BASIC source, but not run it. This is normally combined with `--print_statistics` (`-p`). You can also `--write_statistics` (`-w`) to a file of your choice, which outputs a slightly different format more suitable for automating.
+It will accept any text file as input and report (cryptic) errors if it cannot properly parse it. If parsing succeeds, the program (normally) begins running immediately.
+
+If your goal is to simply check the syntax of the program, or to list statistics, use the `--no_run` switch, `-n` for short. This will load and parse the BASIC source, but not run it. This is often combined with `--print_statistics` (`-p`). You can also `--write_statistics` (`-w`) to a file of your choice, which outputs a slightly different format more suitable for automating the collection of the statistics.
 
 Other command-line options include:
 
-`--help` (`-h`): print usage notes
-`--version` (`-v`): print version info
-`--tabs` (`-t`): set the number of spaces for comma-separated items
-`--random` (`-r`): seed the random number generator
-`--output-file` (`-o`): redirect PRINT and PUT to the named file
-`--input-file` (`-i`): redirect INPUT and GET from the named file
+`--help` (`-h`): print usage notes  
+`--version` (`-v`): print version info  
+`--tabs` (`-t`): set the number of spaces for comma-separated items  
+`--random` (`-r`): seed the random number generator  
+`--output-file` (`-o`): redirect PRINT to the named file  
+`--input-file` (`-i`): redirect INPUT from the named file  
 
 ## Building RetroBASIC
 
@@ -45,6 +47,7 @@ A sample Xcode project is included, as well as a basic makefile. If anyone would
 
 ## Missing features and Erata
 
+* File I/O is not supported, commands like OPEN will be parsed but have no effect
 * LIST is not supported
 * DEF FNx does not parse "local" values for paramters, the global versions are used
 * INPUT statements with multiple values currently have to be entered with return/enter between each value.
