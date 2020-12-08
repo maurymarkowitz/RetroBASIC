@@ -36,6 +36,7 @@ static int print_stats = 0;
 static int write_stats = 0;
 static int tab_columns = 10;        // based on PET BASIC, which is a good enough target
 static int trace_lines = FALSE;
+static int array_base = 1;          // lower bound of arrays
 static double random_seed = -1;
 static int string_slicing = FALSE;  // are references like A$(1,1) referring to an array entry or doing "slicing"?
 static char *source_file = "";
@@ -235,15 +236,13 @@ either_t *variable_value(variable_t *variable, int *type)
                 // and get the originally DIMmed size for that same dimension
                 int actual = GPOINTER_TO_INT(LA->data);
                 
-                // this would have to change if OPTION BASE is added
-                if ((v.number <= 0) || (actual < v.number - 1)) {
+                if ((v.number < array_base) || (actual < v.number - array_base)) {
                     basic_error("Array subscript out of bounds");
                     v.number = 1;
                 }
                 
                 // note the -1, we have to offset the index
-                // TODO: if we add OPTION BASE, the -1 might change, and above too
-                index = (index * actual) + (int)v.number - 1;
+                index = (index * actual) + (int)v.number - array_base;
                 LA = g_list_next(LA);
                 LI = g_list_next(LI);
             }
@@ -1496,10 +1495,11 @@ static void print_version()
 /* usage, both for the user and for documenting the code below */
 static void print_usage(char *argv[])
 {
-    printf("Usage: %s [-hvsn] [-t spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] source_file\n", argv[0]);
+    printf("Usage: %s [-hvsn] [-a number] [-t spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] source_file\n", argv[0]);
     puts("Options:");
     puts("  -h, --help: print this description");
     puts("  -v, --version: print version info");
+    puts("  -a, --array_base: minimum array index, normally 1");
     puts("  -s, --slicing: turn on string slicing (turning off sting arrays)");
     puts("  -n, --no-run: don't run the program after parsing");
     puts("  -t, --tabs: set the number of spaces for comma-separated items");
@@ -1514,6 +1514,7 @@ static struct option program_options[] =
 {
     {"help", no_argument, NULL, 'h'},
     {"version", no_argument, NULL, 'v'},
+    {"array_base", required_argument, NULL, 'a'},
     {"tabs", required_argument, NULL, 't'},
     {"random", required_argument, NULL, 'r'},
     {"slicing", no_argument, NULL, 's'},
@@ -1533,7 +1534,7 @@ void parse_options(int argc, char *argv[])
     
     while(1) {
         // eat an option and exit if we're done
-        c = getopt_long(argc, argv, "hvt:r:i:o:w:spn", program_options, &option_index); // should match the items above, but with flag-setters excluded
+        c = getopt_long(argc, argv, "hva:t:r:i:o:w:spn", program_options, &option_index); // should match the items above, but with flag-setters excluded
         if (c == -1) break;
         
         switch (c) {
@@ -1562,6 +1563,10 @@ void parse_options(int argc, char *argv[])
                 
             case 'p':
                 print_stats = TRUE;
+                break;
+
+            case 'a':
+                array_base = (int)strtol(optarg, 0, INT_MAX);;
                 break;
 
             case 't':
