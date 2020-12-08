@@ -9,6 +9,8 @@ PATB = Palo Alto Tiny BASIC
 
 - numbers do not properly truncate at 9 places on output, format is generally janky
 
+- add CLEAR
+
 - ELSE would be realtively easy to add, at least the single-line variety
 
 - DEF FN ignores *local* parameters when evaluating the formula, uses global ones instead (fix: add name of function to front of parameter names)
