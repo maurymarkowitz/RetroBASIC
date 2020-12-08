@@ -30,6 +30,7 @@ Boston, MA 02111-1307, USA.  */
 interpreterstate_t interpreter_state;
 
 /* internal state variables used for I/O and other tasks */
+static clock_t start_time = 0, end_time = 0;    // start and end ticks, for calculating run time
 static int run_program = 1;         // default to running the program, not just parsing it
 static int print_stats = 0;
 static int write_stats = 0;
@@ -234,7 +235,8 @@ either_t *variable_value(variable_t *variable, int *type)
                 // and get the originally DIMmed size for that same dimension
                 int actual = GPOINTER_TO_INT(LA->data);
                 
-                if ((v.number < 0) || (actual < v.number - 1)) {
+                // this would have to change if OPTION BASE is added
+                if ((v.number <= 0) || (actual < v.number - 1)) {
                     basic_error("Array subscript out of bounds");
                     v.number = 1;
                 }
@@ -1364,6 +1366,8 @@ static void print_statistics()
 	
     // output to screen if selected
     if(print_stats) {
+       printf("\nRUN TIME: %g\n", ((double) (end_time - start_time)) / CLOCKS_PER_SEC);
+
         printf("\nLINE NUMBERS\n\n");
         printf("  total: %i\n", lines_total);
         printf("  first: %i\n", line_max);
@@ -1425,6 +1429,8 @@ static void print_statistics()
         //check that the file name is reasonable, and then try to open it
         FILE* fp = fopen(stats_file, "w+");
         if(!fp) return;
+
+        fprintf(fp, "RUN TIME,%g\n", ((double) (end_time - start_time)) / CLOCKS_PER_SEC);
 
         fprintf(fp, "LINE NUMBERS,total,%i\n", lines_total);
         fprintf(fp, "LINE NUMBERS,first,%i\n", line_max);
@@ -1614,6 +1620,7 @@ int main(int argc, char *argv[])
     
     // open the file and run it through the parser, or use stdin
     yyin = fopen(source_file, "r");
+    // FIXME: any point to this? or just exit with "no file"?
     if (yyin == NULL)
         yyin = stdin;
     yyparse();
@@ -1660,10 +1667,16 @@ int main(int argc, char *argv[])
     else
         srand((unsigned int)time(0));
     
+    // simple timing
+    start_time = clock();
+
     // and go!
     if (run_program)
         run();
     
+    // display run time
+    end_time = clock();
+
     // we're done, print/write desired stats
     if (print_stats || write_stats)
         print_statistics();
