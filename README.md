@@ -32,12 +32,12 @@ If your goal is to simply check the syntax of the program, or to list statistics
 
 Other command-line options include:
 
-`--help` (`-h`): print usage notes  
-`--version` (`-v`): print version info  
-`--tabs` (`-t`): set the number of spaces for comma-separated items  
-`--random` (`-r`): seed the random number generator  
-`--output-file` (`-o`): redirect PRINT to the named file  
-`--input-file` (`-i`): redirect INPUT from the named file  
+`--help`, `-h`: print usage notes  
+`--version`, `-v`: print version info  
+`--tabs`, `-t`: set the number of spaces for comma-separated items, defaults to 10  
+`--random`, `-r`: seed the random number generator  
+`--output-file`, `-o`: redirect PRINT to the named file  
+`--input-file`, `-i`: redirect INPUT from the named file  
 
 ## Building RetroBASIC
 

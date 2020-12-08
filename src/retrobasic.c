@@ -50,7 +50,7 @@ typedef struct {
     double number;
 } value_t;
 
-/* either_t is used within value_t for the actual data
+/* either_t is used within variable_value_t for the actual data
   FIXME: is the union worthwhile? why not use two slots instead of a union? 4 wasted bytes? */
 typedef union {
     GString *string;
@@ -153,7 +153,7 @@ either_t *variable_value(variable_t *variable, int *type)
     // so that every time someone looks up A(1,1) it looks
     // for A(, and if they look for A it looks for A
     storage_name = g_string_new(variable->name->str);
-    if (variable->sub != NULL)
+    if (variable->subscripts != NULL)
         storage_name = g_string_append(storage_name, "(");
     
     // see if we can find the entry in the symbol list
@@ -184,7 +184,7 @@ either_t *variable_value(variable_t *variable, int *type)
             storage->type = NUMBER; // this works for all of them, int, dbl, etc.
         
         // now see if this reference includes subscripts
-        if (variable->sub != NULL) {
+        if (variable->subscripts != NULL) {
             value_t v;
             int actual;
 
@@ -194,7 +194,7 @@ either_t *variable_value(variable_t *variable, int *type)
             // calculate the total size we need
             storage->subscripts = NULL;
             slots = 1;
-            for (GList *L = variable->sub; L != NULL; L = g_list_next(L)) {
+            for (GList *L = variable->subscripts; L != NULL; L = g_list_next(L)) {
                 v = evaluate_expression(L->data);
                 actual = (int)v.number;
                 storage->subscripts = g_list_append(storage->subscripts, GINT_TO_POINTER(actual));
@@ -223,7 +223,7 @@ either_t *variable_value(variable_t *variable, int *type)
         GList *LI;			/* list of indices in this reference */
         
         LA = storage->subscripts;
-        LI = variable->sub;
+        LI = variable->subscripts;
         
         if (g_list_length(LA) != g_list_length(LI))
             basic_error("Array dimension of variable does not match storage");
@@ -290,7 +290,7 @@ expression_t *function_expression(variable_t *function, expression_t *expression
             storage->type = NUMBER; // this works for all of them, int, dbl, etc.
         
         // copy over the list of parameters
-        storage->parameters = g_list_copy(function->sub);
+        storage->parameters = g_list_copy(function->subscripts);
         
         // now store the expression/formula
         storage->formula = expression;
@@ -399,7 +399,7 @@ static value_t evaluate_expression(expression_t *expression)
                 // get the first parameter, in this case, the only one
                 a = parameters[0].number;
                 
-                switch (expression->parms.op.o) {
+                switch (expression->parms.op.opcode) {
                     case '-':
                         result.number = -a;
                         break;
@@ -512,7 +512,7 @@ static value_t evaluate_expression(expression_t *expression)
                 a = parameters[0].number;
                 b = parameters[1].number;
                 
-                switch (expression->parms.op.o) {
+                switch (expression->parms.op.opcode) {
                     case '+':
                         if (parameters[0].type == STRING && parameters[1].type == STRING) {
                             result.type = STRING;
@@ -608,7 +608,7 @@ static value_t evaluate_expression(expression_t *expression)
                 b = parameters[1].number;
                 c = parameters[2].number;
                 
-                switch (expression->parms.op.o) {
+                switch (expression->parms.op.opcode) {
                     case MID:
                         result.type = STRING;
 						{
@@ -1007,7 +1007,8 @@ static void perform_statement(GList *L)
 				{
                     // this version does not precisely match MS, it always gets the last
                     // entry on the FOR stack and uses that variable, ignoring the variable
-                    // that might have been entered in the source.
+                    // that might have been entered in the source. this means you can't put a
+                    // NEXT J inside a NEXT I
                     // FIXME: this is easy to fix, simply get the variable name from the FOR
                     //  stack and then check if it's the same as the one in the NEXT, error out
 					forcontrol_t *pfc = g_list_last(interpreter_state.forstack)->data;
@@ -1018,7 +1019,7 @@ static void perform_statement(GList *L)
 					lv->number += pfc->step;
 					if (((pfc->step < 0) && (lv->number >= pfc->end)) ||
 						((pfc->step > 0) && (lv->number <= pfc->end))) {
-                        /* Go back to the head of the loop */
+                        /* we're not done, go back to the head of the loop */
                         interpreter_state.next_statement = g_list_next(pfc->head);
 					} else {
                         interpreter_state.forstack = g_list_remove(interpreter_state.forstack, pfc);
@@ -1119,7 +1120,7 @@ static void perform_statement(GList *L)
 						pp = NULL;
                     
                     // if the last item is SPC or TAB, fake a trailing semi, which is the way PET does it
-                    if (pp != NULL && pp->expression->type == op && (pp->expression->parms.op.o == SPC || pp->expression->parms.op.o == TAB)) {
+                    if (pp != NULL && pp->expression->type == op && (pp->expression->parms.op.opcode == SPC || pp->expression->parms.op.opcode == TAB)) {
                         pp->separator = ';';
                     }
 					
@@ -1130,6 +1131,19 @@ static void perform_statement(GList *L)
 					}
 				}
                 break;
+                
+            case RANDOMIZE:
+                {
+                    value_t seed_value;
+                    
+                    // see if there's a parameter
+                    if (ps->parms.randomize != NULL)
+                        srand((unsigned int)time(0));
+                    else {
+                        seed_value = evaluate_expression(ps->parms.randomize);
+                        srand(seed_value.number);
+                    }
+                }
                 
             case READ:
 				{
@@ -1180,7 +1194,7 @@ static void perform_statement(GList *L)
 				{
 					// resets the DATA pointer
 					// TODO: there versions that take a line number, and/or element number
-					interpreter_state.current_data_statement = interpreter_state.first_line;
+					interpreter_state.current_data_statement = find_line(interpreter_state.first_line);
 					interpreter_state.current_data_element = NULL;
 				}
                 break;

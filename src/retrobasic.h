@@ -31,12 +31,12 @@ Boston, MA 02111-1307, USA.  */
 
  /* variables */
  /* ultimately the only thing we store in the variable reference is
-    its name and any dimensional reference if it's an array.
+    its name and any dimensional size if it's an array.
     Values are stored in a private type in a separate area.
   */
 typedef struct {
     GString *name;
-    GList *sub;			/* subscripts, list of expressions */
+    GList *subscripts;			/* subscripts, list of expressions */
 } variable_t;
 
 /* expressions */
@@ -52,7 +52,7 @@ typedef struct expression_struct {
         variable_t *variable;   // also used for user-defined function names and parameters
         struct {
             int arity;
-            int o;
+            int opcode;
             struct expression_struct *p[3]; // arity can be up to 3 in BASIC
         } op;
     } parms;
@@ -108,6 +108,7 @@ typedef struct statement_struct {
             expression_t *format;
             GList *item_list;
         } print;
+        expression_t *randomize;
         GList *read;
         GString *rem;
 //        struct {
@@ -144,9 +145,10 @@ typedef struct {
     GList *current_data_element;	// current 'DATA' expression within psd
     GTree *values;		            // name/value pairs used to store variable *values*
     GTree *functions;               // name/expression pairs for user-defined functions
-    GList *forstack;	            // of forcontrol_t
+    GList *forstack;	                // of forcontrol_t
     GList *gosubstack;	            // of gosubcontrol_t
-    int cursor_column;			    // current column of the output cursor
+    int cursor_column;              // current column of the output cursor
+    int running_state;              // is the program running (1), paused/stopped (0), or never started (-1)
 } interpreterstate_t;
 
 /* and here's the link to an instance of interpstate_t defined in the c side */

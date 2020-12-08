@@ -27,7 +27,7 @@
 470 input "a prompt with semi";B
 480 print b
 490 print "a is"a
-500 ON A GOTO 60,70,80
+500 ON A GOTO 600,700,800
 600 PRINT "A WAS 1":END
 700 PRINT "A WAS 2":END
 800 PRINT "A WAS 3":END

@@ -53,7 +53,7 @@ static expression_t *make_expression(expression_type_t t)
 static expression_t *make_operator(int arity, int o)
 {
   expression_t *new = make_expression(op);
-  new->parms.op.o = o;
+  new->parms.op.opcode = o;
   new->parms.op.arity = arity;
   return new;
 }
@@ -221,14 +221,14 @@ statement:
     |
     QUOTEREM /* FIXME: this should also store the indicator character in .rem */
     {
-      statement_t *new = make_statement(REM);
+      statement_t *new = make_statement(QUOTEREM);
       new->parms.rem = yylval.s;
       $$ = new;
     }
     |
     BANGREM /* FIXME: this should also store the indicator character in .rem */
     {
-      statement_t *new = make_statement(REM);
+      statement_t *new = make_statement(BANGREM);
       new->parms.rem = yylval.s;
       $$ = new;
     }
@@ -245,7 +245,7 @@ statement:
 	  $$ = new;
 	}
     |
-    CALL
+    CALL expression
     {
       statement_t *new = make_statement(CALL);
       $$ = new;
@@ -473,7 +473,14 @@ statement:
     RANDOMIZE
     {
       statement_t *new = make_statement(RANDOMIZE);
-      new->parms.rem = yylval.s;
+      new->parms.randomize = NULL;
+      $$ = new;
+    }
+    |
+    RANDOMIZE expression
+    {
+      statement_t *new = make_statement(RANDOMIZE);
+      new->parms.randomize = $2;
       $$ = new;
     }
 	|
@@ -814,7 +821,7 @@ user_function:
     {
       variable_t *new = malloc(sizeof(*new));
       new->name = $1;
-      new->sub = $3;
+      new->subscripts = $3;
       $$ = new;
     }
 
@@ -824,7 +831,7 @@ variable:
     {
 	  variable_t *new = malloc(sizeof(*new));
 	  new->name = $1;
-	  new->sub = NULL;
+	  new->subscripts = NULL;
 	  $$ = new;
       
       /* add it to the interpreter's variable list for the analyizer*/
@@ -835,7 +842,7 @@ variable:
 	{
 	  variable_t *new = malloc(sizeof(*new));
 	  new->name = $1;
-	  new->sub = $3;
+	  new->subscripts = $3;
 	  $$ = new;
 
       /* add it to the interpreter's variable list for the analyizer*/
