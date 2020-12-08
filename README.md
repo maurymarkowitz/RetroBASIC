@@ -34,6 +34,7 @@ Other command-line options include:
 
 `--help`, `-h`: print usage notes  
 `--version`, `-v`: print version info  
+`--array_base`, `-a`: set base index for arrays, normally 1 but some dialects use 0  
 `--tabs`, `-t`: set the number of spaces for comma-separated items, defaults to 10  
 `--random`, `-r`: seed the random number generator  
 `--output-file`, `-o`: redirect PRINT to the named file  
