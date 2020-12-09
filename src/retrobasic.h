@@ -145,10 +145,10 @@ typedef struct {
     GList *current_data_element;	// current 'DATA' expression within psd
     GTree *values;		            // name/value pairs used to store variable *values*
     GTree *functions;               // name/expression pairs for user-defined functions
-    GList *forstack;	                // of forcontrol_t
+    GList *forstack;	            // of forcontrol_t
     GList *gosubstack;	            // of gosubcontrol_t
     int cursor_column;              // current column of the output cursor
-    int running_state;              // is the program running (1), paused/stopped (0), or never started (-1)
+    int running_state;              // is the program running (1), paused/stopped (0)
 } interpreterstate_t;
 
 /* and here's the link to an instance of interpstate_t defined in the c side */
