@@ -38,6 +38,7 @@ static int print_stats = 0;
 static int write_stats = 0;
 static int tab_columns = 10;                    // based on PET BASIC, which is a good enough target
 static int trace_lines = FALSE;
+static int upper_case = 0;                      // force INPUT to upper case
 static int array_base = 1;                      // lower bound of arrays
 static double random_seed = -1;
 static int string_slicing = FALSE;              // are references like A$(1,1) referring to an array entry or doing "slicing"?
@@ -970,6 +971,15 @@ static void perform_statement(GList *L)
 							
 							// we did, so null-terminate the string
 							line[strlen(line) - 1] = '\0';
+                            
+                            // optionally convert to upper case
+                            if (upper_case) {
+                                char *c = line;
+                                while (*c) {
+                                  *c = toupper((unsigned char) *c);
+                                  c++;
+                                }
+                            }
 							
 							// find the storage for this variable, and assign the value
 							value = variable_value(ppi->expression->parms.variable, &type);
@@ -1545,11 +1555,12 @@ static void print_version()
 /* usage, both for the user and for documenting the code below */
 static void print_usage(char *argv[])
 {
-    printf("Usage: %s [-hvsng] [-a number] [-t spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] source_file\n", argv[0]);
+    printf("Usage: %s [-hvsngu] [-a number] [-t spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] source_file\n", argv[0]);
     puts("Options:");
     puts("  -h, --help: print this description");
     puts("  -v, --version: print version info");
-    puts("  -a, --array_base: minimum array index, normally 1");
+    puts("  -u, --upper-case: convert all input to upper case");
+    puts("  -a, --array-base: minimum array index, normally 1");
     puts("  -s, --slicing: turn on string slicing (turning off sting arrays)");
     puts("  -n, --no-run: don't run the program after parsing");
     puts("  -g, --goto-next: if a branch target doesn't exist, go to the next line");
@@ -1565,7 +1576,8 @@ static struct option program_options[] =
 {
     {"help", no_argument, NULL, 'h'},
     {"version", no_argument, NULL, 'v'},
-    {"array_base", required_argument, NULL, 'a'},
+    {"upper-case", no_argument, NULL, 'u'},
+    {"array-base", required_argument, NULL, 'a'},
     {"tabs", required_argument, NULL, 't'},
     {"random", required_argument, NULL, 'r'},
     {"slicing", no_argument, NULL, 's'},
@@ -1586,7 +1598,7 @@ void parse_options(int argc, char *argv[])
     
     while(1) {
         // eat an option and exit if we're done
-        c = getopt_long(argc, argv, "hva:t:r:i:o:w:spn", program_options, &option_index); // should match the items above, but with flag-setters excluded
+        c = getopt_long(argc, argv, "hvua:t:r:i:o:w:spn", program_options, &option_index); // should match the items above, but with flag-setters excluded
         if (c == -1) break;
         
         switch (c) {
@@ -1605,6 +1617,10 @@ void parse_options(int argc, char *argv[])
                 printed_help =  TRUE;
                 break;
                 
+            case 'u':
+                upper_case = TRUE;
+                break;
+
             case 'g':
                 goto_next_highest = TRUE;
                 break;

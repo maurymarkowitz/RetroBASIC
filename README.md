@@ -34,7 +34,8 @@ Other command-line options include:
 
 `--help`, `-h`: print usage notes  
 `--version`, `-v`: print version info  
-`--array_base`, `-a`: set base index for arrays, normally 1 but some dialects use 0  
+`--upper-case`, `-u`: force input to upper-case, basically like using caps lock  
+`--array-base`, `-a`: set base index for arrays, normally 1 but some dialects use 0  
 `--tabs`, `-t`: set the number of spaces for comma-separated items, defaults to 10  
 `--goto-next`, `-g`: if a branch targers a non-existant line, should it go to the next line? normally false
 `--random`, `-r`: seed the random number generator  
