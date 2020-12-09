@@ -1203,12 +1203,20 @@ static void perform_statement(GList *L)
 				break;
                 
             case RESTORE:
-				{
-					// resets the DATA pointer
-					// TODO: there versions that take a line number, and/or element number
-					interpreter_state.current_data_statement = find_line(interpreter_state.first_line);
-					interpreter_state.current_data_element = NULL;
-				}
+                // resets the DATA pointer
+                if (ps->parms.generic_parameter != NULL) {
+                    // if there is a parameter, treat it as a line number
+                    // there are some variations that treat this as an ordinal,
+                    // so 'reset to nth global entry' but they do not seem widely used
+                    value_t linenum;
+                    linenum = evaluate_expression(ps->parms.generic_parameter);
+                    interpreter_state.current_data_statement = find_line((int)linenum.number);
+                   interpreter_state.current_data_element = NULL;
+                } else {
+                    // if there's no parameter, reset it to the first item
+                    interpreter_state.current_data_statement = find_line(interpreter_state.first_line);
+                    interpreter_state.current_data_element = NULL;
+                }
                 break;
                 
             case RETURN:
