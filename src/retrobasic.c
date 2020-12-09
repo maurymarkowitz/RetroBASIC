@@ -198,7 +198,7 @@ either_t *variable_value(variable_t *variable, int *type)
             slots = 1;
             for (GList *L = variable->subscripts; L != NULL; L = g_list_next(L)) {
                 v = evaluate_expression(L->data);
-                actual = (int)v.number;
+                actual = (int)v.number - array_base;
                 storage->subscripts = g_list_append(storage->subscripts, GINT_TO_POINTER(actual));
                 slots *= actual;
             }
@@ -213,6 +213,11 @@ either_t *variable_value(variable_t *variable, int *type)
         storage->value = malloc(slots * sizeof(storage->value[0]));
         g_tree_insert(interpreter_state.values, storage_name->str, storage);
     }
+    
+    // if we haven't started runnning yet, we were being called during parsing to
+    // populate the variable table. In that case, we don't need the value, so...
+    if (interpreter_state.running_state == 0)
+        return NULL;
     
     // at this point we have either found or created the variable, so...
     
@@ -1020,9 +1025,10 @@ static void perform_statement(GList *L)
 					lv->number += pfc->step;
 					if (((pfc->step < 0) && (lv->number >= pfc->end)) ||
 						((pfc->step > 0) && (lv->number <= pfc->end))) {
-                        /* we're not done, go back to the head of the loop */
+                        // we're not done, go back to the head of the loop
                         interpreter_state.next_statement = g_list_next(pfc->head);
 					} else {
+                        // we are done, remove this entry from the stack
                         interpreter_state.forstack = g_list_remove(interpreter_state.forstack, pfc);
 					}
 				}
@@ -1084,10 +1090,15 @@ static void perform_statement(GList *L)
                 if (ps->parms.generic_parameter != NULL) {
                     value_t baseval;
                     baseval = evaluate_expression(ps->parms.generic_parameter);
-                    array_base = (int)baseval.number;
+                    if (baseval.number == 0 || baseval.number == 1)
+                        array_base = (int)baseval.number;
+                    else {
+                        char buffer[80];
+                        sprintf(buffer, "OPTION BASE with invalid parameter %g", baseval.number);
+                        basic_error(buffer);
+                    }
                 } else {
-                    // reset it?
-                    array_base = 1;
+                    basic_error("OPTION BASE with no parameter");
                 }
                 break;
                 
@@ -1291,6 +1302,8 @@ static void delete_variables() {
 /* the main loop for the program */
 void run(void)
 {
+    interpreter_state.running_state = 1;
+    
     // last line number we ran, used for tracing/stepping
     int last_line = interpreter_state.first_line;
     if (trace_lines)
@@ -1313,6 +1326,8 @@ void run(void)
             printf("[%i]\n", last_line);
         }
     }
+
+    interpreter_state.running_state = 0;
 }
 
 /* prints out various statistics from the static code,
