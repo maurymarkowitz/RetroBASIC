@@ -25,20 +25,23 @@ Boston, MA 02111-1307, USA.  */
 #include "parse.h"
 
 #include <getopt.h>
+#include <sys/time.h>
 
 /* here's the actual definition of the interpreter state which is extern in the header */
 interpreterstate_t interpreter_state;
 
 /* internal state variables used for I/O and other tasks */
-static clock_t start_time = 0, end_time = 0;    // start and end ticks, for calculating run time
-static int run_program = 1;         // default to running the program, not just parsing it
+static clock_t start_ticks = 0, end_ticks = 0;  // start and end ticks, for calculating CPU time
+static struct timeval start_time, end_time;     // start and end clock, for total run time
+static int run_program = 1;                     // default to running the program, not just parsing it
 static int print_stats = 0;
 static int write_stats = 0;
-static int tab_columns = 10;        // based on PET BASIC, which is a good enough target
+static int tab_columns = 10;                    // based on PET BASIC, which is a good enough target
 static int trace_lines = FALSE;
-static int array_base = 1;          // lower bound of arrays
+static int array_base = 1;                      // lower bound of arrays
 static double random_seed = -1;
-static int string_slicing = FALSE;  // are references like A$(1,1) referring to an array entry or doing "slicing"?
+static int string_slicing = FALSE;              // are references like A$(1,1) referring to an array entry or doing "slicing"?
+static int goto_next_highest = FALSE;           // if a branch targets an non-existant line, should we go to the next highest?
 static char *source_file = "";
 static char *input_file = "";
 static char *print_file = "";
@@ -760,25 +763,27 @@ static GList *find_line(int linenumber)
         return NULL;
     }
     
-    // NOTE: this code formerly looked for the line or the next higher one, but that
-    //   does not appear to work in MS BASICs, which return UNDEF'D STATEMENT  ERROR IN 10
-    // find this line or the next higher one with any value
-//    while ((interpreter_state.lines[linenumber] == NULL) && (linenumber < MAXLINE))
-//        linenumber++;
-//
-//    // if we fell off the end, report an error
-//    if (linenumber == MAXLINE) {
-//        basic_error("Undefined line in branch");
-//        return NULL;
-//    }
+    // apparently some BASICs allow you to branch to a non-existant line and it will
+    // go to the next-highest. this is definitely not what MS does, nor ANSI apparently,
+    // but if this does come up we can use this flag on the command line
+    if (goto_next_highest) {
+        while ((interpreter_state.lines[linenumber] == NULL) && (linenumber < MAXLINE))
+            linenumber++;
     
-    // unfound lines return and error
-    if (interpreter_state.lines[linenumber] == NULL) {
-        sprintf(buffer, "Undefined target line %i in branch", linenumber);
-        basic_error(buffer);
-        return NULL;
+        // if we fell off the end, report an error
+        if (linenumber == MAXLINE) {
+            basic_error("Undefined line in branch");
+            return NULL;
+        }
+    } else {
+        // in MS-like BASICs, any null target line returns an error
+        if (interpreter_state.lines[linenumber] == NULL) {
+            sprintf(buffer, "Undefined target line %i in branch", linenumber);
+            basic_error(buffer);
+            return NULL;
+        }
     }
-
+    
     // otherwise we did find a line, so return it
     return interpreter_state.lines[linenumber];
 }
@@ -1309,6 +1314,9 @@ static void delete_variables() {
 /* the main loop for the program */
 void run(void)
 {
+    // start the clock and mark us as running
+    start_ticks = clock();
+    gettimeofday(&start_time, NULL);
     interpreter_state.running_state = 1;
     
     // last line number we ran, used for tracing/stepping
@@ -1334,6 +1342,9 @@ void run(void)
         }
     }
 
+    // stop the clock and mark us as stopped
+    end_ticks = clock();
+    gettimeofday(&end_time, NULL);
     interpreter_state.running_state = 0;
 }
 
@@ -1406,7 +1417,8 @@ static void print_statistics()
 	
     // output to screen if selected
     if(print_stats) {
-       printf("\nRUN TIME: %g\n", ((double) (end_time - start_time)) / CLOCKS_PER_SEC);
+        printf("\nRUN TIME: %g\n", (double)(end_time.tv_usec - start_time.tv_usec) / 1000000 + (double)(end_time.tv_sec - start_time.tv_sec));
+        printf("CPU TIME: %g\n", ((double) (end_ticks - start_ticks)) / CLOCKS_PER_SEC);
 
         printf("\nLINE NUMBERS\n\n");
         printf("  total: %i\n", lines_total);
@@ -1470,7 +1482,8 @@ static void print_statistics()
         FILE* fp = fopen(stats_file, "w+");
         if(!fp) return;
 
-        fprintf(fp, "RUN TIME,%g\n", ((double) (end_time - start_time)) / CLOCKS_PER_SEC);
+        fprintf(fp, "RUN TIME: %g\n", (double)(end_time.tv_usec - start_time.tv_usec) / 1000000 + (double)(end_time.tv_sec - start_time.tv_sec));
+        fprintf(fp, "CPU TIME,%g\n", ((double) (end_ticks - start_ticks)) / CLOCKS_PER_SEC);
 
         fprintf(fp, "LINE NUMBERS,total,%i\n", lines_total);
         fprintf(fp, "LINE NUMBERS,first,%i\n", line_max);
@@ -1536,13 +1549,14 @@ static void print_version()
 /* usage, both for the user and for documenting the code below */
 static void print_usage(char *argv[])
 {
-    printf("Usage: %s [-hvsn] [-a number] [-t spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] source_file\n", argv[0]);
+    printf("Usage: %s [-hvsng] [-a number] [-t spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] source_file\n", argv[0]);
     puts("Options:");
     puts("  -h, --help: print this description");
     puts("  -v, --version: print version info");
     puts("  -a, --array_base: minimum array index, normally 1");
     puts("  -s, --slicing: turn on string slicing (turning off sting arrays)");
     puts("  -n, --no-run: don't run the program after parsing");
+    puts("  -g, --goto-next: if a branch target doesn't exist, go to the next line");
     puts("  -t, --tabs: set the number of spaces for comma-separated items");
     puts("  -r, --random: seed the random number generator");
     puts("  -p, --print-stats: when the program exits, print statistics");
@@ -1559,6 +1573,7 @@ static struct option program_options[] =
     {"tabs", required_argument, NULL, 't'},
     {"random", required_argument, NULL, 'r'},
     {"slicing", no_argument, NULL, 's'},
+    {"goto-next", no_argument, NULL, 'g'},
     {"input-file", required_argument, NULL, 'i'},
     {"output-file", required_argument,  NULL, 'o'},
     {"print-stats", no_argument, NULL, 'p'},
@@ -1594,6 +1609,10 @@ void parse_options(int argc, char *argv[])
                 printed_help =  TRUE;
                 break;
                 
+            case 'g':
+                goto_next_highest = TRUE;
+                break;
+
             case 'n':
                 run_program = FALSE;
                 break;
@@ -1713,16 +1732,10 @@ int main(int argc, char *argv[])
     else
         srand((unsigned int)time(0));
     
-    // simple timing
-    start_time = clock();
-
     // and go!
     if (run_program)
         run();
     
-    // display run time
-    end_time = clock();
-
     // we're done, print/write desired stats
     if (print_stats || write_stats)
         print_statistics();
