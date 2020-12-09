@@ -198,7 +198,7 @@ either_t *variable_value(variable_t *variable, int *type)
             slots = 1;
             for (GList *L = variable->subscripts; L != NULL; L = g_list_next(L)) {
                 v = evaluate_expression(L->data);
-                actual = (int)v.number - array_base;
+                actual = (int)v.number + (1 - array_base); // if we're using 0-base indexing, we need to add one more slot
                 storage->subscripts = g_list_append(storage->subscripts, GINT_TO_POINTER(actual));
                 slots *= actual;
             }
@@ -216,7 +216,7 @@ either_t *variable_value(variable_t *variable, int *type)
     
     // if we haven't started runnning yet, we were being called during parsing to
     // populate the variable table. In that case, we don't need the value, so...
-    if (interpreter_state.running_state == 0)
+    if (interpreter_state.running_state == 0 )
         return NULL;
     
     // at this point we have either found or created the variable, so...
@@ -226,30 +226,34 @@ either_t *variable_value(variable_t *variable, int *type)
     /* compute array index, or leave it at zero if there is none */
     index = 0;
     {
-        GList *LA;			/* list of actual sizes in storage (from the DIM) */
-        GList *LI;			/* list of indices in this reference */
+        GList *original_dimensions;			/* list of actual dimensions in storage (from the DIM), stored as integers */
+        GList *variable_indexes;			/* list of indices in this variable reference, each is an expression */
         
-        LA = storage->subscripts;
-        LI = variable->subscripts;
+        original_dimensions = storage->subscripts;
+        variable_indexes = variable->subscripts;
         
-        if (g_list_length(LA) != g_list_length(LI))
+        // the *number* of dimensions has to match, you can't DIM A(1,1) and then LET B==A(1)
+        if (g_list_length(original_dimensions) != g_list_length(variable_indexes))
             basic_error("Array dimension of variable does not match storage");
         else
-            while (LA != NULL && LI != NULL) {
+            while (original_dimensions != NULL && variable_indexes != NULL) {
                 // evaluate the variable reference's index for a given dimension
-                value_t v = evaluate_expression(LI->data);
+                value_t this_index = evaluate_expression(variable_indexes->data);
                 // and get the originally DIMmed size for that same dimension
-                int actual = GPOINTER_TO_INT(LA->data);
+                int original_dimension = GPOINTER_TO_INT(original_dimensions->data);
                 
-                if ((v.number < array_base) || (actual < v.number - array_base)) {
+                // make sure the index is within the originally DIMed bounds
+                if (interpreter_state.running_state != 0 && ((this_index.number < array_base) || (original_dimension < this_index.number - array_base))) {
                     basic_error("Array subscript out of bounds");
-                    v.number = 1;
+                    this_index.number = array_base; // the first entry in the C array, so it continies
                 }
                 
-                // c arrays start at 0, BASIC arrays start at array_base
-                index = (index * actual) + (int)v.number - array_base;
-                LA = g_list_next(LA);
-                LI = g_list_next(LI);
+                // C arrays start at 0, BASIC arrays start at array_base
+                index = (index * original_dimension) + (int)this_index.number - array_base;
+                
+                // then move on to the next index in the list
+                original_dimensions = g_list_next(original_dimensions);
+                variable_indexes = g_list_next(variable_indexes);
             }
     }
     
@@ -879,10 +883,13 @@ static void perform_statement(GList *L)
 					if(ps->parms._for.step)
 						new_for->step = evaluate_expression(ps->parms._for.step).number;
 					else {
-						if (new_for->begin < new_for->end)
-							new_for->step = 1;
-						else
-							new_for->step = -1;
+                        new_for->step = 1;
+
+                        // the original gnbasic code did this, which is definitely non-standard and caused problems in SST
+//						if (new_for->begin < new_for->end)
+//							new_for->step = 1;
+//						else
+//							new_for->step = -1;
 					}
 					new_for->head = L;
 					lv = variable_value(new_for->index_variable, &type);
