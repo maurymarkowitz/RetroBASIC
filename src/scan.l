@@ -76,7 +76,6 @@ THEN		{ return THEN; }
 TO			{ return TO; }
 
  /* extended statements found in some versions*/
-BREAK       { return BREAK; }   // drops to the local debugger
 CALL        { return CALL; }
 CLS         { return CLS; }     // clear screen
 CMD         { return CMD; }     // redirects output of PRINT to another device

@@ -132,7 +132,6 @@ static expression_t *make_operator(int arity, int o)
 %token PUT_FILE
 
  /* some later additions and custom stuff */
-%token BREAK
 %token CALL
 %token CLS
 %token CMD
@@ -238,12 +237,6 @@ statement:
     {
       statement_t *new = make_statement(BANGREM);
       new->parms.rem = yylval.s;
-      $$ = new;
-    }
-    |
-    BREAK
-    {
-      statement_t *new = make_statement(BREAK);
       $$ = new;
     }
 	|

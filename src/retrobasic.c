@@ -237,7 +237,7 @@ either_t *variable_value(variable_t *variable, int *type)
         
         // the *number* of dimensions has to match, you can't DIM A(1,1) and then LET B==A(1)
         if (g_list_length(original_dimensions) != g_list_length(variable_indexes))
-            basic_error("Array dimension of variable does not match storage");
+            basic_error("Array dimension of variable does not match storage"); // should we exit at this point?
         else
             while (original_dimensions != NULL && variable_indexes != NULL) {
                 // evaluate the variable reference's index for a given dimension
@@ -246,9 +246,9 @@ either_t *variable_value(variable_t *variable, int *type)
                 int original_dimension = GPOINTER_TO_INT(original_dimensions->data);
                 
                 // make sure the index is within the originally DIMed bounds
-                if (interpreter_state.running_state != 0 && ((this_index.number < array_base) || (original_dimension < this_index.number - array_base))) {
+                if ((this_index.number < array_base) || (original_dimension < this_index.number - array_base)) {
                     basic_error("Array subscript out of bounds");
-                    this_index.number = array_base; // the first entry in the C array, so it continies
+                    this_index.number = array_base; // the first entry in the C array, so it continues
                 }
                 
                 // C arrays start at 0, BASIC arrays start at array_base
@@ -813,10 +813,6 @@ static void perform_statement(GList *L)
     statement_t *ps = L->data;
     if (ps) {
         switch (ps->type) {
-            case BREAK:
-                abort();
-                break;
-
             case BYE:
 				// unlike END, this exits BASIC entirely
                 exit(EXIT_SUCCESS);
@@ -1251,7 +1247,7 @@ static void perform_statement(GList *L)
                 break;
                 
             case STOP:
-                exit(EXIT_SUCCESS);
+                assert(1==2);
                 break;
                 
             case VARLIST:

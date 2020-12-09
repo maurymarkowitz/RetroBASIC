@@ -36,6 +36,7 @@ Other command-line options include:
 `--version`, `-v`: print version info  
 `--array_base`, `-a`: set base index for arrays, normally 1 but some dialects use 0  
 `--tabs`, `-t`: set the number of spaces for comma-separated items, defaults to 10  
+`--goto-next`, `-g`: if a branch targers a non-existant line, should it go to the next line? normally false
 `--random`, `-r`: seed the random number generator  
 `--output-file`, `-o`: redirect PRINT to the named file  
 `--input-file`, `-i`: redirect INPUT from the named file  
