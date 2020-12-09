@@ -93,12 +93,8 @@ static expression_t *make_operator(int arity, int o)
 %token REM
 %token QUOTEREM
 %token BANGREM
-%token BREAK
 %token BYE
-%token CALL
 %token CLEAR
-%token CLS
-%token CMD
 %token DATA
 %token DEF
 %token DIM
@@ -115,23 +111,17 @@ static expression_t *make_operator(int arity, int o)
 %token NEXT
 %token NEW
 %token ON
-%token PEEK
-%token POKE
-%token POP
 %token PRINT
 %token PUT
-%token RANDOMIZE
 %token READ
 %token RESTORE
 %token RETURN
 %token RUN
 %token STEP
 %token STOP
-%token SYS
 %token THEN
 %token TO
 %token USING
-%token VARLIST
 %token WAIT
 
  /* putting these down here for clarity, they are the PRINT# etc. */
@@ -141,19 +131,37 @@ static expression_t *make_operator(int arity, int o)
 %token GET_FILE
 %token PUT_FILE
 
+ /* some later additions and custom stuff */
+%token BREAK
+%token CALL
+%token CLS
+%token CMD
+%token OPTION
+%token BASE
+%token PEEK
+%token POKE
+%token POP
+%token RANDOMIZE
+%token SYS
+%token VARLIST
+
+ /* common math functions */
 %token _ABS SGN
 %token ATN COS SIN TAN
 %token CLOG EXP LOG SQR
 %token RND
 %token INT FIX CINT CSNG CDBL // fix=SGN(x)*INT(ABS(x))
 
+ /* string functions */
 %token ASC
 %token LEFT MID RIGHT
 %token LEN STR VAL CHR
 
+ /* boolean operations and comparisons */
 %token AND OR NOT XOR
 %token CMP_LE CMP_GE CMP_NE CMP_HASH /* we keep hash separate for LISTing purposes */
 
+ /* system functions */
 %token FRE
 %token SPC
 %token TAB
@@ -441,6 +449,13 @@ statement:
       linenum_on_totals++;
     }
     |
+    OPTION BASE expression
+    {
+      statement_t *new = make_statement(OPTION);
+      new->parms.generic_parameter = $3;
+      $$ = new;
+    }
+    |
     POKE expression ',' expression
     {
       // since we don't actually perform the poke, we toss the parameters
@@ -473,14 +488,14 @@ statement:
     RANDOMIZE
     {
       statement_t *new = make_statement(RANDOMIZE);
-      new->parms.randomize = NULL;
+      new->parms.generic_parameter = NULL;
       $$ = new;
     }
     |
     RANDOMIZE expression
     {
       statement_t *new = make_statement(RANDOMIZE);
-      new->parms.randomize = $2;
+      new->parms.generic_parameter = $2;
       $$ = new;
     }
 	|
@@ -491,11 +506,18 @@ statement:
 	  $$ = new;
 	}
 	|
-	RESTORE /* some basics allow a parameter here, representing a line number in some or an ordinal */
+	RESTORE
 	{
 	  statement_t *new = make_statement(RESTORE);
 	  $$ = new;
 	}
+    |
+    RESTORE expression /* some basics allow a parameter here, representing a line number in some or an ordinal */
+    {
+      statement_t *new = make_statement(RESTORE);
+      new->parms.generic_parameter = $2;
+      $$ = new;
+    }
 	|
 	RETURN
 	{
@@ -512,6 +534,7 @@ statement:
     SYS expression /* same as CALL */
     {
       statement_t *new = make_statement(SYS);
+      new->parms.generic_parameter = $2;
       $$ = new;
     }
 	|
@@ -845,7 +868,7 @@ variable:
 	  new->subscripts = $3;
 	  $$ = new;
 
-      /* add it to the interpreter's variable list for the analyizer*/
+      /* this may result in errors about array bounds if you need to OPTION BASE but do so after the DIM */
       insert_variable(new);
     }
 

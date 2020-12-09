@@ -241,7 +241,7 @@ either_t *variable_value(variable_t *variable, int *type)
                     v.number = 1;
                 }
                 
-                // note the -1, we have to offset the index
+                // c arrays start at 0, BASIC arrays start at array_base
                 index = (index * actual) + (int)v.number - array_base;
                 LA = g_list_next(LA);
                 LI = g_list_next(LI);
@@ -1080,6 +1080,17 @@ static void perform_statement(GList *L)
 				}
                 break;
                 
+            case OPTION:
+                if (ps->parms.generic_parameter != NULL) {
+                    value_t baseval;
+                    baseval = evaluate_expression(ps->parms.generic_parameter);
+                    array_base = (int)baseval.number;
+                } else {
+                    // reset it?
+                    array_base = 1;
+                }
+                break;
+                
             case POKE:
                 // do nothing
                 break;
@@ -1138,10 +1149,10 @@ static void perform_statement(GList *L)
                     value_t seed_value;
                     
                     // see if there's a parameter
-                    if (ps->parms.randomize != NULL)
+                    if (ps->parms.generic_parameter != NULL)
                         srand((unsigned int)time(0));
                     else {
-                        seed_value = evaluate_expression(ps->parms.randomize);
+                        seed_value = evaluate_expression(ps->parms.generic_parameter);
                         srand(seed_value.number);
                     }
                 }

@@ -76,6 +76,7 @@ typedef struct {
 typedef struct statement_struct {
     int type;
     union {
+        expression_t *generic_parameter;
         GList *data; // list of values for data statements
         struct {
             variable_t *function;
@@ -108,7 +109,6 @@ typedef struct statement_struct {
             expression_t *format;
             GList *item_list;
         } print;
-        expression_t *randomize;
         GList *read;
         GString *rem;
 //        struct {

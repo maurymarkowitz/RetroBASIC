@@ -84,6 +84,8 @@ GET         { return GET; }
 PUT         { return PUT; }
 INPUT#      { return INPUT_FILE; }
 PRINT#      { return PRINT_FILE; }
+OPTION      { return OPTION; }
+BASE        { return BASE; }
 RANDOMIZE   { return RANDOMIZE; }
 SYS         { return SYS; }     // same as CALL
 USING       { return USING; }
