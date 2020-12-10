@@ -5,13 +5,14 @@ HP = HP Time-Sharing BASIC
 AB = Atari BASIC
 IB = Integer BASIC
 GW = GW-BASIC
+WB = Wang BASIC
 PATB = Palo Alto Tiny BASIC
 
-- numbers do not properly truncate at 9 places on output, format is generally janky
-
-- add CLEAR
+- numbers do not properly truncate at 9 places on output, formatting is generally janky
 
 - ELSE would be realtively easy to add, at least the single-line variety
+
+- NEW is incomplete, it erases variables and state but not the program lines (easy to fix)
 
 - DEF FN ignores *local* parameters when evaluating the formula, uses global ones instead (fix: add name of function to front of parameter names)
 
@@ -21,7 +22,9 @@ PATB = Palo Alto Tiny BASIC
 
 - add support for string "slicing" commands used in HP/AB/IB. This is a bit tricky because it is the same syntax as string arrays found in other systems, so there is a command-line switch for this. Alternately, use square brakets for slicing, which would require rewrites for AB/IB.
 
-- support AB's DEG and RAD modes?
+- support AB's DEG and RAD modes? WB also had gradians
+
+- WB allows a message after a STOP, which is printed when that command runs
 
 - PATB allows multiple assignments in a LET, separated by commas, see assignlist
 
@@ -31,18 +34,14 @@ PATB = Palo Alto Tiny BASIC
 
 - PATB prints a colon after INPUTs, not ?, and prints the variable name if no prompt is given. So "INPUT A" prints "A:", while INPUT "TYPE A NUMBER"A prints "TYPE A NUMBER:"
 
-- add support for DEFINT, etc. These are easy, they are essentially identical to DIM, they simply need to call variable_value to insert an entry into the g_tree and set the type correctly
+- add support for DEFINT, etc. They are essentially identical to DIM; they need to call variable_value to insert an entry into the g_tree and set the type correctly
 
 - LPOS, LPRINT, etc. from AB, GW and others
 
 - file handling, OPEN, PRINT# etc.
 
-- add support for OPTION BASE and modify variable_value to handle base 0
-
 - a number of less-commonly-used math and string functions are not yet implemented: FIX CINT CSNG CDBL
 
-- some BASICs allow RESTORE to include a parameter...
-  - some reset to the pointer to the start of that line number
-  - in others the parameter represents the Nth item of the entire DATA list
+- some BASICs allow RESTORE to include a parameter which is the ordinal position in the list, as opposed to a line number
 
 - IF statements follow the MS pattern, where all statements on the line after the THEN are considered as a unit. This is different than the Dartmouth pattern where only the statement immediately after the THEN is part of the IF. e.g. IF 1=2 THEN PRINT 1:PRINT 2 will print nothing in MS, Dartmouth would print "2"

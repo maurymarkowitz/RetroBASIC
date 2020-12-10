@@ -201,14 +201,14 @@ statements:
 	  $$ = g_list_prepend($3, $1);
     }
     |
-    statement "'" statements
+    statements QUOTEREM
     {
-      $$ = g_list_prepend($3, $1);
+      $$ = g_list_prepend($1, NULL);
     }
     |
-    statement '!' statements
+    statements BANGREM
     {
-      $$ = g_list_prepend($3, $1);
+      $$ = g_list_prepend($1, NULL);
     }
 	;
 
