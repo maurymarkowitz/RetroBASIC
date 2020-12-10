@@ -1188,18 +1188,19 @@ static void perform_statement(GList *L)
                 
             case READ:
 				{
-					GList *LL;			/* destination variable list */
+					GList *variable_list;
 					
 					if (interpreter_state.current_data_statement == NULL) {
 						basic_error("No more DATA");
 					}
 					
-					LL = ps->parms.read;
-					while (LL) {
-						either_t *lv;
+					variable_list = ps->parms.read;
+					while (variable_list) {
+						either_t *variable_definition;
 						int type = 0;
-						value_t v;
+						value_t data_value;
 						
+                        // look for the next valid DATA item
 						if (interpreter_state.current_data_element == NULL) {
 							interpreter_state.current_data_statement = g_list_next(interpreter_state.current_data_statement);
 							while (interpreter_state.current_data_statement != NULL) {
@@ -1210,19 +1211,29 @@ static void perform_statement(GList *L)
 							}
 							interpreter_state.current_data_element = g_list_first(((statement_t *)(interpreter_state.current_data_statement->data))->parms.data);
 						}
-						lv = variable_value(LL->data, &type);
-						v = evaluate_expression(interpreter_state.current_data_element->data);
-						if (v.type == type) {
+                        
+                        // eval the DATA element, which is what we'll ultimately return
+                        data_value = evaluate_expression(interpreter_state.current_data_element->data);
+
+                        // retrieve the variable from storage
+						variable_definition = variable_value(variable_list->data, &type);
+                        
+                        // test the type, if the variable and data are the same type assign it, otherwise return an error
+						if (data_value.type == type) {
 							if (type == STRING)
-								lv->string = v.string;
+								variable_definition->string = data_value.string;
 							else
-								lv->number = v.number;
+								variable_definition->number = data_value.number;
 						} else {
-							//printf("Expected %s\n", (type == STRING) ? "string" : "number");
-							basic_error("Type mismatch in READ");
+                            char buffer[80];
+                            sprintf(buffer, "Type mismatch in READ, reading a %s but got a %s",
+                                    (type == STRING) ? "string" : "number",
+                                    (type == NUMBER) ? "number" : "string" );
+							basic_error(buffer);
 						}
 						
-						LL = g_list_next(LL);
+                        // move to the next variable from the READ and the next item in the DATA
+						variable_list = g_list_next(variable_list);
 						interpreter_state.current_data_element = g_list_next(interpreter_state.current_data_element);
 					}
 				}
@@ -1237,12 +1248,10 @@ static void perform_statement(GList *L)
                 // resets the DATA pointer
                 if (ps->parms.generic_parameter != NULL) {
                     // if there is a parameter, treat it as a line number
-                    // there are some variations that treat this as an ordinal,
-                    // so 'reset to nth global entry' but they do not seem widely used
-                    value_t linenum;
-                    linenum = evaluate_expression(ps->parms.generic_parameter);
+                    // Wang BASIC treats the parameter as an ordinal, 'reset to nth global entry'
+                    value_t linenum = evaluate_expression(ps->parms.generic_parameter);
                     interpreter_state.current_data_statement = find_line((int)linenum.number);
-                   interpreter_state.current_data_element = NULL;
+                    interpreter_state.current_data_element = NULL;
                 } else {
                     // if there's no parameter, reset it to the first item
                     interpreter_state.current_data_statement = find_line(interpreter_state.first_line);
@@ -1413,8 +1422,6 @@ static void print_statistics()
 	}
     
     // variables
-    // FIXME: this currently only lists the items that have been encountered during the run, not the parse
-    //   to make this run in the --no-run case, variables should be put into the list as they are parsed
     int num_total = g_tree_nnodes(interpreter_state.values);
     int num_int = 0, num_sng = 0, num_dbl = 0, num_str = 0;
     g_tree_foreach(interpreter_state.values, is_integer, &num_int);
@@ -1485,6 +1492,7 @@ static void print_statistics()
         printf("forward: %i\n",linenum_forwards);
         printf("bckward: %i\n",linenum_backwards);
     }
+    /* and/or the file if selected */
     if(write_stats) {
         //check that the file name is reasonable, and then try to open it
         FILE* fp = fopen(stats_file, "w+");
@@ -1697,11 +1705,19 @@ int main(int argc, char *argv[])
     interpreter_state.values = g_tree_new(symbol_compare);
     interpreter_state.functions = g_tree_new(symbol_compare);
     
-    // open the file and run it through the parser, or use stdin
+    // open the file...
     yyin = fopen(source_file, "r");
-    // FIXME: any point to this? or just exit with "no file"?
-    if (yyin == NULL)
-        yyin = stdin;
+    // and see if it exists
+    if (yyin < 0) {
+        if (errno == ENOENT) {
+            fprintf(stderr, "File not found or no filename provided.");
+            exit(EXIT_FAILURE);
+        } else {
+            fprintf(stderr, "Error %i when opening file.", errno);
+            exit(EXIT_FAILURE);
+        }
+    }
+    // otherwise we were able to open the file, so parse itLRS
     yyparse();
     
     // run all the lines together into a single continuous list
