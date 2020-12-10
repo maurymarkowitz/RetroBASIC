@@ -964,12 +964,12 @@ static void perform_statement(GList *L)
 						if (ppi->expression->type == variable) {
 							char line[80];
 							
-							// see if we can get some data
+							// see if we can get some data, we should at least get a return
 							fflush(stdout);
 							if (fgets(line, sizeof(line), stdin) != line)
 								exit(EXIT_FAILURE);
 							
-							// we did, so null-terminate the string
+							// we got something, so null-terminate the string
 							line[strlen(line) - 1] = '\0';
                             
                             // optionally convert to upper case
@@ -1229,6 +1229,8 @@ static void perform_statement(GList *L)
                 break;
                 
             case REM:
+            case QUOTEREM:
+            case BANGREM:
 				break;
                 
             case RESTORE:
