@@ -464,10 +464,7 @@ static value_t evaluate_expression(expression_t *expression)
                         result.number = floor(a);
                         break;
                     case FIX:
-                        if (a > 0)
-                            result.number = floor(a);
-                        else
-                            result.number = ceil(a);
+                        result.number = trunc(a);
                         break;
                    case SQR:
                         result.number = sqrt(a);
