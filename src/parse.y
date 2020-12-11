@@ -689,6 +689,7 @@ fn_1:
 	CLOG { $$ = CLOG;} |
 	COS  { $$ = COS; } |
     EXP  { $$ = EXP; } |
+    FIX  { $$ = FIX; } |
     FRE  { $$ = FRE; } |
 	INT  { $$ = INT; } |
     LEN  { $$ = LEN; } |

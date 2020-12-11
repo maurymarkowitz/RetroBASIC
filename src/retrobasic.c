@@ -1,3 +1,4 @@
+
 /* Interpreter for RetroBASIC
    Copyright (C) 2020 Maury Markowitz
    
@@ -5,17 +6,14 @@
    Copyright (C) 1998 James Bowman
  
 This file is part of RetroBASIC.
-
 RetroBASIC is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2, or (at your option)
 any later version.
-
 RetroBASIC is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-
 You should have received a copy of the GNU General Public License
 along with RetroBASIC; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
@@ -51,7 +49,7 @@ static char *stats_file = "";
 /* private types used only within the interpreter */
 /* value_t is used to store (and process) the results of an evaluation */
 typedef struct {
-    int type;			/* NUMBER, STRING */
+    int type;            /* NUMBER, STRING */
     GString *string;
     double number;
 } value_t;
@@ -65,7 +63,7 @@ typedef union {
 
 /* variable_storage_t holds the *value* of a variable in memory */
 typedef struct {
-    int type;			/* NUMBER, STRING */
+    int type;            /* NUMBER, STRING */
     GList *subscripts;  // subscripts, if any
     either_t *value;    // actual value, for non-arrays
 } variable_storage_t;
@@ -230,8 +228,8 @@ either_t *variable_value(variable_t *variable, int *type)
     /* compute array index, or leave it at zero if there is none */
     index = 0;
     {
-        GList *original_dimensions;			/* list of actual dimensions in storage (from the DIM), stored as integers */
-        GList *variable_indexes;			/* list of indices in this variable reference, each is an expression */
+        GList *original_dimensions;            /* list of actual dimensions in storage (from the DIM), stored as integers */
+        GList *variable_indexes;            /* list of indices in this variable reference, each is an expression */
         
         original_dimensions = storage->subscripts;
         variable_indexes = variable->subscripts;
@@ -390,7 +388,7 @@ static value_t evaluate_expression(expression_t *expression)
             break;
             
         // user functions are not so simple, because the variable references
-		// in the definition have to replace those in the main list.
+        // in the definition have to replace those in the main list.
         // TODO: we need to eval the parameters and pass them in
         case fn:
             {
@@ -402,11 +400,6 @@ static value_t evaluate_expression(expression_t *expression)
             
         // and now for the fun bit, the operators list...
         case op:
-            // most of the following functions return numbers, so default to that
-            result.number = 0;
-            result.string = NULL;
-            result.type = NUMBER;
-
             // build a list of values for each of the parameters by recursing
             // on them until they return a value
             for (i = 0; i < expression->parms.op.arity; i++)
@@ -414,284 +407,245 @@ static value_t evaluate_expression(expression_t *expression)
             
             // now calculate the results based on those values
             if (expression->parms.op.arity == 1) {
-                // there's currently only one arity-1 function that *takes* a string parameter, so do that now
-                if (parameters[0].type == STRING) {
-                    switch (expression->parms.op.opcode) {
-                        case LEN:
-                            result.number = strlen(parameters[0].string->str);
-                            break;
-                        default:
-                            basic_error("Unhandled arity-1 string function");
-                    } //switch
-                } else {
-                    // cache the numeric parameter
-                    a = parameters[0].number;
-                    
-                    switch (expression->parms.op.opcode) {
-                        case '-':
-                            result.number = -a;
-                            break;
-                        case NOT:
-                            result.number = ~(int)a;
-                            break;
-                        case _ABS:
-                            result.number = fabs(a);
-                            break;
-                        case ATN:
-                            result.number = atan(a);
-                            break;
-                        case CHR:
-                            {
-                                char c[2];
-                                c[0] = (char)a;
-                                c[1] = '\0';
-                                result.type = STRING;
-                                result.string = g_string_new(c);
-                            }
-                            break;
-                        case CLOG:
-                            result.number = log10(a);
-                            break;
-                        case EXP:
-                            result.number = exp(a);
-                            break;
-                        case FRE:
-                            // always return zero
-                            result.number = 0;
-                            break;
-                        case STR:
-                            {
-                                char* str = number_to_string(a);
-                                result.type = STRING;
-                                result.string = g_string_new(str);
-                            }
-                            break;
-                        case LOG:
-                            result.number = log(a);
-                            break;
-                        case SIN:
-                            result.number = sin(a);
-                            break;
-                        case COS:
-                            result.number = cos(a);
-                            break;
-                        case INT:
+                // most of the following functions return numbers, so default to that
+                result.type = NUMBER;
+                
+                // get the first parameter, in this case, the only one
+                a = parameters[0].number;
+                
+                switch (expression->parms.op.opcode) {
+                    case '-':
+                        result.number = -a;
+                        break;
+                    case NOT:
+                        result.number = ~(int)a;
+                        break;
+                    case _ABS:
+                        result.number = fabs(a);
+                        break;
+                    case ATN:
+                        result.number = atan(a);
+                        break;
+                    case CHR:
+                        {
+                            char c[2];
+                            c[0] = (char)a;
+                            c[1] = '\0';
+                            result.type = STRING;
+                            result.string = g_string_new(c);
+                        }
+                        break;
+                    case CLOG:
+                        result.number = log10(a);
+                        break;
+                    case EXP:
+                        result.number = exp(a);
+                        break;
+                    case FRE:
+                        result.number = 0; // always return zero
+                        break;
+                    case LEN: // this is the only arity-1 function that takes a string parameter
+                        result.number = strlen(parameters[0].string->str);
+                        break;
+                    case STR:
+                        result.type = STRING;
+                        result.string = g_string_new(number_to_string(a));
+                        break;
+                    case LOG:
+                        result.number = log(a);
+                        break;
+                    case SIN:
+                        result.number = sin(a);
+                        break;
+                    case COS:
+                        result.number = cos(a);
+                        break;
+                    case INT:
+                        result.number = floor(a);
+                        break;
+                    case FIX:
+                        if (a > 0)
                             result.number = floor(a);
-                            break;
-                        case SQR:
-                            result.number = sqrt(a);
-                            break;
-                        case RND:
-                            // TODO: support alternative RNDs that return limited values
-                            result.number = (rand() / (double)RAND_MAX); // don't forget the cast!
-                            break;
-                        case VAL:
-                            result.number = atof(parameters[0].string->str);
-                            break;
-                        case SGN:
-                            // early MS variants return 1 for 0, this implements the newer version where 0 returns 0
-                            if (a < 0)
-                                result.number = -1;
-                            else if (a == 0)
-                                result.number = 0;
-                            else
-                                result.number = 1;
-                            break;
-                        case PEEK:
-                            // always return zero
+                        else
+                            result.number = ceil(a);
+                        break;
+                   case SQR:
+                        result.number = sqrt(a);
+                        break;
+                    case RND:
+                        // TODO: support alternative RNDs that return limited values
+                        result.number = (rand() / (double)RAND_MAX); // don't forget the cast!
+                        break;
+                    case VAL:
+                        result.number = atof(parameters[0].string->str);
+                        break;
+                    case SGN:
+                        // early MS variants return 1 for 0, this implements the newer version where 0 returns 0
+                        if (a < 0)
+                            result.number = -1;
+                        else if (a == 0)
                             result.number = 0;
-                            break;
-                        case POS:
-                            result.number = (double)interpreter_state.cursor_column; //FIXME: should this be +1?
-                            break;
-                        case TAB:
-                            // TAB does nothing if the current cursor position is past
-                            // the number being passed in, otherwise it adds spaces to
-                            // move the cursor to that column number
-                            result.type = STRING;
-                            result.string = g_string_new("");
-                            int tabs = (int)parameters[0].number;
-                            if (tabs > interpreter_state.cursor_column) {
-                                for (int i = interpreter_state.cursor_column; i <= tabs - 1; i++) {
-                                    result.string = g_string_append(result.string, " ");
-                                }
-                            }
-                            break;
-                        case SPC:
-                            // SPC adds the indicated number of spaces to the output
-                            result.type = STRING;
-                            result.string = g_string_new("");
-                            for (int i = 0; i <= parameters[0].number - 1; i++) {
+                        else
+                            result.number = 1;
+                        break;
+                    case PEEK:
+                        // always return zero
+                        result.number = 0;
+                        break;
+                    case POS:
+                        result.number = (double)interpreter_state.cursor_column; //FIXME: should this be +1?
+                        break;
+                    case TAB:
+                        // TAB does nothing if the current cursor position is past the number being passed in,
+                        // otherwise it adds spaces to move the cursor to that column number
+                        // note that in "real" basic this is a psuedo-function that simply moves the cursor
+                        //   and doesn't return anything, but here it works by returning a string
+                        result.type = STRING;
+                        result.string = g_string_new("");
+                        int tabs = (int)parameters[0].number;
+                        if (tabs > interpreter_state.cursor_column) {
+                            for (int i = interpreter_state.cursor_column; i <= tabs - 1; i++) {
                                 result.string = g_string_append(result.string, " ");
                             }
-                            break;
-                        default:
-                            basic_error("Unhandled arity-1 numeric function");
-                    } //switch
-                } // is string/number
+                        }
+                        break;
+                    case SPC:
+                        // SPC adds the indicated number of spaces to the output
+                        result.type = STRING;
+                        result.string = g_string_new("");
+                        for (int i = 0; i <= parameters[0].number - 1; i++) {
+                            result.string = g_string_append(result.string, " ");
+                        }
+                        break;
+                    default:
+                        basic_error("Unhandled arity-1 function");
+                } //switch
             } //arity = 1
             
             // now the functions that take two parameters
             else if (expression->parms.op.arity == 2) {
-				// cache the parameters for the numerics
+                // cache the parameters
                 a = parameters[0].number;
                 b = parameters[1].number;
                 
                 switch (expression->parms.op.opcode) {
                     case '+':
-                        if (parameters[0].type == STRING) { //} && parameters[1].type == STRING) {
+                        if (parameters[0].type == STRING && parameters[1].type == STRING) {
                             result.type = STRING;
                             result.string = g_string_new(g_strconcat(parameters[0].string->str, parameters[1].string->str, NULL));
                         }
                         else if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
                             result = perform_infix_operation(a + b);
-                        else
+                        else {
+                            result.number = 0;
                             basic_error("Type mismatch");
+                        }
                         break;
                     case '-':
-                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
-                            result = perform_infix_operation(a - b);
-                        else
-                            basic_error("Type mismatch");
+                        result = perform_infix_operation(a - b);
                         break;
                     case '*':
-                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
-                            result = perform_infix_operation(a * b);
-                        else
-                            basic_error("Type mismatch");
+                        result = perform_infix_operation(a * b);
                         break;
                     case '/':
                         if (b == 0)
                             basic_error("Division by zero");
-                        else if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
-                            result = perform_infix_operation(a * b);
-                        else
-                            basic_error("Type mismatch");
+                        result = perform_infix_operation(a / b);
                         break;
                     case '^':
-                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
-                            result = perform_infix_operation(pow(a, b));
-                        else
-                            basic_error("Type mismatch");
+                        result = perform_infix_operation(pow(a, b));
                         break;
                     case '=':
-                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
+                        if (parameters[0].type == NUMBER)
                             result = perform_infix_operation(-(a == b));
-                        else if (parameters[0].type == STRING && parameters[1].type == STRING)
-                            result = perform_infix_operation(-!strcmp(parameters[0].string->str, parameters[1].string->str));
                         else
-                            basic_error("Type mismatch");
+                            result = perform_infix_operation(-!strcmp(parameters[0].string->str, parameters[1].string->str));
                         break;
                     case '<':
-                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
-                            result = perform_infix_operation(-(a < b));
-                        else
-                            basic_error("Type mismatch");
+                        result = perform_infix_operation(-(a < b));
                         break;
                     case '>':
-                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
-                            result = perform_infix_operation(-(a > b));
-                        else
-                            basic_error("Type mismatch");
+                        result = perform_infix_operation(-(a > b));
                         break;
                     case CMP_LE:
-                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
-                            result = perform_infix_operation(-(a <= b));
-                        else
-                            basic_error("Type mismatch");
+                        result = perform_infix_operation(-(a <= b));
                         break;
                     case CMP_GE:
-                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
-                            result = perform_infix_operation(-(a >= b));
-                        else
-                            basic_error("Type mismatch");
+                        result = perform_infix_operation(-(a >= b));
                         break;
                     case CMP_NE:
                     case CMP_HASH:
-                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
+                        if (parameters[0].type == NUMBER)
                             result = perform_infix_operation(-(a != b));
-                        else if (parameters[0].type == STRING && parameters[1].type == STRING)
-                            result = perform_infix_operation(-!!strcmp(parameters[0].string->str, parameters[1].string->str));
                         else
-                            basic_error("Type mismatch");
+                            result = perform_infix_operation(-!!strcmp(parameters[0].string->str, parameters[1].string->str));
                         break;
                     case AND:
-                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
-                            result = perform_infix_operation((int)a & (int)b);
-                        else
-                            basic_error("Type mismatch");
+                        result = perform_infix_operation((int)a & (int)b);
                         break;
                     case OR:
-                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
-                            result = perform_infix_operation((int)a | (int)b);
-                        else
-                            basic_error("Type mismatch");
+                        result = perform_infix_operation((int)a | (int)b);
                         break;
                     case LEFT:
-                        if (parameters[0].type == STRING && parameters[1].type == NUMBER) {
+                        result.type = STRING;
+                        {
                             size_t len = strlen(parameters[0].string->str);
-                            result.type = STRING;
                             result.string = g_string_new(parameters[0].string->str);
                             if (b < len)
                                 g_string_truncate(result.string, b);
-                        } else
-                            basic_error("Type mismatch");
+                        }
                         break;
                     case RIGHT:
-                        if (parameters[0].type == STRING && parameters[1].type == NUMBER) {
+                        result.type = STRING;
+                        {
                             size_t len = strlen(parameters[0].string->str);
-                            result.type = STRING;
                             result.string = g_string_new(parameters[0].string->str);
                             if (b < len)
                                 result.string = g_string_erase(result.string, 0, len - b);
-                        } else
-                            basic_error("Type mismatch");
+                        }
                         break;
                     case MID: // this is the two-parameter version, three follows
-                        if (parameters[0].type == STRING && parameters[1].type == NUMBER) {
+                        result.type = STRING;
+                        {
                             size_t len = strlen(parameters[0].string->str);
-                            result.type = STRING;
                             result.string = g_string_new(parameters[0].string->str);
                             if (b < len)
                                 result.string = g_string_erase(result.string, 0, b - 1);
-                        } else
-                            basic_error("Type mismatch");
+                        }
                         break;
+                        
                     default:
+                        result.number = 0;
                         basic_error("Unhandled arity-2 function");
-						break;
+                        break;
                 }
             }
             
             // and finally, arity=3, which is currently only the MID
             else if (expression->parms.op.arity == 3)  {
-                // only one function, so assume...
-                result.number = 0;
-                result.string = NULL;
-                result.type = STRING;
-
+                b = parameters[1].number;
+                c = parameters[2].number;
+                
                 switch (expression->parms.op.opcode) {
                     case MID:
-                        if (parameters[0].type == STRING && parameters[1].type == NUMBER && parameters[2].type == NUMBER) {
-                            b = parameters[1].number;
-                            c = parameters[2].number;
-                            
-                            result.type = STRING;
+                        result.type = STRING;
+                        {
                             result.string = g_string_new(parameters[0].string->str);
                             
-                            long len = strlen(parameters[0].string->str);
+                            time_t len = strlen(parameters[0].string->str);
                             if (b < len)
                                 result.string = g_string_erase(result.string, 0, b - 1); // note the -1
                             
                             len = strlen(result.string->str);
                             if (c < len)
                                 g_string_truncate(result.string, c);
-                        } else
-                            basic_error("Type mismatch");
+                        }
                         break;
+                        
                     default:
+                        result.number = 0;
                         basic_error("Unhandled arity-3 function");
-						break;
+                        break;
                 }
             }
             else {
@@ -734,7 +688,7 @@ static void print_expression(expression_t *e, char *format)
                 pc++;
             }
             sprintf(hash, "%%*.*f");    // replace ##.## with % spec
-            strcat(hash, pc);		    // append the rest of string
+            strcat(hash, pc);            // append the rest of string
         }
         // and now print it out using that format
         switch (v.type) {
@@ -865,7 +819,7 @@ static void perform_statement(GList *L)
     if (ps) {
         switch (ps->type) {
             case BYE:
-				// unlike END, this exits BASIC entirely
+                // unlike END, this exits BASIC entirely
                 exit(EXIT_SUCCESS);
                 break;
 
@@ -874,11 +828,11 @@ static void perform_statement(GList *L)
                 break;
 
             case CLEAR:
-				{
-					// wipe out any variables and create a fresh list
-					delete_variables();
-					interpreter_state.values = g_tree_new(symbol_compare);
-				}
+                {
+                    // wipe out any variables and create a fresh list
+                    delete_variables();
+                    interpreter_state.values = g_tree_new(symbol_compare);
+                }
                 break;
                 
             case CLS:
@@ -890,7 +844,7 @@ static void perform_statement(GList *L)
                 break;
 
             case DATA:
-				// basically works like a REM, so just move on, all the logic is in the READ
+                // basically works like a REM, so just move on, all the logic is in the READ
                 break;
                 
             case DEF:
@@ -903,20 +857,20 @@ static void perform_statement(GList *L)
             case DIM:
                 // the parser has already pulled out the variable names, so all we have to
                 // do here is loop over the list and call variable_value to initialize them
-				{
-					GList *L;
-					for (L = ps->parms.dim; L != NULL; L = g_list_next(L)) {
-						variable_t *pv = L->data;
-						int type = 0;
-						variable_value(pv, &type);
-					}
-				}
+                {
+                    GList *L;
+                    for (L = ps->parms.dim; L != NULL; L = g_list_next(L)) {
+                        variable_t *pv = L->data;
+                        int type = 0;
+                        variable_value(pv, &type);
+                    }
+                }
                 break;
                 
             case END:
-				// set the instruction pointer to null so it exits below
+                // set the instruction pointer to null so it exits below
                 interpreter_state.next_statement = NULL;
-				break;
+                break;
                 
             case EXIT:
             case POP:
@@ -924,56 +878,56 @@ static void perform_statement(GList *L)
                 break;
                 
             case FOR:
-				{
-					forcontrol_t *new_for = malloc(sizeof(*new_for));
-					either_t *lv;
-					int type = 0;
-					
-					new_for->index_variable = ps->parms._for.variable;
-					new_for->begin = evaluate_expression(ps->parms._for.begin).number;
-					new_for->end = evaluate_expression(ps->parms._for.end).number;
-					if(ps->parms._for.step)
-						new_for->step = evaluate_expression(ps->parms._for.step).number;
-					else {
+                {
+                    forcontrol_t *new_for = malloc(sizeof(*new_for));
+                    either_t *lv;
+                    int type = 0;
+                    
+                    new_for->index_variable = ps->parms._for.variable;
+                    new_for->begin = evaluate_expression(ps->parms._for.begin).number;
+                    new_for->end = evaluate_expression(ps->parms._for.end).number;
+                    if(ps->parms._for.step)
+                        new_for->step = evaluate_expression(ps->parms._for.step).number;
+                    else {
                         new_for->step = 1;
 
                         // the original gnbasic code did this, which is definitely non-standard and caused problems in SST
-//						if (new_for->begin < new_for->end)
-//							new_for->step = 1;
-//						else
-//							new_for->step = -1;
-					}
-					new_for->head = L;
-					lv = variable_value(new_for->index_variable, &type);
-					lv->number = new_for->begin;
-					
-					interpreter_state.forstack = g_list_append(interpreter_state.forstack, new_for);
-				}
-				break;
+//                        if (new_for->begin < new_for->end)
+//                            new_for->step = 1;
+//                        else
+//                            new_for->step = -1;
+                    }
+                    new_for->head = L;
+                    lv = variable_value(new_for->index_variable, &type);
+                    lv->number = new_for->begin;
+                    
+                    interpreter_state.forstack = g_list_append(interpreter_state.forstack, new_for);
+                }
+                break;
                 
             case GOSUB:
-				{
-					gosubcontrol_t *new = malloc(sizeof(*new));
-					
-					new->returnpoint = g_list_next(L);
-					interpreter_state.gosubstack = g_list_append(interpreter_state.gosubstack, new);
+                {
+                    gosubcontrol_t *new = malloc(sizeof(*new));
+                    
+                    new->returnpoint = g_list_next(L);
+                    interpreter_state.gosubstack = g_list_append(interpreter_state.gosubstack, new);
                     interpreter_state.next_statement = find_line(evaluate_expression(ps->parms.gosub).number);
-				}
-				break;
+                }
+                break;
                 
             case GOTO:
-				{
+                {
                     interpreter_state.next_statement = find_line(evaluate_expression(ps->parms._goto).number);
-				}
-				break;
+                }
+                break;
                 
             case IF:
-				{
-					value_t cond = evaluate_expression(ps->parms._if.condition);
-					/* if only does something when the condition is true */
-					if (cond.number != 0) {
-						/* THEN might be an expression including a GOTO or an implicit GOTO */
-						if (ps->parms._if.then_expression) {
+                {
+                    value_t cond = evaluate_expression(ps->parms._if.condition);
+                    /* if only does something when the condition is true */
+                    if (cond.number != 0) {
+                        /* THEN might be an expression including a GOTO or an implicit GOTO */
+                        if (ps->parms._if.then_expression) {
                             // this was formerly next = perform_statement, which meant it could only
                             // perform a single statement after the IF. for this to work properly,
                             // the then_expression has to be a list that is not connected to the
@@ -981,46 +935,46 @@ static void perform_statement(GList *L)
                             for (GList *L = ps->parms._if.then_expression; L != NULL; L = g_list_next(L)) {
                                 perform_statement(L);
                             }
-						} else {
+                        } else {
                             // if the THEN is not an expression, jump to that line
                             interpreter_state.next_statement = find_line(ps->parms._if.then_linenumber);
-						}
-					}
-				}
+                        }
+                    }
+                }
                 break;
                 
             case INPUT:
-				{
-					// INPUT can mix together prompts and variables, it doesn't
-					// *have* to be a single prompt at the start, although that is
-					// the typical convention. this code handles this possibility
-					// by rolling over the expression list, doing a print if it's
-					// not a variable, and a scan if it is
-					
-					// first off, see if the first item in the list is a variable,
-					// if so, that means there's nothing suppressing the prompt, so
-					// we want to display it. we don't have to do that for other
-					// items in the list because it's handled in the loop below
-					printitem_t *ppi= ps->parms.input->data;
-					if (ppi->expression->type == variable)
-						printf("?");
-					
-					// and now loop over what else we find on the line
-					for (GList *I = ps->parms.input; I != NULL; I = g_list_next(I)) {
-						either_t *value;
-						int type = 0;
-						
-						ppi = I->data;
-						if (ppi->expression->type == variable) {
-							char line[80];
-							
-							// see if we can get some data, we should at least get a return
-							fflush(stdout);
-							if (fgets(line, sizeof(line), stdin) != line)
-								exit(EXIT_FAILURE);
-							
-							// we got something, so null-terminate the string
-							line[strlen(line) - 1] = '\0';
+                {
+                    // INPUT can mix together prompts and variables, it doesn't
+                    // *have* to be a single prompt at the start, although that is
+                    // the typical convention. this code handles this possibility
+                    // by rolling over the expression list, doing a print if it's
+                    // not a variable, and a scan if it is
+                    
+                    // first off, see if the first item in the list is a variable,
+                    // if so, that means there's nothing suppressing the prompt, so
+                    // we want to display it. we don't have to do that for other
+                    // items in the list because it's handled in the loop below
+                    printitem_t *ppi= ps->parms.input->data;
+                    if (ppi->expression->type == variable)
+                        printf("?");
+                    
+                    // and now loop over what else we find on the line
+                    for (GList *I = ps->parms.input; I != NULL; I = g_list_next(I)) {
+                        either_t *value;
+                        int type = 0;
+                        
+                        ppi = I->data;
+                        if (ppi->expression->type == variable) {
+                            char line[80];
+                            
+                            // see if we can get some data, we should at least get a return
+                            fflush(stdout);
+                            if (fgets(line, sizeof(line), stdin) != line)
+                                exit(EXIT_FAILURE);
+                            
+                            // we got something, so null-terminate the string
+                            line[strlen(line) - 1] = '\0';
                             
                             // optionally convert to upper case
                             if (upper_case) {
@@ -1030,128 +984,128 @@ static void perform_statement(GList *L)
                                   c++;
                                 }
                             }
-							
-							// find the storage for this variable, and assign the value
-							value = variable_value(ppi->expression->parms.variable, &type);
-							if (type == NUMBER) {
-								sscanf(line, "%lg", &value->number);
-							} else {
-								value->string = g_string_new(line);
-							}
-						}
-						// if it's not a variable, it's some sort of prompt, so print it
-						else {
-							print_expression(ppi->expression, NULL);
-							// and if the sep is a comma, suppress the ?, otherwise add it
+                            
+                            // find the storage for this variable, and assign the value
+                            value = variable_value(ppi->expression->parms.variable, &type);
+                            if (type == NUMBER) {
+                                sscanf(line, "%lg", &value->number);
+                            } else {
+                                value->string = g_string_new(line);
+                            }
+                        }
+                        // if it's not a variable, it's some sort of prompt, so print it
+                        else {
+                            print_expression(ppi->expression, NULL);
+                            // and if the sep is a comma, suppress the ?, otherwise add it
                             // NOTE: we should have a global setting for the separator, as PATB uses colon and I'm sure there's others
-							if (ppi->separator != ',')
-								printf("?");
-						}
-					}
-				}
+                            if (ppi->separator != ',')
+                                printf("?");
+                        }
+                    }
+                }
                 break;
                 
             case LET:
-				{
-					// this handles both the explicit and implicit LET
-					either_t *stored_val;
-					int type = 0;
-					value_t exp_val;
-					
-					// get the storage entry for this variable
-					stored_val = variable_value(ps->parms.let.variable, &type);
-					
-					// evaluate the expression
-					exp_val = evaluate_expression(ps->parms.let.expression);
-					
-					// make sure we got the right type, and assign it if we did
-					if (exp_val.type == type) {
-						if (type == STRING)
-							stored_val->string = exp_val.string;
-						else
-							stored_val->number = exp_val.number;
-					} else {
-						// if the type we stored last time is different than this time...
-						basic_error("Type mismatch");
-					}
-				}
+                {
+                    // this handles both the explicit and implicit LET
+                    either_t *stored_val;
+                    int type = 0;
+                    value_t exp_val;
+                    
+                    // get the storage entry for this variable
+                    stored_val = variable_value(ps->parms.let.variable, &type);
+                    
+                    // evaluate the expression
+                    exp_val = evaluate_expression(ps->parms.let.expression);
+                    
+                    // make sure we got the right type, and assign it if we did
+                    if (exp_val.type == type) {
+                        if (type == STRING)
+                            stored_val->string = exp_val.string;
+                        else
+                            stored_val->number = exp_val.number;
+                    } else {
+                        // if the type we stored last time is different than this time...
+                        basic_error("Type mismatch");
+                    }
+                }
                 break;
                 
             case NEXT:
-				{
+                {
                     // this version does not precisely match MS, it always gets the last
                     // entry on the FOR stack and uses that variable, ignoring the variable
                     // that might have been entered in the source. this means you can't put a
                     // NEXT J inside a NEXT I
                     // FIXME: this is easy to fix, simply get the variable name from the FOR
                     //  stack and then check if it's the same as the one in the NEXT, error out
-					forcontrol_t *pfc = g_list_last(interpreter_state.forstack)->data;
-					either_t *lv;
-					int type = 0;
+                    forcontrol_t *pfc = g_list_last(interpreter_state.forstack)->data;
+                    either_t *lv;
+                    int type = 0;
                     
-					lv = variable_value(pfc->index_variable, &type);
-					lv->number += pfc->step;
-					if (((pfc->step < 0) && (lv->number >= pfc->end)) ||
-						((pfc->step > 0) && (lv->number <= pfc->end))) {
+                    lv = variable_value(pfc->index_variable, &type);
+                    lv->number += pfc->step;
+                    if (((pfc->step < 0) && (lv->number >= pfc->end)) ||
+                        ((pfc->step > 0) && (lv->number <= pfc->end))) {
                         // we're not done, go back to the head of the loop
                         interpreter_state.next_statement = g_list_next(pfc->head);
-					} else {
+                    } else {
                         // we are done, remove this entry from the stack
                         interpreter_state.forstack = g_list_remove(interpreter_state.forstack, pfc);
-					}
-				}
+                    }
+                }
                 break;
                 
             case NEW:
                 /* it's not entirely clear what this should do INSIDE a program, but... */
-				{
-					// wipe out any variables and create a new list
-					delete_variables();
-					interpreter_state.values = g_tree_new(symbol_compare);
-					
-					// clear out the program
-					// TODO : do this!
-				}
+                {
+                    // wipe out any variables and create a new list
+                    delete_variables();
+                    interpreter_state.values = g_tree_new(symbol_compare);
+                    
+                    // clear out the program
+                    // TODO : do this!
+                }
                 break;
                 
             case ON:
-				{
-					/* first we evaluate the expression */
-					value_t val = evaluate_expression(ps->parms.on.expression);
-					
-					/* ON does an INT, and since a valid line is +ve, INT always rounds down... */
-					int n = (int)floor(val.number);
-					/* C arrays are zero-indexed, not 1, so... */
-					--n;
-					
-					/* if it calced OK, see if we can find that entry in the list of numbers */
-					GList *numslist;
-					numslist = ps->parms.on.numbers;
-					expression_t *item = g_list_nth_data(numslist, (guint)n);
-					if (item == NULL) {
-						// an IF statement simply runs the next statement if the condition fails,
-						// likewise, if the ON value points to an item that is not in the number
-						// list, if simply falls off to the next statement
-						break;
-					}
-					
-					/* we found the nth entry, so evaluate it */
-					value_t lineval;
-					lineval = evaluate_expression(item);
-					
-					/* turn it into a line number */
-					int linenum = (int)floor(lineval.number);
-					
-					/* and then it's either GOTO or GOSUB... */
-					if (ps->parms.on.type == GOTO) {
+                {
+                    /* first we evaluate the expression */
+                    value_t val = evaluate_expression(ps->parms.on.expression);
+                    
+                    /* ON does an INT, and since a valid line is +ve, INT always rounds down... */
+                    int n = (int)floor(val.number);
+                    /* C arrays are zero-indexed, not 1, so... */
+                    --n;
+                    
+                    /* if it calced OK, see if we can find that entry in the list of numbers */
+                    GList *numslist;
+                    numslist = ps->parms.on.numbers;
+                    expression_t *item = g_list_nth_data(numslist, (guint)n);
+                    if (item == NULL) {
+                        // an IF statement simply runs the next statement if the condition fails,
+                        // likewise, if the ON value points to an item that is not in the number
+                        // list, if simply falls off to the next statement
+                        break;
+                    }
+                    
+                    /* we found the nth entry, so evaluate it */
+                    value_t lineval;
+                    lineval = evaluate_expression(item);
+                    
+                    /* turn it into a line number */
+                    int linenum = (int)floor(lineval.number);
+                    
+                    /* and then it's either GOTO or GOSUB... */
+                    if (ps->parms.on.type == GOTO) {
                         interpreter_state.next_statement = find_line(linenum);
-					} else {
-						gosubcontrol_t *new = malloc(sizeof(*new));
-						new->returnpoint = g_list_next(L);
-						interpreter_state.gosubstack = g_list_append(interpreter_state.gosubstack, new);
+                    } else {
+                        gosubcontrol_t *new = malloc(sizeof(*new));
+                        new->returnpoint = g_list_next(L);
+                        interpreter_state.gosubstack = g_list_append(interpreter_state.gosubstack, new);
                         interpreter_state.next_statement = find_line(linenum);
-					}
-				}
+                    }
+                }
                 break;
                 
             case OPTION:
@@ -1175,24 +1129,24 @@ static void perform_statement(GList *L)
                 break;
                 
             case PRINT:
-				{
-					GList *L;
-					printitem_t *pp;
-					
-					// loop over the items in the print list
-					for (L = ps->parms.print.item_list; L != NULL; L = g_list_next(L)) {
-						pp = L->data;
-						
-						// if there's a USING, evaluate the format string it and print using it
-						if (ps->parms.print.format) {
-							value_t format_string;
+                {
+                    GList *L;
+                    printitem_t *pp;
+                    
+                    // loop over the items in the print list
+                    for (L = ps->parms.print.item_list; L != NULL; L = g_list_next(L)) {
+                        pp = L->data;
+                        
+                        // if there's a USING, evaluate the format string it and print using it
+                        if (ps->parms.print.format) {
+                            value_t format_string;
                             format_string = evaluate_expression(ps->parms.print.format);
-							print_expression(pp->expression, format_string.string->str);
-						}
-						// otherwise, see if there's a separator and print using the width
-						else {
-							print_expression(pp->expression, NULL);
-						}
+                            print_expression(pp->expression, format_string.string->str);
+                        }
+                        // otherwise, see if there's a separator and print using the width
+                        else {
+                            print_expression(pp->expression, NULL);
+                        }
                         
                         // for each item in the list, look at the separator, if there is one
                         // and it's a comma, advance the cursor to the next tab column
@@ -1202,25 +1156,25 @@ static void perform_statement(GList *L)
                                 printf(" ");
                                 interpreter_state.cursor_column++;
                             }
-					}
-					
-					// now get the last item in the list so we can see if it's a ; or ,
-					if (g_list_last(ps->parms.print.item_list))
-						pp = (printitem_t *)(g_list_last(ps->parms.print.item_list)->data);
-					else
-						pp = NULL;
+                    }
+                    
+                    // now get the last item in the list so we can see if it's a ; or ,
+                    if (g_list_last(ps->parms.print.item_list))
+                        pp = (printitem_t *)(g_list_last(ps->parms.print.item_list)->data);
+                    else
+                        pp = NULL;
                     
                     // if the last item is SPC or TAB, fake a trailing semi, which is the way PET does it
                     if (pp != NULL && pp->expression->type == op && (pp->expression->parms.op.opcode == SPC || pp->expression->parms.op.opcode == TAB)) {
                         pp->separator = ';';
                     }
-					
-					// if there are no more items, or it's NOT a separator, do a CR
-					if (pp == NULL || pp->separator == 0) {
-						printf("\n");
+                    
+                    // if there are no more items, or it's NOT a separator, do a CR
+                    if (pp == NULL || pp->separator == 0) {
+                        printf("\n");
                         interpreter_state.cursor_column = 0; // and reset this!
-					}
-				}
+                    }
+                }
                 break;
                 
             case RANDOMIZE:
@@ -1237,62 +1191,62 @@ static void perform_statement(GList *L)
                 }
                 
             case READ:
-				{
-					GList *variable_list;
-					
-					if (interpreter_state.current_data_statement == NULL) {
-						basic_error("No more DATA");
-					}
-					
-					variable_list = ps->parms.read;
-					while (variable_list) {
-						either_t *variable_definition;
-						int type = 0;
-						value_t data_value;
-						
+                {
+                    GList *variable_list;
+                    
+                    if (interpreter_state.current_data_statement == NULL) {
+                        basic_error("No more DATA");
+                    }
+                    
+                    variable_list = ps->parms.read;
+                    while (variable_list) {
+                        either_t *variable_definition;
+                        int type = 0;
+                        value_t data_value;
+                        
                         // look for the next valid DATA item
-						if (interpreter_state.current_data_element == NULL) {
-							interpreter_state.current_data_statement = g_list_next(interpreter_state.current_data_statement);
-							while (interpreter_state.current_data_statement != NULL) {
-								if ((interpreter_state.current_data_statement->data != NULL) &&
-									(((statement_t *)(interpreter_state.current_data_statement->data))->type == DATA))
-									break;
-								interpreter_state.current_data_statement = g_list_next(interpreter_state.current_data_statement);
-							}
-							interpreter_state.current_data_element = g_list_first(((statement_t *)(interpreter_state.current_data_statement->data))->parms.data);
-						}
+                        if (interpreter_state.current_data_element == NULL) {
+                            interpreter_state.current_data_statement = g_list_next(interpreter_state.current_data_statement);
+                            while (interpreter_state.current_data_statement != NULL) {
+                                if ((interpreter_state.current_data_statement->data != NULL) &&
+                                    (((statement_t *)(interpreter_state.current_data_statement->data))->type == DATA))
+                                    break;
+                                interpreter_state.current_data_statement = g_list_next(interpreter_state.current_data_statement);
+                            }
+                            interpreter_state.current_data_element = g_list_first(((statement_t *)(interpreter_state.current_data_statement->data))->parms.data);
+                        }
                         
                         // eval the DATA element, which is what we'll ultimately return
                         data_value = evaluate_expression(interpreter_state.current_data_element->data);
 
                         // retrieve the variable from storage
-						variable_definition = variable_value(variable_list->data, &type);
+                        variable_definition = variable_value(variable_list->data, &type);
                         
                         // test the type, if the variable and data are the same type assign it, otherwise return an error
-						if (data_value.type == type) {
-							if (type == STRING)
-								variable_definition->string = data_value.string;
-							else
-								variable_definition->number = data_value.number;
-						} else {
+                        if (data_value.type == type) {
+                            if (type == STRING)
+                                variable_definition->string = data_value.string;
+                            else
+                                variable_definition->number = data_value.number;
+                        } else {
                             char buffer[80];
                             sprintf(buffer, "Type mismatch in READ, reading a %s but got a %s",
                                     (type == STRING) ? "string" : "number",
                                     (type == NUMBER) ? "number" : "string" );
-							basic_error(buffer);
-						}
-						
+                            basic_error(buffer);
+                        }
+                        
                         // move to the next variable from the READ and the next item in the DATA
-						variable_list = g_list_next(variable_list);
-						interpreter_state.current_data_element = g_list_next(interpreter_state.current_data_element);
-					}
-				}
+                        variable_list = g_list_next(variable_list);
+                        interpreter_state.current_data_element = g_list_next(interpreter_state.current_data_element);
+                    }
+                }
                 break;
                 
             case REM:
             case QUOTEREM:
             case BANGREM:
-				break;
+                break;
                 
             case RESTORE:
                 // resets the DATA pointer
@@ -1310,11 +1264,11 @@ static void perform_statement(GList *L)
                 break;
                 
             case RETURN:
-				{
-					gosubcontrol_t *pgc = g_list_last(interpreter_state.gosubstack)->data;
+                {
+                    gosubcontrol_t *pgc = g_list_last(interpreter_state.gosubstack)->data;
                     interpreter_state.next_statement = pgc->returnpoint;
-					interpreter_state.gosubstack = g_list_remove(interpreter_state.gosubstack, pgc);
-				}
+                    interpreter_state.gosubstack = g_list_remove(interpreter_state.gosubstack, pgc);
+                }
                 break;
                 
             case STOP:
@@ -1334,31 +1288,31 @@ static void perform_statement(GList *L)
 
 static gboolean is_string(gpointer key, gpointer value, gpointer user_data)
 {
-	variable_storage_t *data = (variable_storage_t *)value;
-	int *tot = (int*)user_data;
+    variable_storage_t *data = (variable_storage_t *)value;
+    int *tot = (int*)user_data;
     if(data->type == STRING) *tot += 1;
-	return FALSE;
+    return FALSE;
 }
 static gboolean is_single(gpointer key, gpointer value, gpointer user_data)
 {
- 	variable_storage_t *data = (variable_storage_t *)value;
-	int *tot = (int*)user_data;
+     variable_storage_t *data = (variable_storage_t *)value;
+    int *tot = (int*)user_data;
     if(data->type == NUMBER && strstr(key, "!") != NULL) *tot += 1;
-	return FALSE;
+    return FALSE;
 }
 static gboolean is_double(gpointer key, gpointer value, gpointer user_data)
 {
-	variable_storage_t *data = (variable_storage_t *)value;
-	int *tot = (int*)user_data;
+    variable_storage_t *data = (variable_storage_t *)value;
+    int *tot = (int*)user_data;
     if(data->type == NUMBER && strstr(key, "#") != NULL) *tot += 1;
-	return FALSE;
+    return FALSE;
 }
 static gboolean is_integer(gpointer key, gpointer value, gpointer user_data)
 {
- 	variable_storage_t *data = (variable_storage_t *)value;
-	int *tot = (int*)user_data;
+     variable_storage_t *data = (variable_storage_t *)value;
+    int *tot = (int*)user_data;
     if(data->type == NUMBER && strstr(key, "%") != NULL) *tot += 1;
-	return FALSE;
+    return FALSE;
 }
 
 /* variable tree walking methods, returning FALSE means "keep going" */
@@ -1425,7 +1379,7 @@ static void print_statistics()
     lines_total = 0;
     line_max = MAXLINE + 1;
     line_min = -1;
-	// just look for any entry with a list
+    // just look for any entry with a list
     for(int i = 0; i < MAXLINE; i++) {
         if (interpreter_state.lines[i] != NULL) {
             lines_total++;
@@ -1442,17 +1396,17 @@ static void print_statistics()
     
     // since the statements are run together as one long list, it's
     // easy to print out the total number, but not so easy to print
-	// out the number per line. so this code checks each node to see
-	// if the ->next is the first item on the next line
+    // out the number per line. so this code checks each node to see
+    // if the ->next is the first item on the next line
     int stmts_max = 0, diff = 0, next_num;
     GList *this, *next;
     GList *start = interpreter_state.lines[interpreter_state.first_line];
     
-	for(int i = interpreter_state.first_line; i < MAXLINE - 1; i++) {
+    for(int i = interpreter_state.first_line; i < MAXLINE - 1; i++) {
         // try again if this line is empty
         if(interpreter_state.lines[i] == NULL) continue;
         
-		// otherwise get the statements on this line
+        // otherwise get the statements on this line
         this = interpreter_state.lines[i];
         
         // and find the next non-empty line
@@ -1469,7 +1423,7 @@ static void print_statistics()
         // now count the number of statements between them
         diff = g_list_position(start, next) - g_list_position(start, this);
         if(diff > stmts_max) stmts_max = diff;
-	}
+    }
     
     // variables
     int num_total = g_tree_nnodes(interpreter_state.values);
@@ -1479,7 +1433,7 @@ static void print_statistics()
     g_tree_foreach(interpreter_state.values, is_double, &num_dbl);
     g_tree_foreach(interpreter_state.values, is_single, &num_sng);
     g_tree_foreach(interpreter_state.values, is_string, &num_str);
-	
+    
     // output to screen if selected
     if(print_stats) {
         printf("\nRUN TIME: %g\n", (double)(end_time.tv_usec - start_time.tv_usec) / 1000000 + (double)(end_time.tv_sec - start_time.tv_sec));
@@ -1776,7 +1730,7 @@ int main(int argc, char *argv[])
     // by pointing the ->next for each line to the head of the next
     // non-empty line. that way we don't have to search through the line
     // array for the next non-null entry during the run loop, we just
-	// keep stepping through the ->next until we fall off the end
+    // keep stepping through the ->next until we fall off the end
     {
         // look for the first entry in the lines array with a non-empty statement list
         int first_line;
