@@ -14,7 +14,7 @@ RetroBASIC
 
 ## Introduction
 
-RetroBASIC is a C language BASIC interpreter who's goal is to run any program for the major 1970s/80s BASIC interpreters, including Tiny BASIC, Palo Alto Tiny BASIC, MS-BASIC (Altair, Commodore, etc.), HP TimeShare BASIC, Atari BASIC and others. In its current 1.0 version, it is aimed purely at MS-BASIC.
+RetroBASIC is a C language BASIC interpreter who's ultimate goal is to run any program for the major 1970s/80s BASIC interpreters, including Tiny BASIC, Palo Alto Tiny BASIC, MS-BASIC (Altair, Commodore, etc.), HP TimeShare BASIC, Atari BASIC and others. In its current 1.0 version, it is patterned on MS-BASIC as seen on Commodore machines.
 
 RetroBASIC also includes a static analizer that optionally prints statistics for the program after it completes. This includes the length of the program and its line number range, the number and types of variables used, and similar details. The original impetus for RetroBASIC was to collect statistics on common programs to provide hints to the retrocomputing field, where new BASICs continue to be developed.
 
