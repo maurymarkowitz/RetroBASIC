@@ -127,6 +127,9 @@ USR         { return USR; }
  /* various operators and punctuation */
 [:,;()\^=+\-*/\<\>]     { return yytext[0]; }
 
+ /* alternate form for power */
+"**"        { return '^'; } // FIXME: we should have a separate token for this?
+
  /* binary operators */
 AND         { return AND; }
 OR			{ return OR; }
@@ -134,7 +137,7 @@ NOT			{ return NOT; }
 XOR			{ return XOR; }
 
  /* comparison operators */
-\<=         { return CMP_LE; }
+\<=         { return CMP_LE; } // FIXME: do we want the alternate form, =<?
 \>=         { return CMP_GE; }
 \<\>        { return CMP_NE; }
 \>\<        { return CMP_NE; }

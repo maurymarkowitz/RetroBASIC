@@ -402,6 +402,11 @@ static value_t evaluate_expression(expression_t *expression)
             
         // and now for the fun bit, the operators list...
         case op:
+            // most of the following functions return numbers, so default to that
+            result.number = 0;
+            result.string = NULL;
+            result.type = NUMBER;
+
             // build a list of values for each of the parameters by recursing
             // on them until they return a value
             for (i = 0; i < expression->parms.op.arity; i++)
@@ -409,211 +414,250 @@ static value_t evaluate_expression(expression_t *expression)
             
             // now calculate the results based on those values
             if (expression->parms.op.arity == 1) {
-                // most of the following functions return numbers, so default to that
-                result.type = NUMBER;
-                
-                // get the first parameter, in this case, the only one
-                a = parameters[0].number;
-                
-                switch (expression->parms.op.opcode) {
-                    case '-':
-                        result.number = -a;
-                        break;
-                    case NOT:
-                        result.number = ~(int)a;
-                        break;
-                    case _ABS:
-                        result.number = fabs(a);
-                        break;
-                    case ATN:
-                        result.number = atan(a);
-                        break;
-                    case CHR:
-						{
-							char c[2];
-							c[0] = (char)a;
-							c[1] = '\0';
-							result.type = STRING;
-							result.string = g_string_new(c);
-						}
-                        break;
-                    case CLOG:
-                        result.number = log10(a);
-                        break;
-                    case EXP:
-                        result.number = exp(a);
-                        break;
-                    case FRE:
-                        // always return zero
-                        result.number = 0;
-                        break;
-                    case LEN:
-                        result.number = strlen(parameters[0].string->str);
-                        break;
-                    case STR:
-                        {
-                            char* str = number_to_string(a);
-                            result.type = STRING;
-                            result.string = g_string_new(str);
-                        }
-                        break;
-                    case LOG:
-                        result.number = log(a);
-                        break;
-                    case SIN:
-                        result.number = sin(a);
-                        break;
-                    case COS:
-                        result.number = cos(a);
-                        break;
-                    case INT:
-                        result.number = floor(a);
-                        break;
-                    case SQR:
-                        result.number = sqrt(a);
-                        break;
-                    case RND:
-                        // TODO: support alternative RNDs that return limited values
-                        result.number = (rand() / (double)RAND_MAX); // don't forget the cast!
-                        break;
-                    case VAL:
-                        result.number = atof(parameters[0].string->str);
-                        break;
-                    case SGN:
-                        // early MS variants return 1 for 0, this implements the newer version where 0 returns 0
-                        if (a < 0)
-                            result.number = -1;
-                        else if (a == 0)
+                // there's currently only one arity-1 function that *takes* a string parameter, so do that now
+                if (parameters[0].type == STRING) {
+                    switch (expression->parms.op.opcode) {
+                        case LEN:
+                            result.number = strlen(parameters[0].string->str);
+                            break;
+                        default:
+                            basic_error("Unhandled arity-1 string function");
+                    } //switch
+                } else {
+                    // cache the numeric parameter
+                    a = parameters[0].number;
+                    
+                    switch (expression->parms.op.opcode) {
+                        case '-':
+                            result.number = -a;
+                            break;
+                        case NOT:
+                            result.number = ~(int)a;
+                            break;
+                        case _ABS:
+                            result.number = fabs(a);
+                            break;
+                        case ATN:
+                            result.number = atan(a);
+                            break;
+                        case CHR:
+                            {
+                                char c[2];
+                                c[0] = (char)a;
+                                c[1] = '\0';
+                                result.type = STRING;
+                                result.string = g_string_new(c);
+                            }
+                            break;
+                        case CLOG:
+                            result.number = log10(a);
+                            break;
+                        case EXP:
+                            result.number = exp(a);
+                            break;
+                        case FRE:
+                            // always return zero
                             result.number = 0;
-                        else
-                            result.number = 1;
-                        break;
-                    case PEEK:
-                        // always return zero
-                        result.number = 0;
-                        break;
-                    case POS:
-                        result.number = (double)interpreter_state.cursor_column; //FIXME: should this be +1?
-                        break;
-                    case TAB:
-                        // TAB does nothing if the current cursor position is past
-                        // the number being passed in, otherwise it adds spaces to
-                        // move the cursor to that column number
-                        result.type = STRING;
-                        result.string = g_string_new("");
-                        int tabs = (int)parameters[0].number;
-                        if (tabs > interpreter_state.cursor_column) {
-                            for (int i = interpreter_state.cursor_column; i <= tabs - 1; i++) {
+                            break;
+                        case STR:
+                            {
+                                char* str = number_to_string(a);
+                                result.type = STRING;
+                                result.string = g_string_new(str);
+                            }
+                            break;
+                        case LOG:
+                            result.number = log(a);
+                            break;
+                        case SIN:
+                            result.number = sin(a);
+                            break;
+                        case COS:
+                            result.number = cos(a);
+                            break;
+                        case INT:
+                            result.number = floor(a);
+                            break;
+                        case SQR:
+                            result.number = sqrt(a);
+                            break;
+                        case RND:
+                            // TODO: support alternative RNDs that return limited values
+                            result.number = (rand() / (double)RAND_MAX); // don't forget the cast!
+                            break;
+                        case VAL:
+                            result.number = atof(parameters[0].string->str);
+                            break;
+                        case SGN:
+                            // early MS variants return 1 for 0, this implements the newer version where 0 returns 0
+                            if (a < 0)
+                                result.number = -1;
+                            else if (a == 0)
+                                result.number = 0;
+                            else
+                                result.number = 1;
+                            break;
+                        case PEEK:
+                            // always return zero
+                            result.number = 0;
+                            break;
+                        case POS:
+                            result.number = (double)interpreter_state.cursor_column; //FIXME: should this be +1?
+                            break;
+                        case TAB:
+                            // TAB does nothing if the current cursor position is past
+                            // the number being passed in, otherwise it adds spaces to
+                            // move the cursor to that column number
+                            result.type = STRING;
+                            result.string = g_string_new("");
+                            int tabs = (int)parameters[0].number;
+                            if (tabs > interpreter_state.cursor_column) {
+                                for (int i = interpreter_state.cursor_column; i <= tabs - 1; i++) {
+                                    result.string = g_string_append(result.string, " ");
+                                }
+                            }
+                            break;
+                        case SPC:
+                            // SPC adds the indicated number of spaces to the output
+                            result.type = STRING;
+                            result.string = g_string_new("");
+                            for (int i = 0; i <= parameters[0].number - 1; i++) {
                                 result.string = g_string_append(result.string, " ");
                             }
-                        }
-                        break;
-                    case SPC:
-                        // SPC adds the indicated number of spaces to the output
-                        result.type = STRING;
-                        result.string = g_string_new("");
-                        for (int i = 0; i <= parameters[0].number - 1; i++) {
-                            result.string = g_string_append(result.string, " ");
-                        }
-                        break;
-
-                    default:
-                        basic_error("Unhandled arity-1 function");
-                } //switch
+                            break;
+                        default:
+                            basic_error("Unhandled arity-1 numeric function");
+                    } //switch
+                } // is string/number
             } //arity = 1
             
             // now the functions that take two parameters
             else if (expression->parms.op.arity == 2) {
-				// cache the parameters
+				// cache the parameters for the numerics
                 a = parameters[0].number;
                 b = parameters[1].number;
                 
                 switch (expression->parms.op.opcode) {
                     case '+':
-                        if (parameters[0].type == STRING && parameters[1].type == STRING) {
+                        if (parameters[0].type == STRING) { //} && parameters[1].type == STRING) {
                             result.type = STRING;
                             result.string = g_string_new(g_strconcat(parameters[0].string->str, parameters[1].string->str, NULL));
                         }
                         else if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
                             result = perform_infix_operation(a + b);
-                        else {
-                            result.number = 0;
+                        else
                             basic_error("Type mismatch");
-                        }
                         break;
                     case '-':
-                        result = perform_infix_operation(a - b);
+                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
+                            result = perform_infix_operation(a - b);
+                        else
+                            basic_error("Type mismatch");
                         break;
                     case '*':
-                        result = perform_infix_operation(a * b);
+                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
+                            result = perform_infix_operation(a * b);
+                        else
+                            basic_error("Type mismatch");
                         break;
                     case '/':
-                        result = perform_infix_operation(a / b);
+                        if (b == 0)
+                            basic_error("Division by zero");
+                        else if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
+                            result = perform_infix_operation(a * b);
+                        else
+                            basic_error("Type mismatch");
                         break;
                     case '^':
-                        result = perform_infix_operation(pow(a, b));
+                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
+                            result = perform_infix_operation(pow(a, b));
+                        else
+                            basic_error("Type mismatch");
                         break;
                     case '=':
-                        if (parameters[0].type == NUMBER)
+                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
                             result = perform_infix_operation(-(a == b));
-                        else
+                        else if (parameters[0].type == STRING && parameters[1].type == STRING)
                             result = perform_infix_operation(-!strcmp(parameters[0].string->str, parameters[1].string->str));
+                        else
+                            basic_error("Type mismatch");
                         break;
                     case '<':
-                        result = perform_infix_operation(-(a < b));
+                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
+                            result = perform_infix_operation(-(a < b));
+                        else
+                            basic_error("Type mismatch");
                         break;
                     case '>':
-                        result = perform_infix_operation(-(a > b));
+                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
+                            result = perform_infix_operation(-(a > b));
+                        else
+                            basic_error("Type mismatch");
                         break;
                     case CMP_LE:
-                        result = perform_infix_operation(-(a <= b));
+                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
+                            result = perform_infix_operation(-(a <= b));
+                        else
+                            basic_error("Type mismatch");
                         break;
                     case CMP_GE:
-                        result = perform_infix_operation(-(a >= b));
+                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
+                            result = perform_infix_operation(-(a >= b));
+                        else
+                            basic_error("Type mismatch");
                         break;
                     case CMP_NE:
                     case CMP_HASH:
-                        if (parameters[0].type == NUMBER)
+                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
                             result = perform_infix_operation(-(a != b));
-                        else
+                        else if (parameters[0].type == STRING && parameters[1].type == STRING)
                             result = perform_infix_operation(-!!strcmp(parameters[0].string->str, parameters[1].string->str));
+                        else
+                            basic_error("Type mismatch");
                         break;
                     case AND:
-                        result = perform_infix_operation((int)a & (int)b);
+                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
+                            result = perform_infix_operation((int)a & (int)b);
+                        else
+                            basic_error("Type mismatch");
                         break;
                     case OR:
-                        result = perform_infix_operation((int)a | (int)b);
+                        if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
+                            result = perform_infix_operation((int)a | (int)b);
+                        else
+                            basic_error("Type mismatch");
                         break;
                     case LEFT:
-                        result.type = STRING;
-						{
+                        if (parameters[0].type == STRING && parameters[1].type == NUMBER) {
                             size_t len = strlen(parameters[0].string->str);
-							result.string = g_string_new(parameters[0].string->str);
-							if (b < len)
-								g_string_truncate(result.string, b);
-						}
+                            result.type = STRING;
+                            result.string = g_string_new(parameters[0].string->str);
+                            if (b < len)
+                                g_string_truncate(result.string, b);
+                        } else
+                            basic_error("Type mismatch");
                         break;
                     case RIGHT:
-                        result.type = STRING;
-						{
+                        if (parameters[0].type == STRING && parameters[1].type == NUMBER) {
                             size_t len = strlen(parameters[0].string->str);
-							result.string = g_string_new(parameters[0].string->str);
-							if (b < len)
-								result.string = g_string_erase(result.string, 0, len - b);
-						}
+                            result.type = STRING;
+                            result.string = g_string_new(parameters[0].string->str);
+                            if (b < len)
+                                result.string = g_string_erase(result.string, 0, len - b);
+                        } else
+                            basic_error("Type mismatch");
                         break;
                     case MID: // this is the two-parameter version, three follows
-                        result.type = STRING;
-						{
+                        if (parameters[0].type == STRING && parameters[1].type == NUMBER) {
                             size_t len = strlen(parameters[0].string->str);
-							result.string = g_string_new(parameters[0].string->str);
-							if (b < len)
-								result.string = g_string_erase(result.string, 0, b - 1);
-						}
+                            result.type = STRING;
+                            result.string = g_string_new(parameters[0].string->str);
+                            if (b < len)
+                                result.string = g_string_erase(result.string, 0, b - 1);
+                        } else
+                            basic_error("Type mismatch");
                         break;
-                        
                     default:
-                        result.number = 0;
                         basic_error("Unhandled arity-2 function");
 						break;
                 }
@@ -621,27 +665,31 @@ static value_t evaluate_expression(expression_t *expression)
             
             // and finally, arity=3, which is currently only the MID
             else if (expression->parms.op.arity == 3)  {
-                b = parameters[1].number;
-                c = parameters[2].number;
-                
+                // only one function, so assume...
+                result.number = 0;
+                result.string = NULL;
+                result.type = STRING;
+
                 switch (expression->parms.op.opcode) {
                     case MID:
-                        result.type = STRING;
-						{
-							result.string = g_string_new(parameters[0].string->str);
-							
-							time_t len = strlen(parameters[0].string->str);
-							if (b < len)
-								result.string = g_string_erase(result.string, 0, b - 1); // note the -1
-							
-							len = strlen(result.string->str);
-							if (c < len)
-								g_string_truncate(result.string, c);
-						}
+                        if (parameters[0].type == STRING && parameters[1].type == NUMBER && parameters[2].type == NUMBER) {
+                            b = parameters[1].number;
+                            c = parameters[2].number;
+                            
+                            result.type = STRING;
+                            result.string = g_string_new(parameters[0].string->str);
+                            
+                            long len = strlen(parameters[0].string->str);
+                            if (b < len)
+                                result.string = g_string_erase(result.string, 0, b - 1); // note the -1
+                            
+                            len = strlen(result.string->str);
+                            if (c < len)
+                                g_string_truncate(result.string, c);
+                        } else
+                            basic_error("Type mismatch");
                         break;
-                        
                     default:
-                        result.number = 0;
                         basic_error("Unhandled arity-3 function");
 						break;
                 }
