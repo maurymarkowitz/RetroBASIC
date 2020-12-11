@@ -328,25 +328,27 @@ static value_t perform_infix_operation(double v)
 /* converts a number to a string using MS's odd formatting rules */
 /* this system follows the rules found in MS BASICs like the PET
    that is, generally:
-   1) if the number is zero, return 0
-   2) otherwise, move the decimal until the mantissa is 1e8 <= FAC < 1e9
-   3) round the resulting 9-digit value
-   4) if the number of decimal places moved is  -10 < TMPEXP > 1 then just print the result with the decimal moved back
-   5) otherwise, use E format
+    1) if the number is zero, return 0
+    2) otherwise, move the decimal until the mantissa is 1e8 <= FAC < 1e9
+    3) round the resulting 9-digit value
+    4) if the number of decimal places moved is  -10 < TMPEXP > 1 then just print the result with the decimal moved back
+    5) otherwise, use E format
  
    in C this is easier to accomplish:
-   a) if the value is more than 9 places, use E format
-   b) otherwise just print it
+    a) if abs(v) < 0.01, use E format
+    b) if abs(v) > 999,999,999, use E format
+    c) otherwise use G format
  
-   in all cases, add a leading space for 0 or +ve values, - for -ve, and a trailing space
+   in all cases, add a leading space for 0 or +ve values, - for -ve
 */
 static char *number_to_string(double d)
 {
-    static char str[40]; // use static so we know it won't be collected
-    // see print_expression for an explaination of this code, note this does NOT have a trailing space
+    static char str[40]; // use static so we know it won't be collected between calls
     if (d == 0.0) {
-        sprintf(str, "%s", " 0");
-    } else if (d <= 999999999 && d >= -999999999) {
+        sprintf(str, " 0"); // note the leading space
+    } else if (d >= 0.01 && d <= 999999999) {
+        sprintf(str, "% -G", d);
+    } else if (d <= -0.01 && d >= -999999999) {
         sprintf(str, "% -G", d);
     } else {
         sprintf(str, "% -E", d);
@@ -393,7 +395,7 @@ static value_t evaluate_expression(expression_t *expression)
         case fn:
             {
                 expression_t *p = NULL;
-                p = function_expression(expression->parms.variable, p); // note the re-use of the "variable" slot here, not a separate one for fns
+                p = function_expression(expression->parms.variable, p); // note the re-use of the "variable" slot here
                 result = evaluate_expression(p);
             }
             break;
@@ -1468,7 +1470,7 @@ static void print_statistics()
         printf(" bigger: %i\n",numeric_constants_big);
         printf(" 1 byte: %i\n",numeric_constants_one_byte);
         printf(" 2 byte: %i\n",numeric_constants_two_byte);
-        printf(" 3 byte: %i\n",numeric_constants_four_byte);
+        printf(" 4 byte: %i\n",numeric_constants_four_byte);
         printf("     10: %i\n",numeric_constants_10);
         printf("     16: %i\n",numeric_constants_16);
         printf("    256: %i\n",numeric_constants_256);
@@ -1498,7 +1500,9 @@ static void print_statistics()
         FILE* fp = fopen(stats_file, "w+");
         if(!fp) return;
 
-        fprintf(fp, "RUN TIME: %g\n", (double)(end_time.tv_usec - start_time.tv_usec) / 1000000 + (double)(end_time.tv_sec - start_time.tv_sec));
+        double tu = (double)(end_time.tv_usec - start_time.tv_usec);
+        double ts = (double)(end_time.tv_sec - start_time.tv_sec);
+        fprintf(fp, "RUN TIME: %g\n", tu / 1000000 + ts);
         fprintf(fp, "CPU TIME,%g\n", ((double) (end_ticks - start_ticks)) / CLOCKS_PER_SEC);
 
         fprintf(fp, "LINE NUMBERS,total,%i\n", lines_total);
@@ -1530,7 +1534,7 @@ static void print_statistics()
         fprintf(fp, "NUMERIC CONSTANTS,bigger,%i\n",numeric_constants_big);
         fprintf(fp, "NUMERIC CONSTANTS,1 byte,%i\n",numeric_constants_one_byte);
         fprintf(fp, "NUMERIC CONSTANTS,2 byte,%i\n",numeric_constants_two_byte);
-        fprintf(fp, "NUMERIC CONSTANTS,3 byte,%i\n",numeric_constants_four_byte);
+        fprintf(fp, "NUMERIC CONSTANTS,4 byte,%i\n",numeric_constants_four_byte);
         fprintf(fp, "NUMERIC CONSTANTS,10,%i\n",numeric_constants_10);
         fprintf(fp, "NUMERIC CONSTANTS,16,%i\n",numeric_constants_16);
         fprintf(fp, "NUMERIC CONSTANTS,256,%i\n",numeric_constants_256);
