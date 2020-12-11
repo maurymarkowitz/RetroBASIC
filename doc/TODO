@@ -1,6 +1,6 @@
 RetroBASIC TODO/BUGS/ERRATA list
 
-MS = MS BASIC, following 6502 40-bit version as seen on the PET
+MS = MS BASIC, 6502 40-bit version as seen on the PET
 HP = HP Time-Sharing BASIC
 AB = Atari BASIC
 IB = Integer BASIC
@@ -8,19 +8,17 @@ GW = GW-BASIC
 WB = Wang BASIC
 PATB = Palo Alto Tiny BASIC
 
-- numbers do not properly truncate at 9 places on output, formatting is generally janky
-
 - ELSE would be realtively easy to add, at least the single-line variety
 
-- NEW is incomplete, it erases variables and state but not the program lines (easy to fix)
+- NEW is incomplete, it erases variables and state but not the program lines
 
 - DEF FN ignores *local* parameters when evaluating the formula, uses global ones instead (fix: add name of function to front of parameter names)
 
-- flesh out GET and PUT, which are just placeholders for now. this should be easy, perhaps reuse the .input and .print structs in statement_t
+- flesh out GET and PUT, which are just placeholders for now
 
 - need to allow multiple INPUTs on a single line, currently it requires a CR between values
 
-- add support for string "slicing" commands used in HP/AB/IB. This is a bit tricky because it is the same syntax as string arrays found in other systems, so there is a command-line switch for this. Alternately, use square brakets for slicing, which would require rewrites for AB/IB.
+- add support for string "slicing" commands used in HP/AB/IB. This is a bit tricky because it is the same syntax as string arrays found in other systems, so there is a command-line switch for this.
 
 - support AB's DEG and RAD modes? WB also had gradians
 
