@@ -1,4 +1,6 @@
 10 REMARK
+11 A=9999999999
+12 PRINT A
 13 ' quote comment
 14 ! bang comment
 15 PRINT"trailing bang comment"!comment
