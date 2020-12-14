@@ -328,28 +328,27 @@ static value_t perform_infix_operation(double v)
    that is, generally:
     1) if the number is zero, return 0
     2) otherwise, move the decimal until the mantissa is 1e8 <= FAC < 1e9
-    3) round the resulting 9-digit value
+    3) **round** the resulting 9-digit value
     4) if the number of decimal places moved is  -10 < TMPEXP > 1 then just print the result with the decimal moved back
     5) otherwise, use E format
- 
-   in C this is easier to accomplish:
-    a) if abs(v) < 0.01, use E format
-    b) if abs(v) > 999,999,999, use E format
-    c) otherwise use G format
- 
-   in all cases, add a leading space for 0 or +ve values, - for -ve
+    in all cases, add a leading space for 0 or +ve values, - for -ve
+
+    Item (3) means that 9,999,999,999 is printed as 1.0E+10, which is precisely the G format in C.
+    So the code below it needlessly complex as anything other that 0 uses G. However, we'll leave
+    in the IFs so that if we find new versions in the future that follow other rules its easy to
+    add them.
 */
 static char *number_to_string(double d)
 {
     static char str[40]; // use static so we know it won't be collected between calls
     if (d == 0.0) {
-        sprintf(str, " 0"); // note the leading space
+        sprintf(str, " 0"); // note the leading space, here and below
     } else if (d >= 0.01 && d <= 999999999) {
-        sprintf(str, "% -G", d);
+        sprintf(str, "% -.9G", d);
     } else if (d <= -0.01 && d >= -999999999) {
-        sprintf(str, "% -G", d);
+        sprintf(str, "% -.9G", d);
     } else {
-        sprintf(str, "% -E", d);
+        sprintf(str, "% -.9G", d);
     }
     return str;
 }
@@ -610,7 +609,6 @@ static value_t evaluate_expression(expression_t *expression)
                                 result.string = g_string_erase(result.string, 0, b - 1);
                         }
                         break;
-                        
                     default:
                         result.number = 0;
                         basic_error("Unhandled arity-2 function");
@@ -638,7 +636,6 @@ static value_t evaluate_expression(expression_t *expression)
                                 g_string_truncate(result.string, c);
                         }
                         break;
-                        
                     default:
                         result.number = 0;
                         basic_error("Unhandled arity-3 function");
@@ -947,7 +944,10 @@ static void perform_statement(GList *L)
                     // the typical convention. this code handles this possibility
                     // by rolling over the expression list, doing a print if it's
                     // not a variable, and a scan if it is
-                    
+                    //
+                    // NOTE: in C64 it seems that an empty input will exit without
+                    //   setting the value of the associated variable
+                    //
                     // first off, see if the first item in the list is a variable,
                     // if so, that means there's nothing suppressing the prompt, so
                     // we want to display it. we don't have to do that for other
@@ -994,7 +994,7 @@ static void perform_statement(GList *L)
                         else {
                             print_expression(ppi->expression, NULL);
                             // and if the sep is a comma, suppress the ?, otherwise add it
-                            // NOTE: we should have a global setting for the separator, as PATB uses colon and I'm sure there's others
+                            // FIXME: we should have a global setting for the separator, as PATB uses colon and I'm sure there's others
                             if (ppi->separator != ',')
                                 printf("?");
                         }
