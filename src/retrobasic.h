@@ -79,8 +79,8 @@ typedef struct statement_struct {
         expression_t *generic_parameter;
         GList *data; // list of values for data statements
         struct {
-            variable_t *function;
-            expression_t *expression;
+            variable_t *signature;
+            expression_t *formula;
         } def;
         GList *dim; // list of variable definitions
         struct {
