@@ -1068,12 +1068,14 @@ static void perform_statement(GList *L)
                             
                             // if there is a previous item in the printlist, look at the separator
                             // and suppress question mark prompt if it is a comma
-                            if (I->prev != NULL) {
+                            if (I->prev == NULL)
+                                printf("?");
+                            else {
                                 printitem_t *prev_item = I->prev->data;
                                 if (prev_item->separator != ',')
                                     printf("?");
                             }
-
+                                
                             // see if we can get some data, we should at least get a return
                             fflush(stdout);
                             if (fgets(line, sizeof(line), stdin) != line)
