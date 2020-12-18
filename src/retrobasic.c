@@ -172,23 +172,24 @@ either_t *variable_value(variable_t *variable, int *type)
 
         // malloc a single slot, if it's an array we'll use this as the template
         storage = malloc(sizeof(*storage));
-        
-        // see if we have a type being passed in, which is used in the DEFINT/SNG/DBL/STR
-        if (*type != 0)
-            storage->type = *type;
 
         // set the type based on the name, which will override any passed type
         char trailer = variable->name->str[strlen(variable->name->str) - 1];
         if (trailer == '$')
             storage->type = STRING;
-        else if (trailer == '%')
-            storage->type = INTEGER;
-        else if (trailer == '!')
-            storage->type = SINGLE;
-        else if (trailer == '#')
-            storage->type = DOUBLE;
         else
             storage->type = NUMBER; // this works for all of them, int, dbl, etc.
+        
+        // see if we have a type being passed in, which is used in the DEFINT/SNG/DBL/STR
+        if (*type != 0)
+            storage->subtype = *type;
+        // otherwise see if there's a subtype in the trailer
+        else if (trailer == '%')
+            storage->subtype = INTEGER;
+        else if (trailer == '!')
+            storage->subtype = SINGLE;
+        else if (trailer == '#')
+            storage->subtype = DOUBLE;
         
         // now see if this reference includes subscripts
         if (variable->subscripts != NULL) {
@@ -304,7 +305,15 @@ expression_t *function_expression(variable_t *function, expression_t *expression
             storage->type = STRING;
         else
             storage->type = NUMBER; // this works for all of them, int, dbl, etc.
-        
+
+        // and the subtype, if supplied
+        if (trailer == '%')
+            storage->subtype = INTEGER;
+        else if (trailer == '!')
+            storage->subtype = SINGLE;
+        else if (trailer == '#')
+            storage->subtype = DOUBLE;
+
         // copy over the list of parameters
         storage->parameters = g_list_copy(function->subscripts);
         
@@ -1044,11 +1053,11 @@ static void perform_statement(GList *L)
                     // if so, that means there's nothing suppressing the prompt, so
                     // we want to display it. we don't have to do that for other
                     // items in the list because it's handled in the loop below
-                    printitem_t *ppi = ps->parms.input->data;
+                    printitem_t *ppi;// = ps->parms.input->data;
 //                    if (ppi->expression->type == variable)
 //                        printf("?");
-                    
-                    // and now loop over what else we find on the line
+//
+                    // loop over the items in the variable/prompt list
                     for (GList *I = ps->parms.input; I != NULL; I = g_list_next(I)) {
                         either_t *value;
                         int type = 0;
@@ -1057,9 +1066,13 @@ static void perform_statement(GList *L)
                         if (ppi->expression->type == variable) {
                             char line[80];
                             
-                            // put up the prompt if the separator is a comma or we're at the end of the line
-                            if (ppi->separator == ',' || ppi->separator == '\0')
-                                printf("?");
+                            // if there is a previous item in the printlist, look at the separator
+                            // and suppress question mark prompt if it is a comma
+                            if (I->prev != NULL) {
+                                printitem_t *prev_item = I->prev->data;
+                                if (prev_item->separator != ',')
+                                    printf("?");
+                            }
 
                             // see if we can get some data, we should at least get a return
                             fflush(stdout);
@@ -1089,10 +1102,6 @@ static void perform_statement(GList *L)
                         // if it's not a variable, it's some sort of prompt, so print it
                         else {
                             print_expression(ppi->expression, NULL);
-                            // and if the sep is a comma, suppress the ?, otherwise add it
-                            // FIXME: we should have a global setting for the separator, as PATB uses colon and I'm sure there's others
-                            if (ppi->separator != ',')
-                                printf("?");
                         }
                     }
                 }
