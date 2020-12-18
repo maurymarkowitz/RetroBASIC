@@ -54,8 +54,8 @@ typedef struct {
     double number;
 } value_t;
 
-/* either_t is used within variable_value_t for the actual data
-  FIXME: is the union worthwhile? why not use two slots instead of a union? 4 wasted bytes? */
+/* either_t is used within variable_value_t for the actual data */
+// FIXME: is there any real reason not to use a value_t here?
 typedef union {
     GString *string;
     double number;
@@ -63,15 +63,17 @@ typedef union {
 
 /* variable_storage_t holds the *value* of a variable in memory */
 typedef struct {
-    int type;            /* NUMBER, STRING */
-    GList *subscripts;  // subscripts, if any
-    either_t *value;    // actual value, for non-arrays
+    int type;               /* NUMBER, STRING */
+    int subtype;            /* NUMBER, SINGLE, DOUBLE, INTEGER */
+    GList *subscripts;      // subscript definitions, if any
+    either_t *value;        // actual value(s), malloced out
 } variable_storage_t;
 
 /* function_storage_t holds the expression from the DEF */
 typedef struct {
     int type;               /* NUMBER, STRING */
-    GList *parameters;      // parameters, if any
+    int subtype;            /* NUMBER, SINGLE, DOUBLE, INTEGER */
+    GList *parameters;      // parameters, if any, as variable_t
     expression_t *formula;  // related formula
 } function_storage_t;
 
@@ -82,6 +84,7 @@ static int current_line(void);
 
 static void print_variables(void);
 static void delete_variables(void);
+static void delete_functions(void);
 
 /* defitions of variables used by the static analyzer */
 int variables_total = 0;
@@ -282,7 +285,8 @@ void insert_typed_variable(variable_t *variable, int type)
 
 /* Similar to variable_value in concept, this code looks through the list of
    user-defined functions to find a matching name and/or inserts it if it's new.
-   the difference is that this returns an expression which we then evaluate. */
+   the difference is that this returns an expression which we then evaluate.
+ */
 expression_t *function_expression(variable_t *function, expression_t *expression)
 {
     // see if we can find the entry in the symbol list
@@ -294,7 +298,7 @@ expression_t *function_expression(variable_t *function, expression_t *expression
         // malloc an entry
         storage = malloc(sizeof(*storage));
         
-        // set the type based on the name
+        // set the return type based on the name
         char trailer = function->name->str[strlen(function->name->str) - 1];
         if (trailer == '$')
             storage->type = STRING;
@@ -333,8 +337,8 @@ static value_t perform_infix_operation(double v)
     5) otherwise, use E format
     in all cases, add a leading space for 0 or +ve values, - for -ve
 
-    Item (3) means that 9,999,999,999 is printed as 1.0E+10, which is precisely the G format in C.
-    So the code below it needlessly complex as anything other that 0 uses G. However, we'll leave
+    Item (3) means that 9,999,999,999 is printed as 1E+10, which is precisely the G format in C.
+    So the code below it needlessly complex as anything other than 0 uses G. However, we'll leave
     in the IFs so that if we find new versions in the future that follow other rules its easy to
     add them.
 */
@@ -387,13 +391,84 @@ static value_t evaluate_expression(expression_t *expression)
             break;
             
         // user functions are not so simple, because the variable references
-        // in the definition have to replace those in the main list.
-        // TODO: we need to eval the parameters and pass them in
+        // in the original definition have to be mapped onto the parameters
+        // being passed in here. So what this does is find the original definition
+        // by looking in the definitions list, and copies the value from the
+        // parameters being passed in into the variable storage list. The variable
+        // names in both cases have been munged with the definition's name in order
+        // to make them unique.
         case fn:
             {
+                // assume this
+                result.type = NUMBER;
+                result.number = 0;
+                // get the original definition or error out if we can't find it
+                char *func_name = expression->parms.variable->name->str;
+                function_storage_t *original_definition = g_tree_lookup(interpreter_state.functions, func_name);
+                if (original_definition == NULL) {
+                    char buffer[80];
+                    sprintf(buffer, "User-defined function '%s' is being called but has not been defined", func_name);
+                    basic_error(buffer);
+                    result.type = NUMBER;
+                    result.number = 0;
+                    break;
+                }
+                // if we found the function, check that it has the same number of parameters as this function call
+                if (g_list_length(original_definition->parameters) != g_list_length(expression->parms.variable->subscripts)) {
+                    basic_error("User-defined function '%s' is being called with the wrong number of parameters");
+                    break;
+                }
+                // now for each parameter expression in the function call, calculate its value, look up
+                // the original (munged) name in the variable table, and assign the newly calculated
+                // value to it
+                GList *original_parameters = original_definition->parameters;
+                expression_t *original_parameter = original_parameters->data; // pre-flight for the first time through
+                variable_t *munged_variable;
+                value_t updated_val;
+                either_t *stored_val;
+                char *name_buff;
+                char *param_name;
+                int type = 0;
+                for (GList *L = expression->parms.variable->subscripts; L != NULL; L = g_list_next(L)) {
+                    // munge the name of the original parameter in the same slot
+                    param_name = original_parameter->parms.variable->name->str;
+                    name_buff = strdup(func_name);
+                    strncat(name_buff, param_name, 80);
+                    // find the storage for the variable with that munged name
+                    munged_variable = malloc(sizeof(munged_variable));
+                    munged_variable->name = g_string_new(name_buff);
+                    munged_variable->subscripts = NULL;
+                    stored_val = variable_value(munged_variable, &type);
+                    // calculate the value of the expression in this parameter's location
+                    updated_val = evaluate_expression(L->data);
+                    // and finally, assign the new value to the stored variable
+                    if (updated_val.type == type) {
+                        if (type == STRING)
+                            stored_val->string = updated_val.string;
+                        else
+                            stored_val->number = updated_val.number;
+                    } else {
+                        // if the type we stored last time is different than this time...
+                        basic_error("Type mismatch in user-defined function call");
+                        break;
+                    }
+                    // move to the next item in the original parameter list, if there's any left
+                    if (original_parameters->next != NULL)
+                        original_parameter = g_list_next(original_parameters)->data;
+                    // and kill this off
+                    free(munged_variable);
+                }
+                // now that all the private variables have been updated, we can run the calculation
+                // but once again we have to munge the names of the variables in the original formula
                 expression_t *p = NULL;
-                p = function_expression(expression->parms.variable, p); // note the re-use of the "variable" slot here
-                result = evaluate_expression(p);
+                p = function_expression(expression->parms.variable, p);
+                if (p == NULL) {
+                    char buffer[80];
+                    sprintf(buffer, "User-defined function '%s' is being called but has not been defined", expression->parms.variable->name->str);
+                    basic_error(buffer);
+                } else {
+                    result = evaluate_expression(p);
+                }
             }
             break;
             
@@ -825,7 +900,6 @@ static void perform_statement(GList *L)
                 {
                     // wipe out any variables and create a fresh list
                     delete_variables();
-                    interpreter_state.values = g_tree_new(symbol_compare);
                 }
                 break;
                 
@@ -842,21 +916,39 @@ static void perform_statement(GList *L)
                 break;
                 
             case DEF:
-                // sets up a function, we simply copy the name, parameters and formula into storage
+                // sets up a function in storage. the only interesting thing here is that the
+                // variable list has to be cached with function name on the front so that the
+                // names are globally unique. the function call has to do the same munging
                 {
-                    function_expression(ps->parms.def.function, ps->parms.def.expression);
+                    expression_t *pv;
+                    char *name_buff, *param_name;
+                    char *func_name = ps->parms.def.signature->name->str;
+                    for (GList *L = ps->parms.def.signature->subscripts; L != NULL; L = g_list_next(L)) {
+                        pv = L->data;
+                        // munge the parameter name
+                        param_name = pv->parms.variable->name->str;
+                        name_buff = strdup(func_name);
+                        strncat(name_buff, param_name, 80);
+                        // make a new variable for it
+                        variable_t *nv = malloc(sizeof(*nv));
+                        nv->name = g_string_new(name_buff);
+                        nv->subscripts = NULL;
+                        insert_variable(nv);
+                        // dispose the temp variable
+                        free(nv);
+                    }
+                    // and call this to insert the new function
+                    function_expression(ps->parms.def.signature, ps->parms.def.formula);
                 }
                 break;
 
             case DIM:
                 // the parser has already pulled out the variable names, so all we have to
-                // do here is loop over the list and call variable_value to initialize them
+                // do here is loop over the list and call insert_variable to initialize them
                 {
-                    GList *L;
-                    for (L = ps->parms.dim; L != NULL; L = g_list_next(L)) {
+                    for (GList *L = ps->parms.dim; L != NULL; L = g_list_next(L)) {
                         variable_t *pv = L->data;
-                        int type = 0;
-                        variable_value(pv, &type);
+                        insert_variable(pv);
                     }
                 }
                 break;
@@ -868,7 +960,7 @@ static void perform_statement(GList *L)
                 
             case EXIT:
             case POP:
-                // TODO: make this would, should be easy enough
+                // TODO: make this work, should be easy enough
                 break;
                 
             case FOR:
@@ -945,16 +1037,16 @@ static void perform_statement(GList *L)
                     // by rolling over the expression list, doing a print if it's
                     // not a variable, and a scan if it is
                     //
-                    // NOTE: in C64 it seems that an empty input will exit without
-                    //   setting the value of the associated variable
+                    // NOTE: in C64 an empty input will exit without setting the
+                    //    value of the associated variable
                     //
                     // first off, see if the first item in the list is a variable,
                     // if so, that means there's nothing suppressing the prompt, so
                     // we want to display it. we don't have to do that for other
                     // items in the list because it's handled in the loop below
-                    printitem_t *ppi= ps->parms.input->data;
-                    if (ppi->expression->type == variable)
-                        printf("?");
+                    printitem_t *ppi = ps->parms.input->data;
+//                    if (ppi->expression->type == variable)
+//                        printf("?");
                     
                     // and now loop over what else we find on the line
                     for (GList *I = ps->parms.input; I != NULL; I = g_list_next(I)) {
@@ -965,6 +1057,10 @@ static void perform_statement(GList *L)
                         if (ppi->expression->type == variable) {
                             char line[80];
                             
+                            // put up the prompt if the separator is a comma or we're at the end of the line
+                            if (ppi->separator == ',' || ppi->separator == '\0')
+                                printf("?");
+
                             // see if we can get some data, we should at least get a return
                             fflush(stdout);
                             if (fgets(line, sizeof(line), stdin) != line)
@@ -1023,7 +1119,7 @@ static void perform_statement(GList *L)
                             stored_val->number = exp_val.number;
                     } else {
                         // if the type we stored last time is different than this time...
-                        basic_error("Type mismatch");
+                        basic_error("Type mismatch in assignment");
                     }
                 }
                 break;
@@ -1056,10 +1152,10 @@ static void perform_statement(GList *L)
             case NEW:
                 /* it's not entirely clear what this should do INSIDE a program, but... */
                 {
-                    // wipe out any variables and create a new list
+                    // wipe out any variables and functions and create new lists
                     delete_variables();
-                    interpreter_state.values = g_tree_new(symbol_compare);
-                    
+                    delete_functions();
+
                     // clear out the program
                     // TODO : do this!
                 }
@@ -1327,6 +1423,11 @@ static void print_variables() {
 /* used for CLEAR, NEW and similar instructions. */
 static void delete_variables() {
     g_tree_destroy(interpreter_state.values);
+    interpreter_state.values = g_tree_new(symbol_compare);
+}
+static void delete_functions() {
+    g_tree_destroy(interpreter_state.functions);
+    interpreter_state.functions = g_tree_new(symbol_compare);
 }
 
 /* the main loop for the program */
@@ -1700,7 +1801,7 @@ int main(int argc, char *argv[])
     #if YYDEBUG
        yydebug = 1;
     #endif
-    
+
     // parse the options and make sure we got a filename somewhere
     parse_options(argc, argv);
     
