@@ -137,15 +137,16 @@ NOT			{ return NOT; }
 XOR			{ return XOR; }
 
  /* comparison operators */
-\<=         { return CMP_LE; } // FIXME: do we want the alternate form, =<?
+\<=         { return CMP_LE; }
+=\<         { return CMP_LE; }
 \>=         { return CMP_GE; }
+=\>         { return CMP_GE; }
 \<\>        { return CMP_NE; }
 \>\<        { return CMP_NE; }
-#           { return CMP_HASH; }
+#           { return CMP_HASH; } // use a separate token here to preserve it in LIST?
 
  /* defs added in Extended BASIC we can safely ignore */
- /* FIXME: these are actually easy to do, simply run them as DIMs
-           so they get entered into the btree */
+ /* FIXME: these are actually easy to do, simply run them as DIMs so they get entered into the btree */
  /*
  DEFINT.*\n              { return '\n'; }
  DEFSNG.*\n              { return '\n'; }
