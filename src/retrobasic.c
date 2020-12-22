@@ -64,7 +64,6 @@ typedef union {
 /* variable_storage_t holds the *value* of a variable in memory */
 typedef struct {
     int type;               /* NUMBER, STRING */
-    int subtype;            /* NUMBER, SINGLE, DOUBLE, INTEGER */
     GList *subscripts;      // subscript definitions, if any
     either_t *value;        // actual value(s), malloced out
 } variable_storage_t;
@@ -72,7 +71,6 @@ typedef struct {
 /* function_storage_t holds the expression from the DEF */
 typedef struct {
     int type;               /* NUMBER, STRING */
-    int subtype;            /* NUMBER, SINGLE, DOUBLE, INTEGER */
     GList *parameters;      // parameters, if any, as variable_t
     expression_t *formula;  // related formula
 } function_storage_t;
@@ -182,14 +180,14 @@ either_t *variable_value(variable_t *variable, int *type)
         
         // see if we have a type being passed in, which is used in the DEFINT/SNG/DBL/STR
         if (*type != 0)
-            storage->subtype = *type;
+            storage->type = *type;
         // otherwise see if there's a subtype in the trailer
         else if (trailer == '%')
-            storage->subtype = INTEGER;
+            storage->type = INTEGER;
         else if (trailer == '!')
-            storage->subtype = SINGLE;
+            storage->type = SINGLE;
         else if (trailer == '#')
-            storage->subtype = DOUBLE;
+            storage->type = DOUBLE;
         
         // now see if this reference includes subscripts
         if (variable->subscripts != NULL) {
@@ -308,11 +306,11 @@ expression_t *function_expression(variable_t *function, expression_t *expression
 
         // and the subtype, if supplied
         if (trailer == '%')
-            storage->subtype = INTEGER;
+            storage->type = INTEGER;
         else if (trailer == '!')
-            storage->subtype = SINGLE;
+            storage->type = SINGLE;
         else if (trailer == '#')
-            storage->subtype = DOUBLE;
+            storage->type = DOUBLE;
 
         // copy over the list of parameters
         storage->parameters = g_list_copy(function->subscripts);
@@ -614,7 +612,7 @@ static value_t evaluate_expression(expression_t *expression)
                             result.type = STRING;
                             result.string = g_string_new(g_strconcat(parameters[0].string->str, parameters[1].string->str, NULL));
                         }
-                        else if (parameters[0].type == NUMBER && parameters[1].type == NUMBER)
+                        else if (parameters[0].type >= NUMBER && parameters[1].type >= NUMBER)
                             result = perform_infix_operation(a + b);
                         else {
                             result.number = 0;
@@ -636,7 +634,7 @@ static value_t evaluate_expression(expression_t *expression)
                         result = perform_infix_operation(pow(a, b));
                         break;
                     case '=':
-                        if (parameters[0].type == NUMBER)
+                        if (parameters[0].type >= NUMBER)
                             result = perform_infix_operation(-(a == b));
                         else
                             result = perform_infix_operation(-!strcmp(parameters[0].string->str, parameters[1].string->str));
@@ -655,7 +653,7 @@ static value_t evaluate_expression(expression_t *expression)
                         break;
                     case CMP_NE:
                     case CMP_HASH:
-                        if (parameters[0].type == NUMBER)
+                        if (parameters[0].type >= NUMBER)
                             result = perform_infix_operation(-(a != b));
                         else
                             result = perform_infix_operation(-!!strcmp(parameters[0].string->str, parameters[1].string->str));
@@ -952,8 +950,8 @@ static void perform_statement(GList *L)
                 break;
 
             case DIM:
-                // the parser has already pulled out the variable names, so all we have to
-                // do here is loop over the list and call insert_variable to initialize them
+                // the parser has already pulled out the variable names, so they already
+                // have slots in the table. we still need to call insert_variable to set up
                 {
                     for (GList *L = ps->parms.dim; L != NULL; L = g_list_next(L)) {
                         variable_t *pv = L->data;
@@ -962,6 +960,19 @@ static void perform_statement(GList *L)
                 }
                 break;
                 
+            case DEFSTR:
+            case DEFINT:
+            case DEFSNG:
+            case DEFDBL:
+                // done here because they are really varieties of DIM, not DEF
+                {
+                    for (GList *L = ps->parms.deftype.vars; L != NULL; L = g_list_next(L)) {
+                        variable_t *pv = L->data;
+                        insert_typed_variable(pv, ps->parms.deftype.type);
+                    }
+                }
+                break;
+
             case END:
                 // set the instruction pointer to null so it exits below
                 interpreter_state.next_statement = NULL;
@@ -1047,17 +1058,10 @@ static void perform_statement(GList *L)
                     // not a variable, and a scan if it is
                     //
                     // NOTE: in C64 an empty input will exit without setting the
-                    //    value of the associated variable
-                    //
-                    // first off, see if the first item in the list is a variable,
-                    // if so, that means there's nothing suppressing the prompt, so
-                    // we want to display it. we don't have to do that for other
-                    // items in the list because it's handled in the loop below
-                    printitem_t *ppi;// = ps->parms.input->data;
-//                    if (ppi->expression->type == variable)
-//                        printf("?");
-//
+                    //    value of the associated variable, we do that here
+                    
                     // loop over the items in the variable/prompt list
+                    printitem_t *ppi;
                     for (GList *I = ps->parms.input; I != NULL; I = g_list_next(I)) {
                         either_t *value;
                         int type = 0;
@@ -1095,7 +1099,7 @@ static void perform_statement(GList *L)
                             
                             // find the storage for this variable, and assign the value
                             value = variable_value(ppi->expression->parms.variable, &type);
-                            if (type == NUMBER) {
+                            if (type >= NUMBER) {
                                 sscanf(line, "%lg", &value->number);
                             } else {
                                 value->string = g_string_new(line);
@@ -1116,7 +1120,7 @@ static void perform_statement(GList *L)
                     int type = 0;
                     value_t exp_val;
                     
-                    // get the storage entry for this variable
+                    // get/make the storage entry for this variable
                     stored_val = variable_value(ps->parms.let.variable, &type);
                     
                     // evaluate the expression
@@ -1336,7 +1340,7 @@ static void perform_statement(GList *L)
                             char buffer[80];
                             sprintf(buffer, "Type mismatch in READ, reading a %s but got a %s",
                                     (type == STRING) ? "string" : "number",
-                                    (type == NUMBER) ? "number" : "string" );
+                                    (type >= NUMBER) ? "number" : "string" );
                             basic_error(buffer);
                         }
                         
@@ -1401,21 +1405,21 @@ static gboolean is_single(gpointer key, gpointer value, gpointer user_data)
 {
      variable_storage_t *data = (variable_storage_t *)value;
     int *tot = (int*)user_data;
-    if(data->type == NUMBER && strstr(key, "!") != NULL) *tot += 1;
+    if(data->type == SINGLE) *tot += 1;
     return FALSE;
 }
 static gboolean is_double(gpointer key, gpointer value, gpointer user_data)
 {
     variable_storage_t *data = (variable_storage_t *)value;
     int *tot = (int*)user_data;
-    if(data->type == NUMBER && strstr(key, "#") != NULL) *tot += 1;
+    if(data->type == DOUBLE) *tot += 1;
     return FALSE;
 }
 static gboolean is_integer(gpointer key, gpointer value, gpointer user_data)
 {
      variable_storage_t *data = (variable_storage_t *)value;
     int *tot = (int*)user_data;
-    if(data->type == NUMBER && strstr(key, "%") != NULL) *tot += 1;
+    if(data->type == INTEGER) *tot += 1;
     return FALSE;
 }
 

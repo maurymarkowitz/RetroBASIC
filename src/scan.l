@@ -147,12 +147,10 @@ XOR			{ return XOR; }
 
  /* defs added in Extended BASIC we can safely ignore */
  /* FIXME: these are actually easy to do, simply run them as DIMs so they get entered into the btree */
- /*
- DEFINT.*\n              { return '\n'; }
- DEFSNG.*\n              { return '\n'; }
- DEFDBL.*\n              { return '\n'; }
- DEFSTR.*\n              { return '\n'; }
- */
+DEFSTR      { return DEFSTR; }
+DEFINT      { return DEFINT; }
+DEFSNG      { return DEFSNG; }
+DEFDBL      { return DEFDBL; }
 
  /* numeric constants and line numbers */
 [0-9]*[0-9.][0-9]*([Ee][-+]?[0-9]+)? {

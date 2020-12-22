@@ -39,11 +39,11 @@
    /* Put the tokens into the symbol table, so that GDB and other debuggers
       know about them.  */
    enum yytokentype {
-     NUMBER = 258,
-     DOUBLE = 259,
-     SINGLE = 260,
-     INTEGER = 261,
-     STRING = 262,
+     STRING = 258,
+     NUMBER = 259,
+     DOUBLE = 260,
+     SINGLE = 261,
+     INTEGER = 262,
      VARIABLE_NAME = 263,
      FUNCTION_NAME = 264,
      REM = 265,
@@ -133,15 +133,19 @@
      SPC = 349,
      TAB = 350,
      POS = 351,
-     USR = 352
+     USR = 352,
+     DEFSTR = 353,
+     DEFINT = 354,
+     DEFSNG = 355,
+     DEFDBL = 356
    };
 #endif
 /* Tokens.  */
-#define NUMBER 258
-#define DOUBLE 259
-#define SINGLE 260
-#define INTEGER 261
-#define STRING 262
+#define STRING 258
+#define NUMBER 259
+#define DOUBLE 260
+#define SINGLE 261
+#define INTEGER 262
 #define VARIABLE_NAME 263
 #define FUNCTION_NAME 264
 #define REM 265
@@ -232,6 +236,10 @@
 #define TAB 350
 #define POS 351
 #define USR 352
+#define DEFSTR 353
+#define DEFINT 354
+#define DEFSNG 355
+#define DEFDBL 356
 
 
 
@@ -249,7 +257,7 @@ typedef union YYSTYPE
   variable_t *variable;
 }
 /* Line 1529 of yacc.c.  */
-#line 253 "/Volumes/Bigger/Users/maury/Library/Mobile Documents/com~apple~CloudDocs/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
+#line 261 "/Volumes/Bigger/Users/maury/Library/Mobile Documents/com~apple~CloudDocs/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
