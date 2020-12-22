@@ -82,6 +82,10 @@ typedef struct statement_struct {
             variable_t *signature;
             expression_t *formula;
         } def;
+        struct {
+            GList *vars;
+            int type;
+        } deftype;
         GList *dim; // list of variable definitions
         struct {
             variable_t *variable;

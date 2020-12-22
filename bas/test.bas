@@ -1,14 +1,20 @@
+2 DEFINT X,Y
+3 VARLIST
 10 REMARK
 11 A=9999999999
-12 PRINT A
+12 PRINT "this should print 1E+10:"A
 13 ' quote comment
 14 ! bang comment
-15 PRINT"trailing bang comment"!comment
-16 PRINT"trailing quote comment"'comment
+15 PRINT"this line has a trailing bang comment"!comment
+16 PRINT"this line has a trailing quote comment"'comment
+17 PRINT"this line has a trailing REM comment":REM comment
+18 INPUT A,B,C
 20 DIM A(2,2)
 30 A(1,1)=1:A(1,2)=2:A(2,1)=3:A(2,2)=4
 40 PRINTA(1,1),A(1,2),A(2,1),A(2,2)
-50 DEF FNA(X)=1
+50 DEF FNA(X)=X
+51 varlist
+52 print "Calling function"FNA(20)
 60 PRINT:PRINT:PRINT:PRINT
 90 PRINT"HELLO WORLD"
 100 PRINT "HELLO WORLD"

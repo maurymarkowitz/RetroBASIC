@@ -85,8 +85,9 @@ static expression_t *make_operator(int arity, int o)
 %type <statement> statement
 %type <variable> variable user_function
 
-%token <d> NUMBER DOUBLE SINGLE INTEGER
+ // make sure STRING is before the numbers, so you can test all numbers as > STRING
 %token <s> STRING
+%token <d> NUMBER DOUBLE SINGLE INTEGER
 %token <s> VARIABLE_NAME
 %token <s> FUNCTION_NAME
 
@@ -166,6 +167,12 @@ static expression_t *make_operator(int arity, int o)
 %token TAB
 %token POS
 %token USR
+
+ /* type definitions added circa 1979 */
+%token DEFSTR
+%token DEFINT
+%token DEFSNG
+%token DEFDBL
 
 %%
 
@@ -284,6 +291,39 @@ statement:
   {
     statement_t *new = make_statement(DIM);
     new->parms.dim = $2;
+    $$ = new;
+  }
+  // placing these here as they are really variants of DIM
+  |
+  DEFSTR varlist
+  {
+    statement_t *new = make_statement(DEFSTR);
+    new->parms.deftype.vars = $2;
+    new->parms.deftype.type = STRING;
+    $$ = new;
+  }
+  |
+  DEFINT varlist
+  {
+    statement_t *new = make_statement(DEFSTR);
+    new->parms.deftype.vars = $2;
+    new->parms.deftype.type = INTEGER;
+    $$ = new;
+  }
+  |
+  DEFSNG varlist
+  {
+    statement_t *new = make_statement(DEFSTR);
+    new->parms.deftype.vars = $2;
+    new->parms.deftype.type = SINGLE;
+    $$ = new;
+  }
+  |
+  DEFDBL varlist
+  {
+    statement_t *new = make_statement(DEFSTR);
+    new->parms.deftype.vars = $2;
+    new->parms.deftype.type = DOUBLE;
     $$ = new;
   }
   |

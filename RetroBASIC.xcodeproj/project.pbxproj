@@ -51,7 +51,7 @@
 		55B3D429238EB43100E6054E /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		55B3D42B23942C7200E6054E /* superstartrek.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = superstartrek.bas; sourceTree = "<group>"; };
 		55B9698A252D26790021CD8B /* LICENCE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENCE; sourceTree = "<group>"; };
-		55B9698B252F44E70021CD8B /* parse.y */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.yacc; path = parse.y; sourceTree = "<group>"; };
+		55B9698B252F44E70021CD8B /* parse.y */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.yacc; path = parse.y; sourceTree = "<group>"; tabWidth = 2; };
 		55B96990252F4FCA0021CD8B /* makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = makefile; sourceTree = "<group>"; };
 		55B96993252F5AB80021CD8B /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */

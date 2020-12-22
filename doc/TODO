@@ -32,13 +32,11 @@ PATB = Palo Alto Tiny BASIC
 
 - PATB prints a colon after INPUTs, not ?, and prints the variable name if no prompt is given. So "INPUT A" prints "A:", while INPUT "TYPE A NUMBER"A prints "TYPE A NUMBER:"
 
-- add support for DEFINT, etc. They are essentially identical to DIM; they need to call variable_value to insert an entry into the g_tree and set the type correctly
-
 - LPOS, LPRINT, etc. from AB, GW and others
 
 - file handling, OPEN, PRINT# etc.
 
-- a number of less-commonly-used math and string functions are not yet implemented: FIX CINT CSNG CDBL
+- a number of less-commonly-used math and string functions are not yet implemented: CINT CSNG CDBL
 
 - some BASICs allow RESTORE to include a parameter which is the ordinal position in the list, as opposed to a line number
 
