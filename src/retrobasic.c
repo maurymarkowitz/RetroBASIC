@@ -192,7 +192,6 @@ either_t *variable_value(variable_t *variable, int *type)
         // now see if this reference includes subscripts
         if (variable->subscripts != NULL) {
             value_t v;
-            int actual;
 
             // now clear out any existing list of subscripts in storage,
             // eval each of the ones in the variable ref, and store that value
@@ -202,7 +201,7 @@ either_t *variable_value(variable_t *variable, int *type)
             slots = 1;
             for (GList *L = variable->subscripts; L != NULL; L = g_list_next(L)) {
                 v = evaluate_expression(L->data);
-                actual = (int)v.number + (1 - array_base); // if we're using 0-base indexing, we need to add one more slot
+                int actual = (int)v.number + (1 - array_base); // if we're using 0-base indexing, we need to add one more slot
                 storage->subscripts = g_list_append(storage->subscripts, GINT_TO_POINTER(actual));
                 slots *= actual;
             }
@@ -369,9 +368,7 @@ static value_t evaluate_expression(expression_t *expression)
 {
     value_t result;
     value_t parameters[3];
-    int i;
-    double a, b, c;
-    
+
     switch (expression->type) {
         // for number and string constants, simply copy the value and return it
         case number:
@@ -432,20 +429,17 @@ static value_t evaluate_expression(expression_t *expression)
                 expression_t *original_parameter = original_parameters->data; // pre-flight for the first time through
                 variable_t *munged_variable;
                 value_t updated_val;
-                either_t *stored_val;
-                char *name_buff;
-                char *param_name;
                 int type = 0;
                 for (GList *L = expression->parms.variable->subscripts; L != NULL; L = g_list_next(L)) {
                     // munge the name of the original parameter in the same slot
-                    param_name = original_parameter->parms.variable->name->str;
-                    name_buff = strdup(func_name);
+                    char *param_name = original_parameter->parms.variable->name->str;
+                    char *name_buff = strdup(func_name);
                     strncat(name_buff, param_name, 80);
                     // find the storage for the variable with that munged name
-                    munged_variable = malloc(sizeof(munged_variable));
+                    munged_variable = malloc(sizeof(*munged_variable));
                     munged_variable->name = g_string_new(name_buff);
                     munged_variable->subscripts = NULL;
-                    stored_val = variable_value(munged_variable, &type);
+                    either_t *stored_val = variable_value(munged_variable, &type);
                     // calculate the value of the expression in this parameter's location
                     updated_val = evaluate_expression(L->data);
                     // and finally, assign the new value to the stored variable
@@ -483,7 +477,7 @@ static value_t evaluate_expression(expression_t *expression)
         case op:
             // build a list of values for each of the parameters by recursing
             // on them until they return a value
-            for (i = 0; i < expression->parms.op.arity; i++)
+            for (int i = 0; i < expression->parms.op.arity; i++)
                 parameters[i] = evaluate_expression(expression->parms.op.p[i]);
             
             // now calculate the results based on those values
@@ -492,7 +486,7 @@ static value_t evaluate_expression(expression_t *expression)
                 result.type = NUMBER;
                 
                 // get the first parameter, in this case, the only one
-                a = parameters[0].number;
+                double a = parameters[0].number;
                 
                 switch (expression->parms.op.opcode) {
                     case '-':
@@ -603,8 +597,8 @@ static value_t evaluate_expression(expression_t *expression)
             // now the functions that take two parameters
             else if (expression->parms.op.arity == 2) {
                 // cache the parameters
-                a = parameters[0].number;
-                b = parameters[1].number;
+                double a = parameters[0].number;
+                double b = parameters[1].number;
                 
                 switch (expression->parms.op.opcode) {
                     case '+':
@@ -700,8 +694,8 @@ static value_t evaluate_expression(expression_t *expression)
             
             // and finally, arity=3, which is currently only the MID
             else if (expression->parms.op.arity == 3)  {
-                b = parameters[1].number;
-                c = parameters[2].number;
+                double b = parameters[1].number;
+                double c = parameters[2].number;
                 
                 switch (expression->parms.op.opcode) {
                     case MID:
@@ -848,7 +842,7 @@ static GList *find_line(int linenumber)
     // go to the next-highest. this is definitely not what MS does, nor ANSI apparently,
     // but if this does come up we can use this flag on the command line
     if (goto_next_highest) {
-        while ((interpreter_state.lines[linenumber] == NULL) && (linenumber < MAXLINE))
+        while ((linenumber < MAXLINE) && (interpreter_state.lines[linenumber] == NULL))
             linenumber++;
     
         // if we fell off the end, report an error
@@ -915,7 +909,7 @@ static void perform_statement(GList *L)
                 break;
                 
             case CMD:
-                // do nothing
+                // redirects input/output to a different device. do nothing
                 break;
 
             case DATA:
@@ -927,14 +921,12 @@ static void perform_statement(GList *L)
                 // variable list has to be cached with function name on the front so that the
                 // names are globally unique. the function call has to do the same munging
                 {
-                    expression_t *pv;
-                    char *name_buff, *param_name;
                     char *func_name = ps->parms.def.signature->name->str;
-                    for (GList *L = ps->parms.def.signature->subscripts; L != NULL; L = g_list_next(L)) {
-                        pv = L->data;
+                    for (GList *I = ps->parms.def.signature->subscripts; I != NULL; I = g_list_next(I)) {
+                        expression_t * pv = I->data;
                         // munge the parameter name
-                        param_name = pv->parms.variable->name->str;
-                        name_buff = strdup(func_name);
+                        char *param_name = pv->parms.variable->name->str;
+                        char *name_buff = strdup(func_name);
                         strncat(name_buff, param_name, 80);
                         // make a new variable for it
                         variable_t *nv = malloc(sizeof(*nv));
@@ -953,8 +945,8 @@ static void perform_statement(GList *L)
                 // the parser has already pulled out the variable names, so they already
                 // have slots in the table. we still need to call insert_variable to set up
                 {
-                    for (GList *L = ps->parms.dim; L != NULL; L = g_list_next(L)) {
-                        variable_t *pv = L->data;
+                    for (GList *I = ps->parms.dim; I != NULL; I = g_list_next(I)) {
+                        variable_t *pv = I->data;
                         insert_variable(pv);
                     }
                 }
@@ -966,8 +958,8 @@ static void perform_statement(GList *L)
             case DEFDBL:
                 // done here because they are really varieties of DIM, not DEF
                 {
-                    for (GList *L = ps->parms.deftype.vars; L != NULL; L = g_list_next(L)) {
-                        variable_t *pv = L->data;
+                    for (GList *I = ps->parms.deftype.vars; I != NULL; I = g_list_next(I)) {
+                        variable_t *pv = I->data;
                         insert_typed_variable(pv, ps->parms.deftype.type);
                     }
                 }
@@ -1038,8 +1030,8 @@ static void perform_statement(GList *L)
                             // perform a single statement after the IF. for this to work properly,
                             // the then_expression has to be a list that is not connected to the
                             // next line, it has to end on a NULL
-                            for (GList *L = ps->parms._if.then_expression; L != NULL; L = g_list_next(L)) {
-                                perform_statement(L);
+                            for (GList *I = ps->parms._if.then_expression; I != NULL; I = g_list_next(I)) {
+                                perform_statement(I);
                             }
                         } else {
                             // if the THEN is not an expression, jump to that line
@@ -1061,12 +1053,11 @@ static void perform_statement(GList *L)
                     //    value of the associated variable, we do that here
                     
                     // loop over the items in the variable/prompt list
-                    printitem_t *ppi;
                     for (GList *I = ps->parms.input; I != NULL; I = g_list_next(I)) {
                         either_t *value;
                         int type = 0;
                         
-                        ppi = I->data;
+                        printitem_t *ppi = I->data;
                         if (ppi->expression->type == variable) {
                             char line[80];
                             
@@ -1238,12 +1229,10 @@ static void perform_statement(GList *L)
                 
             case PRINT:
                 {
-                    GList *L;
                     printitem_t *pp;
-                    
                     // loop over the items in the print list
-                    for (L = ps->parms.print.item_list; L != NULL; L = g_list_next(L)) {
-                        pp = L->data;
+                    for (GList *I = ps->parms.print.item_list; I != NULL; I = g_list_next(I)) {
+                        pp = I->data;
                         
                         // if there's a USING, evaluate the format string it and print using it
                         if (ps->parms.print.format) {
@@ -1289,8 +1278,8 @@ static void perform_statement(GList *L)
                 {
                     value_t seed_value;
                     
-                    // see if there's a parameter
-                    if (ps->parms.generic_parameter != NULL)
+                    // see if there's a parameter, if not, seed time
+                    if (ps->parms.generic_parameter == NULL)
                         srand((unsigned int)time(0));
                     else {
                         seed_value = evaluate_expression(ps->parms.generic_parameter);
@@ -1524,7 +1513,7 @@ static void print_statistics()
         
         // and find the next non-empty line
         next_num = i + 1; // note to me, no, you can't i++ here!
-        while ((interpreter_state.lines[next_num] == NULL) && (next_num < MAXLINE))
+        while ((next_num < MAXLINE) && (interpreter_state.lines[next_num] == NULL))
             next_num++;
         
         // if we ran off the end of the list, exit
@@ -1721,13 +1710,12 @@ static struct option program_options[] =
 
 void parse_options(int argc, char *argv[])
 {
-    int c;
     int option_index = 0;
     int printed_help = FALSE;
     
     while(1) {
         // eat an option and exit if we're done
-        c = getopt_long(argc, argv, "hvua:t:r:i:o:w:spn", program_options, &option_index); // should match the items above, but with flag-setters excluded
+        int c = getopt_long(argc, argv, "hvua:t:r:i:o:w:spn", program_options, &option_index); // should match the items above, but with flag-setters excluded
         if (c == -1) break;
         
         switch (c) {
@@ -1827,7 +1815,7 @@ int main(int argc, char *argv[])
     // open the file...
     yyin = fopen(source_file, "r");
     // and see if it exists
-    if (yyin < 0) {
+    if (yyin == NULL) {
         if (errno == ENOENT) {
             fprintf(stderr, "File not found or no filename provided.");
             exit(EXIT_FAILURE);
@@ -1846,11 +1834,10 @@ int main(int argc, char *argv[])
     // keep stepping through the ->next until we fall off the end
     {
         // look for the first entry in the lines array with a non-empty statement list
-        int first_line;
-        for (first_line = 0;
-             (first_line < MAXLINE) && (interpreter_state.lines[first_line] == NULL);
-             first_line++);
-        
+        int first_line = 0;
+        while ((first_line < MAXLINE - 1) && (interpreter_state.lines[first_line] == NULL))
+            first_line++;
+
         // that statement is going to be the head of the list when we're done
         GList *first_statement = interpreter_state.lines[first_line];
         
