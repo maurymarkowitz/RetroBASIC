@@ -1,18 +1,20 @@
 RetroBASIC TODO/BUGS/ERRATA list
 
-MS = MS BASIC, 6502 40-bit version as seen on the PET
+MS = MS BASIC, 6502 40-bit version
 HP = HP Time-Sharing BASIC
 AB = Atari BASIC
 IB = Integer BASIC
 GW = GW-BASIC
 WB = Wang BASIC
-PATB = Palo Alto Tiny BASIC
+PA = Palo Alto Tiny BASIC
+
+- DEF FN ignores *local* parameters when evaluating the formula, uses global ones instead
+
+- DEFINT/SNG/DBL/STR does not support the "range" syntax, DEFINT A-F, only comma lists, DEFINT A,B
 
 - ELSE would be realtively easy to add, at least the single-line variety
 
 - NEW is incomplete, it erases variables and state but not the program lines
-
-- DEF FN ignores *local* parameters when evaluating the formula, uses global ones instead (fix: add name of function to front of parameter names)
 
 - flesh out GET and PUT, which are just placeholders for now
 
@@ -24,13 +26,13 @@ PATB = Palo Alto Tiny BASIC
 
 - WB allows a message after a STOP, which is printed when that command runs
 
-- PATB allows multiple assignments in a LET, separated by commas, see assignlist
+- PA allows multiple assignments in a LET, separated by commas, see assignlist
 
-- PATB allows single or double quotes around strings
+- PA allows single or double quotes around strings
 
-- PATB allows # to define field widths in PRINT, so PRINT A,#3,B,C will print B and C in 3-character widths. All expressions following the format use that format until reset by another # or another PRINT
+- PA allows # to define field widths in PRINT, so PRINT A,#3,B,C will print B and C in 3-character widths. All expressions following the format use that format until reset by another # or another PRINT
 
-- PATB prints a colon after INPUTs, not ?, and prints the variable name if no prompt is given. So "INPUT A" prints "A:", while INPUT "TYPE A NUMBER"A prints "TYPE A NUMBER:"
+- PA prints a colon after INPUTs, not ?, and prints the variable name if no prompt is given. So "INPUT A" prints "A:", while INPUT "TYPE A NUMBER"A prints "TYPE A NUMBER:"
 
 - LPOS, LPRINT, etc. from AB, GW and others
 
