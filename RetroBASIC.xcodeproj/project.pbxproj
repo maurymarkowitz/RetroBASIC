@@ -159,6 +159,7 @@
 				55B3D408238E051D00E6054E /* Sources */,
 				55B3D409238E051D00E6054E /* Frameworks */,
 				55B3D40A238E051D00E6054E /* CopyFiles */,
+				55939F9725A8D9A700EE5D2A /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -175,7 +176,7 @@
 		55B3D404238E051D00E6054E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1200;
+				LastUpgradeCheck = 1230;
 				ORGANIZATIONNAME = "Maury Markowitz";
 				TargetAttributes = {
 					55B3D40B238E051D00E6054E = {
@@ -200,6 +201,26 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		55939F9725A8D9A700EE5D2A /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "#!/bin/bash\nsrcDir=src\nif which cppcheck >/dev/null; then\ncppcheck -j 4 --enable=all --inline-suppr $srcDir 2>cppcheck.txt 1>/dev/null\npwd=$(pwd)\nsed \"s|\\[|${pwd}/|\" cppcheck.txt | sed 's|\\]: |: warning: |'\nrm cppcheck.txt\nelse\necho \"warning: cppcheck not installed, install here: http://brewformulas.org/Cppcheck\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		55B3D408238E051D00E6054E /* Sources */ = {
