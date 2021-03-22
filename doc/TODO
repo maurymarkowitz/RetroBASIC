@@ -8,7 +8,9 @@ GW = GW-BASIC
 WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 
-- DEF FN ignores *local* parameters when evaluating the formula, uses global ones instead
+- IF statements follow the MS pattern, where all statements on the line after the THEN are considered as a unit. This is different than the Dartmouth pattern where only the statement immediately after the THEN is part of the IF. e.g. IF 1=2 THEN PRINT 1:PRINT 2 will print nothing in MS, Dartmouth would print "2"
+
+- DEF FN ignores *local* variables when evaluating the formula, uses global ones instead
 
 - DEFINT/SNG/DBL/STR does not support the "range" syntax, DEFINT A-F, only comma lists, DEFINT A,B
 
@@ -41,5 +43,3 @@ PA = Palo Alto Tiny BASIC
 - a number of less-commonly-used math and string functions are not yet implemented: CINT CSNG CDBL
 
 - some BASICs allow RESTORE to include a parameter which is the ordinal position in the list, as opposed to a line number
-
-- IF statements follow the MS pattern, where all statements on the line after the THEN are considered as a unit. This is different than the Dartmouth pattern where only the statement immediately after the THEN is part of the IF. e.g. IF 1=2 THEN PRINT 1:PRINT 2 will print nothing in MS, Dartmouth would print "2"

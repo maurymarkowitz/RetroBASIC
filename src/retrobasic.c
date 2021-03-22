@@ -219,7 +219,7 @@ either_t *variable_value(variable_t *variable, int *type)
     
     // if we haven't started runnning yet, we were being called during parsing to
     // populate the variable table. In that case, we don't need the value, so...
-    if (interpreter_state.running_state == 0 )
+    if (interpreter_state.running_state == 0)
         return NULL;
     
     // at this point we have either found or created the variable, so...
@@ -268,7 +268,7 @@ either_t *variable_value(variable_t *variable, int *type)
 }
 
 /* cover method for variable_value, allows it to be exported to the parser
- without it having to know about either_t, which is private  */
+   without it having to know about either_t, which is private  */
 void insert_variable(variable_t *variable)
 {
     int ignore = 0;
@@ -325,7 +325,7 @@ expression_t *function_expression(variable_t *function, expression_t *expression
     return storage->formula;
 }
 
-static value_t perform_infix_operation(double v)
+static value_t double_to_value(double v)
 {
     value_t r;
     r.type = NUMBER;
@@ -403,7 +403,7 @@ static value_t evaluate_expression(expression_t *expression)
         // to make them unique.
         case fn:
             {
-                // assume this
+                // assume this is numeric
                 result.type = NUMBER;
                 result.number = 0;
                 // get the original definition or error out if we can't find it
@@ -607,56 +607,56 @@ static value_t evaluate_expression(expression_t *expression)
                             result.string = g_string_new(g_strconcat(parameters[0].string->str, parameters[1].string->str, NULL));
                         }
                         else if (parameters[0].type >= NUMBER && parameters[1].type >= NUMBER)
-                            result = perform_infix_operation(a + b);
+                            result = double_to_value(a + b);
                         else {
                             result.number = 0;
                             basic_error("Type mismatch");
                         }
                         break;
                     case '-':
-                        result = perform_infix_operation(a - b);
+                        result = double_to_value(a - b);
                         break;
                     case '*':
-                        result = perform_infix_operation(a * b);
+                        result = double_to_value(a * b);
                         break;
                     case '/':
                         if (b == 0)
                             basic_error("Division by zero");
-                        result = perform_infix_operation(a / b);
+                        result = double_to_value(a / b);
                         break;
                     case '^':
-                        result = perform_infix_operation(pow(a, b));
+                        result = double_to_value(pow(a, b));
                         break;
                     case '=':
                         if (parameters[0].type >= NUMBER)
-                            result = perform_infix_operation(-(a == b));
+                            result = double_to_value(-(a == b));
                         else
-                            result = perform_infix_operation(-!strcmp(parameters[0].string->str, parameters[1].string->str));
+                            result = double_to_value(-!strcmp(parameters[0].string->str, parameters[1].string->str));
                         break;
                     case '<':
-                        result = perform_infix_operation(-(a < b));
+                        result = double_to_value(-(a < b));
                         break;
                     case '>':
-                        result = perform_infix_operation(-(a > b));
+                        result = double_to_value(-(a > b));
                         break;
                     case CMP_LE:
-                        result = perform_infix_operation(-(a <= b));
+                        result = double_to_value(-(a <= b));
                         break;
                     case CMP_GE:
-                        result = perform_infix_operation(-(a >= b));
+                        result = double_to_value(-(a >= b));
                         break;
                     case CMP_NE:
                     case CMP_HASH:
                         if (parameters[0].type >= NUMBER)
-                            result = perform_infix_operation(-(a != b));
+                            result = double_to_value(-(a != b));
                         else
-                            result = perform_infix_operation(-!!strcmp(parameters[0].string->str, parameters[1].string->str));
+                            result = double_to_value(-!!strcmp(parameters[0].string->str, parameters[1].string->str));
                         break;
                     case AND:
-                        result = perform_infix_operation((int)a & (int)b);
+                        result = double_to_value((int)a & (int)b);
                         break;
                     case OR:
-                        result = perform_infix_operation((int)a | (int)b);
+                        result = double_to_value((int)a | (int)b);
                         break;
                     case LEFT:
                         result.type = STRING;
@@ -1553,16 +1553,16 @@ static void print_statistics()
 
         printf("\nVARIABLES\n\n");
         printf("  total: %i\n",num_total);
-        printf("string : %i\n",num_str);
-        printf("(nums) : %i\n",num_total-num_str-num_int-num_sng-num_dbl);
-        printf("ints   : %i\n",num_int);
+        printf(" string: %i\n",num_str);
+        printf(" (nums): %i\n",num_total-num_str-num_int-num_sng-num_dbl);
+        printf("   ints: %i\n",num_int);
         printf("singles: %i\n",num_sng);
         printf("doubles: %i\n",num_dbl);
 
         printf("\nNUMERIC CONSTANTS\n\n");
         printf("  total: %i\n",numeric_constants_total);
-        printf("    int: %i\n",numeric_constants_total - numeric_constants_float);
         printf("non-int: %i\n",numeric_constants_float);
+        printf("    int: %i\n",numeric_constants_total - numeric_constants_float);
         printf("  zeros: %i\n",numeric_constants_zero);
         printf("   ones: %i\n",numeric_constants_one);
         printf("  -ones: %i\n",numeric_constants_minus_one);
@@ -1625,8 +1625,8 @@ static void print_statistics()
         fprintf(fp, "VARIABLES,doubles,%i\n",num_dbl);
 
         fprintf(fp, "NUMERIC CONSTANTS,total,%i\n",numeric_constants_total);
-        fprintf(fp, "NUMERIC CONSTANTS,int,%i\n",numeric_constants_total - numeric_constants_float);
         fprintf(fp, "NUMERIC CONSTANTS,non-int,%i\n",numeric_constants_float);
+        fprintf(fp, "NUMERIC CONSTANTS,int,%i\n",numeric_constants_total - numeric_constants_float);
         fprintf(fp, "NUMERIC CONSTANTS,zeros,%i\n",numeric_constants_zero);
         fprintf(fp, "NUMERIC CONSTANTS,ones,%i\n",numeric_constants_one);
         fprintf(fp, "NUMERIC CONSTANTS,-ones,%i\n",numeric_constants_minus_one);

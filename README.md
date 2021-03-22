@@ -40,7 +40,7 @@ Other command-line options include:
 `--goto-next`, `-g`: if a branch targers a non-existant line, should it go to the next line? normally false
 `--random`, `-r`: seed the random number generator  
 `--output-file`, `-o`: redirect PRINT to the named file  
-`--input-file`, `-i`: redirect INPUT from the named file  
+`--input-file`, `-i`: redirect INPUT from the named file, one INPUT value per line
 
 ## Building RetroBASIC
 
@@ -50,11 +50,11 @@ A sample Xcode project is included, as well as a basic makefile. If anyone would
 
 ## Missing features and Erata
 
-* File I/O is not supported, commands like OPEN will be parsed but have no effect
-* LIST is not supported
-* DEF FNx does not parse "local" values for paramters, the global versions are used
+* File I/O is not supported, commands like OPEN will be parsed but have no effect.
+* LIST is not supported.
+* DEF FNx does not parse "local" values for paramters, the global versions are used.
 * INPUT statements with multiple values currently have to be entered with return/enter between each value.
-* POKE does nothing, PEEK returns zero
+* POKE does nothing, PEEK returns zero.
 * String "slicing" as seen in HP, Atari and Integer is not yet supported, but this is an important feature to add.
 * LIST, LOAD and SAVE are currently not implemented, in keeping with the use-case.
 * Variable names are currently limited to two characters, which is needed to support "crunched" statements without spaces in MS style.
