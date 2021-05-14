@@ -474,6 +474,13 @@ statement:
     new->parms.next = NULL;
     $$ = new;
   }
+  |
+  NEW
+  {
+    statement_t *new = make_statement(NEW);
+    new->parms.next = NULL;
+    $$ = new;
+  }
 	|
 	ON expression GOTO exprlist
 	{
