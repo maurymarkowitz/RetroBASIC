@@ -8,7 +8,8 @@ GW = GW-BASIC
 WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 
-- IF statements follow the MS pattern, where all statements on the line after the THEN are considered as a unit. This is different than the Dartmouth pattern where only the statement immediately after the THEN is part of the IF. e.g. IF 1=2 THEN PRINT 1:PRINT 2 will print nothing in MS, Dartmouth would print "2"
+- IF statements follow the MS pattern, where all statements on the line after the THEN are considered as a unit. This is different than the Dartmouth pattern where only the statement immediately after the THEN is part of the IF
+    e.g. IF 1=2 THEN PRINT 1:PRINT 2 will print nothing in MS, Dartmouth would print "2"
 
 - DEF FN ignores *local* variables when evaluating the formula, uses global ones instead
 
@@ -16,13 +17,11 @@ PA = Palo Alto Tiny BASIC
 
 - ELSE would be realtively easy to add, at least the single-line variety
 
-- NEW is incomplete, it erases variables and state but not the program lines
-
 - flesh out GET and PUT, which are just placeholders for now
 
 - need to allow multiple INPUTs on a single line, currently it requires a CR between values
 
-- add support for string "slicing" commands used in HP/AB/IB. This is a bit tricky because it is the same syntax as string arrays found in other systems, so there is a command-line switch for this.
+- add support for string "slicing" commands used in HP/AB/IB. This is a bit tricky because it is the same syntax as string arrays found in other systems, so there is a command-line switch for this
 
 - support AB's DEG and RAD modes? WB also had gradians
 

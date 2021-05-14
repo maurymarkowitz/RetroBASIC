@@ -83,6 +83,7 @@ static int current_line(void);
 static void print_variables(void);
 static void delete_variables(void);
 static void delete_functions(void);
+static void delete_lines(void);
 
 /* defitions of variables used by the static analyzer */
 int variables_total = 0;
@@ -847,7 +848,7 @@ static GList *find_line(int linenumber)
     
         // if we fell off the end, report an error
         if (linenumber == MAXLINE) {
-            basic_error("Undefined line in branch");
+            basic_error("Undefined line in branch, beyond highest line number");
             return NULL;
         }
     } else {
@@ -1161,10 +1162,9 @@ static void perform_statement(GList *L)
                     // wipe out any variables and functions and create new lists
                     delete_variables();
                     delete_functions();
-
-                    // clear out the program
-                    // TODO : do this!
+                    delete_lines();
                 }
+                interpreter_state.next_statement = NULL; // stop execution, there's nothing left
                 break;
                 
             case ON:
@@ -1432,6 +1432,13 @@ static void delete_variables() {
 static void delete_functions() {
     g_tree_destroy(interpreter_state.functions);
     interpreter_state.functions = g_tree_new(symbol_compare);
+}
+static void delete_lines() {
+    for(int i = MAXLINE - 1; i >= 0; i--) {
+        if (interpreter_state.lines[i] != NULL) {
+            g_list_free(interpreter_state.lines[i]);
+        }
+    }
 }
 
 /* the main loop for the program */
