@@ -8,12 +8,9 @@ GW = GW-BASIC
 WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 
-- IF statements follow the MS pattern, where all statements on the line after the THEN are considered as a unit. This is different than the Dartmouth pattern where only the statement immediately after the THEN is part of the IF
-    e.g. IF 1=2 THEN PRINT 1:PRINT 2 will print nothing in MS, Dartmouth would print "2"
-
 - DEF FN ignores *local* variables when evaluating the formula, uses global ones instead
 
-- DEFINT/SNG/DBL/STR does not support the "range" syntax, DEFINT A-F, only comma lists, DEFINT A,B
+- DEFINT/SNG/DBL/STR does not support the "range" syntax, DEFINT A-F, only comma lists work, DEFINT A,B
 
 - ELSE would be realtively easy to add, at least the single-line variety
 
