@@ -76,8 +76,8 @@ THEN		{ return THEN; }
 TO			{ return TO; }
 
  /* extended statements found in some versions*/
-CALL        { return CALL; }
-CLS         { return CLS; }     // clear screen
+CALL        { return CALL; }    // used to call system functions in TI-99 and some other BASICs
+CLS         { return CLS; }     // clear screen, do not confuse with CLR or CLEAR
 CMD         { return CMD; }     // redirects output of PRINT to another device
 GET         { return GET; }
 PUT         { return PUT; }
