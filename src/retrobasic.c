@@ -128,6 +128,8 @@ int linenum_on_totals = 0;
 int for_loops_total = 0;
 int for_loops_step_1 = 0;
 int for_loops_all_constant = 0;
+int increments = 0;
+int decrements = 0;
 
 /************************************************************************/
 
@@ -1604,6 +1606,10 @@ static void print_statistics()
         printf("    ons: %i\n",linenum_on_totals);
         printf("forward: %i\n",linenum_forwards);
         printf("bckward: %i\n",linenum_backwards);
+        
+        printf("\nOTHER INFO\n\n");
+        printf("   incs: %i\n",increments);
+        printf("   decs: %i\n",decrements);
     }
     /* and/or the file if selected */
     if(write_stats) {
@@ -1667,6 +1673,9 @@ static void print_statistics()
         fprintf(fp, "BRANCHES,forward,%i\n",linenum_forwards);
         fprintf(fp, "BRANCHES,bckward,%i\n",linenum_backwards);
         
+        fprintf(fp, "OTHER,incs: %i\n",increments);
+        fprintf(fp, "OTHER,decs: %i\n",decrements);
+
         fclose(fp);
     }
 }

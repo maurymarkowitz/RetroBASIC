@@ -513,6 +513,13 @@ statement:
     $$ = new;
   }
   |
+  PEEK expression
+  {
+    // since we don't actually perform the peek, we toss the parameters
+    statement_t *new = make_statement(PEEK);
+    $$ = new;
+  }
+  |
   POKE expression ',' expression
   {
     // since we don't actually perform the poke, we toss the parameters
@@ -569,7 +576,7 @@ statement:
 	  $$ = new;
 	}
   |
-  RESTORE expression /* some basics allow a parameter here, representing a line number in some or an ordinal */
+  RESTORE expression /* some basics allow a parameter here, representing a line number in some or an ordinal in others */
   {
     statement_t *new = make_statement(RESTORE);
     new->parms.generic_parameter = $2;
@@ -665,10 +672,22 @@ expression2:
 	|
 	expression2 e2op expression3
 	{
+    
+    //printf("%s\n",$3);
+    
 	  expression_t *new = make_operator(2, $2);
 	  new->parms.op.p[0] = $1;
 	  new->parms.op.p[1] = $3;
 	  $$ = new;
+    
+    /* static analyser - if it's + or - 1, record it as an increment */
+    if (new->parms.op.p[1]->type == number  && (int)new->parms.op.p[1]->parms.number == 1 && (int)new->parms.op.p[1]->parms.number == new->parms.op.p[1]->parms.number) {
+      if (new->parms.op.opcode == '+') {
+        increments++;
+      } else {
+        decrements++;
+      }
+    }
 	}
 	;
 
