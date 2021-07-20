@@ -672,9 +672,6 @@ expression2:
 	|
 	expression2 e2op expression3
 	{
-    
-    //printf("%s\n",$3);
-    
 	  expression_t *new = make_operator(2, $2);
 	  new->parms.op.p[0] = $1;
 	  new->parms.op.p[1] = $3;
@@ -913,7 +910,7 @@ factor:
   }
 	;
 
- /* functions MUST have at least the empty parameter list
+ /* user functions MUST have at least the empty parameter list
     in Commodore BASIC, you can only have a single parameter,
     BBC seems to allow three
   */
