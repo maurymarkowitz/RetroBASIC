@@ -14,7 +14,9 @@
 40 PRINTA(1,1),A(1,2),A(2,1),A(2,2)
 50 DEF FNA(X)=X
 51 varlist
-52 print "Calling function"FNA(20)
+52 print "Calling function with const, should return 20: "FNA(20)
+53 X=10
+54 print "Calling function with var, should return 10: "FNA(X)
 60 PRINT:PRINT:PRINT:PRINT
 90 PRINT"HELLO WORLD"
 100 PRINT "HELLO WORLD"
@@ -29,7 +31,7 @@
 240 PRINT "B",B,"B(1,1)",B(1,1)
 250 print "hello"B
 300 LET A=2
-400 PRINT "A*10=";A*10
+400 PRINT "A=2, A*10=";A*10
 440 input "a prompt with comma",A
 450 print a
 470 input "a prompt with semi";B
