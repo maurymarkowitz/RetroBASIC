@@ -53,7 +53,7 @@ A sample Xcode project is included, as well as a basic makefile. If anyone would
 A complete list is maintained in the TODO file, but here are some important limitations:
 
 * INPUT statements with multiple values currently have to be entered with return/enter between each value, spaces do not work.
-* DEF FNx does not parse local values for parameters, the global values are used. This means constants do not work.
+* DEF FNx does not parse the parameters when called, the global values are used. This means constants do not work.
 * The system does not support "immediate mode" (command line) input. It is not supposed to.
 * Variable names are currently limited to two characters, which is needed to support "crunched" statements without spaces in MS style.
 * String "slicing" as seen in HP, Atari and Apple *et all* is not yet supported, but this is an important feature to add.
