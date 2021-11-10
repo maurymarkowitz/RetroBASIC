@@ -1078,7 +1078,7 @@ static void perform_statement(GList *L)
                             fflush(stdout);
                             if (fgets(line, sizeof(line), stdin) != line)
                                 exit(EXIT_FAILURE);
-                            
+
                             // we got something, so null-terminate the string
                             line[strlen(line) - 1] = '\0';
                             
@@ -1610,7 +1610,9 @@ static void print_statistics()
         printf("\nOTHER INFO\n\n");
         printf("   incs: %i\n",increments);
         printf("   decs: %i\n",decrements);
-    }
+        printf("   FORs: %i\n",for_loops_total);
+        printf(" step 1: %i\n",for_loops_step_1);
+}
     /* and/or the file if selected */
     if(write_stats) {
         //check that the file name is reasonable, and then try to open it
@@ -1675,6 +1677,8 @@ static void print_statistics()
         
         fprintf(fp, "OTHER,incs: %i\n",increments);
         fprintf(fp, "OTHER,decs: %i\n",decrements);
+        fprintf(fp, "OTHER,FORs: %i\n",for_loops_total);
+        fprintf(fp, "OTHER,FORs step 1: %i\n",for_loops_step_1);
 
         fclose(fp);
     }

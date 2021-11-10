@@ -347,6 +347,10 @@ statement:
 	  new->parms._for.end = $6;
 	  new->parms._for.step = NULL;
 	  $$ = new;
+    
+    /* static analyser */
+    for_loops_total++;
+    for_loops_step_1++;
 	}
 	|
 	FOR variable '=' expression TO expression STEP expression
@@ -357,7 +361,10 @@ statement:
 	  new->parms._for.end = $6;
 	  new->parms._for.step = $8;
 	  $$ = new;
-	}
+	
+    /* static analyser - assume non-1 even if it is a 1*/
+    for_loops_total++;
+  }
 	|
 	GOSUB expression
 	{
