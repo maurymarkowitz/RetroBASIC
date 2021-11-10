@@ -10,7 +10,7 @@ PA = Palo Alto Tiny BASIC
 
 - DEF FN ignores *local* variables when evaluating the formula, uses global ones instead
 
-- DEFINT/SNG/DBL/STR does not support the "range" syntax, DEFINT A-F, only comma lists work, DEFINT A,B
+- DEFINT/SNG/DBL/STR does not support the "range" syntax, DEFINT A-F. only comma lists work, DEFINT A,B
 
 - ELSE would be realtively easy to add, at least the single-line variety
 
@@ -20,7 +20,7 @@ PA = Palo Alto Tiny BASIC
 
 - add support for string "slicing" commands used in HP/AB/IB. This is a bit tricky because it is the same syntax as string arrays found in other systems, so there is a command-line switch for this
 
-- support AB's DEG and RAD modes? WB also had gradians
+- support AB's DEG and RAD modes? WB also had gradians; SELECT G
 
 - WB allows a message after a STOP, which is printed when that command runs
 
@@ -39,3 +39,5 @@ PA = Palo Alto Tiny BASIC
 - a number of less-commonly-used math and string functions are not yet implemented: CINT CSNG CDBL
 
 - some BASICs allow RESTORE to include a parameter which is the ordinal position in the list, as opposed to a line number
+
+- out-of-range index values in ON statements in MS fall through to the next statement, ANSI returns an error

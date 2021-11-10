@@ -16,7 +16,7 @@ RetroBASIC
 
 RetroBASIC is a BASIC interpreter who's ultimate goal is to run any program for the major 1970s/80s BASIC interpreters, including Tiny BASIC, Palo Alto Tiny BASIC, MS-BASIC (Altair, Commodore, etc.), HP TimeShare BASIC, Atari BASIC and others. In its current 1.0 version, it is patterned on MS-BASIC as seen on Commodore machines.
 
-RetroBASIC also includes a static analizer that optionally prints statistics for the program after it completes. This includes the length of the program and its line number range, the number and types of variables used, and similar details. The original impetus for RetroBASIC was to collect statistics on common programs to provide hints to the retrocomputing field, where new BASICs continue to be developed.
+RetroBASIC also includes a simple analizer that (optionally) prints statistics for the program after it completes. This includes the length of the program and its line number range, the number and types of variables used, and similar details. The original impetus for RetroBASIC was to collect statistics on common programs to provide hints to the retrocomputing field, where new BASICs continue to be developed.
 
 RetroBASIC is based on gnbasic by James Bowman.
  
@@ -37,25 +37,26 @@ Other command-line options include:
 `--upper-case`, `-u`: force input to upper-case, basically like using caps lock  
 `--array-base`, `-a`: set base index for arrays, normally 1 but some dialects use 0  
 `--tabs`, `-t`: set the number of spaces for comma-separated items, defaults to 10  
-`--goto-next`, `-g`: if a branch targets a non-existant line, should it go to the next line? normally false  
+`--goto-next`, `-g`: if a branch targets a non-existant line, should it go to the next line or error? normally false, an error  
 `--random`, `-r`: seed the random number generator  
 `--output-file`, `-o`: redirect PRINT to the named file  
 `--input-file`, `-i`: redirect INPUT from the named file, one INPUT value per line
 
 ## Building RetroBASIC
 
-The RetroBASIC interpreter is written for lex/yacc/c and is normally compiled with flex/bison. It has a single non-standard dependancy; it uses GLib for string, list and tree suppport. It should compile on any platform with GLib, and has been tested on macOS (native) and Windows (with Cygwin).
+The RetroBASIC interpreter is written for lex/yacc/c and is normally compiled with flex/bison. It has a single non-standard dependancy; it uses GLib for string, list and tree suppport. It should compile on any platform with GLib, and has been tested on macOS and Windows using Cygwin.
 
 A sample Xcode project is included, as well as a basic makefile. If anyone would like to contribute a VS project, it would be greatly appeciated.
 
 ## Missing features and Erata
 
-* File I/O is not supported, commands like OPEN will be parsed but have no effect.
-* LIST is not supported.
-* DEF FNx does not parse "local" values for paramters, the global versions are used.
-* INPUT statements with multiple values currently have to be entered with return/enter between each value.
-* POKE does nothing, PEEK returns zero.
-* String "slicing" as seen in HP, Atari and Integer is not yet supported, but this is an important feature to add.
-* LIST, LOAD and SAVE are currently not implemented, in keeping with the use-case.
-* Variable names are currently limited to two characters, which is needed to support "crunched" statements without spaces in MS style.
+A complete list is maintained in the TODO file, but here are some important limitations:
+
+* INPUT statements with multiple values currently have to be entered with return/enter between each value, spaces do not work.
+* DEF FNx does not parse local values for parameters, the global values are used. This means constants do not work.
 * The system does not support "immediate mode" (command line) input. It is not supposed to.
+* Variable names are currently limited to two characters, which is needed to support "crunched" statements without spaces in MS style.
+* String "slicing" as seen in HP, Atari and Apple *et all* is not yet supported, but this is an important feature to add.
+* LIST, LOAD and SAVE are currently not implemented, in keeping with the use-case.
+* File I/O is not supported, commands like OPEN will be parsed but have no effect.
+* POKE does nothing, PEEK returns zero.
