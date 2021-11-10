@@ -202,7 +202,6 @@ extern int linenum_gosub_totals;
 extern int linenum_on_totals;
 extern int for_loops_total;
 extern int for_loops_step_1;
-extern int for_loops_all_constant;
 extern int increments;
 extern int decrements;
 
