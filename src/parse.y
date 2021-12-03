@@ -376,7 +376,9 @@ statement:
     linenum_constants_total++;
     linenum_gosub_totals++;
     if ($2->parms.number) {
-      if ($2->parms.number > errline) {
+      if ($2->parms.number == errline) {
+        linenum_same_line++;
+      } else if ($2->parms.number > errline) {
           linenum_forwards++;
       } else {
           linenum_backwards++;
@@ -394,7 +396,9 @@ statement:
     linenum_constants_total++;
     linenum_goto_totals++;
     if ($2->parms.number) {
-      if ($2->parms.number > errline) {
+      if ($2->parms.number == errline) {
+        linenum_same_line++;
+      } else if ($2->parms.number > errline) {
           linenum_forwards++;
       } else {
           linenum_backwards++;
@@ -422,7 +426,9 @@ statement:
     linenum_constants_total++;
     linenum_then_goto_totals++;
     if ($2->parms.number) {
-      if ($2->parms.number > errline) {
+      if ($2->parms.number == errline) {
+        linenum_same_line++;
+      } else if ($2->parms.number > errline) {
         linenum_forwards++;
       } else {
         linenum_backwards++;
@@ -442,12 +448,12 @@ statement:
     // this handles the implicit GOTO case, GOSUBs are always explicit so they are caught in the next rule
     linenum_constants_total++;
     linenum_then_goto_totals++;
-    if ($2->parms.number) {
-      if ($2->parms.number > errline) {
-        linenum_forwards++;
-      } else {
-        linenum_backwards++;
-      }
+    if ($2->parms.number == errline) {
+      linenum_same_line++;
+    } else if ($2->parms.number > errline) {
+      linenum_forwards++;
+    } else {
+      linenum_backwards++;
     }
   }
 	|

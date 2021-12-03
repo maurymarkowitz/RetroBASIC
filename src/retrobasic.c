@@ -121,6 +121,7 @@ int string_constants_max = 0;
 int linenum_constants_total = 0;
 int linenum_forwards = 0;
 int linenum_backwards = 0;
+int linenum_same_line = 0;
 int linenum_goto_totals = 0;
 int linenum_then_goto_totals = 0;
 int linenum_gosub_totals = 0;
@@ -1606,7 +1607,8 @@ static void print_statistics()
         printf("    ons: %i\n",linenum_on_totals);
         printf("forward: %i\n",linenum_forwards);
         printf("bckward: %i\n",linenum_backwards);
-        
+        printf("   same: %i\n",linenum_same_line);
+
         printf("\nOTHER INFO\n\n");
         printf("   incs: %i\n",increments);
         printf("   decs: %i\n",decrements);
@@ -1673,8 +1675,9 @@ static void print_statistics()
         fprintf(fp, "BRANCHES,thens,%i\n",linenum_then_goto_totals);
         fprintf(fp, "BRANCHES,ons,%i\n",linenum_on_totals);
         fprintf(fp, "BRANCHES,forward,%i\n",linenum_forwards);
-        fprintf(fp, "BRANCHES,bckward,%i\n",linenum_backwards);
-        
+        fprintf(fp, "BRANCHES,backward,%i\n",linenum_backwards);
+        fprintf(fp, "BRANCHES,same line,%i\n",linenum_same_line);
+
         fprintf(fp, "OTHER,incs: %i\n",increments);
         fprintf(fp, "OTHER,decs: %i\n",decrements);
         fprintf(fp, "OTHER,FORs: %i\n",for_loops_total);

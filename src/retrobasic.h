@@ -196,6 +196,7 @@ extern int string_constants_max;
 extern int linenum_constants_total;
 extern int linenum_forwards;
 extern int linenum_backwards;
+extern int linenum_same_line;
 extern int linenum_goto_totals;
 extern int linenum_then_goto_totals;
 extern int linenum_gosub_totals;
