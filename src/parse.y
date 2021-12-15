@@ -436,7 +436,7 @@ statement:
     }
 	}
   |
-  IF expression GOTO NUMBER // this is seen in some older BASICs like Bally
+  IF expression GOTO NUMBER // this is seen in some older BASICs like Bally - Commodore supports this too, so most MS
   {
     statement_t *new = make_statement(IF);
     new->parms._if.condition = $2;
