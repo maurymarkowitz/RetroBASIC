@@ -108,7 +108,7 @@ typedef struct statement_struct {
             expression_t *expression;
             GList *numbers;
         } on;
-        variable_t *next;
+        GList *next;
         struct {
             expression_t *format;
             GList *item_list;
@@ -182,9 +182,6 @@ extern int numeric_constants_big;
 extern int numeric_constants_one_byte;
 extern int numeric_constants_two_byte;
 extern int numeric_constants_four_byte;
-extern int numeric_constants_10;
-extern int numeric_constants_16;
-extern int numeric_constants_256;
 extern int string_constants_total;
 extern int string_constants_one_byte;
 extern int string_constants_two_byte;
@@ -205,5 +202,12 @@ extern int for_loops_total;
 extern int for_loops_step_1;
 extern int increments;
 extern int decrements;
+extern int compare_equals_zero;
+extern int compare_equals_other;
+extern int compare_not_equals_zero;
+extern int compare_not_equals_other;
+extern int assign_zero;
+extern int assign_one;
+extern int assign_other;
 
 #endif
