@@ -373,8 +373,8 @@ statement:
 	  $$ = new;
       
     /* static analyzer */
-    linenum_constants_total++;
     linenum_gosub_totals++;
+    linenum_constants_total++;
     if ($2->parms.number) {
       if ($2->parms.number == errline) {
         linenum_same_line++;
@@ -393,8 +393,8 @@ statement:
 	  $$ = new;
       
     /* static analyzer */
-    linenum_constants_total++;
     linenum_goto_totals++;
+    linenum_constants_total++;
     if ($2->parms.number) {
       if ($2->parms.number == errline) {
         linenum_same_line++;
@@ -423,8 +423,8 @@ statement:
     
     /* static analyzer */
     // this handles the implicit GOTO case, GOSUBs are always explicit so they are caught in the next rule
-    linenum_constants_total++;
     linenum_then_goto_totals++;
+    linenum_constants_total++;
     if ($2->parms.number) {
       if ($2->parms.number == errline) {
         linenum_same_line++;
@@ -436,7 +436,7 @@ statement:
     }
 	}
   |
-  IF expression GOTO NUMBER // this is seen in some older BASICs like Bally - Commodore supports this too, so most MS
+  IF expression GOTO NUMBER // this is seen in some older BASICs like Bally - Commodore supports this too, so most MS?
   {
     statement_t *new = make_statement(IF);
     new->parms._if.condition = $2;
@@ -446,8 +446,8 @@ statement:
     
     /* static analyzer */
     // this handles the implicit GOTO case, GOSUBs are always explicit so they are caught in the next rule
-    linenum_constants_total++;
     linenum_then_goto_totals++;
+    linenum_constants_total++;
     if ($2->parms.number == errline) {
       linenum_same_line++;
     } else if ($2->parms.number > errline) {
@@ -472,7 +472,28 @@ statement:
 	  new->parms.let.variable = $2;
 	  new->parms.let.expression = $4;
 	  $$ = new;
+    
+    /* static analyser - see if we are setting a value to 0 or 1 */
+    //NOTE: same code below in invisible LET
+    if (new->parms.let.expression->type == number) {
+      if ((int)new->parms.let.expression->parms.number == 0) {
+          assign_zero++;
+      } else if ((int)new->parms.let.expression->parms.number == 1
+                 && (int)new->parms.let.expression->parms.number == new->parms.let.expression->parms.number) {
+        assign_one++;
+      } else {
+        assign_other++;
+      }
+    }
 	}
+  |
+  NEXT varlist
+  {
+    statement_t *new = make_statement(NEXT);
+    new->parms.next = $2;
+    $$ = new;
+  }
+  /*
 	|
 	NEXT variable
 	{
@@ -480,6 +501,7 @@ statement:
 	  new->parms.next = $2;
 	  $$ = new;
 	}
+    */
   |
   NEXT /* later versions of MS allowed the variable to be ignored */
   {
@@ -633,11 +655,25 @@ statement:
 	  new->parms.let.variable = $1;
 	  new->parms.let.expression = $3;
 	  $$ = new;
+    
+    /* static analyser - see if we are setting a value to 0 or 1 */
+    //NOTE: same code above in LET
+    if (new->parms.let.expression->type == number) {
+      if ((int)new->parms.let.expression->parms.number == 0) {
+          assign_zero++;
+      } else if ((int)new->parms.let.expression->parms.number == 1
+                 && (int)new->parms.let.expression->parms.number == new->parms.let.expression->parms.number) {
+        assign_one++;
+      } else {
+        assign_other++;
+      }
+    }
+
 	}
 	;
 
- /* precedence in RetroBASIC is handled through this
-    pattern tree, but it is not clear that is the best solution
+ /* precedence in RetroBASIC is handled through this pattern tree,
+    but it is not clear that is the best solution
   */
 expression: expression0;
 
@@ -667,6 +703,23 @@ expression1:
 	  new->parms.op.p[0] = $1;
 	  new->parms.op.p[1] = $3;
 	  $$ = new;
+    
+    /* static analyser - see if this is a comparison to zero */
+    if (new->parms.op.p[1]->type == number) {
+      if ((int)new->parms.op.p[1]->parms.number == 0) {
+        if (new->parms.op.opcode == '=') {
+          compare_equals_zero++;
+        } else {
+          compare_not_equals_zero++;
+        }
+      } else {
+        if (new->parms.op.opcode == '=') {
+          compare_equals_other++;
+        } else {
+          compare_not_equals_other++;
+        }
+      }
+    }
 	}
 	;
 
@@ -691,7 +744,9 @@ expression2:
 	  $$ = new;
     
     /* static analyser - if it's + or - 1, record it as an increment */
-    if (new->parms.op.p[1]->type == number  && (int)new->parms.op.p[1]->parms.number == 1 && (int)new->parms.op.p[1]->parms.number == new->parms.op.p[1]->parms.number) {
+    if (new->parms.op.p[1]->type == number
+        && (int)new->parms.op.p[1]->parms.number == 1
+        && (int)new->parms.op.p[1]->parms.number == new->parms.op.p[1]->parms.number) {
       if (new->parms.op.opcode == '+') {
         increments++;
       } else {
@@ -862,15 +917,6 @@ factor:
       } else if (num >= INT_MIN && num <= INT_MAX) {
         /* this one is probably redundant! */
         numeric_constants_four_byte++;
-      }
-      
-      // and look for a few other key ones
-      if (num == 10) {
-        numeric_constants_10++;
-      } else if (num == 16) {
-        numeric_constants_16++;
-      } else if (num == 256) {
-        numeric_constants_256++;
       }
     }
     /* everything else is a float */

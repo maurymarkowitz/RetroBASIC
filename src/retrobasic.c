@@ -106,9 +106,6 @@ int numeric_constants_one_byte = 0;
 int numeric_constants_two_byte = 0;
 int numeric_constants_four_byte = 0;
 int numeric_constants_big = 0;
-int numeric_constants_10 = 0;
-int numeric_constants_16 = 0;
-int numeric_constants_256 = 0;
 
 int string_constants_total = 0;
 int string_constants_one_byte = 0;
@@ -131,6 +128,13 @@ int for_loops_step_1 = 0;
 int for_loops_all_constant = 0;
 int increments = 0;
 int decrements = 0;
+int compare_equals_zero = 0;
+int compare_equals_other = 0;
+int compare_not_equals_zero = 0;
+int compare_not_equals_other = 0;
+int assign_zero = 0;
+int assign_one = 0;
+int assign_other = 0;
 
 /************************************************************************/
 
@@ -1585,9 +1589,6 @@ static void print_statistics()
         printf(" 1 byte: %i\n",numeric_constants_one_byte);
         printf(" 2 byte: %i\n",numeric_constants_two_byte);
         printf(" 4 byte: %i\n",numeric_constants_four_byte);
-        printf("     10: %i\n",numeric_constants_10);
-        printf("     16: %i\n",numeric_constants_16);
-        printf("    256: %i\n",numeric_constants_256);
 
         printf("\nSTRING CONSTANTS\n\n");
         printf("  total: %i\n",string_constants_total);
@@ -1607,13 +1608,22 @@ static void print_statistics()
         printf("    ons: %i\n",linenum_on_totals);
         printf("forward: %i\n",linenum_forwards);
         printf("bckward: %i\n",linenum_backwards);
-        printf("   same: %i\n",linenum_same_line);
+        printf("same ln: %i\n",linenum_same_line);
 
-        printf("\nOTHER INFO\n\n");
-        printf("   incs: %i\n",increments);
-        printf("   decs: %i\n",decrements);
+        printf("\nOTHER BITS\n\n");
+        printf(" asgn 0: %i\n",assign_zero);
+        printf(" asgn 1: %i\n",assign_one);
+        printf(" asgn x: %i\n",assign_other);
         printf("   FORs: %i\n",for_loops_total);
         printf(" step 1: %i\n",for_loops_step_1);
+        printf("   incs: %i\n",increments);
+        printf("   decs: %i\n",decrements);
+        
+        printf("\nLOGICAL\n\n");
+        printf("    = 0: %i\n",compare_equals_zero);
+        printf("   != 0: %i\n",compare_not_equals_zero);
+        printf("    = x: %i\n",compare_not_equals_other);
+        printf("   != x: %i\n",compare_not_equals_other);
 }
     /* and/or the file if selected */
     if(write_stats) {
@@ -1656,9 +1666,6 @@ static void print_statistics()
         fprintf(fp, "NUMERIC CONSTANTS,1 byte,%i\n",numeric_constants_one_byte);
         fprintf(fp, "NUMERIC CONSTANTS,2 byte,%i\n",numeric_constants_two_byte);
         fprintf(fp, "NUMERIC CONSTANTS,4 byte,%i\n",numeric_constants_four_byte);
-        fprintf(fp, "NUMERIC CONSTANTS,10,%i\n",numeric_constants_10);
-        fprintf(fp, "NUMERIC CONSTANTS,16,%i\n",numeric_constants_16);
-        fprintf(fp, "NUMERIC CONSTANTS,256,%i\n",numeric_constants_256);
 
         fprintf(fp, "STRING CONSTANTS,total,%i\n",string_constants_total);
         fprintf(fp, "STRING CONSTANTS,1 char,%i\n",string_constants_one_byte);
@@ -1678,10 +1685,18 @@ static void print_statistics()
         fprintf(fp, "BRANCHES,backward,%i\n",linenum_backwards);
         fprintf(fp, "BRANCHES,same line,%i\n",linenum_same_line);
 
-        fprintf(fp, "OTHER,incs: %i\n",increments);
-        fprintf(fp, "OTHER,decs: %i\n",decrements);
+        fprintf(fp, "OTHER,ASSIGN 0: %i\n",assign_zero);
+        fprintf(fp, "OTHER,ASSIGN 1: %i\n",assign_one);
+        fprintf(fp, "OTHER,ASSIGN OTHER: %i\n",assign_other);
+        fprintf(fp, "OTHER,FORs step 1: %i\n",for_loops_step_1);
         fprintf(fp, "OTHER,FORs: %i\n",for_loops_total);
         fprintf(fp, "OTHER,FORs step 1: %i\n",for_loops_step_1);
+        fprintf(fp, "OTHER,incs: %i\n",increments);
+        fprintf(fp, "OTHER,decs: %i\n",decrements);
+        fprintf(fp, "OTHER,logical=0: %i\n",compare_equals_zero);
+        fprintf(fp, "OTHER,logical!=0: %i\n",compare_not_equals_zero);
+        fprintf(fp, "OTHER,logical=x: %i\n",compare_equals_other);
+        fprintf(fp, "OTHER,logical!=x: %i\n",compare_not_equals_other);
 
         fclose(fp);
     }
