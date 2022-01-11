@@ -1,9 +1,11 @@
 2 DEFINT X,Y
 3 VARLIST
 5 FOR I=1 TO 3
-6 PRINT I
-7 NEXT I
-10 REMARK
+6 PRINT "loop with NEXT I"I
+7 NEXT I,J
+8 FOR I=1 TO 3
+9 PRINT "loop with NEXT"I
+10 NEXT
 11 A=9999999999
 12 PRINT "this should print 1E+10:"A
 13 ' quote comment
@@ -11,7 +13,7 @@
 15 PRINT"this line has a trailing bang comment"!comment
 16 PRINT"this line has a trailing quote comment"'comment
 17 PRINT"this line has a trailing REM comment":REM comment
-18 INPUT A,B,C
+18 PRINT "input with a,b,c":INPUT A,B,C
 20 DIM A(2,2)
 30 A(1,1)=1:A(1,2)=2:A(2,1)=3:A(2,2)=4
 40 PRINTA(1,1),A(1,2),A(2,1),A(2,2)
@@ -20,7 +22,7 @@
 52 print "Calling function with const, should return 20: "FNA(20)
 53 X=10
 54 print "Calling function with var, should return 10: "FNA(X)
-60 PRINT:PRINT:PRINT:PRINT
+60 PRINT:PRINT:PRINT:PRINT"three blank lines above"
 90 PRINT"HELLO WORLD"
 100 PRINT "HELLO WORLD"
 110 A$="HELLO WORLD"
