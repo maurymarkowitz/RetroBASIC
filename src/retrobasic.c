@@ -599,6 +599,16 @@ static value_t evaluate_expression(expression_t *expression)
               result.string = g_string_append(result.string, " ");
             }
             break;
+          case LIN:
+            // from HP, inserts a number of CR's - not like IB's VTAB which can move up as well
+            result.type = STRING;
+            result.string = g_string_new("");
+            int lines = (int)parameters[0].number;
+            for (int i = 0; i <= lines - 1; i++) {
+              result.string = g_string_append(result.string, "\n");
+            }
+            break;
+
           default:
             basic_error("Unhandled arity-1 function");
         } //switch

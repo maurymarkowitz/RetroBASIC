@@ -832,6 +832,7 @@ fn_1:
   FRE  { $$ = FRE; } |
 	INT  { $$ = INT; } |
   LEN  { $$ = LEN; } |
+  LIN  { $$ = LIN; } |
   STR  { $$ = STR; } |
   LOG  { $$ = LOG; } |
   PEEK { $$ = PEEK;} |
