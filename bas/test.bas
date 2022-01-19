@@ -4,7 +4,7 @@
 6 PRINT "loop with NEXT I"I
 7 NEXT I,J
 8 FOR I=1 TO 3
-9 PRINT "loop with NEXT"I
+9 PRINT "loop with NEXT (no I)"I
 10 NEXT
 11 A=9999999999
 12 PRINT "this should print 1E+10:"A
