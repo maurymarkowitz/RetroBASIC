@@ -28,19 +28,22 @@ RetroBASIC is meant to be used with an existing program source file, not interac
 
 It will accept any text file as input and report (cryptic) errors if it cannot properly parse it. If parsing succeeds, the program (normally) begins running immediately.
 
-If your goal is to simply check the syntax of the program, or to list statistics, use the `--no_run` switch, `-n` for short. This will load and parse the BASIC source, but not run it. This is often combined with `--print_statistics` (`-p`). You can also `--write_statistics` (`-w`) to a file of your choice, which outputs a slightly different format more suitable for automating the collection of the statistics.
-
-Other command-line options include:
+Command-line options include:
 
 `--help`, `-h`: print usage notes  
 `--version`, `-v`: print version info  
 `--upper-case`, `-u`: force input to upper-case, basically like using caps lock  
 `--array-base`, `-a`: set base index for arrays, normally 1 but some dialects use 0  
 `--tabs`, `-t`: set the number of spaces for comma-separated items, defaults to 10  
-`--goto-next`, `-g`: if a branch targets a non-existant line, should it go to the next line or error? normally false, an error  
-`--random`, `-r`: seed the random number generator  
+`--goto-next`, `-g`: if a branch is to a non-existant line, should it go to the next line or return an error?
+`--random`, `-r`: seed the random number generator
+`--no_run`, `-n` : do not run the program, simply read and parse it
 `--output-file`, `-o`: redirect PRINT to the named file  
 `--input-file`, `-i`: redirect INPUT from the named file, one INPUT value per line
+`--print_statistics`, `-p` : send a selection of statistics to the console
+`--write_statistics`, `-w` : write the statistics to the named file in a machine readable format
+
+If you wish to use RetroBASIC to simply check syntax or collect statistics, use the -n and -p switches.
 
 ## Building RetroBASIC
 
