@@ -221,7 +221,7 @@ statements:
 
 statement:
 	/* can be empty, in which case we remove it */
-    // NOTE: should we? or should we insert a placeholder?
+  // NOTE: should we? or should we insert a placeholder?
   {
 	  $$ = NULL;
 	}
@@ -422,7 +422,7 @@ statement:
     $$ = new;
     
     /* static analyzer */
-    // this handles the implicit GOTO case, GOSUBs are always explicit so they are caught in the next rule
+    // this handles the implicit GOTO case, GOSUBs are always explicit so they are caught in the THEN statements
     linenum_then_goto_totals++;
     linenum_constants_total++;
     if ($2->parms.number) {
@@ -436,7 +436,7 @@ statement:
     }
 	}
   |
-  IF expression GOTO NUMBER // this is seen in some older BASICs like Bally - Commodore supports this too, so most MS?
+  IF expression GOTO NUMBER // this alternate form is seen in some BASICs like Bally and MS
   {
     statement_t *new = make_statement(IF);
     new->parms._if.condition = $2;
@@ -445,7 +445,6 @@ statement:
     $$ = new;
     
     /* static analyzer */
-    // this handles the implicit GOTO case, GOSUBs are always explicit so they are caught in the next rule
     linenum_then_goto_totals++;
     linenum_constants_total++;
     if ($2->parms.number == errline) {
@@ -466,7 +465,7 @@ statement:
 	  $$ = new;
 	}
 	|
-	LET variable '=' expression /* visible LET, invisible LET is at the bottom */
+	LET variable '=' expression /* explicit LET, implicit LET is at the bottom */
 	{
 	  statement_t *new = make_statement(LET);
 	  new->parms.let.variable = $2;
@@ -487,21 +486,12 @@ statement:
     }
 	}
   |
-  NEXT varlist
+  NEXT varlist // this handles one or more index variables, no need for a single-var case
   {
     statement_t *new = make_statement(NEXT);
     new->parms.next = $2;
     $$ = new;
   }
-  /*
-	|
-	NEXT variable
-	{
-	  statement_t *new = make_statement(NEXT);
-	  new->parms.next = $2;
-	  $$ = new;
-	}
-    */
   |
   NEXT /* later versions of MS allowed the variable to be ignored */
   {
@@ -548,17 +538,11 @@ statement:
     $$ = new;
   }
   |
-  PEEK expression
-  {
-    // since we don't actually perform the peek, we toss the parameters
-    statement_t *new = make_statement(PEEK);
-    $$ = new;
-  }
-  |
   POKE expression ',' expression
   {
-    // since we don't actually perform the poke, we toss the parameters
     statement_t *new = make_statement(POKE);
+    new->parms.generic_parameter = $2;
+    new->parms.generic_parameter2 = $4;
     $$ = new;
   }
   |
@@ -712,6 +696,12 @@ expression1:
         } else {
           compare_not_equals_zero++;
         }
+      } else if ((int)new->parms.op.p[1]->parms.number == 1) {
+        if (new->parms.op.opcode == '=') {
+          compare_equals_one++;
+        } else {
+          compare_not_equals_one++;
+        }
       } else {
         if (new->parms.op.opcode == '=') {
           compare_equals_other++;
@@ -842,7 +832,8 @@ fn_1:
 	INT  { $$ = INT; } |
   LEN  { $$ = LEN; } |
   STR  { $$ = STR; } |
-	LOG  { $$ = LOG; } |
+  LOG  { $$ = LOG; } |
+  PEEK { $$ = PEEK;} |
   RND  { $$ = RND; } |
   SGN  { $$ = SGN; } |
 	SIN  { $$ = SIN; } |
@@ -870,7 +861,7 @@ fn_x:
 factor:
   NUMBER
 	{
-      /* actual parsing code */
+    /* actual parsing code */
 	  expression_t *new = make_expression(number);
 	  new->parms.number = $1;
 	  $$ = new;
