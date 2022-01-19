@@ -137,7 +137,8 @@
      DEFSTR = 353,
      DEFINT = 354,
      DEFSNG = 355,
-     DEFDBL = 356
+     DEFDBL = 356,
+     LIN = 357
    };
 #endif
 /* Tokens.  */
@@ -240,6 +241,7 @@
 #define DEFINT 354
 #define DEFSNG 355
 #define DEFDBL 356
+#define LIN 357
 
 
 
