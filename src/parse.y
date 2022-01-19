@@ -167,6 +167,7 @@ static expression_t *make_operator(int arity, int o)
 %token TAB
 %token POS
 %token USR
+%token LIN // from HP, a vertical version of TAB
 
  /* type definitions added circa 1979 */
 %token DEFSTR
