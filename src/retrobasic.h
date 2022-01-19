@@ -76,7 +76,7 @@ typedef struct {
 typedef struct statement_struct {
     int type;
     union {
-        expression_t *generic_parameter;
+        expression_t *generic_parameter, *generic_parameter2, *generic_parameter3;
         GList *data; // list of values for data statements
         struct {
             variable_t *signature;
@@ -203,8 +203,10 @@ extern int for_loops_step_1;
 extern int increments;
 extern int decrements;
 extern int compare_equals_zero;
+extern int compare_equals_one;
 extern int compare_equals_other;
 extern int compare_not_equals_zero;
+extern int compare_not_equals_one;
 extern int compare_not_equals_other;
 extern int assign_zero;
 extern int assign_one;
