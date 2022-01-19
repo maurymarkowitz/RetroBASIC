@@ -37,11 +37,11 @@ Command-line options include:
 `--tabs`, `-t`: set the number of spaces for comma-separated items, defaults to 10  
 `--goto-next`, `-g`: if a branch is to a non-existant line, should it go to the next line or return an error?
 `--random`, `-r`: seed the random number generator
-`--no_run`, `-n` : do not run the program, simply read and parse it
 `--output-file`, `-o`: redirect PRINT to the named file  
 `--input-file`, `-i`: redirect INPUT from the named file, one INPUT value per line
+`--no_run`, `-n` : do not run the BASIC program, simply read and parse it and then exit
 `--print_statistics`, `-p` : send a selection of statistics to the console
-`--write_statistics`, `-w` : write the statistics to the named file in a machine readable format
+`--write_statistics`, `-w` : write thenav statistics to the named file in a machine readable format
 
 If you wish to use RetroBASIC to simply check syntax or collect statistics, use the -n and -p switches.
 
