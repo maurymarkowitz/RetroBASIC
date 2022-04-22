@@ -1,50 +1,91 @@
-2 DEFINT X,Y
-3 VARLIST
-5 FOR I=1 TO 3
-6 PRINT "loop with NEXT I"I
-7 NEXT I,J
-8 FOR I=1 TO 3
-9 PRINT "loop with NEXT (no I)"I
-10 NEXT
-11 A=9999999999
-12 PRINT "this should print 1E+10:"A
-13 ' quote comment
-14 ! bang comment
-15 PRINT"this line has a trailing bang comment"!comment
-16 PRINT"this line has a trailing quote comment"'comment
-17 PRINT"this line has a trailing REM comment":REM comment
-18 PRINT "input with a,b,c":INPUT A,B,C
-20 DIM A(2,2)
-30 A(1,1)=1:A(1,2)=2:A(2,1)=3:A(2,2)=4
-40 PRINTA(1,1),A(1,2),A(2,1),A(2,2)
-50 DEF FNA(X)=X
-51 varlist
-52 print "Calling function with const, should return 20: "FNA(20)
-53 X=10
-54 print "Calling function with var, should return 10: "FNA(X)
-60 PRINT:PRINT:PRINT:PRINT"three blank lines above"
-90 PRINT"HELLO WORLD"
-100 PRINT "HELLO WORLD"
-110 A$="HELLO WORLD"
-120 PRINT A$, "len="len(a$)
-130 PRINT "left 5 = "LEFT$(A$,5)
-140 PRINT "right 5= "right$(A$,5)
-150 PRINT "mid 5  = "mid$(A$,5)
-160 PRINT "mid 4,5= "mid$(A$,4,5)
-200 REM HELLO
-230 B=10
-240 PRINT "B",B,"B(1,1)",B(1,1)
-250 print "hello"B
-300 LET A=2
-400 PRINT "A=2, A*10=";A*10
-440 input "a prompt with comma",A
-450 print a
-470 input "a prompt with semi";B
-480 print b
-490 print "a is"a
-500 ON A GOTO 600,700,800
-600 PRINT "A WAS 1":END
-700 PRINT "A WAS 2":END
-800 PRINT "A WAS 3":END
-850 goto 90
-900 END
+10 REM calling DEFINT and then listing vars
+11 REM
+20 DEFINT X,Y
+30 VARLIST
+34 REM
+35 REM simple loop
+36 REM
+50 FOR I=1 TO 3
+60 PRINT "loop with NEXT I"I
+70 NEXT I
+74 REM
+75 REM simple loop with no variable in NEXT
+76 REM
+80 FOR I=1 TO 3
+90 PRINT "loop with NEXT (no I)"I
+100 NEXT
+104 REM
+105 REM print a long number that should display as E format
+106 REM
+110 A=9999999999
+120 PRINT "this should print 1E+10:"A
+124 REM
+125 REM some variations on the comment formats
+126 REM
+130 ' quote comment
+140 ! bang comment
+144 REM
+145 REM trying remarks at the end of the lines
+146 REM
+150 PRINT"this line has a trailing bang comment"!comment
+160 PRINT"this line has a trailing quote comment"'comment
+170 PRINT"this line has a trailing REM comment":REM comment
+174 REM
+175 REM input with three variables
+180 PRINT "input with a,b,c":INPUT A,B,C
+184 REM
+185 REM making a 2x2 array and then printing it out
+200 DIM A(2,2)
+300 A(1,1)=1:A(1,2)=2:A(2,1)=3:A(2,2)=4
+400 PRINTA(1,1),A(1,2),A(2,1),A(2,2)
+494 REM
+495 REM make a simple function that returns itself
+496 REM
+500 DEF FNA(X)=X
+520 print "Calling function A with const 20, should return 20: "FNA(20)
+530 X=10
+540 print "Calling function A with var 10, should return 10: "FNA(X)
+594 REM
+595 REM make a function with some actual math
+596 REM
+600 DEF FNB(X)=X+5
+620 print "Calling function B with 20 const, should return 25: "FNB(20)
+694 REM
+695 REM not sure why this is here
+696 REM
+700 PRINT:PRINT:PRINT:PRINT"three blank lines above"
+900 PRINT"HELLO WORLD"
+1000 PRINT "HELLO WORLD"
+1094 REM
+1095 REM do some string manipulation using string functions
+1096 REM
+1100 A$="HELLO WORLD"
+1200 PRINT A$, "len="len(a$)
+1300 PRINT "left 5 = "LEFT$(A$,5)
+1400 PRINT "right 5= "right$(A$,5)
+1500 PRINT "mid 5  = "mid$(A$,5)
+1600 PRINT "mid 4,5= "mid$(A$,4,5)
+2000 REM HELLO
+2294 REM
+2295 REM make sure B and B() are different
+2300 B=10
+2400 PRINT "B",B,"B(1,1)",B(1,1)
+2500 print "hello"B
+2994 REM
+2995 REM various prints and inputs with different separators
+3000 LET A=2
+4000 PRINT "A=2, A*10=";A*10
+4400 input "a prompt with comma",A
+4500 print a
+4700 input "a prompt with semi";B
+4800 print b
+4900 print "a is"a
+4994 REM
+4995 REM using the values just input, use ON GOTO
+4996 REM
+5000 ON A GOTO 6000,7000,8000
+6000 PRINT "A WAS 1":END
+7000 PRINT "A WAS 2":END
+8000 PRINT "A WAS 3":END
+8500 goto 900
+9000 END
