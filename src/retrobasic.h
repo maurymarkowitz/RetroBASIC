@@ -142,14 +142,14 @@ typedef struct {
  GOSUB and FOR/NEXT */
 typedef struct {
   GList *lines[MAXLINE];          // the lines in the program, stored as an array of statement lists
-  int first_line;		            // index of the first line in the lines array
+  int first_line;		              // index of the first line in the lines array
   GList *current_statement;       // currently executing statement
   GList *next_statement;          // next statement to run, might change for GOTO and such
   GList *current_data_statement;	// current 'DATA' statement
-  GList *current_data_element;	// current 'DATA' expression within psd
-  GTree *values;		            // name/value pairs used to store variable *values*
+  GList *current_data_element;	  // current 'DATA' expression within psd
+  GTree *variable_values;		      // name/value pairs used to store variable *values*
   GTree *functions;               // name/expression pairs for user-defined functions
-  GList *forstack;	            // of forcontrol_t
+  GList *forstack;	              // of forcontrol_t
   GList *gosubstack;	            // of gosubcontrol_t
   int cursor_column;              // current column of the output cursor
   int running_state;              // is the program running (1), paused/stopped (0)
