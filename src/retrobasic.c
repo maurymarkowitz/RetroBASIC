@@ -163,16 +163,14 @@ either_t *variable_value(variable_t *variable, int *type)
   GString *storage_name;
   int index;
   
-  // in MS basic, A() and A are two different variables,
-  // so what we do is mangle the name here in the lookup
-  // so that every time someone looks up A(1,1) it looks
-  // for A(, and if they look for A it looks for A
+  // in MS basic, A() and A are two different variables, so here
+  // we mangle the name to include a "(" if its an array
   storage_name = g_string_new(variable->name->str);
   if (variable->subscripts != NULL)
     storage_name = g_string_append(storage_name, "(");
   
   // see if we can find the entry in the symbol list
-  storage = g_tree_lookup(interpreter_state.values, storage_name->str);
+  storage = g_tree_lookup(interpreter_state.variable_values, storage_name->str);
   
   // if not, make a new variable slot in values and set it up
   if (storage == NULL) {
@@ -224,7 +222,7 @@ either_t *variable_value(variable_t *variable, int *type)
     
     // now malloc the result and insert it into the values tree
     storage->value = malloc(slots * sizeof(storage->value[0]));
-    g_tree_insert(interpreter_state.values, storage_name->str, storage);
+    g_tree_insert(interpreter_state.variable_values, storage_name->str, storage);
   }
   
   // if we haven't started runnning yet, we were being called during parsing to
@@ -239,13 +237,13 @@ either_t *variable_value(variable_t *variable, int *type)
   /* compute array index, or leave it at zero if there is none */
   index = 0;
   {
-    GList *original_dimensions;            /* list of actual dimensions in storage (from the DIM), stored as integers */
-    GList *variable_indexes;            /* list of indices in this variable reference, each is an expression */
+    GList *original_dimensions;         /* list of actual dimensions in storage (from the DIM), stored as integers */
+    GList *variable_indexes;            /* list of indices in this variable reference, each is an expression, likely a constant */
     
     original_dimensions = storage->subscripts;
     variable_indexes = variable->subscripts;
     
-    // the *number* of dimensions has to match, you can't DIM A(1,1) and then LET B==A(1)
+    // the *number* of dimensions has to match, you can't DIM A(1,1) and then LET B=A(1)
     if (g_list_length(original_dimensions) != g_list_length(variable_indexes))
       basic_error("Array dimension of variable does not match storage"); // should we exit at this point?
     else
@@ -335,6 +333,7 @@ expression_t *function_expression(variable_t *function, expression_t *expression
   return storage->formula;
 }
 
+/* converts a number to a new value_t */
 static value_t double_to_value(double v)
 {
   value_t r;
@@ -406,14 +405,14 @@ static value_t evaluate_expression(expression_t *expression)
       
       // user functions are not so simple, because the variable references
       // in the original definition have to be mapped onto the parameters
-      // being passed in here. So what this does is find the original definition
-      // by looking in the definitions list, and copies the value from the
-      // parameters being passed in into the variable storage list. The variable
-      // names in both cases have been munged with the definition's name in order
-      // to make them unique.
+      // being passed in here. So this code looks at the original definition
+      // to get the list of variable names, caches those values on a stack,
+      // recalculates those variables based on the inputs to the function call,
+      // runs the calculation using those variables, and then pops the original
+      // values back off the stack.
     case fn:
     {
-      // assume this is numeric
+      // assume this is numeric for the moment
       result.type = NUMBER;
       result.number = 0;
       // get the original definition or error out if we can't find it
@@ -432,27 +431,38 @@ static value_t evaluate_expression(expression_t *expression)
         basic_error("User-defined function '%s' is being called with the wrong number of parameters");
         break;
       }
-      // now for each parameter expression in the function call, calculate its value, look up
-      // the original (munged) name in the variable table, and assign the newly calculated
-      // value to it
-      GList *original_parameters = original_definition->parameters;
-      expression_t *original_parameter = original_parameters->data; // pre-flight for the first time through
-      variable_t *munged_variable;
-      value_t updated_val;
+
+      //NEW VERSION
+      // for each parameter name in the original function call, copy the current value
+      // of any global version of that variable's value onto a temporary stack...
+      GTree *stack = g_tree_new(symbol_compare);
+      variable_storage_t *storage;
+      either_t *stored_val;
+      expression_t *original_parameter = original_definition->parameters->data; // pre-flight for the first time through
       int type = 0;
-      for (GList *L = expression->parms.variable->subscripts; L != NULL; L = g_list_next(L)) {
-        // munge the name of the original parameter in the same slot
-        char *param_name = original_parameter->parms.variable->name->str;
-        char *name_buff = strdup(func_name);
-        strncat(name_buff, param_name, 80);
-        // find the storage for the variable with that munged name
-        munged_variable = malloc(sizeof(*munged_variable));
-        munged_variable->name = g_string_new(name_buff);
-        munged_variable->subscripts = NULL;
-        either_t *stored_val = variable_value(munged_variable, &type);
-        // calculate the value of the expression in this parameter's location
-        updated_val = evaluate_expression(L->data);
-        // and finally, assign the new value to the stored variable
+      for (GList *param = expression->parms.variable->subscripts; param != NULL; param = g_list_next(param)) {
+        // retrieve the original value
+        stored_val = variable_value(original_parameter->parms.variable, &type);
+
+        // make a slot and push the value onto the stack
+        storage = malloc(sizeof(*storage));
+        storage->value = malloc(sizeof(stored_val));
+        storage->value = stored_val;
+        g_tree_insert(stack, original_parameter->parms.variable->name->str, storage);
+        
+        // move to the next item in the original parameter list, if there's any left
+        if (original_definition->parameters->next != NULL)
+          original_parameter = g_list_next(original_definition->parameters)->data;
+      }
+      
+      // now loop over the list of inputs, calculate them, and update the global variable
+      value_t updated_val;
+      for (GList *param = expression->parms.variable->subscripts; param != NULL; param = g_list_next(param)) {
+        // calculate the value for the parameter expression
+        updated_val = evaluate_expression(param->data);
+        
+        // find and update the global value
+        stored_val = variable_value(original_parameter->parms.variable, &type);
         if (updated_val.type == type) {
           if (type == STRING)
             stored_val->string = updated_val.string;
@@ -463,14 +473,13 @@ static value_t evaluate_expression(expression_t *expression)
           basic_error("Type mismatch in user-defined function call");
           break;
         }
-        // move to the next item in the original parameter list, if there's any left
-        if (original_parameters->next != NULL)
-          original_parameter = g_list_next(original_parameters)->data;
-        // and kill this off
-        free(munged_variable);
+        
+        // move to the next parameter
+        if (original_definition->parameters->next != NULL)
+          original_parameter = g_list_next(original_definition->parameters)->data;
       }
-      // now that all the private variables have been updated, we can run the calculation
-      // but once again we have to munge the names of the variables in the original formula
+      
+      // with the global values updated, we can calculate our expression
       expression_t *p = NULL;
       p = function_expression(expression->parms.variable, p);
       if (p == NULL) {
@@ -480,6 +489,84 @@ static value_t evaluate_expression(expression_t *expression)
       } else {
         result = evaluate_expression(p);
       }
+      
+      // and then pop the values back off the stack into the globals
+      either_t *global_val, *temp_val;
+      original_parameter = original_definition->parameters->data; // pre-flight for the first time through
+      for (GList *param = expression->parms.variable->subscripts; param != NULL; param = g_list_next(param)) {
+        // retrieve the original name and value
+        global_val = variable_value(original_parameter->parms.variable, &type);
+        
+        // find the original value in the stack
+        temp_val = g_tree_lookup(stack, original_parameter->parms.variable->name->str);
+        
+        // copy the value back
+          if (type == STRING)
+            global_val->string = temp_val->string;
+          else
+            global_val->number = temp_val->number;
+      
+        // kill the stack entry
+        g_tree_remove(stack, original_parameter->parms.variable->name->str);
+        free(temp_val);
+        
+        // move to the next parameter
+        if (original_definition->parameters->next != NULL)
+          original_parameter = g_list_next(original_definition->parameters)->data;
+      }
+      // kill the stack to be safe
+      g_tree_destroy(stack);
+
+      //OLD VERSION USING MUNGED NAMES
+//      // now for each parameter expression in the function call, calculate its value, look up
+//      // the original (munged) name in the variable table, and assign the newly calculated
+//      // value to it
+//      //GList *original_parameters = original_definition->parameters;
+//      //expression_t *original_parameter = original_parameters->data; // pre-flight for the first time through
+//      variable_t *munged_variable;
+//      value_t updated_val;
+//      //int type = 0;
+//      for (GList *params = expression->parms.variable->subscripts; params != NULL; params = g_list_next(params)) {
+//        // munge the name of the original parameter in the same slot
+//        char *param_name = original_parameter->parms.variable->name->str;
+//        char *name_buff = strdup(func_name);
+//        strncat(name_buff, param_name, 80);
+//        // find the storage for the variable with that munged name
+//        munged_variable = malloc(sizeof(*munged_variable));
+//        munged_variable->name = g_string_new(name_buff);
+//        munged_variable->subscripts = NULL;
+//        either_t *stored_val = variable_value(munged_variable, &type);
+//        // calculate the value of the expression in this parameter's location
+//        updated_val = evaluate_expression(params->data);
+//        // and finally, assign the new value to the stored variable
+//        if (updated_val.type == type) {
+//          if (type == STRING)
+//            stored_val->string = updated_val.string;
+//          else
+//            stored_val->number = updated_val.number;
+//        } else {
+//          // if the type we stored last time is different than this time...
+//          basic_error("Type mismatch in user-defined function call");
+//          break;
+//        }
+//        // move to the next item in the original parameter list, if there's any left
+//        if (original_parameters->next != NULL)
+//          original_parameter = g_list_next(original_parameters)->data;
+//        // and kill this off
+//        free(munged_variable);
+//      }
+      
+//      // now that all the private variables have been cached, we can run the calculation
+//      // but once again we have to munge the names of the variables in the original formula
+//      expression_t *p = NULL;
+//      p = function_expression(expression->parms.variable, p);
+//      if (p == NULL) {
+//        char buffer[80];
+      //        sprintf(buffer, "User-defined function '%s' is being called but has not been defined", expression->parms.variable->name->str);
+      //        basic_error(buffer);
+      //      } else {
+      //        result = evaluate_expression(p);
+      //      }
     }
       break;
       
@@ -950,7 +1037,7 @@ static void perform_statement(GList *L)
           strncat(name_buff, param_name, 80);
           // make a new variable for it
           variable_t *nv = malloc(sizeof(*nv));
-          nv->name = g_string_new(name_buff);
+          nv->name = g_string_new(param_name); // name_buff is munched
           nv->subscripts = NULL;
           insert_variable(nv);
           // dispose the temp variable
@@ -1440,13 +1527,13 @@ static gboolean print_symbol(gpointer key, gpointer value, gpointer unused)
 }
 /* used for VARLIST in those versions of BASIC that support it */
 static void print_variables() {
-  g_tree_foreach(interpreter_state.values, print_symbol, NULL);
+  g_tree_foreach(interpreter_state.variable_values, print_symbol, NULL);
   printf("\n\n");
 }
 /* used for CLEAR, NEW and similar instructions. */
 static void delete_variables() {
-  g_tree_destroy(interpreter_state.values);
-  interpreter_state.values = g_tree_new(symbol_compare);
+  g_tree_destroy(interpreter_state.variable_values);
+  interpreter_state.variable_values = g_tree_new(symbol_compare);
 }
 static void delete_functions() {
   g_tree_destroy(interpreter_state.functions);
@@ -1554,13 +1641,13 @@ static void print_statistics()
   }
   
   // variables
-  int num_total = g_tree_nnodes(interpreter_state.values);
+  int num_total = g_tree_nnodes(interpreter_state.variable_values);
   int num_int = 0, num_sng = 0, num_dbl = 0, num_str = 0;
-  g_tree_foreach(interpreter_state.values, is_integer, &num_int);
-  g_tree_foreach(interpreter_state.values, is_single, &num_sng);
-  g_tree_foreach(interpreter_state.values, is_double, &num_dbl);
-  g_tree_foreach(interpreter_state.values, is_single, &num_sng);
-  g_tree_foreach(interpreter_state.values, is_string, &num_str);
+  g_tree_foreach(interpreter_state.variable_values, is_integer, &num_int);
+  g_tree_foreach(interpreter_state.variable_values, is_single, &num_sng);
+  g_tree_foreach(interpreter_state.variable_values, is_double, &num_dbl);
+  g_tree_foreach(interpreter_state.variable_values, is_single, &num_sng);
+  g_tree_foreach(interpreter_state.variable_values, is_string, &num_str);
   
   // output to screen if selected
   if(print_stats) {
@@ -1863,7 +1950,7 @@ int main(int argc, char *argv[])
   parse_options(argc, argv);
   
   // set up empty trees to store variables and user functions as we find them
-  interpreter_state.values = g_tree_new(symbol_compare);
+  interpreter_state.variable_values = g_tree_new(symbol_compare);
   interpreter_state.functions = g_tree_new(symbol_compare);
   
   // open the file...
