@@ -1,4 +1,3 @@
-
 /* Interpreter for RetroBASIC
  Copyright (C) 2020 Maury Markowitz
  
@@ -6,14 +5,17 @@
  Copyright (C) 1998 James Bowman
  
  This file is part of RetroBASIC.
+ 
  RetroBASIC is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation; either version 2, or (at your option)
  any later version.
+ 
  RetroBASIC is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+ 
  You should have received a copy of the GNU General Public License
  along with RetroBASIC; see the file COPYING.  If not, write to
  the Free Software Foundation, 59 Temple Place - Suite 330,
@@ -1313,7 +1315,7 @@ static void perform_statement(GList *L)
       }
         break;
         
-      case OPTION:
+      case BASE:
         if (ps->parms.generic_parameter != NULL) {
           value_t baseval;
           baseval = evaluate_expression(ps->parms.generic_parameter);
