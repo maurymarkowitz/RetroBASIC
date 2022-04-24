@@ -40,7 +40,7 @@ static int tab_columns = 10;                    // based on PET BASIC, which is 
 static int trace_lines = FALSE;
 static int upper_case = 0;                      // force INPUT to upper case
 static int array_base = 1;                      // lower bound of arrays, can be set to 0 with OPTION BASE
-static double random_seed = -1;
+static double random_seed = -1;                 // reset with RANDOMIZE, if -1 then auto-seeds
 static int string_slicing = FALSE;              // are references like A$(1,1) referring to an array entry or doing "slicing"?
 static int goto_next_highest = FALSE;           // if a branch targets an non-existant line, should we go to the next highest?
 static char *source_file = "";
@@ -518,57 +518,6 @@ static value_t evaluate_expression(expression_t *expression)
       }
       // kill the stack to be safe
       g_tree_destroy(stack);
-
-      //OLD VERSION USING MUNGED NAMES
-//      // now for each parameter expression in the function call, calculate its value, look up
-//      // the original (munged) name in the variable table, and assign the newly calculated
-//      // value to it
-//      //GList *original_parameters = original_definition->parameters;
-//      //expression_t *original_parameter = original_parameters->data; // pre-flight for the first time through
-//      variable_t *munged_variable;
-//      value_t updated_val;
-//      //int type = 0;
-//      for (GList *params = expression->parms.variable->subscripts; params != NULL; params = g_list_next(params)) {
-//        // munge the name of the original parameter in the same slot
-//        char *param_name = original_parameter->parms.variable->name->str;
-//        char *name_buff = strdup(func_name);
-//        strncat(name_buff, param_name, 80);
-//        // find the storage for the variable with that munged name
-//        munged_variable = malloc(sizeof(*munged_variable));
-//        munged_variable->name = g_string_new(name_buff);
-//        munged_variable->subscripts = NULL;
-//        either_t *stored_val = variable_value(munged_variable, &type);
-//        // calculate the value of the expression in this parameter's location
-//        updated_val = evaluate_expression(params->data);
-//        // and finally, assign the new value to the stored variable
-//        if (updated_val.type == type) {
-//          if (type == STRING)
-//            stored_val->string = updated_val.string;
-//          else
-//            stored_val->number = updated_val.number;
-//        } else {
-//          // if the type we stored last time is different than this time...
-//          basic_error("Type mismatch in user-defined function call");
-//          break;
-//        }
-//        // move to the next item in the original parameter list, if there's any left
-//        if (original_parameters->next != NULL)
-//          original_parameter = g_list_next(original_parameters)->data;
-//        // and kill this off
-//        free(munged_variable);
-//      }
-      
-//      // now that all the private variables have been cached, we can run the calculation
-//      // but once again we have to munge the names of the variables in the original formula
-//      expression_t *p = NULL;
-//      p = function_expression(expression->parms.variable, p);
-//      if (p == NULL) {
-//        char buffer[80];
-      //        sprintf(buffer, "User-defined function '%s' is being called but has not been defined", expression->parms.variable->name->str);
-      //        basic_error(buffer);
-      //      } else {
-      //        result = evaluate_expression(p);
-      //      }
     }
       break;
       
@@ -719,7 +668,7 @@ static value_t evaluate_expression(expression_t *expression)
               result = double_to_value(a + b);
             else {
               result.number = 0;
-              basic_error("Type mismatch");
+              basic_error("Type mismatch, string and number in addition");
             }
             break;
           case '-':
@@ -1007,10 +956,8 @@ static void perform_statement(GList *L)
         break;
         
       case CLEAR:
-      {
         // wipe out any variables and create a fresh list
         delete_variables();
-      }
         break;
         
       case CLS:
@@ -1027,27 +974,7 @@ static void perform_statement(GList *L)
         
       case DEF:
         // sets up a function in storage. the only interesting thing here is that the
-        // variable list has to be cached with function name on the front so that the
-        // names are globally unique. the function call has to do the same munging
-      {
-        char *func_name = ps->parms.def.signature->name->str;
-        for (GList *I = ps->parms.def.signature->subscripts; I != NULL; I = g_list_next(I)) {
-          expression_t * pv = I->data;
-          // munge the parameter name
-          char *param_name = pv->parms.variable->name->str;
-          char *name_buff = strdup(func_name);
-          strncat(name_buff, param_name, 80);
-          // make a new variable for it
-          variable_t *nv = malloc(sizeof(*nv));
-          nv->name = g_string_new(param_name); // name_buff is munched
-          nv->subscripts = NULL;
-          insert_variable(nv);
-          // dispose the temp variable
-          free(nv);
-        }
-        // and call this to insert the new function
         function_expression(ps->parms.def.signature, ps->parms.def.formula);
-      }
         break;
         
       case DIM:
@@ -1875,7 +1802,7 @@ void parse_options(int argc, char *argv[])
         
       case 'v':
         print_version();
-        printed_help =  TRUE;
+        printed_help = TRUE;
         break;
         
       case 'u':
