@@ -39,7 +39,7 @@ static int write_stats = 0;
 static int tab_columns = 10;                    // based on PET BASIC, which is a good enough target
 static int trace_lines = FALSE;
 static int upper_case = 0;                      // force INPUT to upper case
-static int array_base = 1;                      // lower bound of arrays
+static int array_base = 1;                      // lower bound of arrays, can be set to 0 with OPTION BASE
 static double random_seed = -1;
 static int string_slicing = FALSE;              // are references like A$(1,1) referring to an array entry or doing "slicing"?
 static int goto_next_highest = FALSE;           // if a branch targets an non-existant line, should we go to the next highest?
@@ -1099,6 +1099,7 @@ static void perform_statement(GList *L)
           new_for->step = 1;
           
           // the original gnbasic code did this, which is definitely non-standard and caused problems in SST
+          // is this perhaps ANSI?
           //                        if (new_for->begin < new_for->end)
           //                            new_for->step = 1;
           //                        else
