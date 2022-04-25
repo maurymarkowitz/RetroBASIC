@@ -8,15 +8,19 @@ GW = GW-BASIC
 WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 
+- need to allow multiple INPUTs on a single line, currently it requires a CR between values
+
+- needs command-line switch for ANSI, controls tab stops and many errors
+
+- add support for string "slicing" commands used in HP/AB/IB. This is a bit tricky because it is the same syntax as string arrays found in other systems, so there is a command-line switch for this
+
 - DEFINT/SNG/DBL/STR does not support the "range" syntax, DEFINT A-F. only comma lists work, DEFINT A,B
+
+- support Dartmouth/ANSI style FOR loops which skip the body if the test fails on the first loop
 
 - ELSE would be realtively easy to add, at least the single-line variety
 
 - flesh out GET and PUT, which are just placeholders for now
-
-- need to allow multiple INPUTs on a single line, currently it requires a CR between values
-
-- add support for string "slicing" commands used in HP/AB/IB. This is a bit tricky because it is the same syntax as string arrays found in other systems, so there is a command-line switch for this
 
 - support AB's DEG and RAD modes? WB also had gradians; SELECT G
 
