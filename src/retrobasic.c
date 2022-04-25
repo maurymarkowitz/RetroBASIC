@@ -43,6 +43,8 @@ static int array_base = 1;                      // lower bound of arrays, can be
 static double random_seed = -1;                 // reset with RANDOMIZE, if -1 then auto-seeds
 static int string_slicing = FALSE;              // are references like A$(1,1) referring to an array entry or doing "slicing"?
 static int goto_next_highest = FALSE;           // if a branch targets an non-existant line, should we go to the next highest?
+static int ansi_on_boundaries = FALSE;          // if the value for an ON statement <1 or >num entries, should it continue or error?
+static int ansi_tab_behaviour = FALSE;          // if a TAB < current column, ANSI inserts a CR, MS does not
 static char *source_file = "";
 static char *input_file = "";
 static char *print_file = "";
@@ -434,7 +436,6 @@ static value_t evaluate_expression(expression_t *expression)
         break;
       }
 
-      //NEW VERSION
       // for each parameter name in the original function call, copy the current value
       // of any global version of that variable's value onto a temporary stack...
       GTree *stack = g_tree_new(symbol_compare);
@@ -448,8 +449,12 @@ static value_t evaluate_expression(expression_t *expression)
 
         // make a slot and push the value onto the stack
         storage = malloc(sizeof(*storage));
+        storage->type = type;
         storage->value = malloc(sizeof(stored_val));
-        storage->value = stored_val;
+          if (type == STRING)
+            storage->value->string = stored_val->string;
+          else
+            storage->value->number = stored_val->number;
         g_tree_insert(stack, original_parameter->parms.variable->name->str, storage);
         
         // move to the next item in the original parameter list, if there's any left
@@ -493,7 +498,8 @@ static value_t evaluate_expression(expression_t *expression)
       }
       
       // and then pop the values back off the stack into the globals
-      either_t *global_val, *temp_val;
+      either_t *global_val;
+      variable_storage_t *temp_val;
       original_parameter = original_definition->parameters->data; // pre-flight for the first time through
       for (GList *param = expression->parms.variable->subscripts; param != NULL; param = g_list_next(param)) {
         // retrieve the original name and value
@@ -503,11 +509,11 @@ static value_t evaluate_expression(expression_t *expression)
         temp_val = g_tree_lookup(stack, original_parameter->parms.variable->name->str);
         
         // copy the value back
-          if (type == STRING)
-            global_val->string = temp_val->string;
-          else
-            global_val->number = temp_val->number;
-      
+        if (type == STRING)
+          global_val->string = temp_val->value->string;
+        else
+          global_val->number = temp_val->value->number;
+        
         // kill the stack entry
         g_tree_remove(stack, original_parameter->parms.variable->name->str);
         free(temp_val);
@@ -516,6 +522,7 @@ static value_t evaluate_expression(expression_t *expression)
         if (original_definition->parameters->next != NULL)
           original_parameter = g_list_next(original_definition->parameters)->data;
       }
+
       // kill the stack to be safe
       g_tree_destroy(stack);
     }
@@ -616,16 +623,26 @@ static value_t evaluate_expression(expression_t *expression)
             result.number = (double)interpreter_state.cursor_column; //FIXME: should this be +1?
             break;
           case TAB:
-            // TAB does nothing if the current cursor position is past the number being passed in,
-            // otherwise it adds spaces to move the cursor to that column number
+            // MS basics do nothing if the current cursor position is past the number being passed in,
+            // otherwise it adds spaces to move the cursor to that column number. ANSI will insert a
+            // CR and go to that column of the next line. ANSI columns start at 1, MS at 0.
             // note that in "real" basic this is a psuedo-function that simply moves the cursor
             //   and doesn't return anything, but here it works by returning a string
             result.type = STRING;
             result.string = g_string_new("");
             int tabs = (int)parameters[0].number;
+            if (ansi_tab_behaviour)
+              tabs++;
             if (tabs > interpreter_state.cursor_column) {
               for (int i = interpreter_state.cursor_column; i <= tabs - 1; i++) {
                 result.string = g_string_append(result.string, " ");
+              }
+            } else {
+              if (ansi_tab_behaviour) {
+                result.string = g_string_append(result.string, "\n");
+                for (int i = 0; i <= tabs - 1; i++) {
+                  result.string = g_string_append(result.string, " ");
+                }
               }
             }
             break;
@@ -893,6 +910,7 @@ static GList *find_line(int linenumber)
   // negative numbers are not allowed
   if (linenumber < 0) {
     sprintf(buffer, "Negative target line %i in branch", linenumber);
+    basic_error(buffer);
     return NULL;
   }
   
@@ -1205,33 +1223,42 @@ static void perform_statement(GList *L)
         
       case ON:
       {
-        /* first we evaluate the expression */
+        GList *numslist;
+        numslist = ps->parms.on.numbers;
+
+        // eval, returning a double...
         value_t val = evaluate_expression(ps->parms.on.expression);
         
-        /* ON does an INT, and since a valid line is +ve, INT always rounds down... */
+        // ON does an INT, and since a valid index is +ve, INT always rounds down...
         int n = (int)floor(val.number);
         /* C arrays are zero-indexed, not 1, so... */
         --n;
         
-        /* if it calced OK, see if we can find that entry in the list of numbers */
-        GList *numslist;
-        numslist = ps->parms.on.numbers;
+        // in ANSI, if the index is <1 or >the number of items, an error is returned
+        if (n < 0 && ansi_on_boundaries)
+          basic_error("Index value for ON less than 1");
+        
+        // ... or if we're beyond the end of the list
+        if (n > g_list_length(numslist) && ansi_on_boundaries)
+          basic_error("Index value for ON greater than list of line numbers");
+
+        // otherwise, try to get the nth item
         expression_t *item = g_list_nth_data(numslist, (guint)n);
         if (item == NULL) {
-          // an IF statement simply runs the next statement if the condition fails,
-          // likewise, if the ON value points to an item that is not in the number
-          // list, if simply falls off to the next statement
-          break;
+            // an IF statement simply runs the next statement if the condition fails,
+            // likewise, if the ON value points to an item that is not in the number
+            // list, if simply falls off to the next statement
+            break;
         }
         
-        /* we found the nth entry, so evaluate it */
+        // we found the nth entry, so evaluate it
         value_t lineval;
         lineval = evaluate_expression(item);
         
-        /* turn it into a line number */
+        // turn it into a line number
         int linenum = (int)floor(lineval.number);
         
-        /* and then it's either GOTO or GOSUB... */
+        // and then it's either GOTO or GOSUB...
         if (ps->parms.on.type == GOTO) {
           interpreter_state.next_statement = find_line(linenum);
         } else {
@@ -1328,7 +1355,7 @@ static void perform_statement(GList *L)
         GList *variable_list;
         
         if (interpreter_state.current_data_statement == NULL) {
-          basic_error("No more DATA");
+          basic_error("No more DATA for READ");
         }
         
         variable_list = ps->parms.read;
@@ -1453,6 +1480,21 @@ static gboolean is_integer(gpointer key, gpointer value, gpointer user_data)
 static gboolean print_symbol(gpointer key, gpointer value, gpointer unused)
 {
   printf("\n%s ", (char *)key);
+  return FALSE;
+}
+/* ...and their values */
+static gboolean print_value(gpointer key, gpointer value, gpointer unused)
+{
+  variable_storage_t *storage = g_tree_lookup(interpreter_state.variable_values, key);
+  either_t *p = storage->value;
+  int type = storage->type;
+  if (type == STRING)
+    if (p->string == 0)
+      printf("\n%s: %s", (char *)key, "NULL");
+    else
+      printf("\n%s: %s", (char *)key, (char *)p->string->str);
+  else
+    printf("\n%s: %f", (char *)key, (double)p->number);
   return FALSE;
 }
 /* used for VARLIST in those versions of BASIC that support it */
