@@ -33,23 +33,27 @@
 174 REM
 175 REM input with three variables
 180 PRINT "input with a,b,c":INPUT A,B,C
+181 PRINT "inputs were: " A,B,C
 184 REM
 185 REM making a 2x2 array and then printing it out
 200 DIM A(2,2)
 300 A(1,1)=1:A(1,2)=2:A(2,1)=3:A(2,2)=4
-400 PRINTA(1,1),A(1,2),A(2,1),A(2,2)
+400 PRINT"Array 1 to 4: "A(1,1),A(1,2),A(2,1),A(2,2)
 494 REM
 495 REM make a simple function that returns itself
 496 REM
 500 DEF FNA(X)=X
 520 print "Calling function A with const 20, should return 20: "FNA(20)
+525 print "Setting variable X to 10"
 530 X=10
-540 print "Calling function A with var 10, should return 10: "FNA(X)
+540 print "Calling function A with var X=10, should return 10: "FNA(X)
+550 print "After calling function, X is"X
 594 REM
 595 REM make a function with some actual math
 596 REM
 600 DEF FNB(X)=X+5
 620 print "Calling function B with 20 const, should return 25: "FNB(20)
+630 print "Value of X after B is "X
 694 REM
 695 REM not sure why this is here
 696 REM
