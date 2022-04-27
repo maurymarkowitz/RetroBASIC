@@ -144,10 +144,9 @@ XOR       { return XOR; }
 =\>       { return CMP_GE; }
 \<\>      { return CMP_NE; }
 \>\<      { return CMP_NE; }
-#         { return CMP_HASH; } // use a separate token here to preserve it in LIST?
+#         { return CMP_HASH; } // use a separate token here to preserve it in LIST
 
  /* defs added in Extended BASIC we can safely ignore */
- /* FIXME: these are actually easy to do, simply run them as DIMs so they get entered into the btree */
 DEFSTR    { return DEFSTR; }
 DEFINT    { return DEFINT; }
 DEFSNG    { return DEFSNG; }
