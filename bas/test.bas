@@ -1,3 +1,10 @@
+1 REM lots of little tests
+2 REM
+5 REM print some random numbers
+6 REM
+7 PRINT"Some rnds"
+8 RANDOMIZE 1:FOR I=1 TO 10:PRINT RND(0):NEXT I
+9 REM
 10 REM calling DEFINT and then listing vars
 11 REM
 20 DEFINT X,Y
