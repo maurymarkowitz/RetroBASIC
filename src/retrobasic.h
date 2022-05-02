@@ -36,7 +36,8 @@
  */
 typedef struct {
   GString *name;
-  GList *subscripts;			/* subscripts, list of expressions */
+  GList *subscripts;      /* subscripts, list of expressions */
+  GList *slicing;         /* up to two expressions holding string slicing limits */
 } variable_t;
 
 /* expressions */
