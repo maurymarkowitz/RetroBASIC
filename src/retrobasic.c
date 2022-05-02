@@ -161,6 +161,9 @@ gint symbol_compare(gconstpointer a, gconstpointer b)
 /* Returns an either_t containing a string or a number for the underlying
  variable, along with its type in the out-parameter 'type'. If the
  variable has not been encountered before it will be created here. */
+/* NOTE: this code also handles string slicing. it would be much preferrable
+ to do that as a function call so it could overload the MID$-style functions
+ but I could not figure out how to do that at runtime in the yacc code. */
 either_t *variable_value(variable_t *variable, int *type)
 {
   variable_storage_t *storage;
@@ -236,13 +239,11 @@ either_t *variable_value(variable_t *variable, int *type)
   
   // at this point we have either found or created the variable, so...
   
-  /* get the type */
-  *type = storage->type;
-  /* compute array index, or leave it at zero if there is none */
+  // compute array index, or leave it at zero if there is none
   index = 0;
-  {
-    GList *original_dimensions;         /* list of actual dimensions in storage (from the DIM), stored as integers */
-    GList *variable_indexes;            /* list of indices in this variable reference, each is an expression, likely a constant */
+  if (!string_slicing) {
+    GList *original_dimensions;         // list of actual dimensions in storage (from the DIM), stored as integers
+    GList *variable_indexes;            // list of indices in this variable reference, each is an expression, likely a constant
     
     original_dimensions = storage->subscripts;
     variable_indexes = variable->subscripts;
@@ -275,6 +276,15 @@ either_t *variable_value(variable_t *variable, int *type)
   // done with this temp name, but don't pass TRUE or it will kill the original too
   g_string_free(storage_name, FALSE);
   
+  // returning the type
+  *type = storage->type;
+  
+  // if we are using string slicing OR there is a ANSI-style slice,
+  // return just that part of the value
+  if (*type == STRING && string_slicing) {
+    
+  }
+
   // all done, return the value at that index
   return &storage->value[index];
 }
@@ -601,7 +611,7 @@ static value_t evaluate_expression(expression_t *expression)
             break;
           case RND:
             // TODO: support alternative RNDs that return limited values
-            result.number = (rand() / (double)RAND_MAX); // don't forget the cast!
+            result.number = ((double)rand() / (double)RAND_MAX); // don't forget the cast!
             break;
           case VAL:
             result.number = atof(parameters[0].string->str);
@@ -1349,7 +1359,8 @@ static void perform_statement(GList *L)
           srand(seed_value.number);
         }
       }
-        
+        break;
+
       case READ:
       {
         GList *variable_list;
@@ -1432,9 +1443,15 @@ static void perform_statement(GList *L)
         break;
         
       case STOP:
+      {
+        if (ps->parms.generic_parameter != NULL) {
+          value_t message = evaluate_expression(ps->parms.generic_parameter);
+          printf("STOP: %s\n", message.string->str);
+        }
         assert(1==2);
+      }
         break;
-        
+
       case VARLIST:
         print_variables();
         break;
@@ -1792,7 +1809,7 @@ static void print_usage(char *argv[])
   puts("  -v, --version: print version info");
   puts("  -u, --upper-case: convert all input to upper case");
   puts("  -a, --array-base: minimum array index, normally 1");
-  puts("  -s, --slicing: turn on string slicing (turning off sting arrays)");
+  puts("  -s, --slicing: turn on string slicing (turning off string arrays)");
   puts("  -n, --no-run: don't run the program after parsing");
   puts("  -g, --goto-next: if a branch target doesn't exist, go to the next line");
   puts("  -t, --tabs: set the number of spaces for comma-separated items");
