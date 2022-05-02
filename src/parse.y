@@ -79,7 +79,7 @@ static expression_t *make_operator(int arity, int o)
 }
 
 %type <l> program line statements
-%type <l> printlist exprlist varlist //assignlist //numlist
+%type <l> printlist exprlist varlist slicelist //assignlist //numlist
 %type <i> printsep binary_op comparison_op e2op term unary_op fn_1 fn_2 fn_x
 %type <expression> expression expression0 expression1 expression2 expression3 expression4 function factor
 %type <statement> statement
@@ -615,6 +615,13 @@ statement:
 	  $$ = new;
 	}
   |
+  STOP expression /* Wang BASIC allows a print-like expression here */
+  {
+    statement_t *new = make_statement(STOP);
+    new->parms.generic_parameter = $2;
+    $$ = new;
+  }
+  |
   SYS expression /* same as CALL */
   {
     statement_t *new = make_statement(SYS);
@@ -815,7 +822,7 @@ function:
 	  expression_t *new = make_operator(3, $1);
 	  new->parms.op.p[0] = $3;
 	  new->parms.op.p[1] = $5;
-      new->parms.op.p[2] = $7;
+    new->parms.op.p[2] = $7;
 	  $$ = new;
 	}
 	;
@@ -977,10 +984,11 @@ user_function:
   }
 
  /* variables may contain an array reference or parameter list for functions */
-
-array_open_braket:
+ /* they may also include slicing in the ANSI model - the HP/Apple/Atari style
+    looks like a normal array reference */
+open_bracket:
  '(' | '[';
-array_close_braket:
+close_bracket:
  ')' | ']';
 
 variable:
@@ -995,14 +1003,37 @@ variable:
     insert_variable(new);
 	}
 	|
-  VARIABLE_NAME array_open_braket exprlist array_close_braket
+  VARIABLE_NAME open_bracket exprlist close_bracket
   {
     variable_t *new = malloc(sizeof(*new));
     new->name = $1;
     new->subscripts = $3;
     $$ = new;
 
-    /* this may result in errors about array bounds if you need to OPTION BASE but do so after the DIM */
+    /* this may result in errors about array bounds if you OPTION BASE after the DIM */
+    insert_variable(new);
+  }
+  |
+  VARIABLE_NAME open_bracket slicelist close_bracket
+  {
+    /* this is the ANSI-style slicing command */
+    variable_t *new = malloc(sizeof(*new));
+    new->name = $1;
+    new->subscripts = NULL;
+    new->slicing = $3;
+    $$ = new;
+
+    insert_variable(new);
+  }
+  VARIABLE_NAME open_bracket exprlist close_bracket open_bracket slicelist close_bracket
+  {
+    /* and this is ANSI slicing of an entry in a string array */
+    variable_t *new = malloc(sizeof(*new));
+    new->name = $1;
+    new->subscripts = $3;
+    new->slicing = $6;
+    $$ = new;
+
     insert_variable(new);
   }
 
@@ -1071,6 +1102,21 @@ exprlist:
 	  $$ = g_list_append($1, $3);
 	}
 	;
+  
+  /* ANSI-style string slicing */
+slicelist:
+    expression
+    {
+      $$ = g_list_prepend(NULL, $1);
+    }
+    |
+    expression ':' expression
+    {
+      $$ = g_list_prepend(NULL, $1);
+      $$ = g_list_append($$, $3);
+    }
+    ;
+
 	
  /* used only in PATB style multiple-assignment LETs */
  /* not currently used 
