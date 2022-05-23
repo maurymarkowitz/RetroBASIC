@@ -1025,6 +1025,7 @@ variable:
 
     insert_variable(new);
   }
+  |
   VARIABLE_NAME open_bracket exprlist close_bracket open_bracket slicelist close_bracket
   {
     /* and this is ANSI slicing of an entry in a string array */
