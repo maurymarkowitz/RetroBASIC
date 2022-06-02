@@ -284,9 +284,6 @@ either_t *variable_value(variable_t *variable, int *type)
   // if we are using string slicing OR there is a ANSI-style slice, return that part of the string
   if (*type == STRING) {
     either_t *result;
-    GList *slice_param;
-    value_t startPoint, endPoint;
-    long b, c;
     
     // if it's an ansi slice, the start and end indexes are in slicing
     // if its non-ansi, the start and end are in substring
@@ -300,6 +297,10 @@ either_t *variable_value(variable_t *variable, int *type)
       // HP style slices will have one or two parameters
       if (string_slicing && (g_list_length(variable->subscripts) != 1 && g_list_length(variable->subscripts) != 2))
         basic_error("Wrong number of parameters in string slice");
+
+      GList *slice_param;
+      value_t startPoint, endPoint;
+      long b, c;
 
       // get the parameters and convert to a numeric value
       if (string_slicing) {
@@ -572,12 +573,11 @@ static value_t evaluate_expression(expression_t *expression)
       }
       
       // and then pop the values back off the stack into the globals
-      either_t *global_val;
       variable_storage_t *temp_val;
       original_parameter = original_definition->parameters->data; // pre-flight for the first time through
       for (GList *param = expression->parms.variable->subscripts; param != NULL; param = g_list_next(param)) {
         // retrieve the original name and value
-        global_val = variable_value(original_parameter->parms.variable, &type);
+        either_t *global_val = variable_value(original_parameter->parms.variable, &type);
         
         // find the original value in the stack
         temp_val = g_tree_lookup(stack, original_parameter->parms.variable->name->str);
