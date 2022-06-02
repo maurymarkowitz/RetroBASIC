@@ -41,7 +41,7 @@ static int trace_lines = FALSE;
 static int upper_case = 0;                      // force INPUT to upper case
 static int array_base = 1;                      // lower bound of arrays, can be set to 0 with OPTION BASE
 static double random_seed = -1;                 // reset with RANDOMIZE, if -1 then auto-seeds
-static int string_slicing = FALSE;              // are references like A$(1,1) referring to an array entry or doing "slicing"?
+static int string_slicing = FALSE;              // are references like A$(1,1) referring to an array entry or doing slicing?
 static int goto_next_highest = FALSE;           // if a branch targets an non-existant line, should we go to the next highest?
 static int ansi_on_boundaries = FALSE;          // if the value for an ON statement <1 or >num entries, should it continue or error?
 static int ansi_tab_behaviour = FALSE;          // if a TAB < current column, ANSI inserts a CR, MS does not
@@ -51,7 +51,9 @@ static char *print_file = "";
 static char *stats_file = "";
 
 /* private types used only within the interpreter */
+
 /* value_t is used to store (and process) the results of an evaluation */
+// NOTE: this currently cannot return an array, so MAT instructions are not possible
 typedef struct {
   int type;            /* NUMBER, STRING */
   GString *string;
@@ -68,7 +70,7 @@ typedef union {
 /* variable_storage_t holds the *value* of a variable in memory */
 typedef struct {
   int type;               /* NUMBER, STRING */
-  GList *subscripts;      // subscript definitions, if any
+  GList *subscripts;      // subscript definitions, if any (from a DIM)
   either_t *value;        // actual value(s), malloced out
 } variable_storage_t;
 
@@ -279,10 +281,72 @@ either_t *variable_value(variable_t *variable, int *type)
   // returning the type
   *type = storage->type;
   
-  // if we are using string slicing OR there is a ANSI-style slice,
-  // return just that part of the value
-  if (*type == STRING && string_slicing) {
+  // if we are using string slicing OR there is a ANSI-style slice, return that part of the string
+  if (*type == STRING) {
+    either_t *result;
+    GList *slice_param;
+    value_t startPoint, endPoint;
+    long b, c;
     
+    // if it's an ansi slice, the start and end indexes are in slicing
+    // if its non-ansi, the start and end are in substring
+    if ((variable->slicing != NULL && g_list_length(variable->slicing) > 0)
+        || (string_slicing && g_list_length(variable->subscripts) > 0)) {
+      
+      // ANSI slices will always have two parameters in the slicing list
+      if (variable->slicing != NULL && g_list_length(variable->slicing) != 2)
+        basic_error("Wrong number of parameters in string slice");
+      
+      // HP style slices will have one or two parameters
+      if (string_slicing && (g_list_length(variable->subscripts) != 1 && g_list_length(variable->subscripts) != 2))
+        basic_error("Wrong number of parameters in string slice");
+
+      // get the parameters and convert to a numeric value
+      if (string_slicing) {
+        slice_param = variable->subscripts;
+      } else {
+        slice_param = variable->slicing;
+      }
+      // the start point can be empty in ANSI
+      startPoint = evaluate_expression(slice_param->data);
+      b = (long)startPoint.number;
+
+      // the end point may not exist, if it doesn't, it's the end of the string
+      if (g_list_length(slice_param) > 1) {
+        slice_param = g_list_next(slice_param);
+        endPoint = evaluate_expression(slice_param->data);
+        c = (long)endPoint.number;
+      } else {
+        c = storage->value->string->len - 1;
+      }
+      
+      // not clear what ANSI would do here, but we'll report an error
+      if (b <= 0)
+        basic_error("String slice end point smaller than start");
+
+      // according to ANSI, numbers outside the string should be forced to the string's bounds
+      // but most others would report an error
+      if (string_slicing && (b < 1 || c > storage->value->string->len - 1)) {
+        basic_error("String slice out of bounds");
+      } else {
+        b = (int)fmax(b, 1);
+        c = (int)fmin(c, storage->value->string->len);
+      }
+      
+      // build and return the new string
+      result = malloc(sizeof(*result));
+
+      result->string = g_string_new(storage->value->string->str);
+      long len = storage->value->string->len;
+      if (b < len)
+        result->string = g_string_erase(result->string, 0, b - 1); // note the -1
+      
+      len = result->string->len;
+      if (c < len)
+        g_string_truncate(result->string, c - b + 1);
+      
+      return result; // yes, this is being leaked
+    }
   }
 
   // all done, return the value at that index
@@ -780,7 +844,7 @@ static value_t evaluate_expression(expression_t *expression)
       // and finally, arity=3, which is currently only the MID
       else if (expression->parms.op.arity == 3)  {
         double b = parameters[1].number;
-        double c = parameters[2].number;
+        double c = parameters[2].number; // yeah, these could be ints
         
         switch (expression->parms.op.opcode) {
           case MID:
@@ -788,7 +852,7 @@ static value_t evaluate_expression(expression_t *expression)
           {
             result.string = g_string_new(parameters[0].string->str);
             
-            time_t len = strlen(parameters[0].string->str);
+            size_t len = strlen(parameters[0].string->str);
             if (b < len)
               result.string = g_string_erase(result.string, 0, b - 1); // note the -1
             
@@ -1349,13 +1413,17 @@ static void perform_statement(GList *L)
         
       case RANDOMIZE:
       {
-        value_t seed_value;
+        // GW BASIC and Dartmouth work differently. In Dartmouth, RANDOMIZE with no
+        // parameter is supposed to select a random seed, which is what happens here.
+        // in GW, that should display a prompt asking for the value, which seems
+        // odd. To get the Dartmouth behaviour in GW, one uses RANDOMIZE TIMER
+        // which is even more odd.
         
         // see if there's a parameter, if not, seed time
         if (ps->parms.generic_parameter == NULL)
           srand((unsigned int)time(0));
         else {
-          seed_value = evaluate_expression(ps->parms.generic_parameter);
+          value_t seed_value = evaluate_expression(ps->parms.generic_parameter);
           srand(seed_value.number);
         }
       }
@@ -1423,7 +1491,7 @@ static void perform_statement(GList *L)
         // resets the DATA pointer
         if (ps->parms.generic_parameter != NULL) {
           // if there is a parameter, treat it as a line number
-          // Wang BASIC treats the parameter as an ordinal, 'reset to nth global entry'
+          // Wang BASIC treats the parameter as an ordinal, 'reset to nth global entry', we do not support it
           value_t linenum = evaluate_expression(ps->parms.generic_parameter);
           interpreter_state.current_data_statement = find_line((int)linenum.number);
           interpreter_state.current_data_element = NULL;
@@ -1493,6 +1561,7 @@ static gboolean is_integer(gpointer key, gpointer value, gpointer user_data)
 }
 
 /* variable tree walking methods, returning FALSE means "keep going" */
+
 /* cheater method for printing out all the variable names */
 static gboolean print_symbol(gpointer key, gpointer value, gpointer unused)
 {
