@@ -997,7 +997,8 @@ variable:
 	  variable_t *new = malloc(sizeof(*new));
 	  new->name = $1;
 	  new->subscripts = NULL;
-	  $$ = new;
+    new->slicing = NULL;
+    $$ = new;
     
     /* add it to the interpreter's variable list for the analyizer*/
     insert_variable(new);
@@ -1008,6 +1009,7 @@ variable:
     variable_t *new = malloc(sizeof(*new));
     new->name = $1;
     new->subscripts = $3;
+    new->slicing = NULL;
     $$ = new;
 
     /* this may result in errors about array bounds if you OPTION BASE after the DIM */
@@ -1025,6 +1027,7 @@ variable:
 
     insert_variable(new);
   }
+  |
   VARIABLE_NAME open_bracket exprlist close_bracket open_bracket slicelist close_bracket
   {
     /* and this is ANSI slicing of an entry in a string array */
@@ -1104,12 +1107,10 @@ exprlist:
 	;
   
   /* ANSI-style string slicing */
+  // NOTE: the ANSI docs suggest the only correct format is two-parameter, start and end
+  //       this contrasts with most other systems, where one or the other can be left off
 slicelist:
-    expression
-    {
-      $$ = g_list_prepend(NULL, $1);
-    }
-    |
+    // two parameters, start and end indexes
     expression ':' expression
     {
       $$ = g_list_prepend(NULL, $1);
@@ -1117,7 +1118,6 @@ slicelist:
     }
     ;
 
-	
  /* used only in PATB style multiple-assignment LETs */
  /* not currently used 
  assignlist:
