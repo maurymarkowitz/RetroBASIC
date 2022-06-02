@@ -59,7 +59,6 @@ A complete list is maintained in the TODO file, but here are some important limi
 * DEF FNx does not parse the parameters when called, the global variable is used. This means constants do not work.
 * The system does not support "immediate mode" (command line) input. It is not supposed to, but could potentially do so.
 * Variable names are currently limited to two characters, which is needed to support "crunched" statements without spaces in MS style.
-* String "slicing" as seen in HP, Atari and Apple *et all* is not yet supported, but this is an important feature to add.
 * LIST, LOAD and SAVE are currently not implemented, in keeping with the use-case.
 * File I/O is not supported, commands like OPEN will be parsed but have no effect.
 * POKE does nothing, PEEK returns zero.
