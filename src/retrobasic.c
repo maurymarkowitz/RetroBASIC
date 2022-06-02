@@ -282,71 +282,73 @@ either_t *variable_value(variable_t *variable, int *type)
   *type = storage->type;
   
   // if we are using string slicing OR there is a ANSI-style slice, return that part of the string
+  long slice_start = -1, slice_end = 1;
   if (*type == STRING) {
-    either_t *result;
+    value_t startPoint, endPoint;
+    GList *slice_param = NULL;
     
-    // if it's an ansi slice, the start and end indexes are in slicing
-    // if its non-ansi, the start and end are in substring
-    if ((variable->slicing != NULL && g_list_length(variable->slicing) > 0)
-        || (string_slicing && g_list_length(variable->subscripts) > 0)) {
-      
+    // see if there is an ANSI slice defined, if so, use that
+    if (variable->slicing != NULL && g_list_length(variable->slicing)) {
       // ANSI slices will always have two parameters in the slicing list
       if (variable->slicing != NULL && g_list_length(variable->slicing) != 2)
         basic_error("Wrong number of parameters in string slice");
       
+      slice_param = variable->slicing;
+    }
+    
+    // the other possibility is that we have the slicing option turned on,
+    // in that case the index we calculated earlier is not correct, so we
+    // return that to zero and then use those params as the slices
+    if (string_slicing && g_list_length(variable->subscripts) > 0) {
+      index = 0;
+      
       // HP style slices will have one or two parameters
       if (string_slicing && (g_list_length(variable->subscripts) != 1 && g_list_length(variable->subscripts) != 2))
         basic_error("Wrong number of parameters in string slice");
-
-      GList *slice_param;
-      value_t startPoint, endPoint;
-      long b, c;
-
-      // get the parameters and convert to a numeric value
-      if (string_slicing) {
-        slice_param = variable->subscripts;
-      } else {
-        slice_param = variable->slicing;
-      }
-      // the start point can be empty in ANSI
-      startPoint = evaluate_expression(slice_param->data);
-      b = (long)startPoint.number;
-
-      // the end point may not exist, if it doesn't, it's the end of the string
-      if (g_list_length(slice_param) > 1) {
-        slice_param = g_list_next(slice_param);
-        endPoint = evaluate_expression(slice_param->data);
-        c = (long)endPoint.number;
-      } else {
-        c = storage->value->string->len - 1;
-      }
       
-      // not clear what ANSI would do here, but we'll report an error
-      if (b <= 0)
-        basic_error("String slice end point smaller than start");
+      slice_param = variable->subscripts;
+    }
+    
+    // if either of those got us something, pull out both parameters
+    if (slice_param != NULL) {
+      startPoint = evaluate_expression(slice_param->data);
+      slice_start = (long)startPoint.number;
+      slice_param = g_list_next(slice_param);
+      endPoint = evaluate_expression(slice_param->data);
+      slice_end = (long)endPoint.number;
 
       // according to ANSI, numbers outside the string should be forced to the string's bounds
-      // but most others would report an error
-      if (string_slicing && (b < 1 || c > storage->value->string->len - 1)) {
-        basic_error("String slice out of bounds");
+      // for non-ANSI, we'll error on odd numbers?
+      if (variable->slicing != NULL) {
+        slice_start = (int)fmax(slice_start, 1);
+        slice_end = (int)fmin(slice_end, storage->value->string->len);
       } else {
-        b = (int)fmax(b, 1);
-        c = (int)fmin(c, storage->value->string->len);
+        if (slice_start <= 0)
+          basic_error("String slice end point smaller than start");
+        if (slice_start < 1 || slice_end > storage->value->string->len - 1)
+          basic_error("String slice out of bounds");
       }
       
-      // build and return the new string
-      result = malloc(sizeof(*result));
-
-      result->string = g_string_new(storage->value->string->str);
-      long len = storage->value->string->len;
-      if (b < len)
-        result->string = g_string_erase(result->string, 0, b - 1); // note the -1
+      // slice if anything was found above
+      if (slice_start != -1 && slice_end != -1) {
+        // the source string is at the selected array index, which is zero for non-ANSI
+        either_t orig_string = storage->value[index];
       
-      len = result->string->len;
-      if (c < len)
-        g_string_truncate(result->string, c - b + 1);
-      
-      return result; // yes, this is being leaked
+        // build a new string
+        either_t *result = malloc(sizeof(*result));
+        result->string = g_string_new(orig_string.string->str);
+        
+        long len = storage->value->string->len;
+        if (slice_start < len)
+          result->string = g_string_erase(result->string, 0, slice_start - 1); // note the -1
+        
+        len = result->string->len;
+        if (slice_end < len)
+          g_string_truncate(result->string, slice_end - slice_start + 1);
+        
+        return result; // yes, this is being leaked
+      }
+      // otherwise just continue...
     }
   }
 
