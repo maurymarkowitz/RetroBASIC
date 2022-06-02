@@ -37,6 +37,7 @@ Command-line options include:
 `--tabs`, `-t`: set the number of spaces for comma-separated items, defaults to 10  
 `--goto-next`, `-g`: if a branch is to a non-existant line, should it go to the next line or return an error?  
 `--random`, `-r`: seed the random number generator  
+`--slicing`, `-s`: enable string slicing like HP, Integer, Atari, etc.
 `--output-file`, `-o`: redirect PRINT to the named file  
 `--input-file`, `-i`: redirect INPUT from the named file, one INPUT value per line  
 `--no_run`, `-n` : do not run the BASIC program, simply read and parse it and then exit  
@@ -56,7 +57,6 @@ A sample Xcode project is included, as well as a basic makefile. If anyone would
 A complete list is maintained in the TODO file, but here are some important limitations:
 
 * INPUT statements with multiple values currently have to be entered with return/enter between each value, spaces do not work.
-* DEF FNx does not parse the parameters when called, the global variable is used. This means constants do not work.
 * The system does not support "immediate mode" (command line) input. It is not supposed to, but could potentially do so.
 * Variable names are currently limited to two characters, which is needed to support "crunched" statements without spaces in MS style.
 * LIST, LOAD and SAVE are currently not implemented, in keeping with the use-case.
