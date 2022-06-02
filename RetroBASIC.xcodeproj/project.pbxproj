@@ -373,10 +373,12 @@
 				HEADER_SEARCH_PATHS = (
 					"/usr/local/Cellar/glib/2.62.3/lib/glib-2.0/include/**",
 					"/usr/local/include/glib-2.0/**",
+					"/opt/homebrew/include/glib-2.0/**",
+					"/opt/homebrew/lib/glib-2.0/include",
 				);
 				LD_RUNPATH_SEARCH_PATHS = "";
 				LIBRARY_SEARCH_PATHS = "";
-				OTHER_LDFLAGS = "/usr/local/opt/glib/lib/libglib-2.0.dylib";
+				OTHER_LDFLAGS = "/opt/homebrew/opt/glib/lib/libglib-2.0.dylib";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				YACCFLAGS = "";
 				YACC_GENERATE_DEBUGGING_DIRECTIVES = NO;
@@ -391,10 +393,12 @@
 				HEADER_SEARCH_PATHS = (
 					"/usr/local/Cellar/glib/2.62.3/lib/glib-2.0/include/**",
 					"/usr/local/include/glib-2.0/**",
+					"/opt/homebrew/include/glib-2.0/**",
+					"/opt/homebrew/lib/glib-2.0/include",
 				);
 				LD_RUNPATH_SEARCH_PATHS = "";
 				LIBRARY_SEARCH_PATHS = "";
-				OTHER_LDFLAGS = "/usr/local/opt/glib/lib/libglib-2.0.dylib";
+				OTHER_LDFLAGS = "/opt/homebrew/opt/glib/lib/libglib-2.0.dylib";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				YACCFLAGS = "";
 				YACC_GENERATE_DEBUGGING_DIRECTIVES = NO;
