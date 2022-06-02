@@ -1866,7 +1866,7 @@ static void print_statistics()
 /* simple version info for --version command line option */
 static void print_version()
 {
-  puts("RetroBASIC 1.0");
+  puts("RetroBASIC 1.1");
 }
 
 /* usage, both for the user and for documenting the code below */
