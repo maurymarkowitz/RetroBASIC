@@ -24,8 +24,6 @@ PA = Palo Alto Tiny BASIC
 
 - support AB's DEG and RAD modes? WB also had gradians; SELECT G
 
-- WB allows a message after a STOP, which is printed when that command runs
-
 - PA allows multiple assignments in a LET, separated by commas, see assignlist
 
 - PA allows single or double quotes around strings
