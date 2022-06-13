@@ -282,7 +282,6 @@ either_t *variable_value(variable_t *variable, int *type)
   *type = storage->type;
   
   // if we are using string slicing OR there is a ANSI-style slice, return that part of the string
-  long slice_start = -1, slice_end = 1;
   if (*type == STRING) {
     value_t startPoint, endPoint;
     GList *slice_param = NULL;
@@ -311,6 +310,8 @@ either_t *variable_value(variable_t *variable, int *type)
     
     // if either of those got us something, pull out both parameters
     if (slice_param != NULL) {
+      long slice_start = -1, slice_end = 1;
+      
       startPoint = evaluate_expression(slice_param->data);
       slice_start = (long)startPoint.number;
       slice_param = g_list_next(slice_param);
@@ -323,9 +324,7 @@ either_t *variable_value(variable_t *variable, int *type)
         slice_start = (int)fmax(slice_start, 1);
         slice_end = (int)fmin(slice_end, storage->value->string->len);
       } else {
-        if (slice_start <= 0)
-          basic_error("String slice end point smaller than start");
-        if (slice_start < 1 || slice_end > storage->value->string->len - 1)
+        if (slice_start < 1 || slice_end < 1 || slice_end > storage->value->string->len - 1)
           basic_error("String slice out of bounds");
       }
       
@@ -346,7 +345,7 @@ either_t *variable_value(variable_t *variable, int *type)
         if (slice_end < len)
           g_string_truncate(result->string, slice_end - slice_start + 1);
         
-        return result; // yes, this is being leaked
+        return result; // this is being leaked?
       }
       // otherwise just continue...
     }
@@ -429,7 +428,7 @@ static value_t double_to_value(double v)
  1) if the number is zero, return 0
  2) otherwise, move the decimal until the mantissa is 1e8 <= FAC < 1e9
  3) **round** the resulting 9-digit value
- 4) if the number of decimal places moved is  -10 < TMPEXP > 1 then just print the result with the decimal moved back
+ 4) if the number of decimal places moved is -10 < TMPEXP > 1 then just print the result with the decimal moved back
  5) otherwise, use E format
  in all cases, add a leading space for 0 or +ve values, - for -ve
  
@@ -527,7 +526,7 @@ static value_t evaluate_expression(expression_t *expression)
         // make a slot and push the value onto the stack
         storage = malloc(sizeof(*storage));
         storage->type = type;
-        storage->value = malloc(sizeof(stored_val));
+        storage->value = malloc(sizeof(either_t));
           if (type == STRING)
             storage->value->string = stored_val->string;
           else
