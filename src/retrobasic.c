@@ -751,11 +751,6 @@ static value_t evaluate_expression(expression_t *expression)
         double b = parameters[1].number;
         
         switch (expression->parms.op.opcode) {
-          case '&':
-            if (parameters[0].type == STRING && parameters[1].type == STRING) {
-              result.type = STRING;
-              result.string = g_string_new(g_strconcat(parameters[0].string->str, parameters[1].string->str, NULL));
-            }
           case '+':
             if (parameters[0].type == STRING && parameters[1].type == STRING) {
               result.type = STRING;
@@ -770,6 +765,15 @@ static value_t evaluate_expression(expression_t *expression)
             break;
           case '-':
             result = double_to_value(a - b);
+            break;
+          case '&': // ANSI concat
+            if (parameters[0].type == STRING && parameters[1].type == STRING) {
+              result.type = STRING;
+              result.string = g_string_new(g_strconcat(parameters[0].string->str, parameters[1].string->str, NULL));
+            } else {
+              result.string = g_string_new("");
+              basic_error("Type mismatch, non-string values in concatenation");
+            }
             break;
           case '*':
             result = double_to_value(a * b);
