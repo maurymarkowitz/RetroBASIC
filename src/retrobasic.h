@@ -26,8 +26,25 @@
 
 #include "stdhdr.h"
 
+/* consts used during parsing the source */
 #define MAXLINE 32767
 #define MAXSTRING 256
+
+/* internal state variables used for I/O and other tasks */
+static clock_t start_ticks = 0, end_ticks = 0;  // start and end ticks, for calculating CPU time
+static struct timeval start_time, end_time;     // start and end clock, for total run time
+static int run_program = 1;                     // default to running the program, not just parsing it
+static int print_stats = 0;
+static int write_stats = 0;
+static int tab_columns = 10;                    // based on PET BASIC, which is a good enough target
+static int trace_lines = FALSE;
+static int upper_case = 0;                      // force INPUT to upper case
+static int array_base = 1;                      // lower bound of arrays, can be set to 0 with OPTION BASE
+static double random_seed = -1;                 // reset with RANDOMIZE, if -1 then auto-seeds
+static int string_slicing = FALSE;              // are references like A$(1,1) referring to an array entry or doing slicing?
+static int goto_next_highest = FALSE;           // if a branch targets an non-existant line, should we go to the next highest?
+static int ansi_on_boundaries = FALSE;          // if the value for an ON statement <1 or >num entries, should it continue or error?
+static int ansi_tab_behaviour = FALSE;          // if a TAB < current column, ANSI inserts a CR, MS does not
 
 /* variables */
 /* ultimately the only thing we store in the variable reference is
@@ -39,6 +56,20 @@ typedef struct {
   GList *subscripts;      /* subscripts, list of expressions */
   GList *slicing;         /* up to two expressions holding string slicing limits */
 } variable_t;
+
+/* either_t is used within variable_value_t for the actual data */
+// FIXME: is there any real reason not to use a value_t here?
+typedef union {
+  GString *string;
+  double number;
+} either_t;
+
+/* variable_storage_t holds the *value* of a variable in memory, it is a variable_ */
+typedef struct {
+  int type;               /* NUMBER, STRING */
+  GList *subscripts;      // subscript definitions, if any (from a DIM)
+  either_t *value;        // actual value(s), malloced out
+} variable_storage_t;
 
 /* expressions */
 typedef enum {
@@ -162,55 +193,10 @@ extern interpreterstate_t interpreter_state;
 /* the only piece of the interpreter the parser needs to know about is the variable table */
 void insert_variable(variable_t *variable);
 
-/* additional externs used for the static analyzer, used in parse.y */
-extern int variables_total;
-extern int variables_default;
-extern int variables_int;
-extern int variables_float;
-extern int variables_double;
-extern int variables_string;
-extern int numeric_constants_total;
-extern int numeric_constants_float;
-extern int numeric_constants_zero;
-extern int numeric_constants_one;
-extern int numeric_constants_minus_one;
-extern int numeric_constants_one_digit;
-extern int numeric_constants_two_digit;
-extern int numeric_constants_three_digit;
-extern int numeric_constants_four_digit;
-extern int numeric_constants_five_digit;
-extern int numeric_constants_big;
-extern int numeric_constants_one_byte;
-extern int numeric_constants_two_byte;
-extern int numeric_constants_four_byte;
-extern int string_constants_total;
-extern int string_constants_one_byte;
-extern int string_constants_two_byte;
-extern int string_constants_four_byte;
-extern int string_constants_eight_byte;
-extern int string_constants_sixteen_byte;
-extern int string_constants_big;
-extern int string_constants_max;
-extern int linenum_constants_total;
-extern int linenum_forwards;
-extern int linenum_backwards;
-extern int linenum_same_line;
-extern int linenum_goto_totals;
-extern int linenum_then_goto_totals;
-extern int linenum_gosub_totals;
-extern int linenum_on_totals;
-extern int for_loops_total;
-extern int for_loops_step_1;
-extern int increments;
-extern int decrements;
-extern int compare_equals_zero;
-extern int compare_equals_one;
-extern int compare_equals_other;
-extern int compare_not_equals_zero;
-extern int compare_not_equals_one;
-extern int compare_not_equals_other;
-extern int assign_zero;
-extern int assign_one;
-extern int assign_other;
+/* called by main to set up the interpreter state */
+void setup(void);
+
+/* the interpreter entry point */
+void run(void);
 
 #endif
