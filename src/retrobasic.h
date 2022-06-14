@@ -31,20 +31,25 @@
 #define MAXSTRING 256
 
 /* internal state variables used for I/O and other tasks */
-static clock_t start_ticks = 0, end_ticks = 0;  // start and end ticks, for calculating CPU time
-static struct timeval start_time, end_time;     // start and end clock, for total run time
-static int run_program = 1;                     // default to running the program, not just parsing it
-static int print_stats = 0;
-static int write_stats = 0;
-static int tab_columns = 10;                    // based on PET BASIC, which is a good enough target
-static int trace_lines = FALSE;
-static int upper_case = 0;                      // force INPUT to upper case
-static int array_base = 1;                      // lower bound of arrays, can be set to 0 with OPTION BASE
-static double random_seed = -1;                 // reset with RANDOMIZE, if -1 then auto-seeds
-static int string_slicing = FALSE;              // are references like A$(1,1) referring to an array entry or doing slicing?
-static int goto_next_highest = FALSE;           // if a branch targets an non-existant line, should we go to the next highest?
-static int ansi_on_boundaries = FALSE;          // if the value for an ON statement <1 or >num entries, should it continue or error?
-static int ansi_tab_behaviour = FALSE;          // if a TAB < current column, ANSI inserts a CR, MS does not
+extern clock_t start_ticks, end_ticks;  // start and end ticks, for calculating CPU time
+extern struct timeval start_time, end_time;     // start and end clock, for total run time
+extern int run_program;                     // default to running the program, not just parsing it
+extern int print_stats;
+extern int write_stats;
+extern int tab_columns;                    // based on PET BASIC, which is a good enough target
+extern int trace_lines;
+extern int upper_case;                      // force INPUT to upper case
+extern int array_base;                      // lower bound of arrays, can be set to 0 with OPTION BASE
+extern double random_seed;                 // reset with RANDOMIZE, if -1 then auto-seeds
+extern int string_slicing;              // are references like A$(1,1) referring to an array entry or doing slicing?
+extern int goto_next_highest;           // if a branch targets an non-existant line, should we go to the next highest?
+extern int ansi_on_boundaries;          // if the value for an ON statement <1 or >num entries, should it continue or error?
+extern int ansi_tab_behaviour;          // if a TAB < current column, ANSI inserts a CR, MS does not
+
+extern char *source_file;
+extern char *input_file;
+extern char *print_file;
+extern char *stats_file;
 
 /* variables */
 /* ultimately the only thing we store in the variable reference is
