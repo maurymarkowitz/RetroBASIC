@@ -7,6 +7,7 @@
 9 REM
 10 REM calling DEFINT and then listing vars
 11 REM
+12 PRINT RND()
 20 DEFINT X,Y
 30 VARLIST
 34 REM
@@ -84,6 +85,13 @@
 1820 REM
 1830 PRINT "contact with plus ";"HELLO" + " " + "WORLD"
 1840 PRINT "contact with amp ";"HELLO" & " " & "WORLD"
+1900 REM
+1910 REM time and date
+1920 REM
+1930 !PRINT "the unix time is "TIME
+1940 !PRINT "the BASIC time string is "TIME$
+1950 !PRINT "the date value is "DATE
+1960 !PRINT "the date string is "DATE$
 2294 REM
 2295 REM make sure B and B() are different
 2296 REM
