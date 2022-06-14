@@ -30,6 +30,27 @@
 /* here's the actual definition of the interpreter state which is extern in the header */
 interpreterstate_t interpreter_state;
 
+/* and the same for the various flags */
+clock_t start_ticks = 0, end_ticks = 0;  // start and end ticks, for calculating CPU time
+struct timeval start_time, end_time;     // start and end clock, for total run time
+int run_program = 1;                     // default to running the program, not just parsing it
+int print_stats = 0;
+int write_stats = 0;
+int tab_columns = 10;                    // based on PET BASIC, which is a good enough target
+int trace_lines = FALSE;
+int upper_case = 0;                      // force INPUT to upper case
+int array_base = 1;                      // lower bound of arrays, can be set to 0 with OPTION BASE
+double random_seed = -1;                 // reset with RANDOMIZE, if -1 then auto-seeds
+int string_slicing = FALSE;              // are references like A$(1,1) referring to an array entry or doing slicing?
+int goto_next_highest = FALSE;           // if a branch targets an non-existant line, should we go to the next highest?
+int ansi_on_boundaries = FALSE;          // if the value for an ON statement <1 or >num entries, should it continue or error?
+int ansi_tab_behaviour = FALSE;          // if a TAB < current column, ANSI inserts a CR, MS does not
+
+char *source_file = "";
+char *input_file = "";
+char *print_file = "";
+char *stats_file = "";
+
 /* private types used only within the interpreter */
 
 /* value_t is used to store (and process) the results of an evaluation */
@@ -1286,13 +1307,17 @@ static void perform_statement(GList *L)
         // eval, returning a double...
         value_t val = evaluate_expression(ps->parms.on.expression);
         
+        // if the value is not a number...
+        if (val.type == STRING)
+          basic_error("Index value for ON is a string");
+
         // ON does an INT, and since a valid index is +ve, INT always rounds down...
         int n = (int)floor(val.number);
         /* C arrays are zero-indexed, not 1, so... */
         --n;
         
-        // in ANSI, if the index is <1 or >the number of items, an error is returned
-        if (n < 0 && ansi_on_boundaries)
+        // in ANSI (and MS as it turns out), if the index is <1 or >the number of items, an error is returned
+        if (n < 0)
           basic_error("Index value for ON less than 1");
         
         // ... or if we're beyond the end of the list

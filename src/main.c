@@ -19,12 +19,8 @@
  Boston, MA 02111-1307, USA.  */
 
 #include "retrobasic.h"
-#include "parse.h"
 #include "statistics.h"
-
-static char *source_file = "";
-static char *input_file = "";
-static char *print_file = "";
+#include "parse.h"
 
 /* simple version info for --version command line option */
 static void print_version()
