@@ -79,6 +79,11 @@
 1740 PRINT A$, "len="len(a$)
 1750 PRINT "(1:5) = "A$(1:5)
 1760 PRINT "(4:5) = "A$(4:5)
+1800 REM
+1810 REM concats
+1820 REM
+1830 PRINT "contact with plus ";"HELLO" + " " + "WORLD"
+1840 PRINT "contact with amp ";"HELLO" & " " & "WORLD"
 2294 REM
 2295 REM make sure B and B() are different
 2296 REM

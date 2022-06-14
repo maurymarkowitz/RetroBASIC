@@ -126,7 +126,7 @@ USR       { return USR; }
 LIN       { return LIN; }
 
  /* various operators and punctuation */
-[:,;()\^=+\-*/\<\>]     { return yytext[0]; }
+[:,;()\^=+\-*/\<\>\&]     { return yytext[0]; }
 
  /* alternate form for power */
 "**"      { return '^'; } // FIXME: we should have a separate token for this?
