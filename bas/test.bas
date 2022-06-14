@@ -7,7 +7,6 @@
 9 REM
 10 REM calling DEFINT and then listing vars
 11 REM
-12 PRINT RND()
 20 DEFINT X,Y
 30 VARLIST
 34 REM
