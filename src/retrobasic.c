@@ -611,7 +611,21 @@ static value_t evaluate_expression(expression_t *expression)
         parameters[i] = evaluate_expression(expression->parms.op.p[i]);
       
       // now calculate the results based on those values
-      if (expression->parms.op.arity == 1) {
+      if (expression->parms.op.arity == 0) {
+        // so far all of these are numbers
+        result.type = NUMBER;
+
+        switch (expression->parms.op.opcode) {
+          case FRE:
+            result.number = 0; // always return zero
+            break;
+          case RND:
+            // TODO: support alternative RNDs that return limited values
+            result.number = ((double)rand() / (double)RAND_MAX); // don't forget the cast!
+            break;
+        }
+      }
+      else if (expression->parms.op.arity == 1) {
         // most of the following functions return numbers, so default to that
         result.type = NUMBER;
         
@@ -646,9 +660,6 @@ static value_t evaluate_expression(expression_t *expression)
           case EXP:
             result.number = exp(a);
             break;
-          case FRE:
-            result.number = 0; // always return zero
-            break;
           case LEN: // this is the only arity-1 function that takes a string parameter
             result.number = strlen(parameters[0].string->str);
             break;
@@ -673,10 +684,6 @@ static value_t evaluate_expression(expression_t *expression)
             break;
           case SQR:
             result.number = sqrt(a);
-            break;
-          case RND:
-            // TODO: support alternative RNDs that return limited values
-            result.number = ((double)rand() / (double)RAND_MAX); // don't forget the cast!
             break;
           case VAL:
             result.number = atof(parameters[0].string->str);
@@ -738,7 +745,7 @@ static value_t evaluate_expression(expression_t *expression)
               result.string = g_string_append(result.string, "\n");
             }
             break;
-
+            
           default:
             basic_error("Unhandled arity-1 function");
         } //switch
