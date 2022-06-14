@@ -23,6 +23,7 @@ the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 #include "retrobasic.h"
+#include "statistics.h"
 
  /* used to track the line number being processed so
     that errors can report it */
@@ -879,7 +880,7 @@ fn_2:
   RIGHT { $$ = RIGHT; }
 	;
 
- /* arity-0 to 3 functions */
+ /* arity-2 or 3 functions */
 fn_x:
   MID { $$ = MID; }
   ;
