@@ -53,5 +53,6 @@ Boston, MA 02111-1307, USA.  */
 #include <ctype.h>
 #include <errno.h>
 #include <math.h>
+#include <time.h> // used for TIME and DATE
 
 #include <glib.h>
