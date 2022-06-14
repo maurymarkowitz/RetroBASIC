@@ -24,9 +24,6 @@
 #include "stdhdr.h"
 #include "retrobasic.h"
 
-/* file to write the stats to, if selected */
-static char *stats_file = "";
-
 /* additional externs used for the static analyzer, used in parse.y */
 extern int variables_total;
 extern int variables_default;
