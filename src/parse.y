@@ -80,7 +80,7 @@ static expression_t *make_operator(int arity, int o)
 
 %type <l> program line statements
 %type <l> printlist exprlist varlist slicelist //assignlist //numlist
-%type <i> printsep binary_op comparison_op e2op term unary_op fn_1 fn_2 fn_x
+%type <i> printsep binary_op comparison_op e2op term unary_op fn_0 fn_1 fn_2 fn_x
 %type <expression> expression expression0 expression1 expression2 expression3 expression4 function factor
 %type <statement> statement
 %type <variable> variable user_function
@@ -793,6 +793,20 @@ unary_op:
 
 function:
 	factor
+  |
+  /* functions with optional parameters, which we store but ignore */
+  fn_0 '(' ')'
+  {
+    expression_t *new = make_operator(0, $1);
+    $$ = new;
+  }
+  |
+  fn_0 '(' expression ')'
+  {
+    expression_t *new = make_operator(0, $1);
+    new->parms.op.p[0] = $3;
+    $$ = new;
+  }
 	|
 	fn_1 '(' expression ')'
 	{
@@ -808,22 +822,7 @@ function:
 	  new->parms.op.p[1] = $5;
 	  $$ = new;
 	}
-  /* multi-arity function being called with zero inputs... */
-  |
-  fn_x '(' ')'
-  {
-    expression_t *new = make_operator(0, $1);
-    $$ = new;
-  }
-  /* .. or one */
-  |
-  fn_x '(' expression ')'
-  {
-    expression_t *new = make_operator(1, $1);
-    new->parms.op.p[0] = $3;
-    $$ = new;
-  }
-  /* .. or two */
+  /* multi-arity function being called with two inputs... */
   |
   fn_x '(' expression ',' expression ')'
   {
@@ -843,6 +842,12 @@ function:
 	  $$ = new;
 	}
 	;
+  
+ /* optional-parameter functions */
+fn_0:
+  FRE { $$ = FRE; } |
+  RND { $$ = RND; }
+  ;
 
  /* arity-1 functions */
 fn_1:
@@ -876,8 +881,6 @@ fn_2:
 
  /* arity-0 to 3 functions */
 fn_x:
-  FRE  { $$ = FRE; } |
-  RND  { $$ = RND; } |
   MID { $$ = MID; }
   ;
 
