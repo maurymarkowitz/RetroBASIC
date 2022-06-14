@@ -808,7 +808,22 @@ function:
 	  new->parms.op.p[1] = $5;
 	  $$ = new;
 	}
-  /* multi-arity function being called with two inputs... */
+  /* multi-arity function being called with zero inputs... */
+  |
+  fn_x '(' ')'
+  {
+    expression_t *new = make_operator(0, $1);
+    $$ = new;
+  }
+  /* .. or one */
+  |
+  fn_x '(' expression ')'
+  {
+    expression_t *new = make_operator(1, $1);
+    new->parms.op.p[0] = $3;
+    $$ = new;
+  }
+  /* .. or two */
   |
   fn_x '(' expression ',' expression ')'
   {
@@ -838,14 +853,12 @@ fn_1:
 	COS  { $$ = COS; } |
   EXP  { $$ = EXP; } |
   FIX  { $$ = FIX; } |
-  FRE  { $$ = FRE; } |
 	INT  { $$ = INT; } |
   LEN  { $$ = LEN; } |
   LIN  { $$ = LIN; } |
   STR  { $$ = STR; } |
   LOG  { $$ = LOG; } |
   PEEK { $$ = PEEK;} |
-  RND  { $$ = RND; } |
   SGN  { $$ = SGN; } |
 	SIN  { $$ = SIN; } |
 	SPC  { $$ = SPC; } |
@@ -861,9 +874,12 @@ fn_2:
   RIGHT { $$ = RIGHT; }
 	;
 
- /* arity-2 or 3 functions */
+ /* arity-0 to 3 functions */
 fn_x:
-  MID { $$ = MID; };
+  FRE  { $$ = FRE; } |
+  RND  { $$ = RND; } |
+  MID { $$ = MID; }
+  ;
 
  /* ultimately all expressions end up here in factor, which is either a
     constant value, a variable value, or a parened expression. in
