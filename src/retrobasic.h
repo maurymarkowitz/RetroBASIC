@@ -199,9 +199,12 @@ extern interpreterstate_t interpreter_state;
 void insert_variable(variable_t *variable);
 
 /* called by main to set up the interpreter state */
-void setup(void);
+void interpreter_setup(void);
+
+/* perform post-read setup */
+void interpreter_post_parse(void);
 
 /* the interpreter entry point */
-void run(void);
+void interpreter_run(void);
 
 #endif

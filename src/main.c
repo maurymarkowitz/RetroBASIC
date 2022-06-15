@@ -22,6 +22,8 @@
 #include "statistics.h"
 #include "parse.h"
 
+#include <getopt.h>
+
 /* simple version info for --version command line option */
 static void print_version()
 {
@@ -162,12 +164,12 @@ int main(int argc, char *argv[])
 #if YYDEBUG
   yydebug = 1;
 #endif
-  
-  // call setup to create the state needed to parse the file
-  setup();
 
   // parse the options and make sure we got a filename somewhere
   parse_options(argc, argv);
+  
+  // call the interpreter's setup to create the state needed to parse the file
+  interpreter_setup();
   
   // open the file...
   yyin = fopen(source_file, "r");
@@ -184,40 +186,8 @@ int main(int argc, char *argv[])
   // if we were able to open the file, parse it
   yyparse();
   
-  // run all the lines together into a single continuous list
-  // by pointing the ->next for each line to the head of the next
-  // non-empty line. that way we don't have to search through the line
-  // array for the next non-null entry during the run loop, we just
-  // keep stepping through the ->next until we fall off the end
-  {
-    // look for the first entry in the lines array with a non-empty statement list
-    int first_line = 0;
-    while ((first_line < MAXLINE - 1) && (interpreter_state.lines[first_line] == NULL))
-      first_line++;
-    
-    // that statement is going to be the head of the list when we're done
-    GList *first_statement = interpreter_state.lines[first_line];
-    
-    // now find the next non-null line and concat it to the first one, and repeat
-    for (int i = first_line + 1; (i < MAXLINE); i++) {
-      if (interpreter_state.lines[i])
-        first_statement = g_list_concat(first_statement, interpreter_state.lines[i]);
-    }
-    
-    // and set the resulting list back into the first line
-    // NOTE: do we need to do this? isn't this already there?
-    interpreter_state.lines[first_line] = first_statement;
-    // and keep track of this for posterity
-    interpreter_state.first_line = first_line;
-    
-    // a program runs from the first line, so...
-    interpreter_state.current_statement = first_statement;          // the first statement
-    interpreter_state.current_data_statement = first_statement;     // the DATA can point anywhere
-    interpreter_state.current_data_element = NULL;                  // the element within the DATA is nothing
-  }
-  
-  // the cursor starts in col 0
-  interpreter_state.cursor_column = 0;
+  // prepare the code
+  interpreter_post_parse();
   
   // seed the random with the provided number or randomize it
   if (random_seed > -1)
@@ -227,7 +197,7 @@ int main(int argc, char *argv[])
   
   // and go!
   if (run_program)
-    run();
+    interpreter_run();
   
   // we're done, print/write desired stats
   if (print_stats || write_stats)
