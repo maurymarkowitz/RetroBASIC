@@ -24,7 +24,6 @@
 #include "retrobasic.h"
 #include "parse.h"
 
-#include <getopt.h>
 #include <sys/time.h>
 
 /* here's the actual definition of the interpreter state which is extern in the header */
@@ -1585,15 +1584,50 @@ static void delete_lines() {
 }
 
 /* set up empty trees to store variables and user functions as we find them */
-void setup()
+void interpreter_setup()
 {
   interpreter_state.variable_values = g_tree_new(symbol_compare);
   interpreter_state.functions = g_tree_new(symbol_compare);
 }
+// run all the lines together into a single continuous list
+// by pointing the ->next for each line to the head of the next
+// non-empty line. that way we don't have to search through the line
+// array for the next non-null entry during the run loop, we just
+// keep stepping through the ->next until we fall off the end
+void interpreter_post_parse(void)
+{
+  // look for the first entry in the lines array with a non-empty statement list
+  int first_line = 0;
+  while ((first_line < MAXLINE - 1) && (interpreter_state.lines[first_line] == NULL))
+    first_line++;
+  
+  // that statement is going to be the head of the list when we're done
+  GList *first_statement = interpreter_state.lines[first_line];
+  
+  // now find the next non-null line and concat it to the first one, and repeat
+  for (int i = first_line + 1; (i < MAXLINE); i++) {
+    if (interpreter_state.lines[i])
+      first_statement = g_list_concat(first_statement, interpreter_state.lines[i]);
+  }
+  
+  // and set the resulting list back into the first line
+  // NOTE: do we need to do this? isn't this already there?
+  interpreter_state.lines[first_line] = first_statement;
+  // and keep track of this for posterity
+  interpreter_state.first_line = first_line;
+  
+  // a program runs from the first line, so...
+  interpreter_state.current_statement = first_statement;          // the first statement
+  interpreter_state.current_data_statement = first_statement;     // the DATA can point anywhere
+  interpreter_state.current_data_element = NULL;                  // the element within the DATA is nothing
+}
 
 /* the main loop for the program */
-void run(void)
+void interpreter_run(void)
 {
+  // the cursor starts in col 0
+  interpreter_state.cursor_column = 0;
+
   // start the clock and mark us as running
   start_ticks = clock();
   gettimeofday(&start_time, NULL);
