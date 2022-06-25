@@ -1,4 +1,4 @@
-/* main for RetroBASIC
+/* Main for RetroBASIC
  Copyright (C) 2020 Maury Markowitz
  
  This file is part of RetroBASIC.
@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
   // if we were able to open the file, parse it
   yyparse();
   
-  // prepare the code
+  // prepare the code for running
   interpreter_post_parse();
   
   // seed the random with the provided number or randomize it
