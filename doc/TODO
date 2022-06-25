@@ -39,5 +39,3 @@ PA = Palo Alto Tiny BASIC
 - a number of less-commonly-used math and string functions are not yet implemented: CINT CSNG CDBL
 
 - some BASICs allow RESTORE to include a parameter which is the ordinal position in the list, as opposed to a line number
-
-- out-of-range index values in ON statements in MS fall through to the next statement, ANSI returns an error
