@@ -1589,11 +1589,13 @@ void interpreter_setup()
   interpreter_state.variable_values = g_tree_new(symbol_compare);
   interpreter_state.functions = g_tree_new(symbol_compare);
 }
-// run all the lines together into a single continuous list
-// by pointing the ->next for each line to the head of the next
-// non-empty line. that way we don't have to search through the line
-// array for the next non-null entry during the run loop, we just
-// keep stepping through the ->next until we fall off the end
+
+/* after yacc has done it's magic, we form a program by pointing
+ the ->next for each line to the head of the next non-empty line.
+ that way we don't have to search through the line array for the
+ next non-null entry during the run loop, we just keep stepping
+ through the ->next until we fall off the end. this is how most
+interpreters handled it anyway. */
 void interpreter_post_parse(void)
 {
   // look for the first entry in the lines array with a non-empty statement list
