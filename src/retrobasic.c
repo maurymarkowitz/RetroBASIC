@@ -24,53 +24,41 @@
 #include "retrobasic.h"
 #include "parse.h"
 
-#include <getopt.h>
 #include <sys/time.h>
 
 /* here's the actual definition of the interpreter state which is extern in the header */
 interpreterstate_t interpreter_state;
 
-/* internal state variables used for I/O and other tasks */
-static clock_t start_ticks = 0, end_ticks = 0;  // start and end ticks, for calculating CPU time
-static struct timeval start_time, end_time;     // start and end clock, for total run time
-static int run_program = 1;                     // default to running the program, not just parsing it
-static int print_stats = 0;
-static int write_stats = 0;
-static int tab_columns = 10;                    // based on PET BASIC, which is a good enough target
-static int trace_lines = FALSE;
-static int upper_case = 0;                      // force INPUT to upper case
-static int array_base = 1;                      // lower bound of arrays, can be set to 0 with OPTION BASE
-static double random_seed = -1;                 // reset with RANDOMIZE, if -1 then auto-seeds
-static int string_slicing = FALSE;              // are references like A$(1,1) referring to an array entry or doing "slicing"?
-static int goto_next_highest = FALSE;           // if a branch targets an non-existant line, should we go to the next highest?
-static int ansi_on_boundaries = FALSE;          // if the value for an ON statement <1 or >num entries, should it continue or error?
-static int ansi_tab_behaviour = FALSE;          // if a TAB < current column, ANSI inserts a CR, MS does not
-static char *source_file = "";
-static char *input_file = "";
-static char *print_file = "";
-static char *stats_file = "";
+/* and the same for the various flags */
+clock_t start_ticks = 0, end_ticks = 0;  // start and end ticks, for calculating CPU time
+struct timeval start_time, end_time;     // start and end clock, for total run time
+int run_program = 1;                     // default to running the program, not just parsing it
+int print_stats = 0;
+int write_stats = 0;
+int tab_columns = 10;                    // based on PET BASIC, which is a good enough target
+int trace_lines = FALSE;
+int upper_case = 0;                      // force INPUT to upper case
+int array_base = 1;                      // lower bound of arrays, can be set to 0 with OPTION BASE
+double random_seed = -1;                 // reset with RANDOMIZE, if -1 then auto-seeds
+int string_slicing = FALSE;              // are references like A$(1,1) referring to an array entry or doing slicing?
+int goto_next_highest = FALSE;           // if a branch targets an non-existant line, should we go to the next highest?
+int ansi_on_boundaries = FALSE;          // if the value for an ON statement <1 or >num entries, should it continue or error?
+int ansi_tab_behaviour = FALSE;          // if a TAB < current column, ANSI inserts a CR, MS does not
+
+char *source_file = "";
+char *input_file = "";
+char *print_file = "";
+char *stats_file = "";
 
 /* private types used only within the interpreter */
+
 /* value_t is used to store (and process) the results of an evaluation */
+// NOTE: this currently cannot return an array, so MAT instructions are not possible
 typedef struct {
   int type;            /* NUMBER, STRING */
   GString *string;
   double number;
 } value_t;
-
-/* either_t is used within variable_value_t for the actual data */
-// FIXME: is there any real reason not to use a value_t here?
-typedef union {
-  GString *string;
-  double number;
-} either_t;
-
-/* variable_storage_t holds the *value* of a variable in memory */
-typedef struct {
-  int type;               /* NUMBER, STRING */
-  GList *subscripts;      // subscript definitions, if any
-  either_t *value;        // actual value(s), malloced out
-} variable_storage_t;
 
 /* function_storage_t holds the expression from the DEF */
 typedef struct {
@@ -279,10 +267,74 @@ either_t *variable_value(variable_t *variable, int *type)
   // returning the type
   *type = storage->type;
   
-  // if we are using string slicing OR there is a ANSI-style slice,
-  // return just that part of the value
-  if (*type == STRING && string_slicing) {
+  // if we are using string slicing OR there is a ANSI-style slice, return that part of the string
+  if (*type == STRING) {
+    value_t startPoint, endPoint;
+    GList *slice_param = NULL;
     
+    // see if there is an ANSI slice defined, if so, use that
+    if (variable->slicing != NULL && g_list_length(variable->slicing)) {
+      // ANSI slices will always have two parameters in the slicing list
+      if (variable->slicing != NULL && g_list_length(variable->slicing) != 2)
+        basic_error("Wrong number of parameters in string slice");
+      
+      slice_param = variable->slicing;
+    }
+    
+    // the other possibility is that we have the slicing option turned on,
+    // in that case the index we calculated earlier is not correct, so we
+    // return that to zero and then use those params as the slices
+    if (string_slicing && g_list_length(variable->subscripts) > 0) {
+      index = 0;
+      
+      // HP style slices will have one or two parameters
+      if (string_slicing && (g_list_length(variable->subscripts) != 1 && g_list_length(variable->subscripts) != 2))
+        basic_error("Wrong number of parameters in string slice");
+      
+      slice_param = variable->subscripts;
+    }
+    
+    // if either of those got us something, pull out both parameters
+    if (slice_param != NULL) {
+      long slice_start = -1, slice_end = 1;
+      
+      startPoint = evaluate_expression(slice_param->data);
+      slice_start = (long)startPoint.number;
+      slice_param = g_list_next(slice_param);
+      endPoint = evaluate_expression(slice_param->data);
+      slice_end = (long)endPoint.number;
+
+      // according to ANSI, numbers outside the string should be forced to the string's bounds
+      // for non-ANSI, we'll error on odd numbers?
+      if (variable->slicing != NULL) {
+        slice_start = (int)fmax(slice_start, 1);
+        slice_end = (int)fmin(slice_end, storage->value->string->len);
+      } else {
+        if (slice_start < 1 || slice_end < 1 || slice_end > storage->value->string->len - 1)
+          basic_error("String slice out of bounds");
+      }
+      
+      // slice if anything was found above
+      if (slice_start != -1 && slice_end != -1) {
+        // the source string is at the selected array index, which is zero for non-ANSI
+        either_t orig_string = storage->value[index];
+      
+        // build a new string
+        either_t *result = malloc(sizeof(*result));
+        result->string = g_string_new(orig_string.string->str);
+        
+        long len = storage->value->string->len;
+        if (slice_start < len)
+          result->string = g_string_erase(result->string, 0, slice_start - 1); // note the -1
+        
+        len = result->string->len;
+        if (slice_end < len)
+          g_string_truncate(result->string, slice_end - slice_start + 1);
+        
+        return result; // this is being leaked?
+      }
+      // otherwise just continue...
+    }
   }
 
   // all done, return the value at that index
@@ -362,7 +414,7 @@ static value_t double_to_value(double v)
  1) if the number is zero, return 0
  2) otherwise, move the decimal until the mantissa is 1e8 <= FAC < 1e9
  3) **round** the resulting 9-digit value
- 4) if the number of decimal places moved is  -10 < TMPEXP > 1 then just print the result with the decimal moved back
+ 4) if the number of decimal places moved is -10 < TMPEXP > 1 then just print the result with the decimal moved back
  5) otherwise, use E format
  in all cases, add a leading space for 0 or +ve values, - for -ve
  
@@ -460,7 +512,7 @@ static value_t evaluate_expression(expression_t *expression)
         // make a slot and push the value onto the stack
         storage = malloc(sizeof(*storage));
         storage->type = type;
-        storage->value = malloc(sizeof(stored_val));
+        storage->value = malloc(sizeof(either_t));
           if (type == STRING)
             storage->value->string = stored_val->string;
           else
@@ -508,12 +560,11 @@ static value_t evaluate_expression(expression_t *expression)
       }
       
       // and then pop the values back off the stack into the globals
-      either_t *global_val;
       variable_storage_t *temp_val;
       original_parameter = original_definition->parameters->data; // pre-flight for the first time through
       for (GList *param = expression->parms.variable->subscripts; param != NULL; param = g_list_next(param)) {
         // retrieve the original name and value
-        global_val = variable_value(original_parameter->parms.variable, &type);
+        either_t *global_val = variable_value(original_parameter->parms.variable, &type);
         
         // find the original value in the stack
         temp_val = g_tree_lookup(stack, original_parameter->parms.variable->name->str);
@@ -546,7 +597,21 @@ static value_t evaluate_expression(expression_t *expression)
         parameters[i] = evaluate_expression(expression->parms.op.p[i]);
       
       // now calculate the results based on those values
-      if (expression->parms.op.arity == 1) {
+      if (expression->parms.op.arity == 0) {
+        // so far all of these are numbers
+        result.type = NUMBER;
+
+        switch (expression->parms.op.opcode) {
+          case FRE:
+            result.number = 0; // always return zero
+            break;
+          case RND:
+            // TODO: support alternative RNDs that return limited values
+            result.number = ((double)rand() / (double)RAND_MAX); // don't forget the cast!
+            break;
+        }
+      }
+      else if (expression->parms.op.arity == 1) {
         // most of the following functions return numbers, so default to that
         result.type = NUMBER;
         
@@ -581,9 +646,6 @@ static value_t evaluate_expression(expression_t *expression)
           case EXP:
             result.number = exp(a);
             break;
-          case FRE:
-            result.number = 0; // always return zero
-            break;
           case LEN: // this is the only arity-1 function that takes a string parameter
             result.number = strlen(parameters[0].string->str);
             break;
@@ -608,10 +670,6 @@ static value_t evaluate_expression(expression_t *expression)
             break;
           case SQR:
             result.number = sqrt(a);
-            break;
-          case RND:
-            // TODO: support alternative RNDs that return limited values
-            result.number = ((double)rand() / (double)RAND_MAX); // don't forget the cast!
             break;
           case VAL:
             result.number = atof(parameters[0].string->str);
@@ -673,7 +731,7 @@ static value_t evaluate_expression(expression_t *expression)
               result.string = g_string_append(result.string, "\n");
             }
             break;
-
+            
           default:
             basic_error("Unhandled arity-1 function");
         } //switch
@@ -700,6 +758,15 @@ static value_t evaluate_expression(expression_t *expression)
             break;
           case '-':
             result = double_to_value(a - b);
+            break;
+          case '&': // ANSI concat
+            if (parameters[0].type == STRING && parameters[1].type == STRING) {
+              result.type = STRING;
+              result.string = g_string_new(g_strconcat(parameters[0].string->str, parameters[1].string->str, NULL));
+            } else {
+              result.string = g_string_new("");
+              basic_error("Type mismatch, non-string values in concatenation");
+            }
             break;
           case '*':
             result = double_to_value(a * b);
@@ -780,7 +847,7 @@ static value_t evaluate_expression(expression_t *expression)
       // and finally, arity=3, which is currently only the MID
       else if (expression->parms.op.arity == 3)  {
         double b = parameters[1].number;
-        double c = parameters[2].number;
+        double c = parameters[2].number; // yeah, these could be ints
         
         switch (expression->parms.op.opcode) {
           case MID:
@@ -788,7 +855,7 @@ static value_t evaluate_expression(expression_t *expression)
           {
             result.string = g_string_new(parameters[0].string->str);
             
-            time_t len = strlen(parameters[0].string->str);
+            size_t len = strlen(parameters[0].string->str);
             if (b < len)
               result.string = g_string_erase(result.string, 0, b - 1); // note the -1
             
@@ -1239,13 +1306,17 @@ static void perform_statement(GList *L)
         // eval, returning a double...
         value_t val = evaluate_expression(ps->parms.on.expression);
         
+        // if the value is not a number...
+        if (val.type == STRING)
+          basic_error("Index value for ON is a string");
+
         // ON does an INT, and since a valid index is +ve, INT always rounds down...
         int n = (int)floor(val.number);
         /* C arrays are zero-indexed, not 1, so... */
         --n;
         
-        // in ANSI, if the index is <1 or >the number of items, an error is returned
-        if (n < 0 && ansi_on_boundaries)
+        // in ANSI (and MS as it turns out), if the index is <1 or >the number of items, an error is returned
+        if (n < 0)
           basic_error("Index value for ON less than 1");
         
         // ... or if we're beyond the end of the list
@@ -1349,13 +1420,17 @@ static void perform_statement(GList *L)
         
       case RANDOMIZE:
       {
-        value_t seed_value;
+        // GW BASIC and Dartmouth work differently. In Dartmouth, RANDOMIZE with no
+        // parameter is supposed to select a random seed, which is what happens here.
+        // in GW, that should display a prompt asking for the value, which seems
+        // odd. To get the Dartmouth behaviour in GW, one uses RANDOMIZE TIMER
+        // which is even more odd.
         
         // see if there's a parameter, if not, seed time
         if (ps->parms.generic_parameter == NULL)
           srand((unsigned int)time(0));
         else {
-          seed_value = evaluate_expression(ps->parms.generic_parameter);
+          value_t seed_value = evaluate_expression(ps->parms.generic_parameter);
           srand(seed_value.number);
         }
       }
@@ -1423,7 +1498,7 @@ static void perform_statement(GList *L)
         // resets the DATA pointer
         if (ps->parms.generic_parameter != NULL) {
           // if there is a parameter, treat it as a line number
-          // Wang BASIC treats the parameter as an ordinal, 'reset to nth global entry'
+          // Wang BASIC treats the parameter as an ordinal, 'reset to nth global entry', we do not support it
           value_t linenum = evaluate_expression(ps->parms.generic_parameter);
           interpreter_state.current_data_statement = find_line((int)linenum.number);
           interpreter_state.current_data_element = NULL;
@@ -1463,36 +1538,8 @@ static void perform_statement(GList *L)
   }
 }
 
-static gboolean is_string(gpointer key, gpointer value, gpointer user_data)
-{
-  variable_storage_t *data = (variable_storage_t *)value;
-  int *tot = (int*)user_data;
-  if(data->type == STRING) *tot += 1;
-  return FALSE;
-}
-static gboolean is_single(gpointer key, gpointer value, gpointer user_data)
-{
-  variable_storage_t *data = (variable_storage_t *)value;
-  int *tot = (int*)user_data;
-  if(data->type == SINGLE) *tot += 1;
-  return FALSE;
-}
-static gboolean is_double(gpointer key, gpointer value, gpointer user_data)
-{
-  variable_storage_t *data = (variable_storage_t *)value;
-  int *tot = (int*)user_data;
-  if(data->type == DOUBLE) *tot += 1;
-  return FALSE;
-}
-static gboolean is_integer(gpointer key, gpointer value, gpointer user_data)
-{
-  variable_storage_t *data = (variable_storage_t *)value;
-  int *tot = (int*)user_data;
-  if(data->type == INTEGER) *tot += 1;
-  return FALSE;
-}
-
 /* variable tree walking methods, returning FALSE means "keep going" */
+
 /* cheater method for printing out all the variable names */
 static gboolean print_symbol(gpointer key, gpointer value, gpointer unused)
 {
@@ -1536,9 +1583,53 @@ static void delete_lines() {
   }
 }
 
-/* the main loop for the program */
-void run(void)
+/* set up empty trees to store variables and user functions as we find them */
+void interpreter_setup()
 {
+  interpreter_state.variable_values = g_tree_new(symbol_compare);
+  interpreter_state.functions = g_tree_new(symbol_compare);
+}
+
+/* after yacc has done it's magic, we form a program by pointing
+ the ->next for each line to the head of the next non-empty line.
+ that way we don't have to search through the line array for the
+ next non-null entry during the run loop, we just keep stepping
+ through the ->next until we fall off the end. this is how most
+interpreters handled it anyway. */
+void interpreter_post_parse(void)
+{
+  // look for the first entry in the lines array with a non-empty statement list
+  int first_line = 0;
+  while ((first_line < MAXLINE - 1) && (interpreter_state.lines[first_line] == NULL))
+    first_line++;
+  
+  // that statement is going to be the head of the list when we're done
+  GList *first_statement = interpreter_state.lines[first_line];
+  
+  // now find the next non-null line and concat it to the first one, and repeat
+  for (int i = first_line + 1; (i < MAXLINE); i++) {
+    if (interpreter_state.lines[i])
+      first_statement = g_list_concat(first_statement, interpreter_state.lines[i]);
+  }
+  
+  // and set the resulting list back into the first line
+  // NOTE: do we need to do this? isn't this already there?
+  interpreter_state.lines[first_line] = first_statement;
+  // and keep track of this for posterity
+  interpreter_state.first_line = first_line;
+  
+  // a program runs from the first line, so...
+  interpreter_state.current_statement = first_statement;          // the first statement
+  interpreter_state.current_data_statement = first_statement;     // the DATA can point anywhere
+  interpreter_state.current_data_element = NULL;                  // the element within the DATA is nothing
+}
+
+/* the main loop for the program */
+void interpreter_run(void)
+{
+  // the cursor starts in col 0
+  interpreter_state.cursor_column = 0;
+
   // start the clock and mark us as running
   start_ticks = clock();
   gettimeofday(&start_time, NULL);
@@ -1571,441 +1662,4 @@ void run(void)
   end_ticks = clock();
   gettimeofday(&end_time, NULL);
   interpreter_state.running_state = 0;
-}
-
-/* prints out various statistics from the static code,
- or if the write_stats flag is on, writes them to a file */
-static void print_statistics()
-{
-  int lines_total, line_min, line_max;
-  
-  // start with line number stats
-  lines_total = 0;
-  line_max = MAXLINE + 1;
-  line_min = -1;
-  // just look for any entry with a list
-  for(int i = 0; i < MAXLINE; i++) {
-    if (interpreter_state.lines[i] != NULL) {
-      lines_total++;
-      if (i < line_max) line_max = i;
-      if (i > line_min) line_min = i;
-    }
-  }
-  
-  // exit if there's no program
-  if (lines_total == 0) {
-    printf("\nNO PROGRAM TO EXAMINE\n\n");
-    return;
-  }
-  
-  // since the statements are run together as one long list, it's
-  // easy to print out the total number, but not so easy to print
-  // out the number per line. so this code checks each node to see
-  // if the ->next is the first item on the next line
-  int stmts_max = 0, diff = 0, next_num;
-  GList *this, *next;
-  GList *start = interpreter_state.lines[interpreter_state.first_line];
-  
-  for(int i = interpreter_state.first_line; i < MAXLINE - 1; i++) {
-    // try again if this line is empty
-    if(interpreter_state.lines[i] == NULL) continue;
-    
-    // otherwise get the statements on this line
-    this = interpreter_state.lines[i];
-    
-    // and find the next non-empty line
-    next_num = i + 1; // note to me, no, you can't i++ here!
-    while ((next_num < MAXLINE) && (interpreter_state.lines[next_num] == NULL))
-      next_num++;
-    
-    // if we ran off the end of the list, exit
-    if(next_num == MAXLINE - 1) break;
-    
-    // otherwise we found the next line
-    next = interpreter_state.lines[next_num];
-    
-    // now count the number of statements between them
-    diff = g_list_position(start, next) - g_list_position(start, this);
-    if(diff > stmts_max) stmts_max = diff;
-  }
-  
-  // variables
-  int num_total = g_tree_nnodes(interpreter_state.variable_values);
-  int num_int = 0, num_sng = 0, num_dbl = 0, num_str = 0;
-  g_tree_foreach(interpreter_state.variable_values, is_integer, &num_int);
-  g_tree_foreach(interpreter_state.variable_values, is_single, &num_sng);
-  g_tree_foreach(interpreter_state.variable_values, is_double, &num_dbl);
-  g_tree_foreach(interpreter_state.variable_values, is_single, &num_sng);
-  g_tree_foreach(interpreter_state.variable_values, is_string, &num_str);
-  
-  // output to screen if selected
-  if(print_stats) {
-    printf("\nRUN TIME: %g\n", (double)(end_time.tv_usec - start_time.tv_usec) / 1000000 + (double)(end_time.tv_sec - start_time.tv_sec));
-    printf("CPU TIME: %g\n", ((double) (end_ticks - start_ticks)) / CLOCKS_PER_SEC);
-    
-    printf("\nLINE NUMBERS\n\n");
-    printf("  total: %i\n", lines_total);
-    printf("  first: %i\n", line_max);
-    printf("   last: %i\n", line_min);
-    
-    printf("\nSTATEMENTS\n\n");
-    printf("  total: %i\n", g_list_length(interpreter_state.lines[line_max]));
-    printf("average: %2.2f\n", (double)g_list_length(interpreter_state.lines[line_max])/(double)lines_total);
-    printf("    max: %i\n", stmts_max);
-    
-    printf("\nVARIABLES\n\n");
-    printf("  total: %i\n",num_total);
-    printf(" string: %i\n",num_str);
-    printf(" (nums): %i\n",num_total-num_str-num_int-num_sng-num_dbl);
-    printf("   ints: %i\n",num_int);
-    printf("singles: %i\n",num_sng);
-    printf("doubles: %i\n",num_dbl);
-    
-    printf("\nNUMERIC CONSTANTS\n\n");
-    printf("  total: %i\n",numeric_constants_total);
-    printf("non-int: %i\n",numeric_constants_float);
-    printf("    int: %i\n",numeric_constants_total - numeric_constants_float);
-    printf("  zeros: %i\n",numeric_constants_zero);
-    printf("   ones: %i\n",numeric_constants_one);
-    printf("  -ones: %i\n",numeric_constants_minus_one);
-    printf("1 digit: %i\n",numeric_constants_one_digit);
-    printf("2 digit: %i\n",numeric_constants_two_digit);
-    printf("3 digit: %i\n",numeric_constants_three_digit);
-    printf("4 digit: %i\n",numeric_constants_four_digit);
-    printf("5 digit: %i\n",numeric_constants_five_digit);
-    printf(" bigger: %i\n",numeric_constants_big);
-    printf(" 1 byte: %i\n",numeric_constants_one_byte);
-    printf(" 2 byte: %i\n",numeric_constants_two_byte);
-    printf(" 4 byte: %i\n",numeric_constants_four_byte);
-    
-    printf("\nSTRING CONSTANTS\n\n");
-    printf("  total: %i\n",string_constants_total);
-    printf(" 1 char: %i\n",string_constants_one_byte);
-    printf("2 chars: %i\n",string_constants_two_byte);
-    printf("4 chars: %i\n",string_constants_four_byte);
-    printf("8 chars: %i\n",string_constants_eight_byte);
-    printf("16 char: %i\n",string_constants_sixteen_byte);
-    printf(" bigger: %i\n",string_constants_big);
-    printf("biggest: %i\n",string_constants_max);
-    
-    printf("\nBRANCHES\n\n");
-    printf("  total: %i\n",linenum_constants_total);
-    printf(" gosubs: %i\n",linenum_gosub_totals);
-    printf("  gotos: %i\n",linenum_goto_totals);
-    printf("  thens: %i\n",linenum_then_goto_totals);
-    printf("    ons: %i\n",linenum_on_totals);
-    printf("forward: %i\n",linenum_forwards);
-    printf("bckward: %i\n",linenum_backwards);
-    printf("same ln: %i\n",linenum_same_line);
-    
-    printf("\nOTHER BITS\n\n");
-    printf(" asgn 0: %i\n",assign_zero);
-    printf(" asgn 1: %i\n",assign_one);
-    printf(" asgn x: %i\n",assign_other);
-    printf("   FORs: %i\n",for_loops_total);
-    printf(" step 1: %i\n",for_loops_step_1);
-    printf("   incs: %i\n",increments);
-    printf("   decs: %i\n",decrements);
-    
-    printf("\nLOGICAL\n\n");
-    printf("    = 0: %i\n",compare_equals_zero);
-    printf("   != 0: %i\n",compare_not_equals_zero);
-    printf("    = 1: %i\n",compare_equals_one);
-    printf("   != 1: %i\n",compare_not_equals_one);
-    printf("    = x: %i\n",compare_equals_other);
-    printf("   != x: %i\n",compare_not_equals_other);
-  }
-  /* and/or the file if selected */
-  if(write_stats) {
-    //check that the file name is reasonable, and then try to open it
-    FILE* fp = fopen(stats_file, "w+");
-    if(!fp) return;
-    
-    double tu = (double)(end_time.tv_usec - start_time.tv_usec);
-    double ts = (double)(end_time.tv_sec - start_time.tv_sec);
-    fprintf(fp, "RUN TIME: %g\n", tu / 1000000 + ts);
-    fprintf(fp, "CPU TIME,%g\n", ((double) (end_ticks - start_ticks)) / CLOCKS_PER_SEC);
-    
-    fprintf(fp, "LINE NUMBERS,total,%i\n", lines_total);
-    fprintf(fp, "LINE NUMBERS,first,%i\n", line_max);
-    fprintf(fp, "LINE NUMBERS,last,%i\n", line_min);
-    
-    fprintf(fp, "STATEMENTS,total,%i\n", g_list_length(interpreter_state.lines[line_max]));
-    fprintf(fp, "STATEMENTS,average,%g\n", (double)g_list_length(interpreter_state.lines[line_max])/(double)lines_total);
-    fprintf(fp, "STATEMENTS,max/ln,%i\n", stmts_max);
-    
-    fprintf(fp, "VARIABLES,total,%i\n",num_total);
-    fprintf(fp, "VARIABLES,string,%i\n",num_str);
-    fprintf(fp, "VARIABLES,default,%i\n",num_total-num_str-num_int-num_sng-num_dbl);
-    fprintf(fp, "VARIABLES,ints,%i\n",num_int);
-    fprintf(fp, "VARIABLES,singles,%i\n",num_sng);
-    fprintf(fp, "VARIABLES,doubles,%i\n",num_dbl);
-    
-    fprintf(fp, "NUMERIC CONSTANTS,total,%i\n",numeric_constants_total);
-    fprintf(fp, "NUMERIC CONSTANTS,non-int,%i\n",numeric_constants_float);
-    fprintf(fp, "NUMERIC CONSTANTS,int,%i\n",numeric_constants_total - numeric_constants_float);
-    fprintf(fp, "NUMERIC CONSTANTS,zeros,%i\n",numeric_constants_zero);
-    fprintf(fp, "NUMERIC CONSTANTS,ones,%i\n",numeric_constants_one);
-    fprintf(fp, "NUMERIC CONSTANTS,-ones,%i\n",numeric_constants_minus_one);
-    fprintf(fp, "NUMERIC CONSTANTS,1 digit,%i\n",numeric_constants_one_digit);
-    fprintf(fp, "NUMERIC CONSTANTS,2 digit,%i\n",numeric_constants_two_digit);
-    fprintf(fp, "NUMERIC CONSTANTS,3 digit,%i\n",numeric_constants_three_digit);
-    fprintf(fp, "NUMERIC CONSTANTS,4 digit,%i\n",numeric_constants_four_digit);
-    fprintf(fp, "NUMERIC CONSTANTS,5 digit,%i\n",numeric_constants_five_digit);
-    fprintf(fp, "NUMERIC CONSTANTS,bigger,%i\n",numeric_constants_big);
-    fprintf(fp, "NUMERIC CONSTANTS,1 byte,%i\n",numeric_constants_one_byte);
-    fprintf(fp, "NUMERIC CONSTANTS,2 byte,%i\n",numeric_constants_two_byte);
-    fprintf(fp, "NUMERIC CONSTANTS,4 byte,%i\n",numeric_constants_four_byte);
-    
-    fprintf(fp, "STRING CONSTANTS,total,%i\n",string_constants_total);
-    fprintf(fp, "STRING CONSTANTS,1 char,%i\n",string_constants_one_byte);
-    fprintf(fp, "STRING CONSTANTS,2 chars,%i\n",string_constants_two_byte);
-    fprintf(fp, "STRING CONSTANTS,4 chars,%i\n",string_constants_four_byte);
-    fprintf(fp, "STRING CONSTANTS,8 chars,%i\n",string_constants_eight_byte);
-    fprintf(fp, "STRING CONSTANTS,16 chars,%i\n",string_constants_sixteen_byte);
-    fprintf(fp, "STRING CONSTANTS,bigger,%i\n",string_constants_big);
-    fprintf(fp, "STRING CONSTANTS,biggest,%i\n",string_constants_max);
-    
-    fprintf(fp, "BRANCHES,total,%i\n",linenum_constants_total);
-    fprintf(fp, "BRANCHES,gosubs,%i\n",linenum_gosub_totals);
-    fprintf(fp, "BRANCHES,gotos,%i\n",linenum_goto_totals);
-    fprintf(fp, "BRANCHES,thens,%i\n",linenum_then_goto_totals);
-    fprintf(fp, "BRANCHES,ons,%i\n",linenum_on_totals);
-    fprintf(fp, "BRANCHES,forward,%i\n",linenum_forwards);
-    fprintf(fp, "BRANCHES,backward,%i\n",linenum_backwards);
-    fprintf(fp, "BRANCHES,same line,%i\n",linenum_same_line);
-    
-    fprintf(fp, "OTHER,ASSIGN 0: %i\n",assign_zero);
-    fprintf(fp, "OTHER,ASSIGN 1: %i\n",assign_one);
-    fprintf(fp, "OTHER,ASSIGN OTHER: %i\n",assign_other);
-    fprintf(fp, "OTHER,FORs step 1: %i\n",for_loops_step_1);
-    fprintf(fp, "OTHER,FORs: %i\n",for_loops_total);
-    fprintf(fp, "OTHER,FORs step 1: %i\n",for_loops_step_1);
-    fprintf(fp, "OTHER,incs: %i\n",increments);
-    fprintf(fp, "OTHER,decs: %i\n",decrements);
-    fprintf(fp, "OTHER,logical=0: %i\n",compare_equals_zero);
-    fprintf(fp, "OTHER,logical!=0: %i\n",compare_not_equals_zero);
-    fprintf(fp, "OTHER,logical=1: %i\n",compare_equals_one);
-    fprintf(fp, "OTHER,logical!=1: %i\n",compare_not_equals_one);
-    fprintf(fp, "OTHER,logical=x: %i\n",compare_equals_other);
-    fprintf(fp, "OTHER,logical!=x: %i\n",compare_not_equals_other);
-    
-    fclose(fp);
-  }
-}
-
-/* simple version info for --version command line option */
-static void print_version()
-{
-  puts("RetroBASIC 1.0");
-}
-
-/* usage, both for the user and for documenting the code below */
-static void print_usage(char *argv[])
-{
-  printf("Usage: %s [-hvsngu] [-a number] [-t spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] source_file\n", argv[0]);
-  puts("Options:");
-  puts("  -h, --help: print this description");
-  puts("  -v, --version: print version info");
-  puts("  -u, --upper-case: convert all input to upper case");
-  puts("  -a, --array-base: minimum array index, normally 1");
-  puts("  -s, --slicing: turn on string slicing (turning off string arrays)");
-  puts("  -n, --no-run: don't run the program after parsing");
-  puts("  -g, --goto-next: if a branch target doesn't exist, go to the next line");
-  puts("  -t, --tabs: set the number of spaces for comma-separated items");
-  puts("  -r, --random: seed the random number generator");
-  puts("  -p, --print-stats: when the program exits, print statistics");
-  puts("  -w, --write-stats: on exit, write statistics to a file");
-  puts("  -o, --output-file: redirect PRINT and PUT to the named file");
-  puts("  -i, --input-file: redirect INPUT and GET from the named file");
-}
-
-static struct option program_options[] =
-{
-  {"help", no_argument, NULL, 'h'},
-  {"version", no_argument, NULL, 'v'},
-  {"upper-case", no_argument, NULL, 'u'},
-  {"array-base", required_argument, NULL, 'a'},
-  {"tabs", required_argument, NULL, 't'},
-  {"random", required_argument, NULL, 'r'},
-  {"slicing", no_argument, NULL, 's'},
-  {"goto-next", no_argument, NULL, 'g'},
-  {"input-file", required_argument, NULL, 'i'},
-  {"output-file", required_argument,  NULL, 'o'},
-  {"print-stats", no_argument, NULL, 'p'},
-  {"write-stats", required_argument, NULL, 'w'},
-  {"no-run", no_argument, NULL, 'n'},
-  {0, 0, 0, 0}
-};
-
-void parse_options(int argc, char *argv[])
-{
-  int option_index = 0;
-  int printed_help = FALSE;
-  
-  while(1) {
-    // eat an option and exit if we're done
-    int c = getopt_long(argc, argv, "hvua:t:r:i:o:w:spn", program_options, &option_index); // should match the items above, but with flag-setters excluded
-    if (c == -1) break;
-    
-    switch (c) {
-      case 0:
-        // flag-setting options return 0 - these are s, p and n
-        if (program_options[option_index].flag != 0)
-          break;
-        
-      case 'h':
-        print_usage(argv);
-        printed_help = TRUE;
-        break;
-        
-      case 'v':
-        print_version();
-        printed_help = TRUE;
-        break;
-        
-      case 'u':
-        upper_case = TRUE;
-        break;
-        
-      case 'g':
-        goto_next_highest = TRUE;
-        break;
-        
-      case 'n':
-        run_program = FALSE;
-        break;
-        
-      case 's':
-        string_slicing = TRUE;
-        break;
-        
-      case 'p':
-        print_stats = TRUE;
-        break;
-        
-      case 'a':
-        array_base = (int)strtol(optarg, 0, INT_MAX);;
-        break;
-        
-      case 't':
-        tab_columns = (int)strtol(optarg, 0, INT_MAX);;
-        break;
-        
-      case 'i':
-        input_file = optarg;
-        break;
-        
-      case 'o':
-        print_file = optarg;
-        break;
-        
-      case 'w':
-        write_stats = 1;
-        stats_file = optarg;
-        break;
-        
-      case 'r':
-        random_seed = strtol(optarg, 0, INT_MAX);
-        
-      default:
-        abort();
-    }
-  } // while
-  
-  // now see if there's a filename
-  if (optind < argc)
-    // we'll just assume one file if any
-    source_file = argv[argc - 1];
-  else
-    // not always a failure, we might have just been asked for usage
-    if (printed_help)
-      exit(EXIT_SUCCESS);
-    else
-      exit(EXIT_FAILURE);
-}
-
-int main(int argc, char *argv[])
-{
-  extern int yyparse(void);
-  extern FILE *yyin;
-  
-  // turn this on to add verbose debugging
-#if YYDEBUG
-  yydebug = 1;
-#endif
-  
-  // parse the options and make sure we got a filename somewhere
-  parse_options(argc, argv);
-  
-  // set up empty trees to store variables and user functions as we find them
-  interpreter_state.variable_values = g_tree_new(symbol_compare);
-  interpreter_state.functions = g_tree_new(symbol_compare);
-  
-  // open the file...
-  yyin = fopen(source_file, "r");
-  // and see if it exists
-  if (yyin == NULL) {
-    if (errno == ENOENT) {
-      fprintf(stderr, "File not found or no filename provided.");
-      exit(EXIT_FAILURE);
-    } else {
-      fprintf(stderr, "Error %i when opening file.", errno);
-      exit(EXIT_FAILURE);
-    }
-  }
-  // otherwise we were able to open the file, so parse itLRS
-  yyparse();
-  
-  // run all the lines together into a single continuous list
-  // by pointing the ->next for each line to the head of the next
-  // non-empty line. that way we don't have to search through the line
-  // array for the next non-null entry during the run loop, we just
-  // keep stepping through the ->next until we fall off the end
-  {
-    // look for the first entry in the lines array with a non-empty statement list
-    int first_line = 0;
-    while ((first_line < MAXLINE - 1) && (interpreter_state.lines[first_line] == NULL))
-      first_line++;
-    
-    // that statement is going to be the head of the list when we're done
-    GList *first_statement = interpreter_state.lines[first_line];
-    
-    // now find the next non-null line and concat it to the first one, and repeat
-    for (int i = first_line + 1; (i < MAXLINE); i++) {
-      if (interpreter_state.lines[i])
-        first_statement = g_list_concat(first_statement, interpreter_state.lines[i]);
-    }
-    
-    // and set the resulting list back into the first line
-    // NOTE: do we need to do this? isn't this already there?
-    interpreter_state.lines[first_line] = first_statement;
-    // and keep track of this for posterity
-    interpreter_state.first_line = first_line;
-    
-    // a program runs from the first line, so...
-    interpreter_state.current_statement = first_statement;          // the first statement
-    interpreter_state.current_data_statement = first_statement;     // the DATA can point anywhere
-    interpreter_state.current_data_element = NULL;                  // the element within the DATA is nothing
-  }
-  
-  // the cursor starts in col 0
-  interpreter_state.cursor_column = 0;
-  
-  // seed the random with the provided number or randomize it
-  if (random_seed > -1)
-    srand(random_seed);
-  else
-    srand((unsigned int)time(0));
-  
-  // and go!
-  if (run_program)
-    run();
-  
-  // we're done, print/write desired stats
-  if (print_stats || write_stats)
-    print_statistics();
-  
-  // and exit
-  exit(EXIT_SUCCESS);
 }

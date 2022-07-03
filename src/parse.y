@@ -23,6 +23,7 @@ the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 #include "retrobasic.h"
+#include "statistics.h"
 
  /* used to track the line number being processed so
     that errors can report it */
@@ -80,7 +81,7 @@ static expression_t *make_operator(int arity, int o)
 
 %type <l> program line statements
 %type <l> printlist exprlist varlist slicelist //assignlist //numlist
-%type <i> printsep binary_op comparison_op e2op term unary_op fn_1 fn_2 fn_x
+%type <i> printsep binary_op comparison_op e2op term unary_op fn_0 fn_1 fn_2 fn_x
 %type <expression> expression expression0 expression1 expression2 expression3 expression4 function factor
 %type <statement> statement
 %type <variable> variable user_function
@@ -755,7 +756,9 @@ expression2:
 	;
 
 e2op:   '+' { $$ = '+'; } |
-        '-' { $$ = '-'; } ;
+        '-' { $$ = '-'; } |
+        '&' { $$ = '&'; }
+        ;
 
 expression3:
 	expression4
@@ -791,6 +794,20 @@ unary_op:
 
 function:
 	factor
+  |
+  /* functions with optional parameters, which we store but ignore */
+  fn_0 '(' ')'
+  {
+    expression_t *new = make_operator(0, $1);
+    $$ = new;
+  }
+  |
+  fn_0 '(' expression ')'
+  {
+    expression_t *new = make_operator(0, $1);
+    new->parms.op.p[0] = $3;
+    $$ = new;
+  }
 	|
 	fn_1 '(' expression ')'
 	{
@@ -826,6 +843,12 @@ function:
 	  $$ = new;
 	}
 	;
+  
+ /* optional-parameter functions */
+fn_0:
+  FRE { $$ = FRE; } |
+  RND { $$ = RND; }
+  ;
 
  /* arity-1 functions */
 fn_1:
@@ -836,14 +859,12 @@ fn_1:
 	COS  { $$ = COS; } |
   EXP  { $$ = EXP; } |
   FIX  { $$ = FIX; } |
-  FRE  { $$ = FRE; } |
 	INT  { $$ = INT; } |
   LEN  { $$ = LEN; } |
   LIN  { $$ = LIN; } |
   STR  { $$ = STR; } |
   LOG  { $$ = LOG; } |
   PEEK { $$ = PEEK;} |
-  RND  { $$ = RND; } |
   SGN  { $$ = SGN; } |
 	SIN  { $$ = SIN; } |
 	SPC  { $$ = SPC; } |
@@ -861,7 +882,8 @@ fn_2:
 
  /* arity-2 or 3 functions */
 fn_x:
-  MID { $$ = MID; };
+  MID { $$ = MID; }
+  ;
 
  /* ultimately all expressions end up here in factor, which is either a
     constant value, a variable value, or a parened expression. in
@@ -997,7 +1019,8 @@ variable:
 	  variable_t *new = malloc(sizeof(*new));
 	  new->name = $1;
 	  new->subscripts = NULL;
-	  $$ = new;
+    new->slicing = NULL;
+    $$ = new;
     
     /* add it to the interpreter's variable list for the analyizer*/
     insert_variable(new);
@@ -1008,6 +1031,7 @@ variable:
     variable_t *new = malloc(sizeof(*new));
     new->name = $1;
     new->subscripts = $3;
+    new->slicing = NULL;
     $$ = new;
 
     /* this may result in errors about array bounds if you OPTION BASE after the DIM */
@@ -1105,12 +1129,10 @@ exprlist:
 	;
   
   /* ANSI-style string slicing */
+  // NOTE: the ANSI docs suggest the only correct format is two-parameter, start and end
+  //       this contrasts with most other systems, where one or the other can be left off
 slicelist:
-    expression
-    {
-      $$ = g_list_prepend(NULL, $1);
-    }
-    |
+    // two parameters, start and end indexes
     expression ':' expression
     {
       $$ = g_list_prepend(NULL, $1);
@@ -1118,7 +1140,6 @@ slicelist:
     }
     ;
 
-	
  /* used only in PATB style multiple-assignment LETs */
  /* not currently used 
  assignlist:

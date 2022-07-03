@@ -8,11 +8,11 @@ GW = GW-BASIC
 WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 
+- add TIME, TIME$ and DATE$
+
 - need to allow multiple INPUTs on a single line, currently it requires a CR between values
 
 - needs command-line switch for ANSI, controls tab stops and many errors
-
-- add support for string "slicing" commands used in HP/AB/IB. This is a bit tricky because it is the same syntax as string arrays found in other systems, so there is a command-line switch for this
 
 - DEFINT/SNG/DBL/STR does not support the "range" syntax, DEFINT A-F. only comma lists work, DEFINT A,B
 
@@ -23,8 +23,6 @@ PA = Palo Alto Tiny BASIC
 - flesh out GET and PUT, which are just placeholders for now
 
 - support AB's DEG and RAD modes? WB also had gradians; SELECT G
-
-- WB allows a message after a STOP, which is printed when that command runs
 
 - PA allows multiple assignments in a LET, separated by commas, see assignlist
 
@@ -41,5 +39,3 @@ PA = Palo Alto Tiny BASIC
 - a number of less-commonly-used math and string functions are not yet implemented: CINT CSNG CDBL
 
 - some BASICs allow RESTORE to include a parameter which is the ordinal position in the list, as opposed to a line number
-
-- out-of-range index values in ON statements in MS fall through to the next statement, ANSI returns an error
