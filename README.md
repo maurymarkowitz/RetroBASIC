@@ -46,6 +46,8 @@ Command-line options include:
 
 If you wish to use RetroBASIC to simply check syntax or collect statistics, use the -n and -p switches.
 
+Short options with no parameters can be gan ganged, for instance -unp.
+
 ## Building RetroBASIC
 
 The RetroBASIC interpreter is written for lex/yacc/c and is normally compiled with flex/bison. It has a single non-standard dependancy; it uses GLib for string, list and tree suppport. It should compile on any platform with GLib, and has been tested on macOS and Windows with the support of Cygwin.
