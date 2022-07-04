@@ -12,6 +12,8 @@
 		5568AD6D240753E6001138F5 /* lunar.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5568AD6C240753C2001138F5 /* lunar.bas */; };
 		5599AEFA239C0A6F00490A3A /* retrobasic.c in Sources */ = {isa = PBXBuildFile; fileRef = 5599AEF9239C0A6F00490A3A /* retrobasic.c */; };
 		5599AEFE239C0ABF00490A3A /* scan.l in Sources */ = {isa = PBXBuildFile; fileRef = 5599AEFC239C0ABF00490A3A /* scan.l */; };
+		55A42363287360B00070AF00 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 55A42361287360B00070AF00 /* main.c */; };
+		55A42364287360B00070AF00 /* statistics.c in Sources */ = {isa = PBXBuildFile; fileRef = 55A42362287360B00070AF00 /* statistics.c */; };
 		55B3D421238E1BA700E6054E /* test.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 55B3D420238E1B9900E6054E /* test.bas */; };
 		55B3D42C23943EB100E6054E /* superstartrek.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 55B3D42B23942C7200E6054E /* superstartrek.bas */; };
 		55B9698C252F44E70021CD8B /* parse.y in Sources */ = {isa = PBXBuildFile; fileRef = 55B9698B252F44E70021CD8B /* parse.y */; };
@@ -44,6 +46,9 @@
 		5599AEF9239C0A6F00490A3A /* retrobasic.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = retrobasic.c; sourceTree = "<group>"; };
 		5599AEFB239C0A8800490A3A /* stdhdr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stdhdr.h; sourceTree = "<group>"; };
 		5599AEFC239C0ABF00490A3A /* scan.l */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.lex; path = scan.l; sourceTree = "<group>"; };
+		55A42360287360B00070AF00 /* statistics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = statistics.h; sourceTree = "<group>"; };
+		55A42361287360B00070AF00 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		55A42362287360B00070AF00 /* statistics.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = statistics.c; sourceTree = "<group>"; };
 		55B3D40C238E051D00E6054E /* retrobasic */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = retrobasic; sourceTree = BUILT_PRODUCTS_DIR; };
 		55B3D420238E1B9900E6054E /* test.bas */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.bas; sourceTree = "<group>"; };
 		55B3D427238EB43100E6054E /* pass-fail.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "pass-fail.txt"; sourceTree = "<group>"; };
@@ -101,6 +106,9 @@
 				55B9698B252F44E70021CD8B /* parse.y */,
 				5599AEF8239C0A6E00490A3A /* retrobasic.h */,
 				5599AEF9239C0A6F00490A3A /* retrobasic.c */,
+				55A42360287360B00070AF00 /* statistics.h */,
+				55A42362287360B00070AF00 /* statistics.c */,
+				55A42361287360B00070AF00 /* main.c */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -176,7 +184,7 @@
 		55B3D404238E051D00E6054E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1230;
+				LastUpgradeCheck = 1340;
 				ORGANIZATIONNAME = "Maury Markowitz";
 				TargetAttributes = {
 					55B3D40B238E051D00E6054E = {
@@ -227,6 +235,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				55A42363287360B00070AF00 /* main.c in Sources */,
+				55A42364287360B00070AF00 /* statistics.c in Sources */,
 				55B9698C252F44E70021CD8B /* parse.y in Sources */,
 				5599AEFA239C0A6F00490A3A /* retrobasic.c in Sources */,
 				5599AEFE239C0ABF00490A3A /* scan.l in Sources */,
