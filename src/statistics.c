@@ -22,6 +22,59 @@
 #include "retrobasic.h"
 #include "parse.h"
 
+/* declarations of the externs from the header */
+int variables_total = 0;
+int variables_default = 0;
+int variables_int = 0;
+int variables_float = 0;
+int variables_double = 0;
+int variables_string = 0;
+int numeric_constants_total = 0;
+int numeric_constants_float = 0;
+int numeric_constants_zero = 0;
+int numeric_constants_one = 0;
+int numeric_constants_minus_one = 0;
+int numeric_constants_one_digit = 0;
+int numeric_constants_two_digit = 0;
+int numeric_constants_three_digit = 0;
+int numeric_constants_four_digit = 0;
+int numeric_constants_five_digit = 0;
+int numeric_constants_one_byte = 0;
+int numeric_constants_two_byte = 0;
+int numeric_constants_four_byte = 0;
+int numeric_constants_big = 0;
+
+int string_constants_total = 0;
+int string_constants_one_byte = 0;
+int string_constants_two_byte = 0;
+int string_constants_four_byte = 0;
+int string_constants_eight_byte = 0;
+int string_constants_sixteen_byte = 0;
+int string_constants_big = 0;
+int string_constants_max = 0;
+int linenum_constants_total = 0;
+int linenum_forwards = 0;
+int linenum_backwards = 0;
+int linenum_same_line = 0;
+int linenum_goto_totals = 0;
+int linenum_then_goto_totals = 0;
+int linenum_gosub_totals = 0;
+int linenum_on_totals = 0;
+int for_loops_total = 0;
+int for_loops_step_1 = 0;
+int for_loops_all_constant = 0;
+int increments = 0;
+int decrements = 0;
+int compare_equals_zero = 0;
+int compare_equals_one = 0;
+int compare_equals_other = 0;
+int compare_not_equals_zero = 0;
+int compare_not_equals_one = 0;
+int compare_not_equals_other = 0;
+int assign_zero = 0;
+int assign_one = 0;
+int assign_other = 0;
+
 static gboolean is_string(gpointer key, gpointer value, gpointer user_data)
 {
   variable_storage_t *data = (variable_storage_t *)value;
