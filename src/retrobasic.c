@@ -30,20 +30,18 @@
 interpreterstate_t interpreter_state;
 
 /* and the same for the various flags */
-clock_t start_ticks = 0, end_ticks = 0;  // start and end ticks, for calculating CPU time
-struct timeval start_time, end_time;     // start and end clock, for total run time
-int run_program = 1;                     // default to running the program, not just parsing it
-int print_stats = 0;
-int write_stats = 0;
-int tab_columns = 10;                    // based on PET BASIC, which is a good enough target
+int run_program = TRUE;                 // default to running the program, not just parsing it
+int print_stats = FALSE;                // do not print or write stats by default
+int write_stats = FALSE;
+int tab_columns = 10;                   // based on PET BASIC, which is a good enough target
 int trace_lines = FALSE;
-int upper_case = 0;                      // force INPUT to upper case
-int array_base = 1;                      // lower bound of arrays, can be set to 0 with OPTION BASE
-double random_seed = -1;                 // reset with RANDOMIZE, if -1 then auto-seeds
-int string_slicing = FALSE;              // are references like A$(1,1) referring to an array entry or doing slicing?
-int goto_next_highest = FALSE;           // if a branch targets an non-existant line, should we go to the next highest?
-int ansi_on_boundaries = FALSE;          // if the value for an ON statement <1 or >num entries, should it continue or error?
-int ansi_tab_behaviour = FALSE;          // if a TAB < current column, ANSI inserts a CR, MS does not
+int upper_case = FALSE;                 // force INPUT to upper case
+int array_base = 1;                     // lower bound of arrays, can be set to 0 with OPTION BASE
+double random_seed = -1;                // reset with RANDOMIZE, if -1 then auto-seeds
+int string_slicing = FALSE;             // are references like A$(1,1) referring to an array entry or doing slicing?
+int goto_next_highest = FALSE;          // if a branch targets an non-existant line, should we go to the next highest?
+int ansi_on_boundaries = FALSE;         // if the value for an ON statement <1 or >num entries, should it continue or error?
+int ansi_tab_behaviour = FALSE;         // if a TAB < current column, ANSI inserts a CR, MS does not
 
 char *source_file = "";
 char *input_file = "";
@@ -78,57 +76,8 @@ static void delete_functions(void);
 static void delete_lines(void);
 
 /* defitions of variables used by the static analyzer */
-int variables_total = 0;
-int variables_default = 0;
-int variables_int = 0;
-int variables_float = 0;
-int variables_double = 0;
-int variables_string = 0;
-int numeric_constants_total = 0;
-int numeric_constants_float = 0;
-int numeric_constants_zero = 0;
-int numeric_constants_one = 0;
-int numeric_constants_minus_one = 0;
-int numeric_constants_one_digit = 0;
-int numeric_constants_two_digit = 0;
-int numeric_constants_three_digit = 0;
-int numeric_constants_four_digit = 0;
-int numeric_constants_five_digit = 0;
-int numeric_constants_one_byte = 0;
-int numeric_constants_two_byte = 0;
-int numeric_constants_four_byte = 0;
-int numeric_constants_big = 0;
-
-int string_constants_total = 0;
-int string_constants_one_byte = 0;
-int string_constants_two_byte = 0;
-int string_constants_four_byte = 0;
-int string_constants_eight_byte = 0;
-int string_constants_sixteen_byte = 0;
-int string_constants_big = 0;
-int string_constants_max = 0;
-int linenum_constants_total = 0;
-int linenum_forwards = 0;
-int linenum_backwards = 0;
-int linenum_same_line = 0;
-int linenum_goto_totals = 0;
-int linenum_then_goto_totals = 0;
-int linenum_gosub_totals = 0;
-int linenum_on_totals = 0;
-int for_loops_total = 0;
-int for_loops_step_1 = 0;
-int for_loops_all_constant = 0;
-int increments = 0;
-int decrements = 0;
-int compare_equals_zero = 0;
-int compare_equals_one = 0;
-int compare_equals_other = 0;
-int compare_not_equals_zero = 0;
-int compare_not_equals_one = 0;
-int compare_not_equals_other = 0;
-int assign_zero = 0;
-int assign_one = 0;
-int assign_other = 0;
+clock_t start_ticks = 0, end_ticks = 0;  // start and end ticks, for calculating CPU time
+struct timeval start_time, end_time;     // start and end clock, for total run time
 
 /************************************************************************/
 

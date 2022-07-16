@@ -25,6 +25,9 @@
 #include "retrobasic.h"
 
 /* additional externs used for the static analyzer, used in parse.y */
+extern clock_t start_ticks, end_ticks;  // start and end ticks, for calculating CPU time
+extern struct timeval start_time, end_time;     // start and end clock, for total run time
+
 extern int variables_total;
 extern int variables_default;
 extern int variables_int;
@@ -79,5 +82,3 @@ extern int assign_other;
 void print_statistics(void);
 
 #endif /* statistics_h */
-
-

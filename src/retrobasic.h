@@ -31,8 +31,6 @@
 #define MAXSTRING 256
 
 /* internal state variables used for I/O and other tasks */
-extern clock_t start_ticks, end_ticks;  // start and end ticks, for calculating CPU time
-extern struct timeval start_time, end_time;     // start and end clock, for total run time
 extern int run_program;                     // default to running the program, not just parsing it
 extern int print_stats;
 extern int write_stats;
