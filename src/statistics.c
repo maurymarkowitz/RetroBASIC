@@ -19,7 +19,6 @@
  Boston, MA 02111-1307, USA.  */
 
 #include "statistics.h"
-#include "retrobasic.h"
 #include "parse.h"
 
 /* declarations of the externs from the header */
