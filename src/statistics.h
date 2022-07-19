@@ -1,4 +1,4 @@
-/* Statistics output (header) for RetroBASIC
+/* Statistics (header) for RetroBASIC
  Copyright (C) 2020 Maury Markowitz
  
  This file is part of RetroBASIC.
