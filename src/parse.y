@@ -207,7 +207,7 @@ statements:
   |
   statement ':' statements
   {
-  $$ = g_list_prepend($3, $1);
+    $$ = g_list_prepend($3, $1);
   }
   |
   statements QUOTEREM
@@ -276,9 +276,9 @@ statement:
   /* DATA can have any type in it, but it is unlikely true expressions are allowed, although we allow them here */
   DATA exprlist
   {
-  statement_t *new = make_statement(DATA);
-  new->parms.data = $2;
-  $$ = new;
+    statement_t *new = make_statement(DATA);
+    new->parms.data = $2;
+    $$ = new;
   }
   |
   DEF user_function '=' expression
