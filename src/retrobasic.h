@@ -31,18 +31,19 @@
 #define MAXSTRING 256
 
 /* internal state variables used for I/O and other tasks */
-extern int run_program;                     // default to running the program, not just parsing it
+extern int run_program;                 // default to running the program, not just parsing it
 extern int print_stats;
 extern int write_stats;
-extern int tab_columns;                    // based on PET BASIC, which is a good enough target
+
+extern int tab_columns;                 // based on PET BASIC, which is a good enough target
 extern int trace_lines;
-extern int upper_case;                      // force INPUT to upper case
-extern int array_base;                      // lower bound of arrays, can be set to 0 with OPTION BASE
-extern double random_seed;                 // reset with RANDOMIZE, if -1 then auto-seeds
+extern int upper_case;                  // force INPUT to upper case
+extern int array_base;                  // lower bound of arrays, can also be set to 0 with OPTION BASE
 extern int string_slicing;              // are references like A$(1,1) referring to an array entry or doing slicing?
-extern int goto_next_highest;           // if a branch targets an non-existant line, should we go to the next highest?
-extern int ansi_on_boundaries;          // if the value for an ON statement <1 or >num entries, should it continue or error?
+extern int goto_next_highest;           // if a branch targets a non-existant line, should we go to the next line?
+extern int ansi_on_boundaries;          // if the value for an ON statement <1 or >num entries, should it continue, or error?
 extern int ansi_tab_behaviour;          // if a TAB < current column, ANSI inserts a CR, MS does not
+extern double random_seed;              // reset with RANDOMIZE, if -1 then auto-seeds
 
 extern char *source_file;
 extern char *input_file;
