@@ -68,22 +68,23 @@
 1099 PRINT "string manipulation on HELLO WORLD"
 1100 A$="HELLO WORLD"
 1200 PRINT A$, "len="len(a$)
-1300 PRINT "left 5 = "LEFT$(A$,5)
-1400 PRINT "right 5= "right$(A$,5)
-1500 PRINT "mid 5  = "mid$(A$,5)
-1600 PRINT "mid 4,5= "mid$(A$,4,5)
+1300 PRINT "left 5, should produce HELLO: "LEFT$(A$,5)
+1400 PRINT "right 5, should produce WORLD: "right$(A$,5)
+1500 PRINT "mid 5, should produce O WORLD: "mid$(A$,5)
+1600 PRINT "mid 4,5, should produce LO WO: "mid$(A$,4,5)
 1700 REM
 1710 REM do some string manipulation using ANSI slices
 1720 REM
 1730 PRINT "string slicing on HELLO WORLD"
 1740 PRINT A$, "len="len(a$)
-1750 PRINT "(1:5) = "A$(1:5)
-1760 PRINT "(4:5) = "A$(4:5)
+1750 PRINT "(1:5), should produce HELLO: "A$(1:5)
+1760 PRINT "(4:5), should produce LO: "A$(4:5)
 1800 REM
 1810 REM concats
 1820 REM
-1830 PRINT "contact with plus ";"HELLO" + " " + "WORLD"
-1840 PRINT "contact with amp ";"HELLO" & " " & "WORLD"
+1830 PRINT "concat with plus, should produce HELLO WORLD: ";"HELLO" + " " + "WORLD"
+1840 PRINT "concat with amp, should produce HELLO WORLD: ";"HELLO" & " " & "WORLD"
+1850 PRINT "multi-concat, should produce 1 2 3 4: ";"1" & " " & "2" & " " & "3" & " " & "4"
 1900 REM
 1910 REM time and date
 1920 REM
