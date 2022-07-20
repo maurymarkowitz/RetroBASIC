@@ -72,7 +72,7 @@ static expression_t *make_operator(int arity, int o)
 %union {
   double d;
   int i;
-  GString *s;
+  char *s;
   GList *l;
   statement_t *statement;
   expression_t *expression;
@@ -954,21 +954,22 @@ factor:
 	  $$ = new;
       
     /* static analyzer code */
+    size_t len = strlen($1);
     string_constants_total++;
-    if ($1->len == 1) {
+    if (len == 1) {
         string_constants_one_byte++;
-    } else if ($1->len == 2) {
+    } else if (len == 2) {
       string_constants_two_byte++;
-    } else if ($1->len <= 4) {
+    } else if (len <= 4) {
       string_constants_four_byte++;
-    } else if ($1->len <= 8) {
+    } else if (len <= 8) {
       string_constants_eight_byte++;
-    } else if ($1->len <= 16) {
+    } else if (len <= 16) {
       string_constants_sixteen_byte++;
     } else {
         string_constants_big++;
     }
-    if ($1->len > string_constants_max) string_constants_max = (int)$1->len;
+    if (len > string_constants_max) string_constants_max = (int)len;
   }
   |
   variable
