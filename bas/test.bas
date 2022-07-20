@@ -72,6 +72,11 @@
 1400 PRINT "right 5, should produce WORLD: "right$(A$,5)
 1500 PRINT "mid 5, should produce O WORLD: "mid$(A$,5)
 1600 PRINT "mid 4,5, should produce LO WO: "mid$(A$,4,5)
+1610 PRINT "mid 20,5, should produce nothing: "mid$(A$,20,5)
+1620 PRINT "right 100, should produce HELLO WORLD: "right$(A$,100)
+1630 PRINT "left 100, should produce HELLO WORLD: "left$(A$,100)
+1640 PRINT "mid 100,100 should produce nothing: "mid$(A$,100,100)
+1640 PRINT "mid 5,100 should produce LO WORLD: "mid$(A$,5,100)
 1700 REM
 1710 REM do some string manipulation using ANSI slices
 1720 REM

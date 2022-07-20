@@ -27,6 +27,10 @@ Boston, MA 02111-1307, USA.  */
 #include "stdhdr.h"
 #include <stdlib.h>
 
+// this should be more than large enough for programs of the era,
+// but some like Atari will use large strings for data storage
+#define MAXSTRING 256
+
 /**
  * @file data.h
  * @author Maury Markowitz
@@ -51,27 +55,27 @@ char* str_new(char *string);
  *
  * @note If starting_pos > strlen(string) nothing is deleted.
  */
-void str_delete(char *string, size_t starting_pos, size_t no_of_chars);
+char* str_erase(char *string, size_t starting_pos, size_t no_of_chars);
 
 /**
- * @brief Deletes @p no_of_chars characters at the end a string. Equivalent to BASIC's LEFT.
+ * @brief Deletes @p no_of_chars characters at the end a string.
  *
  * @param string The string to delete from.
  * @param no_of_chars How many to delete.
  *
  * @note If starting_pos > strlen(string) nothing is deleted.
  */
-void str_truncate(char *string, size_t no_of_chars);
+char* str_truncate(char *string, size_t no_of_chars);
 
 /**
- * @brief Deletes @p no_of_chars characters at the front of a string. Equivalent to BASIC's RIGHT.
+ * @brief Deletes @p no_of_chars characters at the front of a string.
  *
  * @param string The string to delete from.
  * @param no_of_chars How many to delete.
  *
  * @note If starting_pos > strlen(string) nothing is deleted.
  */
-void str_fruncate(char *string, size_t no_of_chars);
+char* str_fruncate(char *string, size_t no_of_chars);
 
 /**
  * @brief Appends @p new_chars to the end of @p orig_string and returns resulting @p orig_string.
