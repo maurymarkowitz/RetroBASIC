@@ -25,10 +25,10 @@
 #define __RETROBASIC_H__
 
 #include "stdhdr.h"
+#include "data.h"
 
 /* consts used during parsing the source */
 #define MAXLINE 32767
-#define MAXSTRING 256
 
 /* internal state variables used for I/O and other tasks */
 extern int run_program;                 // default to running the program, not just parsing it
@@ -56,7 +56,7 @@ extern char *stats_file;
  Values are stored in a private type in a separate area.
  */
 typedef struct {
-  GString *name;
+  char *name;
   GList *subscripts;      /* subscripts, list of expressions */
   GList *slicing;         /* up to two expressions holding string slicing limits */
 } variable_t;
@@ -64,7 +64,7 @@ typedef struct {
 /* either_t is used within variable_value_t for the actual data */
 // FIXME: is there any real reason not to use a value_t here?
 typedef union {
-  GString *string;
+  char *string;
   double number;
 } either_t;
 
@@ -84,7 +84,7 @@ typedef struct expression_struct {
   expression_type_t type;
   union {
     double number;
-    GString *string;
+    char *string;
     variable_t *variable;   // also used for user-defined function names and parameters
     struct {
       int arity;
@@ -150,7 +150,7 @@ typedef struct statement_struct {
       GList *item_list;
     } print;
     GList *read;
-    GString *rem;
+    char *rem;
     //        struct {
     //            GList *numbers;
     //        } _sys;

@@ -54,7 +54,7 @@ char *stats_file = "";
 // NOTE: this currently cannot return an array, so MAT instructions are not possible
 typedef struct {
   int type;            /* NUMBER, STRING */
-  GString *string;
+  char *string;
   double number;
 } value_t;
 
@@ -104,17 +104,17 @@ gint symbol_compare(gconstpointer a, gconstpointer b)
 either_t *variable_value(variable_t *variable, int *type)
 {
   variable_storage_t *storage;
-  GString *storage_name;
+  char *storage_name;
   int index;
   
   // in MS basic, A() and A are two different variables, so here
   // we mangle the name to include a "(" if its an array
-  storage_name = g_string_new(variable->name->str);
+  storage_name = str_new(variable->name);
   if (variable->subscripts != NULL)
-    storage_name = g_string_append(storage_name, "(");
+    str_append(storage_name, "(");
   
   // see if we can find the entry in the symbol list
-  storage = g_tree_lookup(interpreter_state.variable_values, storage_name->str);
+  storage = g_tree_lookup(interpreter_state.variable_values, storage_name);
   
   // if not, make a new variable slot in values and set it up
   if (storage == NULL) {
@@ -124,7 +124,7 @@ either_t *variable_value(variable_t *variable, int *type)
     storage = malloc(sizeof(*storage));
     
     // set the type based on the name, which will override any passed type
-    char trailer = variable->name->str[strlen(variable->name->str) - 1];
+    char trailer = variable->name[strlen(variable->name) - 1];
     if (trailer == '$')
       storage->type = STRING;
     else
@@ -166,7 +166,7 @@ either_t *variable_value(variable_t *variable, int *type)
     
     // now malloc the result and insert it into the values tree
     storage->value = malloc(slots * sizeof(storage->value[0]));
-    g_tree_insert(interpreter_state.variable_values, storage_name->str, storage);
+    g_tree_insert(interpreter_state.variable_values, storage_name, storage);
   }
   
   // if we haven't started runnning yet, we were being called during parsing to
@@ -211,7 +211,8 @@ either_t *variable_value(variable_t *variable, int *type)
   }
   
   // done with this temp name, but don't pass TRUE or it will kill the original too
-  g_string_free(storage_name, FALSE);
+  //free(storage_name);
+  //g_string_free(storage_name, FALSE);
   
   // returning the type
   *type = storage->type;
@@ -245,7 +246,7 @@ either_t *variable_value(variable_t *variable, int *type)
     
     // if either of those got us something, pull out both parameters
     if (slice_param != NULL) {
-      long slice_start = -1, slice_end = 1;
+      long slice_start, slice_end;
       
       startPoint = evaluate_expression(slice_param->data);
       slice_start = (long)startPoint.number;
@@ -257,31 +258,25 @@ either_t *variable_value(variable_t *variable, int *type)
       // for non-ANSI, we'll error on odd numbers?
       if (variable->slicing != NULL) {
         slice_start = (int)fmax(slice_start, 1);
-        slice_end = (int)fmin(slice_end, storage->value->string->len);
+        slice_end = (int)fmin(slice_end, strlen(storage->value->string));
       } else {
-        if (slice_start < 1 || slice_end < 1 || slice_end > storage->value->string->len - 1)
+        if (slice_start < 1 || slice_end < 1 || slice_end > strlen(storage->value->string) - 1)
           basic_error("String slice out of bounds");
       }
       
-      // slice if anything was found above
-      if (slice_start != -1 && slice_end != -1) {
-        // the source string is at the selected array index, which is zero for non-ANSI
-        either_t orig_string = storage->value[index];
+      // again, the numbers above are 1-indexed from BASIC, so we need to...
+      slice_start--;
+      slice_end--;
+
+      // the source string is at the selected array index, which is zero for non-ANSI
+      either_t orig_string = storage->value[index];
       
-        // build a new string
-        either_t *result = malloc(sizeof(*result));
-        result->string = g_string_new(orig_string.string->str);
-        
-        long len = storage->value->string->len;
-        if (slice_start < len)
-          result->string = g_string_erase(result->string, 0, slice_start - 1); // note the -1
-        
-        len = result->string->len;
-        if (slice_end < len)
-          g_string_truncate(result->string, slice_end - slice_start + 1);
-        
-        return result; // this is being leaked?
-      }
+      // build a new string
+      either_t *result = malloc(sizeof(*result));
+      result->string = str_new(orig_string.string);
+      str_erase(result->string, slice_start, slice_end - slice_start + 1);
+      
+      return result; // this is being leaked?
       // otherwise just continue...
     }
   }
@@ -312,7 +307,7 @@ expression_t *function_expression(variable_t *function, expression_t *expression
 {
   // see if we can find the entry in the symbol list
   function_storage_t *storage;
-  storage = g_tree_lookup(interpreter_state.functions, function->name->str);
+  storage = g_tree_lookup(interpreter_state.functions, function->name);
   
   // if not, make a new slot in functions and set it up
   if (storage == NULL) {
@@ -320,7 +315,7 @@ expression_t *function_expression(variable_t *function, expression_t *expression
     storage = malloc(sizeof(*storage));
     
     // set the return type based on the name
-    char trailer = function->name->str[strlen(function->name->str) - 1];
+    char trailer = function->name[strlen(function->name) - 1];
     if (trailer == '$')
       storage->type = STRING;
     else
@@ -341,7 +336,7 @@ expression_t *function_expression(variable_t *function, expression_t *expression
     storage->formula = expression;
     
     // and insert it into storage
-    g_tree_insert(interpreter_state.functions, function->name->str, storage);
+    g_tree_insert(interpreter_state.functions, function->name, storage);
   }
   
   // at this point we have either found or created the formula, so...
@@ -431,7 +426,7 @@ static value_t evaluate_expression(expression_t *expression)
       result.type = NUMBER;
       result.number = 0;
       // get the original definition or error out if we can't find it
-      char *func_name = expression->parms.variable->name->str;
+      char *func_name = expression->parms.variable->name;
       function_storage_t *original_definition = g_tree_lookup(interpreter_state.functions, func_name);
       if (original_definition == NULL) {
         char buffer[80];
@@ -466,7 +461,7 @@ static value_t evaluate_expression(expression_t *expression)
             storage->value->string = stored_val->string;
           else
             storage->value->number = stored_val->number;
-        g_tree_insert(stack, original_parameter->parms.variable->name->str, storage);
+        g_tree_insert(stack, original_parameter->parms.variable->name, storage);
         
         // move to the next item in the original parameter list, if there's any left
         if (original_definition->parameters->next != NULL)
@@ -502,7 +497,7 @@ static value_t evaluate_expression(expression_t *expression)
       p = function_expression(expression->parms.variable, p);
       if (p == NULL) {
         char buffer[80];
-        sprintf(buffer, "User-defined function '%s' is being called but has not been defined", expression->parms.variable->name->str);
+        sprintf(buffer, "User-defined function '%s' is being called but has not been defined", expression->parms.variable->name);
         basic_error(buffer);
       } else {
         result = evaluate_expression(p);
@@ -516,7 +511,7 @@ static value_t evaluate_expression(expression_t *expression)
         either_t *global_val = variable_value(original_parameter->parms.variable, &type);
         
         // find the original value in the stack
-        temp_val = g_tree_lookup(stack, original_parameter->parms.variable->name->str);
+        temp_val = g_tree_lookup(stack, original_parameter->parms.variable->name);
         
         // copy the value back
         if (type == STRING)
@@ -525,7 +520,7 @@ static value_t evaluate_expression(expression_t *expression)
           global_val->number = temp_val->value->number;
         
         // kill the stack entry
-        g_tree_remove(stack, original_parameter->parms.variable->name->str);
+        g_tree_remove(stack, original_parameter->parms.variable->name);
         free(temp_val);
         
         // move to the next parameter
@@ -586,7 +581,7 @@ static value_t evaluate_expression(expression_t *expression)
             c[0] = (char)a;
             c[1] = '\0';
             result.type = STRING;
-            result.string = g_string_new(c);
+            result.string = str_new(c);
           }
             break;
           case CLOG:
@@ -596,11 +591,15 @@ static value_t evaluate_expression(expression_t *expression)
             result.number = exp(a);
             break;
           case LEN: // this is the only arity-1 function that takes a string parameter
-            result.number = strlen(parameters[0].string->str);
+            // the string may never have been assigned, so...
+            if(parameters[0].string == NULL)
+              result.number = 0;
+            else
+              result.number = strlen(parameters[0].string);
             break;
           case STR:
             result.type = STRING;
-            result.string = g_string_new(number_to_string(a));
+            result.string = str_new(number_to_string(a));
             break;
           case LOG:
             result.number = log(a);
@@ -621,7 +620,7 @@ static value_t evaluate_expression(expression_t *expression)
             result.number = sqrt(a);
             break;
           case VAL:
-            result.number = atof(parameters[0].string->str);
+            result.number = atof(parameters[0].string);
             break;
           case SGN:
             // early MS variants return 1 for 0, this implements the newer version where 0 returns 0
@@ -646,19 +645,19 @@ static value_t evaluate_expression(expression_t *expression)
             // note that in "real" basic this is a psuedo-function that simply moves the cursor
             //   and doesn't return anything, but here it works by returning a string
             result.type = STRING;
-            result.string = g_string_new("");
+            result.string = str_new("");
             int tabs = (int)parameters[0].number;
             if (ansi_tab_behaviour)
               tabs++;
             if (tabs > interpreter_state.cursor_column) {
               for (int i = interpreter_state.cursor_column; i <= tabs - 1; i++) {
-                result.string = g_string_append(result.string, " ");
+                str_append(result.string, " ");
               }
             } else {
               if (ansi_tab_behaviour) {
-                result.string = g_string_append(result.string, "\n");
+                str_append(result.string, "\n");
                 for (int i = 0; i <= tabs - 1; i++) {
-                  result.string = g_string_append(result.string, " ");
+                  str_append(result.string, " ");
                 }
               }
             }
@@ -666,18 +665,18 @@ static value_t evaluate_expression(expression_t *expression)
           case SPC:
             // SPC adds the indicated number of spaces to the output
             result.type = STRING;
-            result.string = g_string_new("");
+            result.string = str_new("");
             for (int i = 0; i <= parameters[0].number - 1; i++) {
-              result.string = g_string_append(result.string, " ");
+              str_append(result.string, " ");
             }
             break;
           case LIN:
             // from HP, inserts a number of CR's - not like IB's VTAB which can move up as well
             result.type = STRING;
-            result.string = g_string_new("");
+            result.string = str_new("");
             int lines = (int)parameters[0].number;
             for (int i = 0; i <= lines - 1; i++) {
-              result.string = g_string_append(result.string, "\n");
+              str_append(result.string, "\n");
             }
             break;
             
@@ -696,7 +695,10 @@ static value_t evaluate_expression(expression_t *expression)
           case '+':
             if (parameters[0].type == STRING && parameters[1].type == STRING) {
               result.type = STRING;
-              result.string = g_string_new(g_strconcat(parameters[0].string->str, parameters[1].string->str, NULL));
+              result.string = str_new(parameters[0].string);
+              result.string = strcat(result.string, parameters[1].string);
+
+              //result.string = str_new(str_append(parameters[0].string, parameters[1].string));
             }
             else if (parameters[0].type >= NUMBER && parameters[1].type >= NUMBER)
               result = double_to_value(a + b);
@@ -711,9 +713,10 @@ static value_t evaluate_expression(expression_t *expression)
           case '&': // ANSI concat
             if (parameters[0].type == STRING && parameters[1].type == STRING) {
               result.type = STRING;
-              result.string = g_string_new(g_strconcat(parameters[0].string->str, parameters[1].string->str, NULL));
+              result.string = str_new(parameters[0].string);
+              result.string = str_append(result.string, parameters[1].string);
             } else {
-              result.string = g_string_new("");
+              result.string = str_new("");
               basic_error("Type mismatch, non-string values in concatenation");
             }
             break;
@@ -732,7 +735,7 @@ static value_t evaluate_expression(expression_t *expression)
             if (parameters[0].type >= NUMBER)
               result = double_to_value(-(a == b));
             else
-              result = double_to_value(-!strcmp(parameters[0].string->str, parameters[1].string->str));
+              result = double_to_value(-!strcmp(parameters[0].string, parameters[1].string));
             break;
           case '<':
             result = double_to_value(-(a < b));
@@ -751,7 +754,7 @@ static value_t evaluate_expression(expression_t *expression)
             if (parameters[0].type >= NUMBER)
               result = double_to_value(-(a != b));
             else
-              result = double_to_value(-!!strcmp(parameters[0].string->str, parameters[1].string->str));
+              result = double_to_value(-!!strcmp(parameters[0].string, parameters[1].string));
             break;
           case AND:
             result = double_to_value((int)a & (int)b);
@@ -759,31 +762,32 @@ static value_t evaluate_expression(expression_t *expression)
           case OR:
             result = double_to_value((int)a | (int)b);
             break;
+            
+            // NOTE: the strings in BASIC start on index 1, so we have to adjust that here for C
+            //   so the starting-point parameters need to be shifted back one
           case LEFT:
             result.type = STRING;
           {
-            size_t len = strlen(parameters[0].string->str);
-            result.string = g_string_new(parameters[0].string->str);
-            if (b < len)
-              g_string_truncate(result.string, b);
+            size_t len = strlen(parameters[0].string);
+            result.string = str_new(parameters[0].string);
+            str_truncate(result.string, len - b);
           }
             break;
           case RIGHT:
             result.type = STRING;
           {
-            size_t len = strlen(parameters[0].string->str);
-            result.string = g_string_new(parameters[0].string->str);
-            if (b < len)
-              result.string = g_string_erase(result.string, 0, len - b);
+            size_t len = strlen(parameters[0].string);
+            result.string = str_new(parameters[0].string);
+            str_fruncate(result.string, len - b);
           }
             break;
           case MID: // this is the two-parameter version, three follows
+            // this version returns the right side of the string starting at b-1
             result.type = STRING;
           {
-            size_t len = strlen(parameters[0].string->str);
-            result.string = g_string_new(parameters[0].string->str);
-            if (b < len)
-              result.string = g_string_erase(result.string, 0, b - 1);
+            size_t len = strlen(parameters[0].string);
+            result.string = str_new(parameters[0].string);
+            str_erase(result.string, b - 1, len - b + 1);
           }
             break;
           default:
@@ -802,15 +806,8 @@ static value_t evaluate_expression(expression_t *expression)
           case MID:
             result.type = STRING;
           {
-            result.string = g_string_new(parameters[0].string->str);
-            
-            size_t len = strlen(parameters[0].string->str);
-            if (b < len)
-              result.string = g_string_erase(result.string, 0, b - 1); // note the -1
-            
-            len = strlen(result.string->str);
-            if (c < len)
-              g_string_truncate(result.string, c);
+            result.string = str_new(parameters[0].string);
+            str_erase(result.string, b - 1, c);
           }
             break;
           default:
@@ -839,7 +836,7 @@ static void print_expression(expression_t *e, char *format)
     char *hash;
     int width = 0, prec = 0;
     
-    // FIXME: this doesn't handle string formatters, see GW-BASIC manual
+    // TODO: this doesn't handle string formatters, see GW-BASIC manual
     strcpy(copy, format);
     // look for any hash characters in front and behind a period
     hash = strchr(copy, '#');
@@ -858,8 +855,8 @@ static void print_expression(expression_t *e, char *format)
         width++;
         pc++;
       }
-      sprintf(hash, "%%*.*f");    // replace ##.## with % spec
-      strcat(hash, pc);            // append the rest of string
+      sprintf(hash, "%%*.*f");  // replace ##.## with % spec
+      strcat(hash, pc);         // append the rest of string
     }
     // and now print it out using that format
     switch (v.type) {
@@ -867,7 +864,7 @@ static void print_expression(expression_t *e, char *format)
         interpreter_state.cursor_column += printf(copy, width, prec, v.number);
         break;
       case STRING:
-        interpreter_state.cursor_column += printf(copy, width, prec, g_strescape(v.string->str, NULL));
+        interpreter_state.cursor_column += printf(copy, width, prec, g_strescape(v.string, NULL));
         break;
     }
   }
@@ -883,7 +880,7 @@ static void print_expression(expression_t *e, char *format)
       }
         break;
       case STRING:
-        interpreter_state.cursor_column += printf("%-s", v.string->str);
+        interpreter_state.cursor_column += printf("%-s", v.string);
         break;
     }
   }
@@ -1174,7 +1171,7 @@ static void perform_statement(GList *L)
             if (type >= NUMBER) {
               sscanf(line, "%lg", &value->number);
             } else {
-              value->string = g_string_new(line);
+              value->string = str_new(line);
             }
           }
           // if it's not a variable, it's some sort of prompt, so print it
@@ -1331,7 +1328,7 @@ static void perform_statement(GList *L)
           if (ps->parms.print.format) {
             value_t format_string;
             format_string = evaluate_expression(ps->parms.print.format);
-            print_expression(pp->expression, format_string.string->str);
+            print_expression(pp->expression, format_string.string);
           }
           // otherwise, see if there's a separator and print using the width
           else {
@@ -1470,7 +1467,7 @@ static void perform_statement(GList *L)
       {
         if (ps->parms.generic_parameter != NULL) {
           value_t message = evaluate_expression(ps->parms.generic_parameter);
-          printf("STOP: %s\n", message.string->str);
+          printf("STOP: %s\n", message.string);
         }
         assert(1==2);
       }
@@ -1505,7 +1502,7 @@ static gboolean print_value(gpointer key, gpointer value, gpointer unused)
     if (p->string == 0)
       printf("\n%s: %s", (char *)key, "NULL");
     else
-      printf("\n%s: %s", (char *)key, (char *)p->string->str);
+      printf("\n%s: %s", (char *)key, (char *)p->string);
   else
     printf("\n%s: %f", (char *)key, (double)p->number);
   return FALSE;
