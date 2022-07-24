@@ -25,26 +25,25 @@
 #define __RETROBASIC_H__
 
 #include "stdhdr.h"
+#include "data.h"
 
 /* consts used during parsing the source */
 #define MAXLINE 32767
-#define MAXSTRING 256
 
 /* internal state variables used for I/O and other tasks */
-extern clock_t start_ticks, end_ticks;  // start and end ticks, for calculating CPU time
-extern struct timeval start_time, end_time;     // start and end clock, for total run time
-extern int run_program;                     // default to running the program, not just parsing it
+extern int run_program;                 // default to running the program, not just parsing it
 extern int print_stats;
 extern int write_stats;
-extern int tab_columns;                    // based on PET BASIC, which is a good enough target
+
+extern int tab_columns;                 // based on PET BASIC, which is a good enough target
 extern int trace_lines;
-extern int upper_case;                      // force INPUT to upper case
-extern int array_base;                      // lower bound of arrays, can be set to 0 with OPTION BASE
-extern double random_seed;                 // reset with RANDOMIZE, if -1 then auto-seeds
+extern int upper_case;                  // force INPUT to upper case
+extern int array_base;                  // lower bound of arrays, can also be set to 0 with OPTION BASE
 extern int string_slicing;              // are references like A$(1,1) referring to an array entry or doing slicing?
-extern int goto_next_highest;           // if a branch targets an non-existant line, should we go to the next highest?
-extern int ansi_on_boundaries;          // if the value for an ON statement <1 or >num entries, should it continue or error?
+extern int goto_next_highest;           // if a branch targets a non-existant line, should we go to the next line?
+extern int ansi_on_boundaries;          // if the value for an ON statement <1 or >num entries, should it continue, or error?
 extern int ansi_tab_behaviour;          // if a TAB < current column, ANSI inserts a CR, MS does not
+extern double random_seed;              // reset with RANDOMIZE, if -1 then auto-seeds
 
 extern char *source_file;
 extern char *input_file;
@@ -57,7 +56,7 @@ extern char *stats_file;
  Values are stored in a private type in a separate area.
  */
 typedef struct {
-  GString *name;
+  char *name;
   GList *subscripts;      /* subscripts, list of expressions */
   GList *slicing;         /* up to two expressions holding string slicing limits */
 } variable_t;
@@ -65,7 +64,7 @@ typedef struct {
 /* either_t is used within variable_value_t for the actual data */
 // FIXME: is there any real reason not to use a value_t here?
 typedef union {
-  GString *string;
+  char *string;
   double number;
 } either_t;
 
@@ -85,7 +84,7 @@ typedef struct expression_struct {
   expression_type_t type;
   union {
     double number;
-    GString *string;
+    char *string;
     variable_t *variable;   // also used for user-defined function names and parameters
     struct {
       int arity;
@@ -151,7 +150,7 @@ typedef struct statement_struct {
       GList *item_list;
     } print;
     GList *read;
-    GString *rem;
+    char *rem;
     //        struct {
     //            GList *numbers;
     //        } _sys;
