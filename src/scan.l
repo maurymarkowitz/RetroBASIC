@@ -46,9 +46,9 @@ Boston, MA 02111-1307, USA.  */
     a separate token, this is the simplest solution. See:
     https://stackoverflow.com/questions/59117309/rest-of-line-in-bison/59122569#59122569
   */
-REM.*   { yylval.s = g_string_new(strndup(yytext + 3, yyleng - 3)); return REM; }
-'.*     { yylval.s = g_string_new(strndup(yytext + 1, yyleng - 1)); return QUOTEREM; } // short form in MS
-!.*     { yylval.s = g_string_new(strndup(yytext + 1, yyleng - 1)); return BANGREM; } // later MS allow bang as well
+REM.*   { yylval.s = str_new(strndup(yytext + 3, yyleng - 3)); return REM; }
+'.*     { yylval.s = str_new(strndup(yytext + 1, yyleng - 1)); return QUOTEREM; } // short form in MS
+!.*     { yylval.s = str_new(strndup(yytext + 1, yyleng - 1)); return BANGREM; } // later MS allow bang as well
 BYE     { return BYE; }
 CLEAR   { return CLEAR; }
 DEF     { return DEF; }
@@ -161,7 +161,7 @@ DEFDBL    { return DEFDBL; }
 
  /* user defined functions */
 "FN"[A-Za-z@][A-Za-z0-9_]?[\$%\!#]? {
-              yylval.s = g_string_new(yytext);
+              yylval.s = str_new(yytext);
               return FUNCTION_NAME;
             }
 
@@ -169,14 +169,14 @@ DEFDBL    { return DEFDBL; }
  /* currently set to allow only one or two chars plus an optional type indicator
     replace the ? with a * for multi-char variables */
 [A-Za-z@][A-Za-z0-9_]?[\$%\!#]? {
-              yylval.s = g_string_new(yytext);
+              yylval.s = str_new(yytext);
               return VARIABLE_NAME;
             }
 
  /* string constants */
 \"[^"]*\"   {
               yytext[strlen(yytext) - 1] = '\0';
-              yylval.s = g_string_new(yytext + 1);
+              yylval.s = str_new(yytext + 1);
               return STRING;
             }
 
