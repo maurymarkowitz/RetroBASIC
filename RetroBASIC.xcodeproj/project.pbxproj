@@ -43,9 +43,9 @@
 		5568AD6C240753C2001138F5 /* lunar.bas */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = lunar.bas; sourceTree = "<group>"; };
 		5577174C256AC0B1001E338F /* parse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = parse.h; sourceTree = "<group>"; };
 		5599AEF8239C0A6E00490A3A /* retrobasic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = retrobasic.h; sourceTree = "<group>"; };
-		5599AEF9239C0A6F00490A3A /* retrobasic.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = retrobasic.c; sourceTree = "<group>"; };
+		5599AEF9239C0A6F00490A3A /* retrobasic.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.c.c; path = retrobasic.c; sourceTree = "<group>"; tabWidth = 2; usesTabs = 1; };
 		5599AEFB239C0A8800490A3A /* stdhdr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stdhdr.h; sourceTree = "<group>"; };
-		5599AEFC239C0ABF00490A3A /* scan.l */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.lex; path = scan.l; sourceTree = "<group>"; };
+		5599AEFC239C0ABF00490A3A /* scan.l */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.lex; path = scan.l; sourceTree = "<group>"; tabWidth = 2; };
 		55A42360287360B00070AF00 /* statistics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = statistics.h; sourceTree = "<group>"; };
 		55A42361287360B00070AF00 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		55A42362287360B00070AF00 /* statistics.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = statistics.c; sourceTree = "<group>"; };
@@ -75,8 +75,8 @@
 		55B3D403238E051D00E6054E = {
 			isa = PBXGroup;
 			children = (
-				55B96990252F4FCA0021CD8B /* makefile */,
 				55B3D429238EB43100E6054E /* README.md */,
+				55B96990252F4FCA0021CD8B /* makefile */,
 				55B9698A252D26790021CD8B /* LICENCE */,
 				55B3D41F238E1B4500E6054E /* doc */,
 				55B3D40E238E051D00E6054E /* src */,
