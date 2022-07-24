@@ -68,7 +68,7 @@ typedef union {
   double number;
 } either_t;
 
-/* variable_storage_t holds the *value* of a variable in memory, it is a variable_ */
+/* variable_storage_t holds the *value* of a variable in memory, it is a variable_t */
 typedef struct {
   int type;               /* NUMBER, STRING */
   GList *subscripts;      // subscript definitions, if any (from a DIM)
