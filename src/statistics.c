@@ -144,7 +144,7 @@ void print_statistics()
     this = interpreter_state.lines[i];
     
     // and find the next non-empty line
-    next_num = i + 1; // note to me, no, you can't i++ here!
+    next_num = i + 1; // note to me: no, you can't i++ here!
     while ((next_num < MAXLINE) && (interpreter_state.lines[next_num] == NULL))
       next_num++;
     
