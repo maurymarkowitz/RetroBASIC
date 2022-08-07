@@ -10,9 +10,11 @@ PA = Palo Alto Tiny BASIC
 
 - add TIME, TIME$ and DATE$
 
-- need to allow multiple INPUTs on a single line, currently it requires a CR between values
+- test and error on incorrect nesting of FOR loops, which we currently ignore
 
 - needs command-line switch for ANSI, controls tab stops and many errors
+
+- need to allow multiple INPUTs on a single line, currently it requires a CR between values
 
 - DEFINT/SNG/DBL/STR does not support the "range" syntax, DEFINT A-F. only comma lists work, DEFINT A,B
 
