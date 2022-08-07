@@ -188,7 +188,8 @@ program:
 	;
 
 line:
-	/* can be nothing but the CR captured above */
+	/* can be nothing but the CR captured above
+   FIXME: blank lines appear to cause errors at runtime */
 	{
 	}
 	|
@@ -364,7 +365,7 @@ statement:
 	  new->parms._for.step = $8;
 	  $$ = new;
 	
-    /* static analyser - assume non-1 even if it is a 1*/
+    /* static analyser - consider anything with a STEP special even if it is a 1 */
     for_loops_total++;
   }
 	|
