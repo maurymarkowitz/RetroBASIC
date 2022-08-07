@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		550D54A3288DB6950062DF12 /* string.c in Sources */ = {isa = PBXBuildFile; fileRef = 550D54A1288DB6950062DF12 /* string.c */; };
+		550D54A6289BF9670062DF12 /* list.c in Sources */ = {isa = PBXBuildFile; fileRef = 550D54A5289BF9670062DF12 /* list.c */; };
 		550EED72258007FD00FE6D78 /* ahl.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 550EED702580071200FE6D78 /* ahl.bas */; };
 		550EED7525800B9E00FE6D78 /* sieve.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 550EED7425800B8A00FE6D78 /* sieve.bas */; };
 		5568AD6D240753E6001138F5 /* lunar.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5568AD6C240753C2001138F5 /* lunar.bas */; };
@@ -37,6 +39,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		550D54A1288DB6950062DF12 /* string.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = string.c; sourceTree = "<group>"; };
+		550D54A2288DB6950062DF12 /* string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = string.h; sourceTree = "<group>"; };
+		550D54A4289BF9670062DF12 /* list.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = list.h; sourceTree = "<group>"; };
+		550D54A5289BF9670062DF12 /* list.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = list.c; sourceTree = "<group>"; };
 		550EED6E257AC4F300FE6D78 /* VERSIONS */ = {isa = PBXFileReference; lastKnownFileType = text; path = VERSIONS; sourceTree = "<group>"; };
 		550EED702580071200FE6D78 /* ahl.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = ahl.bas; sourceTree = "<group>"; };
 		550EED7425800B8A00FE6D78 /* sieve.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = sieve.bas; sourceTree = "<group>"; };
@@ -102,6 +108,10 @@
 			children = (
 				5599AEFB239C0A8800490A3A /* stdhdr.h */,
 				5599AEFC239C0ABF00490A3A /* scan.l */,
+				550D54A2288DB6950062DF12 /* string.h */,
+				550D54A1288DB6950062DF12 /* string.c */,
+				550D54A4289BF9670062DF12 /* list.h */,
+				550D54A5289BF9670062DF12 /* list.c */,
 				5577174C256AC0B1001E338F /* parse.h */,
 				55B9698B252F44E70021CD8B /* parse.y */,
 				5599AEF8239C0A6E00490A3A /* retrobasic.h */,
@@ -239,7 +249,9 @@
 				55A42364287360B00070AF00 /* statistics.c in Sources */,
 				55B9698C252F44E70021CD8B /* parse.y in Sources */,
 				5599AEFA239C0A6F00490A3A /* retrobasic.c in Sources */,
+				550D54A6289BF9670062DF12 /* list.c in Sources */,
 				5599AEFE239C0ABF00490A3A /* scan.l in Sources */,
+				550D54A3288DB6950062DF12 /* string.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
