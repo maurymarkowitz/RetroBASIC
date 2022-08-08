@@ -25,15 +25,15 @@
 #define __RETROBASIC_H__
 
 #include "stdhdr.h"
-#include "data.h"
+#include "string.h"
 
 /* consts used during parsing the source */
 #define MAXLINE 32767
 
 /* internal state variables used for I/O and other tasks */
 extern int run_program;                 // default to running the program, not just parsing it
-extern int print_stats;
-extern int write_stats;
+extern int print_stats;                 // when the program finishes running, should we print statistics?
+extern int write_stats;                 // ... or write them to a file?
 
 extern int tab_columns;                 // based on PET BASIC, which is a good enough target
 extern int trace_lines;
@@ -104,10 +104,8 @@ typedef struct {
 } printitem_t;
 
 /* every statement in the program gets a statement entry. the most
- basic forms are simply a type, which contains the token value. So
- something like a REM will generate an otherwise empty entry
- (although perhaps it should save the string?). Other statements
- can store additional parameters in the params union.
+ basic forms are simply a type, which contains the token value. Other
+ statements can store additional parameters in the params union.
  */
 typedef struct statement_struct {
   int type;
@@ -182,11 +180,11 @@ typedef struct {
   GList *current_statement;       // currently executing statement
   GList *next_statement;          // next statement to run, might change for GOTO and such
   GList *current_data_statement;	// current 'DATA' statement
-  GList *current_data_element;	  // current 'DATA' expression within psd
-  GTree *variable_values;		      // name/value pairs used to store variable *values*
+  GList *current_data_element;	  // current 'DATA' expression within current_data_statement
+  GTree *variable_values;		      // name/value pairs used to store variable values
   GTree *functions;               // name/expression pairs for user-defined functions
-  GList *forstack;	              // of forcontrol_t
-  GList *gosubstack;	            // of gosubcontrol_t
+  GList *forstack;	              // current stack of FOR statements
+  GList *gosubstack;	            // current stack of gosub statements
   int cursor_column;              // current column of the output cursor
   int running_state;              // is the program running (1), paused/stopped (0)
 } interpreterstate_t;
@@ -200,7 +198,7 @@ void insert_variable(variable_t *variable);
 /* called by main to set up the interpreter state */
 void interpreter_setup(void);
 
-/* perform post-read setup */
+/* perform post-parse setup */
 void interpreter_post_parse(void);
 
 /* the interpreter entry point */
