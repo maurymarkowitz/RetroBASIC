@@ -1,4 +1,4 @@
-/* Data (header) for RetroBASIC
+/* string (implementation) for RetroBASIC
    Copyright (C) 2020 Maury Markowitz
       
    Based on gnbasic
@@ -21,9 +21,7 @@ along with RetroBASIC; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#include "data.h"
-
-/* STRINGS */
+#include "string.h"
 
 char* str_new(char *string)
 {
@@ -90,5 +88,3 @@ char* str_append(char *orig_string, char *new_chars)
   // this exists only to match the API from GLib, which is used to return a string into str_new
   return strcat(orig_string, new_chars);
 }
-
-/* LISTS */
