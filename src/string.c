@@ -1,8 +1,5 @@
 /* string (implementation) for RetroBASIC
    Copyright (C) 2020 Maury Markowitz
-      
-   Based on gnbasic
-   Copyright (C) 1998 James Bowman
     
 This file is part of RetroBASIC.
 

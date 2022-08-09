@@ -73,7 +73,7 @@ static expression_t *make_operator(int arity, int o)
   double d;
   int i;
   char *s;
-  GList *l;
+  list_t *l;
   statement_t *statement;
   expression_t *expression;
   variable_t *variable;
@@ -203,22 +203,22 @@ line:
 statements:
 	statement
   {
-	  $$ = g_list_prepend(NULL, $1);
+	  $$ = lst_prepend(NULL, $1);
   }
   |
   statement ':' statements
   {
-    $$ = g_list_prepend($3, $1);
+    $$ = lst_prepend($3, $1);
   }
   |
   statements QUOTEREM
   {
-    $$ = g_list_prepend($1, NULL);
+    $$ = lst_prepend($1, NULL);
   }
   |
   statements BANGREM
   {
-    $$ = g_list_prepend($1, NULL);
+    $$ = lst_prepend($1, NULL);
   }
 	;
 
@@ -1075,7 +1075,7 @@ printlist:
 	  printitem_t *new = malloc(sizeof(*new));
 	  new->expression = $1;
 	  new->separator = 0;
-	  $$ = g_list_prepend(NULL, new);
+	  $$ = lst_prepend(NULL, new);
 	}
   |
   // this handles MS semi-is-the-same as nothing, PRINT"I="I
@@ -1084,7 +1084,7 @@ printlist:
     printitem_t *new = malloc(sizeof(*new));
     new->expression = $1;
     new->separator = 0;
-    $$ = g_list_prepend($2, new);
+    $$ = lst_prepend($2, new);
   }
   |
 	expression printsep printlist
@@ -1092,7 +1092,7 @@ printlist:
 	  printitem_t *new = malloc(sizeof(*new));
 	  new->expression = $1;
 	  new->separator = $2;
-	  $$ = g_list_prepend($3, new);
+	  $$ = lst_prepend($3, new);
 	}
   |
 	// this is found in the BCG "bug.bas", it's a print with a *leading* semi
@@ -1101,7 +1101,7 @@ printlist:
     printitem_t *new = malloc(sizeof(*new));
     new->expression = NULL;
     new->separator = $1;
-    $$ = g_list_prepend($2, new);
+    $$ = lst_prepend($2, new);
   }
 	;
 
@@ -1121,12 +1121,12 @@ printsep:
 exprlist:
 	expression
 	{
-	  $$ = g_list_prepend(NULL, $1);
+	  $$ = lst_prepend(NULL, $1);
 	}
 	|
 	exprlist ',' expression
 	{
-	  $$ = g_list_append($1, $3);
+	  $$ = lst_append($1, $3);
 	}
 	;
   
@@ -1137,8 +1137,8 @@ slicelist:
     // two parameters, start and end indexes
     expression ':' expression
     {
-      $$ = g_list_prepend(NULL, $1);
-      $$ = g_list_append($$, $3);
+      $$ = lst_prepend(NULL, $1);
+      $$ = lst_append($$, $3);
     }
     ;
 
@@ -1147,12 +1147,12 @@ slicelist:
  assignlist:
 	variable '=' expression
 	{
-	  $$ = g_list_prepend($1, $3);
+	  $$ = lst_prepend($1, $3);
 	}
 	|
 	assignlist variable '=' expression ',' 
 	{
-	  $$ = g_list_append($3, $5);
+	  $$ = lst_append($3, $5);
 	}
 	;
 	*/
@@ -1161,12 +1161,12 @@ slicelist:
 varlist:
 	variable
 	{
-	  $$ = g_list_prepend(NULL, $1);
+	  $$ = lst_prepend(NULL, $1);
 	}
 	|
 	varlist ',' variable
 	{
-	  $$ = g_list_append($1, $3);
+	  $$ = lst_append($1, $3);
 	}
 	;
 
@@ -1177,12 +1177,12 @@ varlist:
 numlist:
 	NUMBER
 	{
-	  $$ = g_list_prepend(NULL, &($1));
+	  $$ = lst_prepend(NULL, &($1));
 	}
 	|
 	numlist ',' NUMBER
 	{
-	  $$ = g_list_append($1, &($3));
+	  $$ = lst_append($1, &($3));
 	}
 	;
 	*/

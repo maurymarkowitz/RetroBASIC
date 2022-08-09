@@ -1,9 +1,6 @@
 /* list (header) for RetroBASIC
    Copyright (C) 2020 Maury Markowitz
-      
-   Based on gnbasic
-   Copyright (C) 1998 James Bowman
-    
+
 This file is part of RetroBASIC.
 
 RetroBASIC is free software; you can redistribute it and/or modify
