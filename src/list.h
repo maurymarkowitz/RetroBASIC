@@ -22,7 +22,7 @@ the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 /**
- * @file List.h
+ * @file list.h
  * @author Maury Markowitz
  * @date 17 July 2022
  * @brief A simple linked-List implementation and various work methods
@@ -34,104 +34,186 @@ Boston, MA 02111-1307, USA.  */
  * the code to perform these relatively simple tasks.
  */
 
-#ifndef List_h
-#define List_h
+#ifndef list_h
+#define list_h
 
 #include <stdlib.h>
 
 /**
- * private type used within the List
- *
- */
-//typedef struct _node {
-//  void *val;
-//  struct _node *next;
-//} _node;
-
-/**
  * List structure
  */
-typedef struct List {
-  //int length;
+typedef struct _list {
   void *data;
-  struct List *next;
-  struct List *prev;
-} List;
+  void *key;
+  struct _list *next;
+  struct _list *prev;
+} list_t;
+
+// maybe macro these?
+//#define lst_previous(list)      ((list) ? (((list_t *)(list))->prev) : NULL)
+//#define lst_next(list)          ((list) ? (((list_t *)(list))->next) : NULL)
 
 /**
- * Creates an empty List. head is set to NULL and length to 0. Returns NULL if the allocation failed.
+ * Creates an empty List. Returns NULL if the allocation failed.
  */
-List *lst_init(void);
+list_t *lst_alloc(void);
 
 /**
- * Private method to create a new node with the given user data.
+ * Removes all nodes from a list. It is up to the user to free the items within.
  */
-struct List* _lst_create_node(void *data, struct _node *next);
+void lst_free(list_t *List);
 
+/**
+ * Removes all nodes from a list and the user data within. Needs to be used
+ * with caution, if the lists have been copied, reversed or concated, bad
+ * things will happen.
+ */
+void lst_free_everything(list_t *list);
+
+/**
+ * @brief Copies items in @p list to a new list.
+ *
+ * @param list The list to copy.
+ * @return The resulting new list.
+ *
+ * lst_copy makes a shallow copy of the original list, creating new nodes
+ * but not duplicating the original user data. This means that freeing objects
+ * from either list will cause the other to contain invalid pointers. It is up to the
+ * user to manage the malloc/free of the underlying data.
+ */
+list_t* lst_copy(list_t *list);
+
+/**
+ * Concatenates two lists.
+ *
+ * @param first_list the list to insert into
+ * @param second_list the list to add to the end of the first
+ * @return resulting longer @p first_list
+ */
+list_t* lst_concat(list_t *first_list, list_t *second_list);
+
+/**
+ * @brief Returns the number of items in @p list.
+ *
+ * @param list The list to count.
+ * @return The length of the list.
+ */
+int lst_length(list_t *list);
 
 /**
  * Returns the next node.
+ *
+ * @param list the list to search
  */
-struct List* lst_next(List *list);
+list_t* lst_next(list_t *list);
 
 /**
  * Returns the previous node.
+ *
+ * @param list the list to search
  */
-struct List* lst_prev(List *list);
+list_t* lst_previous(list_t *list);
 
 /**
- * Returns the node at the given index.
+ * Returns the first node.
+ *
+ * @param list the list to search
+ * @return the first item in the list or NULL if it was empty
  */
-struct List* lst_item_at(List *list, int index);
+list_t* lst_first(list_t *list);
+
+/**
+ * Returns the last node.
+ *
+ * @param list the list to search
+ * @return the last item in the list or NULL if it was empty
+ */
+list_t* lst_last(list_t *list);
+
+/**
+ * Returns the list node for a given data item (pointer).
+ *
+ * @param list the list to search
+ * @param data the pointer to the data to find
+ * @return the node for the item, or NULL if it was empty or not found
+ */
+list_t* lst_item(list_t *list, void* data);
+
+/**
+ * Returns the data at a given index.
+ *
+ * @param list the list to search
+ * @param index the number of the item to return
+ * @return the node at the given index, or NULL if it was empty or past the end
+ */
+list_t* lst_item_at(list_t *list, int index);
+
+/**
+ * @brief Returns the index of @p data in @p list.
+ *
+ * @param list The list to search.
+ * @param data The item to search for.
+ * @return The index of the item or NULL if it is not found.
+ */
+int lst_position(list_t *list, void *data);
 
 /**
  * Appends a value to the end of the List.
  *
  * @param list the list to append onto
- * @param value pointer to the object to store in the list
+ * @param data pointer to the object to store in the list
+ * @return @p data if it was inserted, NULL otherwise
  */
-void lst_append(List *list, void *data);
+list_t* lst_append(list_t *list, void *data);
 
 /**
  * Prepends a value at the front of the List.
  *
  * @param list the list to prepend onto
  * @param data pointer to the object to store in the list
+ * @return @p data if it was inserted, NULL otherwise
  */
-void lst_prepend(List *list, void *data);
+list_t* lst_prepend(list_t *list, void *data);
 
 /**
  * Inserts a value at a given index location in a List.
  *
+ * @param list the list to insert into
+ * @param index the location to insert at
+ * @param data pointer to the object to store in the list or NULL if it failed
+ * @return pointer to @p data if it was inserted, NULL otherwise
+ */
+list_t* lst_insert_after(list_t *list, int index, void *data);
+
+/**
+ * @brief Removes @p data from @p list and returns resulting @p list.
+ *
+ * @param list The list to remove from.
+ * @param data A pointer to user data to be removed.
+ */
+void* lst_remove(list_t *list, void *data);
+
+/**
+ * Removes and frees the node at the given index. The user data is returned and *not* freed.
+ *
  * @param List the list to insert into
  * @param index the location to insert at
- * @param data pointer to the object to store in the list
+ * @return pointer to @p data if it was removed, NULL otherwise
  */
-void lst_insert_at(List *list, int index, void *data);
+void* lst_remove_at(list_t *List, int index);
 
 /**
- * Removes and frees the node at the given index. The user data is returned and not freed.
- */
-void* lst_remove_at(List *List, int index);
-
-/**
- * Removes all nodes from a list. It is up to the user to free the items within.
- */
-void* lst_remove_all(List *List, int index);
+ * Adds the value to the front of the list (alias for prepend).
+ *
+ * @param list the list to insert into
+ * @param data the data to push
+ * @return pointer to @p data if it was pushed, NULL otherwise
+*/
+list_t* lst_push(list_t *list, void *data);
 
 /**
  * Removes and frees the first node in the List, returning the associated data.
  */
-void* lst_pop(List *List);
-
-/**
- * Adds the value to the front of the list (alias for prepend).
- */
-void lst_push(List *List, void *value);
-
-/**
- * Safe free of the List. Also frees the _nodes, but not the values.
- */
-void lst_free(List *List);
+void* lst_pop(list_t *list);
 
 #endif /* list_h */
