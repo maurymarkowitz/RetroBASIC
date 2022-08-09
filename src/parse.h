@@ -253,7 +253,7 @@ typedef union YYSTYPE
   double d;
   int i;
   char *s;
-  GList *l;
+  list_t *l;
   statement_t *statement;
   expression_t *expression;
   variable_t *variable;

@@ -61,13 +61,13 @@ typedef struct {
 /* function_storage_t holds the expression from the DEF */
 typedef struct {
   int type;               /* NUMBER, STRING */
-  GList *parameters;      // parameters, if any, as variable_t
+  list_t *parameters;      // parameters, if any, as variable_t
   expression_t *formula;  // related formula
 } function_storage_t;
 
 /* forward declares */
 static value_t evaluate_expression(expression_t *e);
-static int line_for_statement(GList *s);
+static int line_for_statement(list_t *s);
 static int current_line(void);
 
 static void print_variables(void);
@@ -147,14 +147,14 @@ either_t *variable_value(variable_t *variable, int *type)
       
       // now clear out any existing list of subscripts in storage,
       // eval each of the ones in the variable ref, and store that value
-      // in our ->sub GList (as the pointer, not a structure), and then
+      // in our ->sub list_t (as the pointer, not a structure), and then
       // calculate the total size we need
       storage->subscripts = NULL;
       slots = 1;
-      for (GList *L = variable->subscripts; L != NULL; L = g_list_next(L)) {
+      for (list_t *L = variable->subscripts; L != NULL; L = lst_next(L)) {
         v = evaluate_expression(L->data);
         int actual = (int)v.number + (1 - array_base); // if we're using 0-base indexing, we need to add one more slot
-        storage->subscripts = g_list_append(storage->subscripts, GINT_TO_POINTER(actual));
+        storage->subscripts = lst_append(storage->subscripts, (int)(actual));
         slots *= actual;
       }
     }
@@ -179,14 +179,14 @@ either_t *variable_value(variable_t *variable, int *type)
   // compute array index, or leave it at zero if there is none
   index = 0;
   if (!string_slicing) {
-    GList *original_dimensions;         // list of actual dimensions in storage (from the DIM), stored as integers
-    GList *variable_indexes;            // list of indices in this variable reference, each is an expression, likely a constant
+    list_t *original_dimensions;         // list of actual dimensions in storage (from the DIM), stored as integers
+    list_t *variable_indexes;            // list of indices in this variable reference, each is an expression, likely a constant
     
     original_dimensions = storage->subscripts;
     variable_indexes = variable->subscripts;
     
     // the *number* of dimensions has to match, you can't DIM A(1,1) and then LET B=A(1)
-    if (g_list_length(original_dimensions) != g_list_length(variable_indexes))
+    if (lst_length(original_dimensions) != lst_length(variable_indexes))
       basic_error("Array dimension of variable does not match storage"); // should we exit at this point?
     else
       while (original_dimensions != NULL && variable_indexes != NULL) {
@@ -205,8 +205,8 @@ either_t *variable_value(variable_t *variable, int *type)
         index = (index * original_dimension) + (int)this_index.number - array_base;
         
         // then move on to the next index in the list
-        original_dimensions = g_list_next(original_dimensions);
-        variable_indexes = g_list_next(variable_indexes);
+        original_dimensions = lst_next(original_dimensions);
+        variable_indexes = lst_next(variable_indexes);
       }
   }
   
@@ -220,12 +220,12 @@ either_t *variable_value(variable_t *variable, int *type)
   // if we are using string slicing OR there is a ANSI-style slice, return that part of the string
   if (*type == STRING) {
     value_t startPoint, endPoint;
-    GList *slice_param = NULL;
+    list_t *slice_param = NULL;
     
     // see if there is an ANSI slice defined, if so, use that
-    if (variable->slicing != NULL && g_list_length(variable->slicing)) {
+    if (variable->slicing != NULL && lst_length(variable->slicing)) {
       // ANSI slices will always have two parameters in the slicing list
-      if (variable->slicing != NULL && g_list_length(variable->slicing) != 2)
+      if (variable->slicing != NULL && lst_length(variable->slicing) != 2)
         basic_error("Wrong number of parameters in string slice");
       
       slice_param = variable->slicing;
@@ -234,11 +234,11 @@ either_t *variable_value(variable_t *variable, int *type)
     // the other possibility is that we have the slicing option turned on,
     // in that case the index we calculated earlier is not correct, so we
     // return that to zero and then use those params as the slices
-    if (string_slicing && g_list_length(variable->subscripts) > 0) {
+    if (string_slicing && lst_length(variable->subscripts) > 0) {
       index = 0;
       
       // HP style slices will have one or two parameters
-      if (string_slicing && (g_list_length(variable->subscripts) != 1 && g_list_length(variable->subscripts) != 2))
+      if (string_slicing && (lst_length(variable->subscripts) != 1 && lst_length(variable->subscripts) != 2))
         basic_error("Wrong number of parameters in string slice");
       
       slice_param = variable->subscripts;
@@ -250,7 +250,7 @@ either_t *variable_value(variable_t *variable, int *type)
       
       startPoint = evaluate_expression(slice_param->data);
       slice_start = (long)startPoint.number;
-      slice_param = g_list_next(slice_param);
+      slice_param = lst_next(slice_param);
       endPoint = evaluate_expression(slice_param->data);
       slice_end = (long)endPoint.number;
 
@@ -330,7 +330,7 @@ expression_t *function_expression(variable_t *function, expression_t *expression
       storage->type = DOUBLE;
     
     // copy over the list of parameters
-    storage->parameters = g_list_copy(function->subscripts);
+    storage->parameters = lst_copy(function->subscripts);
     
     // now store the expression/formula
     storage->formula = expression;
@@ -437,7 +437,7 @@ static value_t evaluate_expression(expression_t *expression)
         break;
       }
       // if we found the function, check that it has the same number of parameters as this function call
-      if (g_list_length(original_definition->parameters) != g_list_length(expression->parms.variable->subscripts)) {
+      if (lst_length(original_definition->parameters) != lst_length(expression->parms.variable->subscripts)) {
         basic_error("User-defined function '%s' is being called with the wrong number of parameters");
         break;
       }
@@ -449,7 +449,7 @@ static value_t evaluate_expression(expression_t *expression)
       either_t *stored_val;
       expression_t *original_parameter = original_definition->parameters->data; // pre-flight for the first time through
       int type = 0;
-      for (GList *param = expression->parms.variable->subscripts; param != NULL; param = g_list_next(param)) {
+      for (list_t *param = expression->parms.variable->subscripts; param != NULL; param = lst_next(param)) {
         // retrieve the original value
         stored_val = variable_value(original_parameter->parms.variable, &type);
 
@@ -465,12 +465,12 @@ static value_t evaluate_expression(expression_t *expression)
         
         // move to the next item in the original parameter list, if there's any left
         if (original_definition->parameters->next != NULL)
-          original_parameter = g_list_next(original_definition->parameters)->data;
+          original_parameter = lst_next(original_definition->parameters)->data;
       }
       
       // now loop over the list of inputs, calculate them, and update the global variable
       value_t updated_val;
-      for (GList *param = expression->parms.variable->subscripts; param != NULL; param = g_list_next(param)) {
+      for (list_t *param = expression->parms.variable->subscripts; param != NULL; param = lst_next(param)) {
         // calculate the value for the parameter expression
         updated_val = evaluate_expression(param->data);
         
@@ -489,7 +489,7 @@ static value_t evaluate_expression(expression_t *expression)
         
         // move to the next parameter
         if (original_definition->parameters->next != NULL)
-          original_parameter = g_list_next(original_definition->parameters)->data;
+          original_parameter = lst_next(original_definition->parameters)->data;
       }
       
       // with the global values updated, we can calculate our expression
@@ -506,7 +506,7 @@ static value_t evaluate_expression(expression_t *expression)
       // and then pop the values back off the stack into the globals
       variable_storage_t *temp_val;
       original_parameter = original_definition->parameters->data; // pre-flight for the first time through
-      for (GList *param = expression->parms.variable->subscripts; param != NULL; param = g_list_next(param)) {
+      for (list_t *param = expression->parms.variable->subscripts; param != NULL; param = lst_next(param)) {
         // retrieve the original name and value
         either_t *global_val = variable_value(original_parameter->parms.variable, &type);
         
@@ -525,7 +525,7 @@ static value_t evaluate_expression(expression_t *expression)
         
         // move to the next parameter
         if (original_definition->parameters->next != NULL)
-          original_parameter = g_list_next(original_definition->parameters)->data;
+          original_parameter = lst_next(original_definition->parameters)->data;
       }
 
       // kill the stack to be safe
@@ -888,14 +888,15 @@ static void print_expression(expression_t *e, char *format)
 
 /* given a statement, this returns the line number it's part of */
 /* NOTE: this is likely expensive, because is uses the index lookup
- methods in GList, which loop. So only use it when required! */
-static int line_for_statement(GList *statement)
+				methods in list_t, which loop. So only use it when required!
+ */
+static int line_for_statement(list_t *statement)
 {
   // get a pointer to the program from the first line
-  GList *program = interpreter_state.lines[interpreter_state.first_line];
+  list_t *program = interpreter_state.lines[interpreter_state.first_line];
   
   // get the index of this statement in that list
-  int target_index = g_list_position(program, statement);
+  int target_index = lst_position(program, statement);
   
   // loop forward through the program until we find a line who's
   // first statement is higher than that index. That means we must
@@ -906,7 +907,7 @@ static int line_for_statement(GList *statement)
     if (interpreter_state.lines[i] == NULL) continue;
     
     // get the index of the first statement on that line
-    this_index = g_list_position(program, interpreter_state.lines[i]);
+    this_index = lst_position(program, interpreter_state.lines[i]);
     
     // now see if we're in this line or the previous one
     if (this_index == target_index) return i;
@@ -926,7 +927,7 @@ static int current_line()
 }
 
 /* returns a pointer to the named line or returns an error if it's not found */
-static GList *find_line(int linenumber)
+static list_t *find_line(int linenumber)
 {
   char buffer[50];
   
@@ -981,7 +982,7 @@ static GList *find_line(int linenumber)
 //}
 
 /* performs a single statement */
-static void perform_statement(GList *L)
+static void perform_statement(list_t *L)
 {
   // now process this statement
   statement_t *ps = L->data;
@@ -1022,7 +1023,7 @@ static void perform_statement(GList *L)
         // the parser has already pulled out the variable names, so they already
         // have slots in the table. we still need to call insert_variable to set up
       {
-        for (GList *I = ps->parms.dim; I != NULL; I = g_list_next(I)) {
+        for (list_t *I = ps->parms.dim; I != NULL; I = lst_next(I)) {
           variable_t *pv = I->data;
           insert_variable(pv);
         }
@@ -1035,7 +1036,7 @@ static void perform_statement(GList *L)
       case DEFDBL:
         // done here because they are really varieties of DIM, not DEF
       {
-        for (GList *I = ps->parms.deftype.vars; I != NULL; I = g_list_next(I)) {
+        for (list_t *I = ps->parms.deftype.vars; I != NULL; I = lst_next(I)) {
           variable_t *pv = I->data;
           insert_typed_variable(pv, ps->parms.deftype.type);
         }
@@ -1077,7 +1078,7 @@ static void perform_statement(GList *L)
         lv = variable_value(new_for->index_variable, &type);
         lv->number = new_for->begin;
         
-        interpreter_state.forstack = g_list_append(interpreter_state.forstack, new_for);
+        interpreter_state.forstack = lst_append(interpreter_state.forstack, new_for);
       }
         break;
         
@@ -1085,8 +1086,8 @@ static void perform_statement(GList *L)
       {
         gosubcontrol_t *new = malloc(sizeof(*new));
         
-        new->returnpoint = g_list_next(L);
-        interpreter_state.gosubstack = g_list_append(interpreter_state.gosubstack, new);
+        new->returnpoint = lst_next(L);
+        interpreter_state.gosubstack = lst_append(interpreter_state.gosubstack, new);
         interpreter_state.next_statement = find_line(evaluate_expression(ps->parms.gosub).number);
       }
         break;
@@ -1108,7 +1109,7 @@ static void perform_statement(GList *L)
             // perform a single statement after the IF. for this to work properly,
             // the then_expression has to be a list that is not connected to the
             // next line, it has to end on a NULL
-            for (GList *I = ps->parms._if.then_expression; I != NULL; I = g_list_next(I)) {
+            for (list_t *I = ps->parms._if.then_expression; I != NULL; I = lst_next(I)) {
               perform_statement(I);
             }
           } else {
@@ -1131,7 +1132,7 @@ static void perform_statement(GList *L)
         //    value of the associated variable, we do that here
         
         // loop over the items in the variable/prompt list
-        for (GList *I = ps->parms.input; I != NULL; I = g_list_next(I)) {
+        for (list_t *I = ps->parms.input; I != NULL; I = lst_next(I)) {
           either_t *value;
           int type = 0;
           
@@ -1216,7 +1217,7 @@ static void perform_statement(GList *L)
         // NEXT J inside a NEXT I
         // FIXME: this is easy to fix, simply get the variable name from the FOR
         //  stack and then check if it's the same as the one in the NEXT, error out
-        forcontrol_t *pfc = g_list_last(interpreter_state.forstack)->data;
+        forcontrol_t *pfc = lst_last(interpreter_state.forstack)->data;
         either_t *lv;
         int type = 0;
         
@@ -1225,10 +1226,10 @@ static void perform_statement(GList *L)
         if (((pfc->step < 0) && (lv->number >= pfc->end)) ||
             ((pfc->step > 0) && (lv->number <= pfc->end))) {
           // we're not done, go back to the head of the loop
-          interpreter_state.next_statement = g_list_next(pfc->head);
+          interpreter_state.next_statement = lst_next(pfc->head);
         } else {
           // we are done, remove this entry from the stack
-          interpreter_state.forstack = g_list_remove(interpreter_state.forstack, pfc);
+          interpreter_state.forstack = lst_remove(interpreter_state.forstack, pfc);
         }
       }
         break;
@@ -1246,7 +1247,7 @@ static void perform_statement(GList *L)
         
       case ON:
       {
-        GList *numslist;
+        list_t *numslist;
         numslist = ps->parms.on.numbers;
 
         // eval, returning a double...
@@ -1266,11 +1267,11 @@ static void perform_statement(GList *L)
           basic_error("Index value for ON less than 1");
         
         // ... or if we're beyond the end of the list
-        if (n > g_list_length(numslist) && ansi_on_boundaries)
+        if (n > lst_length(numslist) && ansi_on_boundaries)
           basic_error("Index value for ON greater than list of line numbers");
 
         // otherwise, try to get the nth item
-        expression_t *item = g_list_nth_data(numslist, (guint)n);
+        expression_t *item = lst_nth_data(numslist, (guint)n);
         if (item == NULL) {
             // an IF statement simply runs the next statement if the condition fails,
             // likewise, if the ON value points to an item that is not in the number
@@ -1290,8 +1291,8 @@ static void perform_statement(GList *L)
           interpreter_state.next_statement = find_line(linenum);
         } else {
           gosubcontrol_t *new = malloc(sizeof(*new));
-          new->returnpoint = g_list_next(L);
-          interpreter_state.gosubstack = g_list_append(interpreter_state.gosubstack, new);
+          new->returnpoint = lst_next(L);
+          interpreter_state.gosubstack = lst_append(interpreter_state.gosubstack, new);
           interpreter_state.next_statement = find_line(linenum);
         }
       }
@@ -1321,7 +1322,7 @@ static void perform_statement(GList *L)
       {
         printitem_t *pp;
         // loop over the items in the print list
-        for (GList *I = ps->parms.print.item_list; I != NULL; I = g_list_next(I)) {
+        for (list_t *I = ps->parms.print.item_list; I != NULL; I = lst_next(I)) {
           pp = I->data;
           
           // if there's a USING, evaluate the format string it and print using it
@@ -1346,8 +1347,8 @@ static void perform_statement(GList *L)
         }
         
         // now get the last item in the list so we can see if it's a ; or ,
-        if (g_list_last(ps->parms.print.item_list))
-          pp = (printitem_t *)(g_list_last(ps->parms.print.item_list)->data);
+        if (lst_last(ps->parms.print.item_list))
+          pp = (printitem_t *)(lst_last(ps->parms.print.item_list)->data);
         else
           pp = NULL;
         
@@ -1384,7 +1385,7 @@ static void perform_statement(GList *L)
 
       case READ:
       {
-        GList *variable_list;
+        list_t *variable_list;
         
         if (interpreter_state.current_data_statement == NULL) {
           basic_error("No more DATA for READ");
@@ -1398,14 +1399,14 @@ static void perform_statement(GList *L)
           
           // look for the next valid DATA item
           if (interpreter_state.current_data_element == NULL) {
-            interpreter_state.current_data_statement = g_list_next(interpreter_state.current_data_statement);
+            interpreter_state.current_data_statement = lst_next(interpreter_state.current_data_statement);
             while (interpreter_state.current_data_statement != NULL) {
               if ((interpreter_state.current_data_statement->data != NULL) &&
                   (((statement_t *)(interpreter_state.current_data_statement->data))->type == DATA))
                 break;
-              interpreter_state.current_data_statement = g_list_next(interpreter_state.current_data_statement);
+              interpreter_state.current_data_statement = lst_next(interpreter_state.current_data_statement);
             }
-            interpreter_state.current_data_element = g_list_first(((statement_t *)(interpreter_state.current_data_statement->data))->parms.data);
+            interpreter_state.current_data_element = lst_first(((statement_t *)(interpreter_state.current_data_statement->data))->parms.data);
           }
           
           // eval the DATA element, which is what we'll ultimately return
@@ -1429,8 +1430,8 @@ static void perform_statement(GList *L)
           }
           
           // move to the next variable from the READ and the next item in the DATA
-          variable_list = g_list_next(variable_list);
-          interpreter_state.current_data_element = g_list_next(interpreter_state.current_data_element);
+          variable_list = lst_next(variable_list);
+          interpreter_state.current_data_element = lst_next(interpreter_state.current_data_element);
         }
       }
         break;
@@ -1457,9 +1458,9 @@ static void perform_statement(GList *L)
         
       case RETURN:
       {
-        gosubcontrol_t *pgc = g_list_last(interpreter_state.gosubstack)->data;
+        gosubcontrol_t *pgc = lst_last(interpreter_state.gosubstack)->data;
         interpreter_state.next_statement = pgc->returnpoint;
-        interpreter_state.gosubstack = g_list_remove(interpreter_state.gosubstack, pgc);
+        interpreter_state.gosubstack = lst_remove(interpreter_state.gosubstack, pgc);
       }
         break;
         
@@ -1524,7 +1525,7 @@ static void delete_functions() {
 static void delete_lines() {
   for(int i = MAXLINE - 1; i >= 0; i--) {
     if (interpreter_state.lines[i] != NULL) {
-      g_list_free(interpreter_state.lines[i]);
+      lst_free(interpreter_state.lines[i]);
     }
   }
 }
@@ -1550,12 +1551,12 @@ void interpreter_post_parse(void)
     first_line++;
   
   // that statement is going to be the head of the list when we're done
-  GList *first_statement = interpreter_state.lines[first_line];
+  list_t *first_statement = interpreter_state.lines[first_line];
   
   // now find the next non-null line and concat it to the first one, and repeat
   for (int i = first_line + 1; (i < MAXLINE); i++) {
     if (interpreter_state.lines[i])
-      first_statement = g_list_concat(first_statement, interpreter_state.lines[i]);
+      first_statement = lst_concat(first_statement, interpreter_state.lines[i]);
   }
   
   // and set the resulting list back into the first line
@@ -1591,7 +1592,7 @@ void interpreter_run(void)
   // that one function until you get a NULL
   while (interpreter_state.current_statement) {
     // get the next statement from the one we're about to run
-    interpreter_state.next_statement = g_list_next(interpreter_state.current_statement);
+    interpreter_state.next_statement = lst_next(interpreter_state.current_statement);
     // run the one we're on
     perform_statement(interpreter_state.current_statement);
     // and move to the next statement, which might have changed inside perform
