@@ -133,8 +133,8 @@ void print_statistics()
   // out the number per line. so this code checks each node to see
   // if the ->next is the first item on the next line
   int stmts_max = 0, diff = 0, next_num;
-  GList *this, *next;
-  GList *start = interpreter_state.lines[interpreter_state.first_line];
+  list_t *this, *next;
+  list_t *start = interpreter_state.lines[interpreter_state.first_line];
   
   for(int i = interpreter_state.first_line; i < MAXLINE - 1; i++) {
     // try again if this line is empty
@@ -155,7 +155,7 @@ void print_statistics()
     next = interpreter_state.lines[next_num];
     
     // now count the number of statements between them
-    diff = g_list_position(start, next) - g_list_position(start, this);
+    diff = lst_position(start, next) - lst_position(start, this);
     if(diff > stmts_max) stmts_max = diff;
   }
   
@@ -179,8 +179,8 @@ void print_statistics()
     printf("   last: %i\n", line_min);
     
     printf("\nSTATEMENTS\n\n");
-    printf("  total: %i\n", g_list_length(interpreter_state.lines[line_max]));
-    printf("average: %2.2f\n", (double)g_list_length(interpreter_state.lines[line_max])/(double)lines_total);
+    printf("  total: %i\n", lst_length(interpreter_state.lines[line_max]));
+    printf("average: %2.2f\n", (double)lst_length(interpreter_state.lines[line_max])/(double)lines_total);
     printf("    max: %i\n", stmts_max);
     
     printf("\nVARIABLES\n\n");
@@ -260,8 +260,8 @@ void print_statistics()
     fprintf(fp, "LINE NUMBERS,first,%i\n", line_max);
     fprintf(fp, "LINE NUMBERS,last,%i\n", line_min);
     
-    fprintf(fp, "STATEMENTS,total,%i\n", g_list_length(interpreter_state.lines[line_max]));
-    fprintf(fp, "STATEMENTS,average,%g\n", (double)g_list_length(interpreter_state.lines[line_max])/(double)lines_total);
+    fprintf(fp, "STATEMENTS,total,%i\n", lst_length(interpreter_state.lines[line_max]));
+    fprintf(fp, "STATEMENTS,average,%g\n", (double)lst_length(interpreter_state.lines[line_max])/(double)lines_total);
     fprintf(fp, "STATEMENTS,max/ln,%i\n", stmts_max);
     
     fprintf(fp, "VARIABLES,total,%i\n",num_total);

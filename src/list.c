@@ -1,8 +1,5 @@
 /* list (implementation) for RetroBASIC
    Copyright (C) 2020 Maury Markowitz
-      
-   Based on gnbasic
-   Copyright (C) 1998 James Bowman
     
 This file is part of RetroBASIC.
 
@@ -21,10 +18,11 @@ along with RetroBASIC; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
+#include <string.h>
 #include "list.h"
 
 /**
- * Creates an empty list node, which can be used as the basis of a list or a node within it.
+ * Creates an empty list node.
  */
 list_t* lst_alloc() {
   list_t *list = (list_t *)malloc(sizeof(list_t));
@@ -32,6 +30,7 @@ list_t* lst_alloc() {
     return NULL;
   
   list->data = NULL;
+  list->key = NULL;
   list->next = NULL;
   list->prev = NULL;
   
@@ -76,15 +75,18 @@ void lst_free_everything(list_t *list)
     tail = tail->prev;
     if(temp->data != NULL)
       free(temp->data);
+    if(temp->key != NULL)
+      free(temp->key);
     free(temp);
   }
   // and then delete the remaining node
   if(tail->data != NULL)
     free(tail->data);
+  if(tail->key != NULL)
+    free(tail->key);
   tail->next = NULL;
   free(tail);
-  // and kill the list
-  list = NULL;
+  // TODO: at this point the original list still has one invalid node in it, and will thus say length 1
 }
 
 /**
@@ -257,22 +259,22 @@ list_t* lst_append(list_t* list, void *data) {
  * Adds a value at the begining of the given list.
  */
 list_t* lst_prepend(list_t* list, void *data) {
-  list_t *new_list;
+  list_t *new_node;
   
-  new_list = lst_alloc();
-  new_list->data = data;
-  new_list->next = list;
+  new_node = lst_alloc();
+  new_node->data = data;
+  new_node->next = list;
   
   if(list != NULL) {
-    new_list->prev = list->prev;
+    new_node->prev = list->prev;
     if (list->prev)
-      list->prev->next = new_list;
-    list->prev = new_list;
+      list->prev->next = new_node;
+    list->prev = new_node;
   }
   else
-    new_list->prev = NULL;
+    new_node->prev = NULL;
   
-  return new_list;
+  return new_node;
 }
 
 /**
@@ -280,27 +282,57 @@ list_t* lst_prepend(list_t* list, void *data) {
  */
 list_t* lst_insert_after(list_t *list, int index, void *data) {
   // try to build a new node and fail out otherwise
-  list_t *newNode = lst_alloc();
-  if(newNode == NULL) return NULL;
+  list_t *new_node = lst_alloc();
+  if(new_node == NULL)
+    return NULL;
   
   // get the existing item at that index
-  list_t* currentNode = lst_item_at(list, index);
+  list_t* current_node = lst_item_at(list, index);
   // FIXME: do we want to insert at the end if we fell off the list? or fail the insert?
   //  this currently fails it, which also happens if the list is empty
-  if(currentNode == NULL) return NULL;
+  if(current_node == NULL)
+    return NULL;
   
   // get the next node too, which may not exist if index is the end of the list
-  list_t* nextNode = currentNode->next;
+  list_t *next_node = current_node->next;
   
   // and link it in, note that we might be at the end
-  currentNode->next = newNode;
-  newNode->prev = currentNode;
-  if(nextNode != NULL) {
-    nextNode->prev = newNode;
-    newNode->next = nextNode;
+  current_node->next = new_node;
+  new_node->prev = current_node;
+  if(next_node != NULL) {
+    next_node->prev = new_node;
+    new_node->next = next_node;
   }
   
-  return newNode;
+  return new_node;
+}
+
+/**
+ * Uses the "key" string to find the proper location to insert new data.
+ */
+list_t* lst_insert_sorted(list_t *list, char* key, void *data) {
+  // try to build a new node and fail out otherwise
+  list_t *new_node = lst_alloc();
+  if(new_node == NULL)
+    return NULL;
+  
+  // start at the head and find the right location (which may be the head)
+  list_t *prev_node = lst_first(list);
+  while(strcmp(key, prev_node->key) >= 0) {
+    prev_node = prev_node->next;
+  }
+  // get the next node too, which may not exist if index is the end of the list
+  list_t *next_node = prev_node->next;
+  
+  // and link it in, note that we might be at the end
+  prev_node->next = new_node;
+  new_node->prev = prev_node;
+  if(next_node != NULL) {
+    next_node->prev = new_node;
+    new_node->next = next_node;
+  }
+  
+  return new_node;
 }
 
 /**
@@ -308,7 +340,7 @@ list_t* lst_insert_after(list_t *list, int index, void *data) {
  */
 list_t* lst_copy(list_t *list)
 {
-  list_t *newNode = NULL;
+  list_t *new_node = NULL;
 
   // anything to copy?
   if(list == NULL)
@@ -319,20 +351,21 @@ list_t* lst_copy(list_t *list)
     list = lst_first(list);
   
   // got memory?
-  list_t *newList = lst_alloc();
-  if(newList == NULL)
+  list_t *new_list = lst_alloc();
+  if(new_list == NULL)
     return NULL;
-  newList->data = list->data;
+  new_list->data = list->data;
 
   // do the copy
   while(list->next != NULL) {
-    newNode = lst_alloc();
-    newNode->data = list->data;
-    lst_append(newList, newNode);
+    new_node = lst_alloc();
+    new_node->data = list->data;
+    new_node->key = list->key;
+    lst_append(new_list, new_node);
     list = list->next;
   }
   
-  return newList;
+  return new_list;
 }
 
 /**
@@ -357,20 +390,21 @@ list_t* lst_concat(list_t *first_list, list_t *second_list)
 void* lst_remove(list_t *list, void* data)
 {
   // get the existing node for that item
-  list_t* currentNode = lst_item(list, data);
-  if(currentNode == NULL) return NULL;
+  list_t* current_node = lst_item(list, data);
+  if(current_node == NULL)
+    return NULL;
 
   // get the previous and next nodes, either of which may be null
-  list_t* prevNode = currentNode->prev;
-  list_t* nextNode = currentNode->next;
+  list_t* prev_node = current_node->prev;
+  list_t* next_node = current_node->next;
   
   // link the list back together
-  if(prevNode != NULL)
-    prevNode->next = nextNode; // which may be null, which is fine
-  if(nextNode != NULL)
-    nextNode->prev = prevNode;
+  if(prev_node != NULL)
+    prev_node->next = next_node; // which may be null, which is fine
+  if(next_node != NULL)
+    next_node->prev = prev_node;
 
-  free(currentNode);
+  free(current_node);
   return data;
 }
 
@@ -380,21 +414,22 @@ void* lst_remove(list_t *list, void* data)
 void* lst_remove_at(list_t *list, int index)
 {
   // get the existing item at that index and fail out if it doesn't exist
-  list_t* currentNode = lst_item_at(list, index);
-  if(currentNode == NULL) return NULL;
+  list_t* current_node = lst_item_at(list, index);
+  if(current_node == NULL)
+    return NULL;
 
   // get the previous and next nodes, either of which may be null
-  list_t* prevNode = currentNode->prev;
-  list_t* nextNode = currentNode->next;
+  list_t* prev_node = current_node->prev;
+  list_t* next_node = current_node->next;
   
   // link the list back together
-  if(prevNode != NULL)
-    prevNode->next = nextNode; // which may be null, which is fine
-  if(nextNode != NULL)
-    nextNode->prev = prevNode;
+  if(prev_node != NULL)
+    prev_node->next = next_node; // which may be null, which is fine
+  if(next_node != NULL)
+    next_node->prev = prev_node;
 
-  void* data = currentNode->data;
-  free(currentNode);
+  void *data = current_node->data;
+  free(current_node);
   return data;
 }
 
@@ -407,7 +442,7 @@ list_t* lst_push(list_t *list, void *data)
 }
 
 /**
- * Alias for pop, for API purposes
+ * Alias for remove_at(0), for API purposes
  */
 void* lst_pop(list_t *list)
 {

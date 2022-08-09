@@ -67,8 +67,8 @@ extern char *stats_file;
  */
 typedef struct {
   char *name;
-  GList *subscripts;      /* subscripts, list of expressions */
-  GList *slicing;         /* up to two expressions holding string slicing limits */
+  list_t *subscripts;      /* subscripts, list of expressions */
+  list_t *slicing;         /* up to two expressions holding string slicing limits */
 } variable_t;
 
 /* either_t is used within variable_value_t for the actual data */
@@ -81,7 +81,7 @@ typedef union {
 /* variable_storage_t holds the *value* of a variable in memory, it is a variable_t */
 typedef struct {
   int type;               /* NUMBER, STRING */
-  GList *subscripts;      // subscript definitions, if any (from a DIM)
+  list_t *subscripts;      // subscript definitions, if any (from a DIM)
   either_t *value;        // actual value(s), malloced out
 } variable_storage_t;
 
@@ -121,16 +121,16 @@ typedef struct statement_struct {
   int type;
   union {
     expression_t *generic_parameter, *generic_parameter2, *generic_parameter3;
-    GList *data; // list of values for data statements
+    list_t *data; // list of values for data statements
     struct {
       variable_t *signature;
       expression_t *formula;
     } def;
     struct {
-      GList *vars;
+      list_t *vars;
       int type;
     } deftype;
-    GList *dim; // list of variable definitions
+    list_t *dim; // list of variable definitions
     struct {
       variable_t *variable;
       expression_t *begin, *end, *step;
@@ -139,10 +139,10 @@ typedef struct statement_struct {
     expression_t *_goto;
     struct {
       expression_t *condition;
-      GList *then_expression;
+      list_t *then_expression;
       int then_linenumber; // implicit goto case
     } _if;
-    GList *input;
+    list_t *input;
     struct {
       variable_t *variable;
       expression_t *expression;
@@ -150,17 +150,17 @@ typedef struct statement_struct {
     struct {
       int type; /* GOTO or GOSUB */
       expression_t *expression;
-      GList *numbers;
+      list_t *numbers;
     } on;
-    GList *next;
+    list_t *next;
     struct {
       expression_t *format;
-      GList *item_list;
+      list_t *item_list;
     } print;
-    GList *read;
+    list_t *read;
     char *rem;
     //        struct {
-    //            GList *numbers;
+    //            list_t *numbers;
     //        } _sys;
   } parms;
 } statement_t;
@@ -171,13 +171,13 @@ typedef struct statement_struct {
  RETURN more difficult?
  */
 typedef struct {
-  GList *head;
+  list_t *head;
   variable_t *index_variable;
   double begin, end, step;
 } forcontrol_t;
 
 typedef struct {
-  GList *returnpoint;
+  list_t *returnpoint;
 } gosubcontrol_t;
 
 /* this is the main state for the interpreter, largely consisting of the lines of
@@ -185,16 +185,16 @@ typedef struct {
  statement, a list of variables and their values, and the runtime stack for
  GOSUB and FOR/NEXT */
 typedef struct {
-  GList *lines[MAXLINE];          // the lines in the program, stored as an array of statement lists
+  list_t *lines[MAXLINE];          // the lines in the program, stored as an array of statement lists
   int first_line;		              // index of the first line in the lines array
-  GList *current_statement;       // currently executing statement
-  GList *next_statement;          // next statement to run, might change for GOTO and such
-  GList *current_data_statement;	// current 'DATA' statement
-  GList *current_data_element;	  // current 'DATA' expression within current_data_statement
+  list_t *current_statement;       // currently executing statement
+  list_t *next_statement;          // next statement to run, might change for GOTO and such
+  list_t *current_data_statement;	// current 'DATA' statement
+  list_t *current_data_element;	  // current 'DATA' expression within current_data_statement
   GTree *variable_values;		      // name/value pairs used to store variable values
   GTree *functions;               // name/expression pairs for user-defined functions
-  GList *forstack;	              // current stack of FOR statements
-  GList *gosubstack;	            // current stack of gosub statements
+  list_t *forstack;	              // current stack of FOR statements
+  list_t *gosubstack;	            // current stack of gosub statements
   int cursor_column;              // current column of the output cursor
   int running_state;              // is the program running (1), paused/stopped (0)
 } interpreterstate_t;
