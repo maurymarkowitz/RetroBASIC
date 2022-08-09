@@ -27,6 +27,16 @@
 #include "stdhdr.h"
 #include "string.h"
 
+/**
+ * @file retrobasic.h
+ * @author Maury Markowitz
+ * @brief Core interpreter code
+ *
+ * This is the core of the RetroBASIC interpreter. It performs all of the
+ * underlying BASIC functionality including parsing the original file using
+ * lex/yacc, cleaning up the resulting tokenized code, and then running it.
+ */
+
 /* consts used during parsing the source */
 #define MAXLINE 32767
 
