@@ -231,7 +231,8 @@ int lst_position(list_t *list, void *data)
 /**
  * Adds a value at the end of the given list.
  */
-list_t* lst_append(list_t* list, void *data) {
+list_t* lst_append(list_t* list, void *data)
+{
   // always going to produce at least one new node
   list_t *new_list;
   new_list = lst_alloc();
@@ -258,7 +259,8 @@ list_t* lst_append(list_t* list, void *data) {
 /**
  * Adds a value at the begining of the given list.
  */
-list_t* lst_prepend(list_t* list, void *data) {
+list_t* lst_prepend(list_t* list, void *data)
+{
   list_t *new_node;
   
   new_node = lst_alloc();
@@ -280,18 +282,26 @@ list_t* lst_prepend(list_t* list, void *data) {
 /**
  * Inserts a newly created node from the given value at the given index
  */
-list_t* lst_insert_after(list_t *list, int index, void *data) {
-  // try to build a new node and fail out otherwise
+list_t* lst_insert_after(list_t *list, int index, void *data)
+{
+  // get the existing item at that index
+  list_t* current_node = lst_item_at(list, index);
+  
+  // we'll do an insert for any index, even if it's off the end of the list
+  // or the list is empty. the line above returned NULL for either of those,
+  // so if we got a NULL we can simply append the item, which may create the
+  // list if it's new
+  if(current_node == NULL) {
+    current_node = lst_append(list, data);
+    return current_node;
+  }
+  
+  // if we did get a good location then the list exists and index is value,
+  // so make the new node...
   list_t *new_node = lst_alloc();
   if(new_node == NULL)
     return NULL;
-  
-  // get the existing item at that index
-  list_t* current_node = lst_item_at(list, index);
-  // FIXME: do we want to insert at the end if we fell off the list? or fail the insert?
-  //  this currently fails it, which also happens if the list is empty
-  if(current_node == NULL)
-    return NULL;
+  new_node->data = data;
   
   // get the next node too, which may not exist if index is the end of the list
   list_t *next_node = current_node->next;
@@ -310,7 +320,8 @@ list_t* lst_insert_after(list_t *list, int index, void *data) {
 /**
  * Uses the "key" string to find the proper location to insert new data.
  */
-list_t* lst_insert_sorted(list_t *list, char* key, void *data) {
+list_t* lst_insert_sorted(list_t *list, char *key, void *data)
+{
   // try to build a new node and fail out otherwise
   list_t *new_node = lst_alloc();
   if(new_node == NULL)

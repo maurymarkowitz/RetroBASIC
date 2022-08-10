@@ -31,10 +31,10 @@ Boston, MA 02111-1307, USA.  */
  * @brief Various utilities for strings, lists and hashes
  *
  * The types and functions in this library are intended to closely mirror the API of the
- * GLib library. gnbasic was written using GLib to avoid having to implement common
- * functionality and recreating the wheel. However, installing GLib on anything other
- * than generic *nix platforms turned out to be more annoying that simply writing
- * the code to perform these relatively simple tasks.
+ * GLib library. gnbasic was written using GLib to avoid recreating the wheel for common
+ * functionality. However, installing GLib on anything other than generic *nix platforms
+ * turned out to be more annoying that simply writing the code to perform these relatively
+ * simple tasks.
  */
 
 // this should be more than large enough for programs of the era,
