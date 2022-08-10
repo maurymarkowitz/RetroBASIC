@@ -146,7 +146,7 @@ list_t* lst_first(list_t *list);
 list_t* lst_last(list_t *list);
 
 /**
- * Returns the list node for a given data item (pointer).
+ * Returns the list node for a given @p data item (pointer).
  *
  * @param list the list to search
  * @param data the pointer to the data to find
@@ -155,7 +155,7 @@ list_t* lst_last(list_t *list);
 list_t* lst_item(list_t *list, void* data);
 
 /**
- * Returns the data at a given index.
+ * Returns the node at a given @p index.
  *
  * @param list the list to search
  * @param index the number of the item to return
@@ -164,10 +164,10 @@ list_t* lst_item(list_t *list, void* data);
 list_t* lst_item_at(list_t *list, int index);
 
 /**
- * Returns the data at a given index.
+ * Returns the node with the given @p key.
  *
  * @param list the list to search
- * @param index the number of the item to return
+ * @param key the number of the item to return
  * @return the node with a given key, or NULL if it was empty or not found
  */
 list_t* lst_item_with_key(list_t *list, char *key);
@@ -180,6 +180,16 @@ list_t* lst_item_with_key(list_t *list, char *key);
  * @return The index of the item or NULL if it is not found.
  */
 int lst_position_of(list_t *list, void *data);
+
+/**
+ * Calls a user function on each value in the list.
+ *
+ * @param list the list to use
+ * @param function a function pointer to call
+ * @param result a pointer to any data the function might return
+ * @return the original list
+ */
+list_t* lst_foreach(list_t *list, void (*function)(void *key, void *data, void *user_data), void *user_data);
 
 /**
  * Appends a value to the end of the List.
@@ -224,16 +234,6 @@ list_t* lst_insert_at(list_t *list, void *data, int position);
 list_t* lst_insert_sorted(list_t *list, void *data, char *key);
 
 /**
- * Calls a user function on each value in the list.
- *
- * @param list the list to use
- * @param function a function pointer to call
- * @param result a pointer to any data the function might return
- * @return the original list
- */
-list_t* lst_foreach(list_t *list, void (*function)(void *), void *result);
-
-/**
  * @brief Removes @p data from @p list and returns resulting @p list.
  *
  * @param list The list to remove from.
@@ -250,6 +250,15 @@ list_t* lst_remove(list_t *list, void *data);
  * @return the resulting list
  */
 void* lst_remove_at(list_t *list, int position);
+
+/**
+ * Removes and frees the node with the given key. The user data is returned and *not* freed.
+ *
+ * @param list the list to insert into
+ * @param position the location to insert at
+ * @return the resulting list
+ */
+void* lst_remove_key(list_t *list, char *key);
 
 /**
  * Adds the value to the front of the list (alias for prepend).
