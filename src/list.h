@@ -22,13 +22,34 @@ Boston, MA 02111-1307, USA.  */
  * @file list.h
  * @author Maury Markowitz
  * @date 17 July 2022
- * @brief A simple linked-List implementation and various work methods
+ *
+ * @title Doubly-linked lists
+ * @brief A simple linked-list implementation and various work methods
+ *
+ * This code implements a doubly-linked list and various common functionality like
+ * inserting and deleting items from the list, calculating the number of items (length),
+ * and so forth. The empty list is NULL, with nothing allocated.
+ *
+ * The list normally contains data via a void* pointer which the user has to allocate
+ * as appropriate. They may also be used to store integers by casting them to void*.
+ * Lists and the nodes within them are synonomous, the methods below will always rewind
+ * to the start or forward to the end as needed, so they can be called with any existing
+ * node, you do not have to keep the first or last item. However, the API also generally
+ * returns the front of the list after any modifications, making it easy to track the
+ * front of the list as it changes with new items insterted or existing ones removed.
  *
  * The types and functions in this library are intended to closely mirror the API of the
  * GLib library. gnbasic was written using GLib to avoid recreating the wheel for common
  * functionality. However, installing GLib on anything other than generic *nix platforms
- * turned out to be more annoying that simply writing the code to perform these relatively
+ * turned out to be more annoying that writing the code to perform these relatively
  * simple tasks.
+ *
+ * gnbasic also used GTree to store sorted lists, notably for variable values. This is
+ * instead implemented here as a list through the addition of the (optional) char* "key"
+ * field and using lst_insert_sorted. The resulting list can then be used in a hash-like
+ * fashion to find named items, or simply as a sorted list, ignoring the keys. More
+ * complex keys and/or sorting based on the data itself is not currently supported.
+ *
  */
 
 #ifndef list_h
@@ -41,19 +62,16 @@ Boston, MA 02111-1307, USA.  */
  */
 typedef struct _list {
   void *data;
-  void *key;
+  char *key;
   struct _list *next;
   struct _list *prev;
 } list_t;
 
-// maybe macro these?
+/**
+ * Macros for next and previous.
+ */
 //#define lst_previous(list)      ((list) ? (((list_t *)(list))->prev) : NULL)
 //#define lst_next(list)          ((list) ? (((list_t *)(list))->next) : NULL)
-
-/**
- * Creates an empty List. Returns NULL if the allocation failed.
- */
-list_t *lst_alloc(void);
 
 /**
  * Removes all nodes from a list. It is up to the user to free the items within.
@@ -146,13 +164,22 @@ list_t* lst_item(list_t *list, void* data);
 list_t* lst_item_at(list_t *list, int index);
 
 /**
+ * Returns the data at a given index.
+ *
+ * @param list the list to search
+ * @param index the number of the item to return
+ * @return the node with a given key, or NULL if it was empty or not found
+ */
+list_t* lst_item_with_key(list_t *list, char *key);
+
+/**
  * @brief Returns the index of @p data in @p list.
  *
  * @param list The list to search.
  * @param data The item to search for.
  * @return The index of the item or NULL if it is not found.
  */
-int lst_position(list_t *list, void *data);
+int lst_position_of(list_t *list, void *data);
 
 /**
  * Appends a value to the end of the List.
@@ -175,22 +202,36 @@ list_t* lst_prepend(list_t *list, void *data);
 /**
  * Inserts a value at a given index location in a List.
  *
+ * @p position zero means "front of list" while any negative value inserts
+ * at the end. An empty list will always be inserted at the start regardless
+ * of the value.
+ *
  * @param list the list to insert into
- * @param index the location to insert at
  * @param data pointer to the object to store in the list or NULL if it failed
+ * @param position the location to insert at
  * @return pointer to @p data if it was inserted, NULL otherwise
  */
-list_t* lst_insert_after(list_t *list, int index, void *data);
+list_t* lst_insert_at(list_t *list, void *data, int position);
 
 /**
- * Inserts a value at the correct location given a string key.
+ * Inserts a value at the correct sorted location given a string key.
  *
  * @param list the list to insert into
  * @param key a string to use to position the object in the list
  * @param data pointer to the object to store in the list or NULL if it failed
  * @return pointer to @p data if it was inserted, NULL otherwise
  */
-list_t* lst_insert_sorted(list_t *list, char *key, void *data);
+list_t* lst_insert_sorted(list_t *list, void *data, char *key);
+
+/**
+ * Calls a user function on each value in the list.
+ *
+ * @param list the list to use
+ * @param function a function pointer to call
+ * @param result a pointer to any data the function might return
+ * @return the original list
+ */
+list_t* lst_foreach(list_t *list, void (*function)(void *), void *result);
 
 /**
  * @brief Removes @p data from @p list and returns resulting @p list.
@@ -199,16 +240,16 @@ list_t* lst_insert_sorted(list_t *list, char *key, void *data);
  * @param data A pointer to user data to be removed.
  * @return A pointer to user data.
  */
-void* lst_remove(list_t *list, void *data);
+list_t* lst_remove(list_t *list, void *data);
 
 /**
  * Removes and frees the node at the given index. The user data is returned and *not* freed.
  *
- * @param List the list to insert into
- * @param index the location to insert at
- * @return pointer to @p data if it was removed, NULL otherwise
+ * @param list the list to insert into
+ * @param position the location to insert at
+ * @return the resulting list
  */
-void* lst_remove_at(list_t *List, int index);
+void* lst_remove_at(list_t *list, int position);
 
 /**
  * Adds the value to the front of the list (alias for prepend).
@@ -220,7 +261,7 @@ void* lst_remove_at(list_t *List, int index);
 list_t* lst_push(list_t *list, void *data);
 
 /**
- * Removes and frees the first node in the List, returning the associated data.
+ * Removes and frees the first node in the list, returning the associated data.
  */
 void* lst_pop(list_t *list);
 
