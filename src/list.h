@@ -25,10 +25,10 @@ Boston, MA 02111-1307, USA.  */
  * @brief A simple linked-List implementation and various work methods
  *
  * The types and functions in this library are intended to closely mirror the API of the
- * GLib library. gnbasic was written using GLib to avoid having to implement common
- * functionality and recreating the wheel. However, installing GLib on anything other
- * than generic *nix platforms turned out to be more annoying that simply writing
- * the code to perform these relatively simple tasks.
+ * GLib library. gnbasic was written using GLib to avoid recreating the wheel for common
+ * functionality. However, installing GLib on anything other than generic *nix platforms
+ * turned out to be more annoying that simply writing the code to perform these relatively
+ * simple tasks.
  */
 
 #ifndef list_h
@@ -183,10 +183,21 @@ list_t* lst_prepend(list_t *list, void *data);
 list_t* lst_insert_after(list_t *list, int index, void *data);
 
 /**
+ * Inserts a value at the correct location given a string key.
+ *
+ * @param list the list to insert into
+ * @param key a string to use to position the object in the list
+ * @param data pointer to the object to store in the list or NULL if it failed
+ * @return pointer to @p data if it was inserted, NULL otherwise
+ */
+list_t* lst_insert_sorted(list_t *list, char *key, void *data);
+
+/**
  * @brief Removes @p data from @p list and returns resulting @p list.
  *
  * @param list The list to remove from.
  * @param data A pointer to user data to be removed.
+ * @return A pointer to user data.
  */
 void* lst_remove(list_t *list, void *data);
 
