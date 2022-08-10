@@ -443,16 +443,42 @@ void* lst_remove_at(list_t *list, int position)
 }
 
 /*
+ * Removes and frees the node with the given key and returns the pointer to the associated data
+ */
+void* lst_remove_key(list_t *list, char *key)
+{
+  // get the existing item at that index and fail out if it doesn't exist
+  list_t* current_node = lst_item_with_key(list, key);
+  if(current_node == NULL)
+    return NULL;
+
+  // get the previous and next nodes, either of which may be null
+  list_t* prev_node = current_node->prev;
+  list_t* next_node = current_node->next;
+  
+  // link the list back together
+  if(prev_node != NULL)
+    prev_node->next = next_node; // which may be null, which is fine
+  if(next_node != NULL)
+    next_node->prev = prev_node;
+
+  void *data = current_node->data;
+  free(current_node);
+  return data;
+}
+
+/*
  * Calls the provided function on each of the elements in the list.
  */
-void lst_foreach(list_t *list, void (*function)(void *))
+list_t* lst_foreach(list_t *list, void (*function)(void *key, void *data, void *user_data), void *user_data)
 {
   list_t *next;
   while(list != NULL) {
       next = list->next;
-      (*function)(list->data);
+      (*function)(list->key, list->data, user_data);
       list = next;
     }
+  return list;
 }
 
 /*
