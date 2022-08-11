@@ -133,30 +133,37 @@ void print_statistics()
   // out the number per line. so this code checks each node to see
   // if the ->next is the first item on the next line
   int stmts_max = 0, diff = 0, next_num;
-  list_t *this, *next;
+  list_t *this_line, *next_line;
   list_t *start = interpreter_state.lines[interpreter_state.first_line];
   
   for(int i = interpreter_state.first_line; i < MAXLINE - 1; i++) {
-    // try again if this line is empty
-    if(interpreter_state.lines[i] == NULL) continue;
+    // get the next line's statements, and continue if its empty
+    this_line = interpreter_state.lines[i];
+    if(interpreter_state.lines[i] == NULL)
+      continue;
     
-    // otherwise get the statements on this line
-    this = interpreter_state.lines[i];
-    
-    // and find the next non-empty line
+    // now find the next non-empty line
     next_num = i + 1; // note to me: no, you can't i++ here!
     while ((next_num < MAXLINE) && (interpreter_state.lines[next_num] == NULL))
       next_num++;
     
     // if we ran off the end of the list, exit
-    if(next_num == MAXLINE - 1) break;
+    if(next_num > MAXLINE - 1)
+      break;
     
     // otherwise we found the next line
-    next = interpreter_state.lines[next_num];
+    next_line = interpreter_state.lines[next_num];
+    
+    //TESTING
+    if(this_line == NULL)
+      break;
+    if(next_line == NULL)
+      break;
     
     // now count the number of statements between them
-    diff = lst_position(start, next) - lst_position(start, this);
-    if(diff > stmts_max) stmts_max = diff;
+    diff = lst_position_of_node(start, next_line) - lst_position_of_node(start, this_line);
+    if(diff > stmts_max)
+      stmts_max = diff;
   }
   
   // variables
