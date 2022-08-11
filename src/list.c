@@ -48,7 +48,7 @@ void lst_free(list_t *list)
 
   list_t* tail = list;
   if(tail->next != NULL)
-    tail = lst_last(list);
+    tail = lst_last_node(list);
   list_t* temp = tail;
   
   while(tail->prev != NULL) {
@@ -68,7 +68,7 @@ void lst_free_everything(list_t *list)
   
   list_t* tail = list;
   if(tail->next != NULL)
-    tail = lst_last(list);
+    tail = lst_last_node(list);
   
   list_t* temp;
   while(tail->prev != NULL) {
@@ -97,7 +97,7 @@ int lst_length(list_t *list)
 {
   int length = 0;
 
-  list_t *head = lst_first(list);
+  list_t *head = lst_first_node(list);
   while(head != NULL) {
     length++;
     head = head->next;
@@ -109,7 +109,7 @@ int lst_length(list_t *list)
 /*
  * Returns the first node.
  */
-list_t* lst_first(list_t *list)
+list_t* lst_first_node(list_t *list)
 {
   if(list == NULL)
     return list;
@@ -125,7 +125,7 @@ list_t* lst_first(list_t *list)
 /*
  * Returns the last node.
  */
-list_t* lst_last(list_t *list)
+list_t* lst_last_node(list_t *list)
 {
   if(list == NULL)
     return list;
@@ -141,12 +141,12 @@ list_t* lst_last(list_t *list)
 /*
  * Returns the node for a given data item.
  */
-list_t* lst_item(list_t *list, void* data)
+list_t* lst_node_with_data(list_t *list, void* data)
 {
   if(list == NULL)
     return list;
 
-  list_t* node = lst_first(list);
+  list_t* node = lst_first_node(list);
   if(node == NULL)
     return NULL;
   
@@ -161,16 +161,28 @@ list_t* lst_item(list_t *list, void* data)
 }
 
 /*
+ * Returns the data at a given index.
+ */
+void* lst_data_at(list_t *list, int index)
+{
+  list_t *node = lst_node_at(list, index);
+  if(node == NULL)
+    return NULL;
+  else
+    return node->data;
+}
+
+/*
  * Returns the node at a given index.
  */
-list_t* lst_item_at(list_t *list, int index)
+list_t* lst_node_at(list_t *list, int index)
 {
   if(list == NULL)
     return list;
 
   list_t* node = list;
   if(node->prev != NULL)
-    node = lst_first(list);
+    node = lst_first_node(list);
   
   int i = 0;
   while(node->next != NULL && i < index) {
@@ -187,33 +199,40 @@ list_t* lst_item_at(list_t *list, int index)
 /*
  * Returns the node with a given key.
  */
-list_t* lst_item_with_key(list_t *list, char *key)
+list_t* lst_node_with_key(list_t *list, char *key)
 {
   if(list == NULL)
     return list;
 
-  list_t* node = lst_first(list);
+  list_t* node = lst_first_node(list);
   while(node != NULL && node->key != NULL && strcmp(key, node->key) != 0)
     node = node->next;
   
   return node;
 }
 
+/*
+ * Returns the index of a node or -1 if it's not found. Curries line below.
+ */
+int lst_position_of_node(list_t *list, list_t *node)
+{
+  return lst_position_of_data(list, node->data);
+}
 
 /*
  * Returns the index of an item (pointer) or -1 if it's not found.
  */
-int lst_position_of(list_t *list, void *data)
+int lst_position_of_data(list_t *list, void *data)
 {
   if(list == NULL)
     return -1;
 
   list_t* node = list;
   if(node->prev != NULL)
-    node = lst_first(list);
+    node = lst_first_node(list);
 
   int pos = 0;
-  while(node->data != data && node->next != NULL) {
+  while((node->data != data) && (node->next != NULL)) {
     node = node->next;
     pos++;
   }
@@ -240,7 +259,7 @@ list_t* lst_append(list_t* list, void *data)
   if(list != NULL) {
     last_existing = list;
     if(last_existing->next != NULL)
-      last_existing = lst_last(list);
+      last_existing = lst_last_node(list);
     
     last_existing->next = new_list;
     new_list->prev = last_existing;
@@ -290,7 +309,7 @@ list_t* lst_insert_at(list_t *list, void *data, int position)
   else if (position == 0)
     return lst_prepend(list, data);
   
-  tmp_node = lst_item_at(list, position);
+  tmp_node = lst_node_at(list, position);
   if(tmp_node == NULL)
     return lst_append(list, data);
   
@@ -321,7 +340,7 @@ list_t* lst_insert_sorted(list_t *list, void *data, char *key)
     return new_node;
   
   // get the head of the list and roll forward until we find the right location
-  list_t *node_after = lst_first(list);
+  list_t *node_after = lst_first_node(list);
   while(node_after != NULL && node_after->key != NULL && strcmp(key, node_after->key) > 0)
     node_after = node_after->next;
   // FIXME: what happens if we need to be after the last node in the list?
@@ -357,7 +376,7 @@ list_t* lst_copy(list_t *list)
   
   // check that we're at the head, or move there
   if(list->prev != NULL)
-    list = lst_first(list);
+    list = lst_first_node(list);
   
   // got memory?
   list_t *new_list = _lst_alloc();
@@ -382,8 +401,8 @@ list_t* lst_copy(list_t *list)
  */
 list_t* lst_concat(list_t *first_list, list_t *second_list)
 {
-  list_t *tail = lst_last(first_list);
-  list_t *head = lst_first(second_list);
+  list_t *tail = lst_last_node(first_list);
+  list_t *head = lst_first_node(second_list);
   if(tail != NULL) {
     tail->next = head;
   }
@@ -396,12 +415,20 @@ list_t* lst_concat(list_t *first_list, list_t *second_list)
 /*
  * Removes and frees the node pointing to a given @p data
  */
-list_t* lst_remove(list_t *list, void* data)
+list_t* lst_remove_node(list_t *list, list_t* node)
+{
+  return lst_remove_data(list, node);
+}
+
+/*
+ * Removes and frees the node pointing to a given @p data
+ */
+list_t* lst_remove_data(list_t *list, void* data)
 {
   // get the existing node for that item
-  list_t* current_node = lst_item(list, data);
+  list_t* current_node = lst_node_with_data(list, data);
   if(current_node == NULL)
-    return NULL;
+    return list;
 
   // get the previous and next nodes, either of which may be null
   list_t* prev_node = current_node->prev;
@@ -414,7 +441,11 @@ list_t* lst_remove(list_t *list, void* data)
     next_node->prev = prev_node;
 
   free(current_node);
-  return list;
+  
+  if(prev_node == NULL && next_node == NULL)
+    return NULL;
+  else
+    return list;
 }
 
 /*
@@ -423,7 +454,7 @@ list_t* lst_remove(list_t *list, void* data)
 void* lst_remove_at(list_t *list, int position)
 {
   // get the existing item at that index and fail out if it doesn't exist
-  list_t* current_node = lst_item_at(list, position);
+  list_t* current_node = lst_node_at(list, position);
   if(current_node == NULL)
     return NULL;
 
@@ -448,7 +479,7 @@ void* lst_remove_at(list_t *list, int position)
 void* lst_remove_key(list_t *list, char *key)
 {
   // get the existing item at that index and fail out if it doesn't exist
-  list_t* current_node = lst_item_with_key(list, key);
+  list_t* current_node = lst_node_with_key(list, key);
   if(current_node == NULL)
     return NULL;
 
