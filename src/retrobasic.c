@@ -153,8 +153,8 @@ either_t *variable_value(variable_t *variable, int *type)
       slots = 1;
       for (list_t *L = variable->subscripts; L != NULL; L = lst_next(L)) {
         v = evaluate_expression(L->data);
-        int actual = (int)v.number + (1 - array_base); // if we're using 0-base indexing, we need to add one more slot
-        storage->subscripts = lst_append(storage->subscripts, (int)(actual));
+				size_t actual = (int)v.number + (1 - array_base); // if we're using 0-base indexing, we need to add one more slot
+        storage->subscripts = lst_append(storage->subscripts, (void *)(actual));
         slots *= actual;
       }
     }
@@ -896,7 +896,7 @@ static int line_for_statement(list_t *statement)
   list_t *program = interpreter_state.lines[interpreter_state.first_line];
   
   // get the index of this statement in that list
-  int target_index = lst_position(program, statement);
+  int target_index = lst_position_of_data(program, statement->data);
   
   // loop forward through the program until we find a line who's
   // first statement is higher than that index. That means we must
@@ -907,7 +907,7 @@ static int line_for_statement(list_t *statement)
     if (interpreter_state.lines[i] == NULL) continue;
     
     // get the index of the first statement on that line
-    this_index = lst_position(program, interpreter_state.lines[i]);
+    this_index = lst_position_of_data(program, interpreter_state.lines[i]->data);
     
     // now see if we're in this line or the previous one
     if (this_index == target_index) return i;
@@ -1217,7 +1217,7 @@ static void perform_statement(list_t *L)
         // NEXT J inside a NEXT I
         // FIXME: this is easy to fix, simply get the variable name from the FOR
         //  stack and then check if it's the same as the one in the NEXT, error out
-        forcontrol_t *pfc = lst_last(interpreter_state.forstack)->data;
+        forcontrol_t *pfc = lst_last_node(interpreter_state.forstack)->data;
         either_t *lv;
         int type = 0;
         
@@ -1229,7 +1229,7 @@ static void perform_statement(list_t *L)
           interpreter_state.next_statement = lst_next(pfc->head);
         } else {
           // we are done, remove this entry from the stack
-          interpreter_state.forstack = lst_remove(interpreter_state.forstack, pfc);
+          interpreter_state.forstack = lst_remove_data(interpreter_state.forstack, pfc);
         }
       }
         break;
@@ -1271,7 +1271,7 @@ static void perform_statement(list_t *L)
           basic_error("Index value for ON greater than list of line numbers");
 
         // otherwise, try to get the nth item
-        expression_t *item = lst_nth_data(numslist, (guint)n);
+        expression_t *item = lst_data_at(numslist, n);
         if (item == NULL) {
             // an IF statement simply runs the next statement if the condition fails,
             // likewise, if the ON value points to an item that is not in the number
@@ -1347,8 +1347,8 @@ static void perform_statement(list_t *L)
         }
         
         // now get the last item in the list so we can see if it's a ; or ,
-        if (lst_last(ps->parms.print.item_list))
-          pp = (printitem_t *)(lst_last(ps->parms.print.item_list)->data);
+        if (lst_last_node(ps->parms.print.item_list))
+          pp = (printitem_t *)(lst_last_node(ps->parms.print.item_list)->data);
         else
           pp = NULL;
         
@@ -1406,7 +1406,7 @@ static void perform_statement(list_t *L)
                 break;
               interpreter_state.current_data_statement = lst_next(interpreter_state.current_data_statement);
             }
-            interpreter_state.current_data_element = lst_first(((statement_t *)(interpreter_state.current_data_statement->data))->parms.data);
+            interpreter_state.current_data_element = lst_first_node(((statement_t *)(interpreter_state.current_data_statement->data))->parms.data);
           }
           
           // eval the DATA element, which is what we'll ultimately return
@@ -1458,9 +1458,9 @@ static void perform_statement(list_t *L)
         
       case RETURN:
       {
-        gosubcontrol_t *pgc = lst_last(interpreter_state.gosubstack)->data;
+        gosubcontrol_t *pgc = lst_last_node(interpreter_state.gosubstack)->data;
         interpreter_state.next_statement = pgc->returnpoint;
-        interpreter_state.gosubstack = lst_remove(interpreter_state.gosubstack, pgc);
+        interpreter_state.gosubstack = lst_remove_data(interpreter_state.gosubstack, pgc);
       }
         break;
         
@@ -1554,7 +1554,7 @@ void interpreter_post_parse(void)
   list_t *first_statement = interpreter_state.lines[first_line];
   
   // now find the next non-null line and concat it to the first one, and repeat
-  for (int i = first_line + 1; (i < MAXLINE); i++) {
+  for (int i = first_line + 1; i < MAXLINE; i++) {
     if (interpreter_state.lines[i])
       first_statement = lst_concat(first_statement, interpreter_state.lines[i]);
   }
