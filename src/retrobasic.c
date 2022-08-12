@@ -125,6 +125,7 @@ either_t *variable_value(variable_t *variable, int *type)
     storage = malloc(sizeof(*storage));
     
     // set the type based on the name, which will override any passed type
+		// NOTE: don't use storage_name here, we might have added a (, always use variable->name
     char trailer = variable->name[strlen(variable->name) - 1];
     if (trailer == '$')
       storage->type = STRING;
@@ -141,7 +142,7 @@ either_t *variable_value(variable_t *variable, int *type)
       storage->type = SINGLE;
     else if (trailer == '#')
       storage->type = DOUBLE;
-    
+		
     // now see if this reference includes subscripts
     if (variable->subscripts != NULL) {
       value_t v;
@@ -167,7 +168,7 @@ either_t *variable_value(variable_t *variable, int *type)
     
     // now malloc the result and insert it into the values tree
     storage->value = malloc(slots * sizeof(storage->value[0]));
-		lst_insert_with_key_sorted(interpreter_state.variable_values, storage, storage_name);
+		interpreter_state.variable_values = lst_insert_with_key_sorted(interpreter_state.variable_values, storage, storage_name);
     //g_tree_insert(interpreter_state.variable_values, storage_name, storage);
   }
   
@@ -184,8 +185,8 @@ either_t *variable_value(variable_t *variable, int *type)
     list_t *original_dimensions;         // list of actual dimensions in storage (from the DIM), stored as integers
     list_t *variable_indexes;            // list of indices in this variable reference, each is an expression, likely a constant
     
-    original_dimensions = storage->subscripts;
-    variable_indexes = variable->subscripts;
+    original_dimensions = lst_first_node(storage->subscripts);
+    variable_indexes = lst_first_node(variable->subscripts);
     
     // the *number* of dimensions has to match, you can't DIM A(1,1) and then LET B=A(1)
     if (lst_length(original_dimensions) != lst_length(variable_indexes))
@@ -253,7 +254,7 @@ either_t *variable_value(variable_t *variable, int *type)
       startPoint = evaluate_expression(slice_param->data);
       slice_start = (long)startPoint.number;
       slice_param = lst_next(slice_param);
-			if(slice_param && slice_param->data)
+			if (slice_param && slice_param->data)
 				endPoint = evaluate_expression(slice_param->data);
 			else
 				endPoint = startPoint;
@@ -276,7 +277,7 @@ either_t *variable_value(variable_t *variable, int *type)
       // the source string is at the selected array index, which is zero for non-ANSI
       either_t orig_string = storage->value[index];
       
-      // build a new string
+      // build a new string (this is leaking!)
       either_t *result = malloc(sizeof(*result));
       result->string = str_new(orig_string.string);
       str_erase(result->string, slice_start, slice_end - slice_start + 1);
@@ -342,7 +343,7 @@ expression_t *function_expression(variable_t *function, expression_t *expression
     storage->formula = expression;
     
     // and insert it into storage
-		lst_insert_with_key_sorted(interpreter_state.functions, storage, function->name);
+		interpreter_state.functions = lst_insert_with_key_sorted(interpreter_state.functions, storage, function->name);
     //g_tree_insert(interpreter_state.functions, function->name, storage);
   }
   
@@ -410,13 +411,23 @@ static value_t evaluate_expression(expression_t *expression)
     case variable:
     {
       int type = 0;
-      either_t *p;
-      p = variable_value(expression->parms.variable, &type);
+      either_t *p = variable_value(expression->parms.variable, &type);
       result.type = type;
-      if (type == STRING)
-        result.string = p->string;
-      else
-        result.number = p->number;
+			
+			// user functions will call this method while being set up and at that time the
+			// values are not valid, so...
+			if (type == STRING) {
+				if (p)
+					result.string = p->string;
+				else
+					result.string = "";
+			}
+			else {
+				if (p)
+					result.number = p->number;
+				else
+					result.string = 0;
+			}
     }
       break;
       
@@ -470,7 +481,7 @@ static value_t evaluate_expression(expression_t *expression)
             storage->value->string = stored_val->string;
           else
             storage->value->number = stored_val->number;
-				lst_insert_with_key_sorted(stack, storage, original_parameter->parms.variable->name);
+				stack = lst_insert_with_key_sorted(stack, storage, original_parameter->parms.variable->name);
         //g_tree_insert(stack, original_parameter->parms.variable->name, storage);
         
         // move to the next item in the original parameter list, if there's any left
@@ -531,7 +542,7 @@ static value_t evaluate_expression(expression_t *expression)
           global_val->number = temp_val->value->number;
         
         // kill the stack entry
-				lst_remove_node_with_key(stack, original_parameter->parms.variable->name);
+				stack = lst_remove_node_with_key(stack, original_parameter->parms.variable->name);
         //g_tree_remove(stack, original_parameter->parms.variable->name);
         free(temp_val);
         
@@ -541,7 +552,7 @@ static value_t evaluate_expression(expression_t *expression)
       }
 
       // kill the stack to be safe
-			lst_free_everything(stack);
+		//	lst_free(stack); // we already killed the values above
       //g_tree_destroy(stack);
     }
       break;
@@ -605,7 +616,7 @@ static value_t evaluate_expression(expression_t *expression)
             break;
           case LEN: // this is the only arity-1 function that takes a string parameter
             // the string may never have been assigned, so...
-            if(parameters[0].string == NULL)
+            if (parameters[0].string == NULL)
               result.number = 0;
             else
               result.number = strlen(parameters[0].string);
@@ -982,14 +993,14 @@ static list_t *find_line(int linenumber)
 //static int lines_between(int first_line, int second_line)
 //{
 //    // may as well try this just in case...
-//    if(first_line == second_line)
+//    if (first_line == second_line)
 //        return 0;
 //    // otherwise, simply count the non-empty lines between the two
 //    int distance = 0;
 //    int first = (first_line < second_line) ? first_line : second_line;
 //    int last = (first_line >= second_line) ? second_line : first_line;
 //    for(int i = first; i <= last; i++) {
-//        if(interpreter_state.lines[i]) distance++;
+//        if (interpreter_state.lines[i]) distance++;
 //    }
 //    return distance;
 //}
@@ -1075,7 +1086,7 @@ static void perform_statement(list_t *L)
         new_for->index_variable = ps->parms._for.variable;
         new_for->begin = evaluate_expression(ps->parms._for.begin).number;
         new_for->end = evaluate_expression(ps->parms._for.end).number;
-        if(ps->parms._for.step)
+        if (ps->parms._for.step)
           new_for->step = evaluate_expression(ps->parms._for.step).number;
         else {
           new_for->step = 1;
