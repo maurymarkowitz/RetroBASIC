@@ -70,8 +70,8 @@ typedef struct _list {
 /**
  * Macros for next and previous.
  */
-//#define lst_previous(list)      ((list) ? (((list_t *)(list))->prev) : NULL)
-//#define lst_next(list)          ((list) ? (((list_t *)(list))->next) : NULL)
+#define lst_previous(list)      ((list) ? (((list_t *)(list))->prev) : NULL)
+#define lst_next(list)          ((list) ? (((list_t *)(list))->next) : NULL)
 
 /**
  * Removes all nodes from a list. It is up to the user to free the items within.
@@ -115,19 +115,19 @@ list_t* lst_concat(list_t *first_list, list_t *second_list);
  */
 int lst_length(list_t *list);
 
-/**
- * Returns the next node.
- *
- * @param list the list to search
- */
-list_t* lst_next(list_t *list);
-
-/**
- * Returns the previous node.
- *
- * @param list the list to search
- */
-list_t* lst_previous(list_t *list);
+///**
+// * Returns the next node.
+// *
+// * @param list the list to search
+// */
+//list_t* lst_next(list_t *list);
+//
+///**
+// * Returns the previous node.
+// *
+// * @param list the list to search
+// */
+//list_t* lst_previous(list_t *list);
 
 /**
  * Returns the first node.
@@ -135,7 +135,7 @@ list_t* lst_previous(list_t *list);
  * @param list the list to search
  * @return the first item in the list or NULL if it was empty
  */
-list_t* lst_first(list_t *list);
+list_t* lst_first_node(list_t *list);
 
 /**
  * Returns the last node.
@@ -143,7 +143,7 @@ list_t* lst_first(list_t *list);
  * @param list the list to search
  * @return the last item in the list or NULL if it was empty
  */
-list_t* lst_last(list_t *list);
+list_t* lst_last_node(list_t *list);
 
 /**
  * Returns the list node for a given @p data item (pointer).
@@ -152,7 +152,7 @@ list_t* lst_last(list_t *list);
  * @param data the pointer to the data to find
  * @return the node for the item, or NULL if it was empty or not found
  */
-list_t* lst_item(list_t *list, void* data);
+list_t* lst_node_with_data(list_t *list, void* data);
 
 /**
  * Returns the node at a given @p index.
@@ -161,7 +161,16 @@ list_t* lst_item(list_t *list, void* data);
  * @param index the number of the item to return
  * @return the node at the given index, or NULL if it was empty or past the end
  */
-list_t* lst_item_at(list_t *list, int index);
+list_t* lst_node_at(list_t *list, int index);
+
+/**
+ * Returns the data for the node at a given @p index.
+ *
+ * @param list the list to search
+ * @param index the number of the item to return
+ * @return the node at the given index, or NULL if it was empty or past the end
+ */
+void* lst_data_at(list_t *list, int index);
 
 /**
  * Returns the node with the given @p key.
@@ -170,16 +179,25 @@ list_t* lst_item_at(list_t *list, int index);
  * @param key the number of the item to return
  * @return the node with a given key, or NULL if it was empty or not found
  */
-list_t* lst_item_with_key(list_t *list, char *key);
+list_t* lst_node_with_key(list_t *list, char *key);
 
 /**
- * @brief Returns the index of @p data in @p list.
+ * @brief Returns the index of @p node in @p list.
+ *
+ * @param list The list to search.
+ * @param node The list node to search for.
+ * @return The index of the item or NULL if it is not found.
+ */
+int lst_position_of_node(list_t *list, list_t *node);
+
+/**
+ * @brief Returns the index of the node holding @p data in @p list.
  *
  * @param list The list to search.
  * @param data The item to search for.
  * @return The index of the item or NULL if it is not found.
  */
-int lst_position_of(list_t *list, void *data);
+int lst_position_of_data(list_t *list, void *data);
 
 /**
  * Calls a user function on each value in the list.
@@ -240,7 +258,7 @@ list_t* lst_insert_sorted(list_t *list, void *data, char *key);
  * @param data A pointer to user data to be removed.
  * @return A pointer to user data.
  */
-list_t* lst_remove(list_t *list, void *data);
+list_t* lst_remove_data(list_t *list, void *data);
 
 /**
  * Removes and frees the node at the given index. The user data is returned and *not* freed.
