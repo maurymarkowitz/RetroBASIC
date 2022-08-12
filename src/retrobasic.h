@@ -191,8 +191,8 @@ typedef struct {
   list_t *next_statement;          // next statement to run, might change for GOTO and such
   list_t *current_data_statement;	// current 'DATA' statement
   list_t *current_data_element;	  // current 'DATA' expression within current_data_statement
-  GTree *variable_values;		      // name/value pairs used to store variable values
-  GTree *functions;               // name/expression pairs for user-defined functions
+  list_t *variable_values;		      // name/value pairs used to store variable values
+  list_t *functions;               // name/expression pairs for user-defined functions
   list_t *forstack;	              // current stack of FOR statements
   list_t *gosubstack;	            // current stack of gosub statements
   int cursor_column;              // current column of the output cursor

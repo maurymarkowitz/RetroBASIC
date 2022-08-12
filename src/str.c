@@ -18,7 +18,7 @@ along with RetroBASIC; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#include "string.h"
+#include "str.h"
 
 char* str_new(char *string)
 {
@@ -35,6 +35,64 @@ char* str_new(char *string)
     newstr[0] = '\0';
 
   return newstr;
+}
+
+char* str_escape(const char *source)
+{
+  const char *p;
+  char *dest;
+  char *q;
+
+  if(!source)
+    return NULL;
+
+  p = (char *)source;
+  /* Each source byte needs maximally four destination chars (\777) */
+  q = dest = malloc(strlen(source) * 4 + 1);
+
+  while (*p) {
+    switch (*p)
+    {
+      case '\b':
+        *q++ = '\\';
+        *q++ = 'b';
+        break;
+      case '\f':
+        *q++ = '\\';
+        *q++ = 'f';
+        break;
+      case '\n':
+        *q++ = '\\';
+        *q++ = 'n';
+        break;
+      case '\r':
+        *q++ = '\\';
+        *q++ = 'r';
+        break;
+      case '\t':
+        *q++ = '\\';
+        *q++ = 't';
+        break;
+      case '\v':
+        *q++ = '\\';
+        *q++ = 'v';
+        break;
+      case '\\':
+        *q++ = '\\';
+        *q++ = '\\';
+        break;
+      case '"':
+        *q++ = '\\';
+        *q++ = '"';
+        break;
+      default:
+        *q++ = *p;
+        break;
+    }
+    p++;
+  }
+  *q = 0;
+  return dest;
 }
 
 char* str_erase(char *string, size_t starting_pos, size_t no_of_chars)

@@ -21,21 +21,16 @@ along with RetroBASIC; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-//#include "config.h"
+#pragma once
 
 #include <stdio.h>
 #include <assert.h>
 
 #include <stdlib.h>
 
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#include <getopt.h>
+#include <limits.h> // gives INT_MAX
 
-//#ifdef HAVE_MALLOC_H
-//#include <malloc.h>
-//#endif
+typedef enum {FALSE = 0, TRUE} boolean; // useful macro (imho)
 
 #ifndef HAVE_STRCASECMP
 #ifdef HAVE_STRICMP
@@ -43,11 +38,11 @@ Boston, MA 02111-1307, USA.  */
 #endif
 #endif
 
-#if defined(HAVE_STRING_H)
+//#ifdef HAVE_STRING_H
 #include <string.h>
-#elif defined(HAVE_STRINGS_H)
-#include <strings.h>
-#endif
+//#elif defined(HAVE_STRINGS_H)
+//#include <strings.h>
+//#endif
 
 #include <time.h>
 #include <ctype.h>
@@ -55,7 +50,5 @@ Boston, MA 02111-1307, USA.  */
 #include <math.h>
 #include <time.h> // used for TIME and DATE
 
-#include "string.h"
-#include "list.h"
-
-#include <glib.h>
+#include "str.h"
+#include "lst.h"
