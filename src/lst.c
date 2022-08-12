@@ -18,8 +18,7 @@ along with RetroBASIC; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#include <string.h>
-#include "list.h"
+#include "lst.h"
 
 /*
  * Creates an empty list node. Private method.
@@ -212,17 +211,35 @@ list_t* lst_node_with_key(list_t *list, char *key)
 }
 
 /*
+ * Returns the data in the node with a given key.
+ */
+void* lst_data_with_key(list_t *list, char *key)
+{
+  if(list == NULL)
+    return list;
+
+  list_t* node = lst_first_node(list);
+  while(node != NULL && node->key != NULL && strcmp(key, node->key) != 0)
+    node = node->next;
+  
+  if(node && node->data)
+    return node->data;
+  else
+    return NULL;
+}
+
+/*
  * Returns the index of a node or -1 if it's not found. Curries line below.
  */
-int lst_position_of_node(list_t *list, list_t *node)
+int lst_index_of_node(list_t *list, list_t *node)
 {
-  return lst_position_of_data(list, node->data);
+  return lst_index_of_data(list, node->data);
 }
 
 /*
  * Returns the index of an item (pointer) or -1 if it's not found.
  */
-int lst_position_of_data(list_t *list, void *data)
+int lst_index_of_data(list_t *list, void *data)
 {
   if(list == NULL)
     return -1;
@@ -298,18 +315,18 @@ list_t* lst_prepend(list_t* list, void *data)
 /*
  * Inserts the data at the given index.
  */
-list_t* lst_insert_at(list_t *list, void *data, int position)
+list_t* lst_insert_at_index(list_t *list, void *data, int index)
 {
   list_t *new_node;
   list_t *tmp_node;
   
   // if we insert before the start, that means the end, zero is the start.
-  if (position < 0)
+  if (index < 0)
     return lst_append(list, data);
-  else if (position == 0)
+  else if (index == 0)
     return lst_prepend(list, data);
   
-  tmp_node = lst_node_at(list, position);
+  tmp_node = lst_node_at(list, index);
   if(tmp_node == NULL)
     return lst_append(list, data);
   
@@ -326,7 +343,7 @@ list_t* lst_insert_at(list_t *list, void *data, int position)
 /*
  * Uses the "key" string to find the proper location to insert new data.
  */
-list_t* lst_insert_sorted(list_t *list, void *data, char *key)
+list_t* lst_insert_with_key_sorted(list_t *list, void *data, char *key)
 {
   // try to build a new node and fail out otherwise
   list_t *new_node = _lst_alloc();
@@ -417,13 +434,13 @@ list_t* lst_concat(list_t *first_list, list_t *second_list)
  */
 list_t* lst_remove_node(list_t *list, list_t* node)
 {
-  return lst_remove_data(list, node);
+  return lst_remove_node_with_data(list, node);
 }
 
 /*
  * Removes and frees the node pointing to a given @p data
  */
-list_t* lst_remove_data(list_t *list, void* data)
+list_t* lst_remove_node_with_data(list_t *list, void* data)
 {
   // get the existing node for that item
   list_t* current_node = lst_node_with_data(list, data);
@@ -451,10 +468,10 @@ list_t* lst_remove_data(list_t *list, void* data)
 /*
  * Removes and frees the node at the given index and returns the pointer to the associated data
  */
-void* lst_remove_at(list_t *list, int position)
+void* lst_remove_node_at_index(list_t *list, int index)
 {
   // get the existing item at that index and fail out if it doesn't exist
-  list_t* current_node = lst_node_at(list, position);
+  list_t* current_node = lst_node_at(list, index);
   if(current_node == NULL)
     return NULL;
 
@@ -476,7 +493,7 @@ void* lst_remove_at(list_t *list, int position)
 /*
  * Removes and frees the node with the given key and returns the pointer to the associated data
  */
-void* lst_remove_key(list_t *list, char *key)
+void* lst_remove_node_with_key(list_t *list, char *key)
 {
   // get the existing item at that index and fail out if it doesn't exist
   list_t* current_node = lst_node_with_key(list, key);
@@ -525,5 +542,5 @@ list_t* lst_push(list_t *list, void *data)
  */
 void* lst_pop(list_t *list)
 {
-  return lst_remove_at(list, 0);
+  return lst_remove_node_at_index(list, 0);
 }

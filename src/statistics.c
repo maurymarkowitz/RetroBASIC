@@ -19,6 +19,7 @@
  Boston, MA 02111-1307, USA.  */
 
 #include "statistics.h"
+
 #include "parse.h"
 
 /* declarations of the externs from the header */
@@ -74,33 +75,29 @@ int assign_zero = 0;
 int assign_one = 0;
 int assign_other = 0;
 
-static gboolean is_string(gpointer key, gpointer value, gpointer user_data)
+static void is_string(void *key, void *value, void *user_data)
 {
   variable_storage_t *data = (variable_storage_t *)value;
-  int *tot = (int*)user_data;
+  int *tot = (int *)user_data;
   if(data->type == STRING) *tot += 1;
-  return FALSE;
 }
-static gboolean is_single(gpointer key, gpointer value, gpointer user_data)
+static void is_single(void *key, void *value, void *user_data)
 {
   variable_storage_t *data = (variable_storage_t *)value;
-  int *tot = (int*)user_data;
+  int *tot = (int* )user_data;
   if(data->type == SINGLE) *tot += 1;
-  return FALSE;
 }
-static gboolean is_double(gpointer key, gpointer value, gpointer user_data)
+static void is_double(void *key, void *value, void *user_data)
 {
   variable_storage_t *data = (variable_storage_t *)value;
-  int *tot = (int*)user_data;
+  int *tot = (int *)user_data;
   if(data->type == DOUBLE) *tot += 1;
-  return FALSE;
 }
-static gboolean is_integer(gpointer key, gpointer value, gpointer user_data)
+static void is_integer(void *key, void *value, void *user_data)
 {
   variable_storage_t *data = (variable_storage_t *)value;
-  int *tot = (int*)user_data;
+  int *tot = (int *)user_data;
   if(data->type == INTEGER) *tot += 1;
-  return FALSE;
 }
 
 /* prints out various statistics from the static code,
@@ -161,19 +158,25 @@ void print_statistics()
       break;
     
     // now count the number of statements between them
-    diff = lst_position_of_node(start, next_line) - lst_position_of_node(start, this_line);
+    diff = lst_index_of_node(start, next_line) - lst_index_of_node(start, this_line);
     if(diff > stmts_max)
       stmts_max = diff;
   }
   
   // variables
-  int num_total = g_tree_nnodes(interpreter_state.variable_values);
+  int num_total = lst_length(interpreter_state.variable_values);
+  //g_tree_nnodes(interpreter_state.variable_values);
   int num_int = 0, num_sng = 0, num_dbl = 0, num_str = 0;
-  g_tree_foreach(interpreter_state.variable_values, is_integer, &num_int);
-  g_tree_foreach(interpreter_state.variable_values, is_single, &num_sng);
-  g_tree_foreach(interpreter_state.variable_values, is_double, &num_dbl);
-  g_tree_foreach(interpreter_state.variable_values, is_single, &num_sng);
-  g_tree_foreach(interpreter_state.variable_values, is_string, &num_str);
+  lst_foreach(interpreter_state.variable_values, is_integer, &num_int);
+  lst_foreach(interpreter_state.variable_values, is_single, &num_int);
+  lst_foreach(interpreter_state.variable_values, is_double, &num_int);
+  lst_foreach(interpreter_state.variable_values, is_string, &num_str);
+
+//  g_tree_foreach(interpreter_state.variable_values, is_integer, &num_int);
+//  g_tree_foreach(interpreter_state.variable_values, is_single, &num_sng);
+//  g_tree_foreach(interpreter_state.variable_values, is_double, &num_dbl);
+//  g_tree_foreach(interpreter_state.variable_values, is_single, &num_sng);
+//  g_tree_foreach(interpreter_state.variable_values, is_string, &num_str);
   
   // output to screen if selected
   if (print_stats == TRUE) {

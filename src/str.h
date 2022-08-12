@@ -18,11 +18,12 @@ along with RetroBASIC; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#ifndef string_h
-#define string_h
+#ifndef str_h
+#define str_h
+
+//#include <stdlib.h>
 
 #include "stdhdr.h"
-#include <stdlib.h>
 
 /**
  * @file string.h
@@ -47,6 +48,14 @@ Boston, MA 02111-1307, USA.  */
  * @param string The string to to copy from, or NULL.
  */
 char* str_new(char *string);
+
+/**
+ * @brief Escapes out C bits like \n.
+ *
+ * @param string The string to to clean.
+ * @return The cleaned string.
+ */
+char* str_escape(const char *source);
 
 /**
  * @brief Deletes characters from a string starting at @p starting_pos and running for @p no_of_chars.
