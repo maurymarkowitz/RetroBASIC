@@ -73,7 +73,7 @@ void parse_options(int argc, char *argv[])
   int option_index = 0;
   int printed_help = FALSE;
   
-  while(1) {
+  while (1) {
     // eat an option and exit if we're done
     int c = getopt_long(argc, argv, "hvua:t:r:i:o:w:spn", program_options, &option_index); // should match the items above, but with flag-setters excluded
     if (c == -1) break;

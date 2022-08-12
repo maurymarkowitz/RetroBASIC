@@ -185,18 +185,18 @@ typedef struct {
  statement, a list of variables and their values, and the runtime stack for
  GOSUB and FOR/NEXT */
 typedef struct {
-  list_t *lines[MAXLINE];          // the lines in the program, stored as an array of statement lists
+  list_t *lines[MAXLINE];         // the lines in the program, stored as an array of statement lists
   int first_line;		              // index of the first line in the lines array
-  list_t *current_statement;       // currently executing statement
-  list_t *next_statement;          // next statement to run, might change for GOTO and such
+  list_t *current_statement;      // currently executing statement
+  list_t *next_statement;         // next statement to run, might change for GOTO and such
   list_t *current_data_statement;	// current 'DATA' statement
   list_t *current_data_element;	  // current 'DATA' expression within current_data_statement
-  list_t *variable_values;		      // name/value pairs used to store variable values
-  list_t *functions;               // name/expression pairs for user-defined functions
+  list_t *variable_values;		    // name/value pairs used to store variable values
+  list_t *functions;              // name/expression pairs for user-defined functions
   list_t *forstack;	              // current stack of FOR statements
   list_t *gosubstack;	            // current stack of gosub statements
   int cursor_column;              // current column of the output cursor
-  int running_state;              // is the program running (1), paused/stopped (0)
+  int running_state;              // is the program running (1), paused/stopped (0), or setting up a function (-1)
 } interpreterstate_t;
 
 /* and here's the link to an instance of interpstate_t defined in the c side */
