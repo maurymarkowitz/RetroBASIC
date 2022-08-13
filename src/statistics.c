@@ -165,18 +165,12 @@ void print_statistics()
   
   // variables
   int num_total = lst_length(interpreter_state.variable_values);
-  //g_tree_nnodes(interpreter_state.variable_values);
+  
   int num_int = 0, num_sng = 0, num_dbl = 0, num_str = 0;
   lst_foreach(interpreter_state.variable_values, is_integer, &num_int);
   lst_foreach(interpreter_state.variable_values, is_single, &num_int);
   lst_foreach(interpreter_state.variable_values, is_double, &num_int);
   lst_foreach(interpreter_state.variable_values, is_string, &num_str);
-
-//  g_tree_foreach(interpreter_state.variable_values, is_integer, &num_int);
-//  g_tree_foreach(interpreter_state.variable_values, is_single, &num_sng);
-//  g_tree_foreach(interpreter_state.variable_values, is_double, &num_dbl);
-//  g_tree_foreach(interpreter_state.variable_values, is_single, &num_sng);
-//  g_tree_foreach(interpreter_state.variable_values, is_string, &num_str);
   
   // output to screen if selected
   if (print_stats == TRUE) {
