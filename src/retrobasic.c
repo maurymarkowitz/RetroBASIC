@@ -115,7 +115,6 @@ either_t *variable_value(variable_t *variable, int *type)
   
   // see if we can find the entry in the symbol list
 	storage = lst_data_with_key(interpreter_state.variable_values, storage_name);
-  //storage = g_tree_lookup(interpreter_state.variable_values, storage_name);
   
   // if not, make a new variable slot in values and set it up
   if (storage == NULL) {
@@ -169,7 +168,6 @@ either_t *variable_value(variable_t *variable, int *type)
     // now malloc the result and insert it into the values tree
     storage->value = malloc(slots * sizeof(storage->value[0]));
 		interpreter_state.variable_values = lst_insert_with_key_sorted(interpreter_state.variable_values, storage, storage_name);
-    //g_tree_insert(interpreter_state.variable_values, storage_name, storage);
   }
   
   // if we haven't started runnning yet, we were being called during parsing to
@@ -314,7 +312,6 @@ expression_t *function_expression(variable_t *function, expression_t *expression
   // see if we can find the entry in the symbol list
   function_storage_t *storage;
 	storage = lst_data_with_key(interpreter_state.functions, function->name);
-  //storage = g_tree_lookup(interpreter_state.functions, function->name);
   
   // if not, make a new slot in functions and set it up
   if (!storage) {
@@ -344,7 +341,6 @@ expression_t *function_expression(variable_t *function, expression_t *expression
     
     // and insert it into storage
 		interpreter_state.functions = lst_insert_with_key_sorted(interpreter_state.functions, storage, function->name);
-    //g_tree_insert(interpreter_state.functions, function->name, storage);
   }
   
   // at this point we have either found or created the formula, so...
@@ -447,7 +443,6 @@ static value_t evaluate_expression(expression_t *expression)
       char *func_name = expression->parms.variable->name;
 			function_storage_t *original_definition;
 			original_definition = lst_data_with_key(interpreter_state.functions, func_name);
-			//= g_tree_lookup(interpreter_state.functions, func_name);
       if (original_definition == NULL) {
         char buffer[80];
         sprintf(buffer, "User-defined function '%s' is being called but has not been defined", func_name);
@@ -464,7 +459,7 @@ static value_t evaluate_expression(expression_t *expression)
 
       // for each parameter name in the original function call, copy the current value
       // of any global version of that variable's value onto a temporary stack...
-			list_t *stack = NULL;// = g_tree_new(symbol_compare);
+			list_t *stack = NULL;
       variable_storage_t *storage;
       either_t *stored_val;
       expression_t *original_parameter = original_definition->parameters->data; // pre-flight for the first time through
@@ -482,7 +477,6 @@ static value_t evaluate_expression(expression_t *expression)
           else
             storage->value->number = stored_val->number;
 				stack = lst_insert_with_key_sorted(stack, storage, original_parameter->parms.variable->name);
-        //g_tree_insert(stack, original_parameter->parms.variable->name, storage);
         
         // move to the next item in the original parameter list, if there's any left
         if (original_definition->parameters->next != NULL)
@@ -533,7 +527,6 @@ static value_t evaluate_expression(expression_t *expression)
         
         // find the original value in the stack
 				temp_val = lst_data_with_key(stack, original_parameter->parms.variable->name);
-        //temp_val = g_tree_lookup(stack, original_parameter->parms.variable->name);
         
         // copy the value back
         if (type == STRING)
@@ -543,7 +536,6 @@ static value_t evaluate_expression(expression_t *expression)
         
         // kill the stack entry
 				stack = lst_remove_node_with_key(stack, original_parameter->parms.variable->name);
-        //g_tree_remove(stack, original_parameter->parms.variable->name);
         free(temp_val);
         
         // move to the next parameter
@@ -553,7 +545,6 @@ static value_t evaluate_expression(expression_t *expression)
 
       // kill the stack to be safe
 		//	lst_free(stack); // we already killed the values above
-      //g_tree_destroy(stack);
     }
       break;
       
@@ -1521,7 +1512,6 @@ static int print_value(void *key, void *value, void *unused)
 {
 	variable_storage_t *storage;
 	storage = lst_data_with_key(interpreter_state.variable_values, key);
-	//= g_tree_lookup(interpreter_state.variable_values, key);
 	
   either_t *p = storage->value;
   int type = storage->type;
@@ -1537,19 +1527,16 @@ static int print_value(void *key, void *value, void *unused)
 /* used for VARLIST in those versions of BASIC that support it */
 static void print_variables() {
 	lst_foreach(interpreter_state.variable_values, print_symbol, NULL);
-  //g_tree_foreach(interpreter_state.variable_values, print_symbol, NULL);
   printf("\n\n");
 }
 /* used for CLEAR, NEW and similar instructions. */
 static void delete_variables() {
 	lst_free_everything(interpreter_state.variable_values);
-  //g_tree_destroy(interpreter_state.variable_values);
-	interpreter_state.variable_values = NULL; //g_tree_new(symbol_compare);
+	interpreter_state.variable_values = NULL;
 }
 static void delete_functions() {
 	lst_free_everything(interpreter_state.functions);
-  //g_tree_destroy(interpreter_state.functions);
-	interpreter_state.functions = NULL;// g_tree_new(symbol_compare);
+	interpreter_state.functions = NULL;
 }
 static void delete_lines() {
   for(int i = MAXLINE - 1; i >= 0; i--) {
@@ -1562,8 +1549,8 @@ static void delete_lines() {
 /* set up empty trees to store variables and user functions as we find them */
 void interpreter_setup()
 {
-	interpreter_state.variable_values = NULL;//g_tree_new(symbol_compare);
-	interpreter_state.functions = NULL; //g_tree_new(symbol_compare);
+	interpreter_state.variable_values = NULL;
+	interpreter_state.functions = NULL;
 }
 
 /* after yacc has done it's magic, we form a program by pointing
