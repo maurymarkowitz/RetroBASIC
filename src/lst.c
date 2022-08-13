@@ -195,7 +195,7 @@ list_t* lst_node_at(list_t *list, int index)
 /*
  * Returns the node with a given key.
  */
-list_t* lst_node_with_key(list_t *list, char *key)
+list_t* lst_node_with_key(list_t *list, const char *key)
 {
   if (list == NULL)
     return list;
@@ -210,7 +210,7 @@ list_t* lst_node_with_key(list_t *list, char *key)
 /*
  * Returns the data in the node with a given key.
  */
-void* lst_data_with_key(list_t *list, char *key)
+void* lst_data_with_key(list_t *list, const char *key)
 {
   if (list == NULL)
     return list;
@@ -346,10 +346,11 @@ list_t* lst_insert_with_key_sorted(list_t *list, void *data, char *key)
   list_t *new_node = _lst_alloc();
   if (new_node == NULL)
     return NULL;
+  
   new_node->data = data;
   new_node->key = key;
 
-  // if the list is empty we always insert at the front
+  // if the list is empty then we are the list
   if (list == NULL)
     return new_node;
   
@@ -357,14 +358,15 @@ list_t* lst_insert_with_key_sorted(list_t *list, void *data, char *key)
   list_t *node_after = lst_first_node(list);
   while (node_after != NULL && node_after->key != NULL && strcmp(key, node_after->key) > 0)
     node_after = node_after->next;
-  // FIXME: what happens if we need to be after the last node in the list?
   
-  // get the previous node too, which may not exist if we're at the start
+  // get the previous node too, which may not exist if we're at the start or end
   list_t *node_before = NULL;
   if (node_after != NULL)
     node_before = node_after->prev;
-  
-  // and link it in, note that we might be at the end
+  else
+    node_before = lst_last_node(list);
+
+  // and link it in
   if (node_after != NULL) {
     node_after->prev = new_node;
     new_node->next = node_after;

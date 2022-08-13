@@ -112,8 +112,8 @@ either_t *variable_value(variable_t *variable, int *type)
   storage_name = str_new(variable->name);
   if (variable->subscripts != NULL)
     str_append(storage_name, "(");
-  
-  // see if we can find the entry in the symbol list
+
+	// see if we can find the entry in the symbol list
 	storage = lst_data_with_key(interpreter_state.variable_values, storage_name);
   
   // if not, make a new variable slot in values and set it up
@@ -1609,6 +1609,7 @@ void interpreter_run(void)
   while (interpreter_state.current_statement) {
     // get the next statement from the one we're about to run
     interpreter_state.next_statement = lst_next(interpreter_state.current_statement);
+
     // run the one we're on
     perform_statement(interpreter_state.current_statement);
     // and move to the next statement, which might have changed inside perform

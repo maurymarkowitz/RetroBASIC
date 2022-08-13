@@ -195,7 +195,7 @@ void* lst_data_at(list_t *list, int index);
  * @param key the number of the item to return
  * @return the node with a given key, or NULL if it was empty or not found
  */
-list_t* lst_node_with_key(list_t *list, char *key);
+list_t* lst_node_with_key(list_t *list, const char *key);
 
 /**
  * Returns the data for the node with the given @p key.
@@ -204,7 +204,7 @@ list_t* lst_node_with_key(list_t *list, char *key);
  * @param key the number of the item to return
  * @return the node with a given key, or NULL if it was empty or not found
  */
-void* lst_data_with_key(list_t *list, char *key);
+void* lst_data_with_key(list_t *list, const char *key);
 
 /**
  * @brief Returns the index of @p node in @p list.
