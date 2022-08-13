@@ -8,7 +8,7 @@
 10 REM calling DEFINT and then listing vars
 11 REM
 20 DEFINT X,Y
-25 PRINT "printing var list, should be I, X, Y"
+25 PRINT "printing var list"
 30 VARLIST
 34 REM
 35 REM simple loop
