@@ -91,6 +91,18 @@ typedef struct _list {
  */
 #define lst_next(list)          ((list) ? (((list_t *)(list))->next) : NULL)
 
+/** Stores an (int) in the data field in place of a pointer.
+ *
+ * @param value the int value to store in a node.
+ */
+#define INT_TO_POINTER(value)     ((void*)(size_t)(value))
+
+/** Retrieves an (int) from the data field.
+ *
+ * @param data the data field of a node.
+ */
+#define POINTER_TO_INT(data)   ((int)(size_t)(data))
+
 /**
  * Removes all nodes from a list. It is up to the user to free the items within.
  */

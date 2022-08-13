@@ -25,7 +25,6 @@
 #define __RETROBASIC_H__
 
 #include "stdhdr.h"
-#include "string.h"
 
 /**
  * @file retrobasic.h

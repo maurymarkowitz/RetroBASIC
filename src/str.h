@@ -21,8 +21,6 @@ Boston, MA 02111-1307, USA.  */
 #ifndef str_h
 #define str_h
 
-//#include <stdlib.h>
-
 #include "stdhdr.h"
 
 /**
@@ -76,7 +74,7 @@ char* str_erase(char *string, size_t starting_pos, size_t no_of_chars);
  * @param no_of_chars How many to delete.
  * @return The resulting string.
  *
- * @note If starting_pos > strlen(string) nothing is deleted.
+ * @note If @p starting_pos > strlen(string) nothing is deleted.
  */
 char* str_truncate(char *string, size_t no_of_chars);
 
@@ -87,17 +85,17 @@ char* str_truncate(char *string, size_t no_of_chars);
  * @param no_of_chars How many to delete.
  * @return The resulting string.
  *
- * @note If starting_pos > strlen(string) nothing is deleted.
+ * @note If @p no_of_chars > strlen(string) nothing is deleted.
  */
 char* str_fruncate(char *string, size_t no_of_chars);
 
 /**
- * @brief Appends @p new_chars to the end of @p orig_string and returns resulting @p orig_string.
+ * @brief Appends @p new_string to the end of @p orig_string and returns resulting @p orig_string.
  *
  * @param orig_string The string to append onto.
- * @param new_chars The characters to append.
+ * @param new_string The string to append.
  * @return The resulting string.
  */
-char* str_append(char *orig_string, char *new_chars);
+char* str_append(char *orig_string, char *new_string);
 
 #endif /* string_h */
