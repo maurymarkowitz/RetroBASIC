@@ -21,10 +21,10 @@
  the Free Software Foundation, 59 Temple Place - Suite 330,
  Boston, MA 02111-1307, USA.  */
 
+#include <sys/time.h>
+
 #include "retrobasic.h"
 #include "parse.h"
-
-#include <sys/time.h>
 
 /* here's the actual definition of the interpreter state which is extern in the header */
 interpreterstate_t interpreter_state;
@@ -105,7 +105,7 @@ either_t *variable_value(variable_t *variable, int *type)
 {
   variable_storage_t *storage;
   char *storage_name;
-  long index;
+	int index;
   
   // in MS basic, A() and A are two different variables, so here
   // we mangle the name to include a "(" if its an array
@@ -147,16 +147,16 @@ either_t *variable_value(variable_t *variable, int *type)
     if (variable->subscripts != NULL) {
       value_t v;
       
-      // now clear out any existing list of subscripts in storage,
-      // eval each of the ones in the variable ref, and store that value
-      // in our ->sub list_t (as the pointer, not a structure), and then
-      // calculate the total size we need
+      // now clear out any existing list of subscripts in storage, eval each of the
+      // values in the variable ref, and store that value in our ->subs list_t
+      // (as the value, not a pointer), and then calculate the total size we need
+      //
       storage->subscripts = NULL;
       slots = 1;
       for (list_t *L = variable->subscripts; L != NULL; L = lst_next(L)) {
         v = evaluate_expression(L->data);
-				size_t actual = (int)v.number + (1 - array_base); // if we're using 0-base indexing, we need to add one more slot
-        storage->subscripts = lst_append(storage->subscripts, (void *)(actual));
+				int actual = (int)v.number + (1 - array_base); // if we're using 0-base indexing, we need to add one more slot
+        storage->subscripts = lst_append(storage->subscripts, INT_TO_POINTER(actual));
         slots *= actual;
       }
     }
@@ -196,16 +196,16 @@ either_t *variable_value(variable_t *variable, int *type)
         // evaluate the variable reference's index for a given dimension
         value_t this_index = evaluate_expression(variable_indexes->data);
         // and get the originally DIMmed size for that same dimension
-				long original_dimension = (long)(original_dimensions->data);
-        
-        // make sure the index is within the originally DIMed bounds
+				int original_dimension = POINTER_TO_INT(original_dimensions->data);
+
+				// make sure the index is within the originally DIMed bounds
         if ((this_index.number < array_base) || (original_dimension < this_index.number - array_base)) {
           basic_error("Array subscript out of bounds");
           this_index.number = array_base; // the first entry in the C array, so it continues
         }
         
         // C arrays start at 0, BASIC arrays start at array_base
-        index = (index * original_dimension) + (long)this_index.number - array_base;
+        index = (index * original_dimension) + this_index.number - array_base;
         
         // then move on to the next index in the list
         original_dimensions = lst_next(original_dimensions);
