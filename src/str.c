@@ -20,6 +20,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include "str.h"
 
+/* makes a new string and copies in chars */
 char* str_new(char *string)
 {
   char *newstr = malloc((MAXSTRING + 1) * sizeof(char));
@@ -37,18 +38,19 @@ char* str_new(char *string)
   return newstr;
 }
 
-char* str_escape(const char *source)
+/* escapes C-string sequences like \n */
+char* str_escape(const char *string)
 {
   const char *p;
   char *dest;
   char *q;
 
-  if (!source)
+  if (!string)
     return NULL;
 
-  p = (char *)source;
+  p = (char *)string;
   /* Each source byte needs maximally four destination chars (\777) */
-  q = dest = malloc(strlen(source) * 4 + 1);
+  q = dest = malloc(strlen(string) * 4 + 1);
 
   while (*p) {
     switch (*p)
@@ -111,7 +113,7 @@ char* str_toupper(char* string)
   return string;
 }
 
-/* removes a number of characters from a string */
+/* removes a number of characters from a string starting at a given position */
 char* str_erase(char *string, size_t starting_pos, size_t no_of_chars)
 {
   size_t len = strlen(string);
