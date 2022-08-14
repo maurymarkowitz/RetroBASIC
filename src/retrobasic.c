@@ -21,10 +21,10 @@
  the Free Software Foundation, 59 Temple Place - Suite 330,
  Boston, MA 02111-1307, USA.  */
 
+#include <sys/time.h>
+
 #include "retrobasic.h"
 #include "parse.h"
-
-#include <sys/time.h>
 
 /* here's the actual definition of the interpreter state which is extern in the header */
 interpreterstate_t interpreter_state;
@@ -105,17 +105,16 @@ either_t *variable_value(variable_t *variable, int *type)
 {
   variable_storage_t *storage;
   char *storage_name;
-  long index;
+	int index;
   
   // in MS basic, A() and A are two different variables, so here
   // we mangle the name to include a "(" if its an array
   storage_name = str_new(variable->name);
   if (variable->subscripts != NULL)
     str_append(storage_name, "(");
-  
-  // see if we can find the entry in the symbol list
+
+	// see if we can find the entry in the symbol list
 	storage = lst_data_with_key(interpreter_state.variable_values, storage_name);
-  //storage = g_tree_lookup(interpreter_state.variable_values, storage_name);
   
   // if not, make a new variable slot in values and set it up
   if (storage == NULL) {
@@ -125,6 +124,7 @@ either_t *variable_value(variable_t *variable, int *type)
     storage = malloc(sizeof(*storage));
     
     // set the type based on the name, which will override any passed type
+		// NOTE: don't use storage_name here, we might have added a (, always use variable->name
     char trailer = variable->name[strlen(variable->name) - 1];
     if (trailer == '$')
       storage->type = STRING;
@@ -141,21 +141,21 @@ either_t *variable_value(variable_t *variable, int *type)
       storage->type = SINGLE;
     else if (trailer == '#')
       storage->type = DOUBLE;
-    
+		
     // now see if this reference includes subscripts
     if (variable->subscripts != NULL) {
       value_t v;
       
-      // now clear out any existing list of subscripts in storage,
-      // eval each of the ones in the variable ref, and store that value
-      // in our ->sub list_t (as the pointer, not a structure), and then
-      // calculate the total size we need
+      // now clear out any existing list of subscripts in storage, eval each of the
+      // values in the variable ref, and store that value in our ->subs list_t
+      // (as the value, not a pointer), and then calculate the total size we need
+      //
       storage->subscripts = NULL;
       slots = 1;
       for (list_t *L = variable->subscripts; L != NULL; L = lst_next(L)) {
         v = evaluate_expression(L->data);
-				size_t actual = (int)v.number + (1 - array_base); // if we're using 0-base indexing, we need to add one more slot
-        storage->subscripts = lst_append(storage->subscripts, (void *)(actual));
+				int actual = (int)v.number + (1 - array_base); // if we're using 0-base indexing, we need to add one more slot
+        storage->subscripts = lst_append(storage->subscripts, INT_TO_POINTER(actual));
         slots *= actual;
       }
     }
@@ -167,8 +167,7 @@ either_t *variable_value(variable_t *variable, int *type)
     
     // now malloc the result and insert it into the values tree
     storage->value = malloc(slots * sizeof(storage->value[0]));
-		lst_insert_with_key_sorted(interpreter_state.variable_values, storage, storage_name);
-    //g_tree_insert(interpreter_state.variable_values, storage_name, storage);
+		interpreter_state.variable_values = lst_insert_with_key_sorted(interpreter_state.variable_values, storage, storage_name);
   }
   
   // if we haven't started runnning yet, we were being called during parsing to
@@ -184,8 +183,8 @@ either_t *variable_value(variable_t *variable, int *type)
     list_t *original_dimensions;         // list of actual dimensions in storage (from the DIM), stored as integers
     list_t *variable_indexes;            // list of indices in this variable reference, each is an expression, likely a constant
     
-    original_dimensions = storage->subscripts;
-    variable_indexes = variable->subscripts;
+    original_dimensions = lst_first_node(storage->subscripts);
+    variable_indexes = lst_first_node(variable->subscripts);
     
     // the *number* of dimensions has to match, you can't DIM A(1,1) and then LET B=A(1)
     if (lst_length(original_dimensions) != lst_length(variable_indexes))
@@ -195,16 +194,16 @@ either_t *variable_value(variable_t *variable, int *type)
         // evaluate the variable reference's index for a given dimension
         value_t this_index = evaluate_expression(variable_indexes->data);
         // and get the originally DIMmed size for that same dimension
-				long original_dimension = (long)(original_dimensions->data);
-        
-        // make sure the index is within the originally DIMed bounds
+				int original_dimension = POINTER_TO_INT(original_dimensions->data);
+
+				// make sure the index is within the originally DIMed bounds
         if ((this_index.number < array_base) || (original_dimension < this_index.number - array_base)) {
           basic_error("Array subscript out of bounds");
           this_index.number = array_base; // the first entry in the C array, so it continues
         }
         
         // C arrays start at 0, BASIC arrays start at array_base
-        index = (index * original_dimension) + (long)this_index.number - array_base;
+        index = (index * original_dimension) + this_index.number - array_base;
         
         // then move on to the next index in the list
         original_dimensions = lst_next(original_dimensions);
@@ -253,7 +252,7 @@ either_t *variable_value(variable_t *variable, int *type)
       startPoint = evaluate_expression(slice_param->data);
       slice_start = (long)startPoint.number;
       slice_param = lst_next(slice_param);
-			if(slice_param && slice_param->data)
+			if (slice_param && slice_param->data)
 				endPoint = evaluate_expression(slice_param->data);
 			else
 				endPoint = startPoint;
@@ -276,7 +275,7 @@ either_t *variable_value(variable_t *variable, int *type)
       // the source string is at the selected array index, which is zero for non-ANSI
       either_t orig_string = storage->value[index];
       
-      // build a new string
+      // build a new string (this is leaking!)
       either_t *result = malloc(sizeof(*result));
       result->string = str_new(orig_string.string);
       str_erase(result->string, slice_start, slice_end - slice_start + 1);
@@ -313,7 +312,6 @@ expression_t *function_expression(variable_t *function, expression_t *expression
   // see if we can find the entry in the symbol list
   function_storage_t *storage;
 	storage = lst_data_with_key(interpreter_state.functions, function->name);
-  //storage = g_tree_lookup(interpreter_state.functions, function->name);
   
   // if not, make a new slot in functions and set it up
   if (!storage) {
@@ -342,8 +340,7 @@ expression_t *function_expression(variable_t *function, expression_t *expression
     storage->formula = expression;
     
     // and insert it into storage
-		lst_insert_with_key_sorted(interpreter_state.functions, storage, function->name);
-    //g_tree_insert(interpreter_state.functions, function->name, storage);
+		interpreter_state.functions = lst_insert_with_key_sorted(interpreter_state.functions, storage, function->name);
   }
   
   // at this point we have either found or created the formula, so...
@@ -410,13 +407,23 @@ static value_t evaluate_expression(expression_t *expression)
     case variable:
     {
       int type = 0;
-      either_t *p;
-      p = variable_value(expression->parms.variable, &type);
+      either_t *p = variable_value(expression->parms.variable, &type);
       result.type = type;
-      if (type == STRING)
-        result.string = p->string;
-      else
-        result.number = p->number;
+			
+			// user functions will call this method while being set up and at that time the
+			// values are not valid, so...
+			if (type == STRING) {
+				if (p)
+					result.string = p->string;
+				else
+					result.string = "";
+			}
+			else {
+				if (p)
+					result.number = p->number;
+				else
+					result.string = 0;
+			}
     }
       break;
       
@@ -436,7 +443,6 @@ static value_t evaluate_expression(expression_t *expression)
       char *func_name = expression->parms.variable->name;
 			function_storage_t *original_definition;
 			original_definition = lst_data_with_key(interpreter_state.functions, func_name);
-			//= g_tree_lookup(interpreter_state.functions, func_name);
       if (original_definition == NULL) {
         char buffer[80];
         sprintf(buffer, "User-defined function '%s' is being called but has not been defined", func_name);
@@ -453,7 +459,7 @@ static value_t evaluate_expression(expression_t *expression)
 
       // for each parameter name in the original function call, copy the current value
       // of any global version of that variable's value onto a temporary stack...
-			list_t *stack = NULL;// = g_tree_new(symbol_compare);
+			list_t *stack = NULL;
       variable_storage_t *storage;
       either_t *stored_val;
       expression_t *original_parameter = original_definition->parameters->data; // pre-flight for the first time through
@@ -470,8 +476,7 @@ static value_t evaluate_expression(expression_t *expression)
             storage->value->string = stored_val->string;
           else
             storage->value->number = stored_val->number;
-				lst_insert_with_key_sorted(stack, storage, original_parameter->parms.variable->name);
-        //g_tree_insert(stack, original_parameter->parms.variable->name, storage);
+				stack = lst_insert_with_key_sorted(stack, storage, original_parameter->parms.variable->name);
         
         // move to the next item in the original parameter list, if there's any left
         if (original_definition->parameters->next != NULL)
@@ -522,7 +527,6 @@ static value_t evaluate_expression(expression_t *expression)
         
         // find the original value in the stack
 				temp_val = lst_data_with_key(stack, original_parameter->parms.variable->name);
-        //temp_val = g_tree_lookup(stack, original_parameter->parms.variable->name);
         
         // copy the value back
         if (type == STRING)
@@ -531,8 +535,7 @@ static value_t evaluate_expression(expression_t *expression)
           global_val->number = temp_val->value->number;
         
         // kill the stack entry
-				lst_remove_node_with_key(stack, original_parameter->parms.variable->name);
-        //g_tree_remove(stack, original_parameter->parms.variable->name);
+				stack = lst_remove_node_with_key(stack, original_parameter->parms.variable->name);
         free(temp_val);
         
         // move to the next parameter
@@ -541,8 +544,7 @@ static value_t evaluate_expression(expression_t *expression)
       }
 
       // kill the stack to be safe
-			lst_free_everything(stack);
-      //g_tree_destroy(stack);
+		//	lst_free(stack); // we already killed the values above
     }
       break;
       
@@ -605,7 +607,7 @@ static value_t evaluate_expression(expression_t *expression)
             break;
           case LEN: // this is the only arity-1 function that takes a string parameter
             // the string may never have been assigned, so...
-            if(parameters[0].string == NULL)
+            if (parameters[0].string == NULL)
               result.number = 0;
             else
               result.number = strlen(parameters[0].string);
@@ -982,14 +984,14 @@ static list_t *find_line(int linenumber)
 //static int lines_between(int first_line, int second_line)
 //{
 //    // may as well try this just in case...
-//    if(first_line == second_line)
+//    if (first_line == second_line)
 //        return 0;
 //    // otherwise, simply count the non-empty lines between the two
 //    int distance = 0;
 //    int first = (first_line < second_line) ? first_line : second_line;
 //    int last = (first_line >= second_line) ? second_line : first_line;
 //    for(int i = first; i <= last; i++) {
-//        if(interpreter_state.lines[i]) distance++;
+//        if (interpreter_state.lines[i]) distance++;
 //    }
 //    return distance;
 //}
@@ -1075,7 +1077,7 @@ static void perform_statement(list_t *L)
         new_for->index_variable = ps->parms._for.variable;
         new_for->begin = evaluate_expression(ps->parms._for.begin).number;
         new_for->end = evaluate_expression(ps->parms._for.end).number;
-        if(ps->parms._for.step)
+        if (ps->parms._for.step)
           new_for->step = evaluate_expression(ps->parms._for.step).number;
         else {
           new_for->step = 1;
@@ -1510,7 +1512,6 @@ static int print_value(void *key, void *value, void *unused)
 {
 	variable_storage_t *storage;
 	storage = lst_data_with_key(interpreter_state.variable_values, key);
-	//= g_tree_lookup(interpreter_state.variable_values, key);
 	
   either_t *p = storage->value;
   int type = storage->type;
@@ -1526,19 +1527,16 @@ static int print_value(void *key, void *value, void *unused)
 /* used for VARLIST in those versions of BASIC that support it */
 static void print_variables() {
 	lst_foreach(interpreter_state.variable_values, print_symbol, NULL);
-  //g_tree_foreach(interpreter_state.variable_values, print_symbol, NULL);
   printf("\n\n");
 }
 /* used for CLEAR, NEW and similar instructions. */
 static void delete_variables() {
 	lst_free_everything(interpreter_state.variable_values);
-  //g_tree_destroy(interpreter_state.variable_values);
-	interpreter_state.variable_values = NULL; //g_tree_new(symbol_compare);
+	interpreter_state.variable_values = NULL;
 }
 static void delete_functions() {
 	lst_free_everything(interpreter_state.functions);
-  //g_tree_destroy(interpreter_state.functions);
-	interpreter_state.functions = NULL;// g_tree_new(symbol_compare);
+	interpreter_state.functions = NULL;
 }
 static void delete_lines() {
   for(int i = MAXLINE - 1; i >= 0; i--) {
@@ -1551,8 +1549,8 @@ static void delete_lines() {
 /* set up empty trees to store variables and user functions as we find them */
 void interpreter_setup()
 {
-	interpreter_state.variable_values = NULL;//g_tree_new(symbol_compare);
-	interpreter_state.functions = NULL; //g_tree_new(symbol_compare);
+	interpreter_state.variable_values = NULL;
+	interpreter_state.functions = NULL;
 }
 
 /* after yacc has done it's magic, we form a program by pointing
@@ -1611,6 +1609,7 @@ void interpreter_run(void)
   while (interpreter_state.current_statement) {
     // get the next statement from the one we're about to run
     interpreter_state.next_statement = lst_next(interpreter_state.current_statement);
+
     // run the one we're on
     perform_statement(interpreter_state.current_statement);
     // and move to the next statement, which might have changed inside perform

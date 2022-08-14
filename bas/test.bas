@@ -8,6 +8,7 @@
 10 REM calling DEFINT and then listing vars
 11 REM
 20 DEFINT X,Y
+25 PRINT "printing var list"
 30 VARLIST
 34 REM
 35 REM simple loop
@@ -67,7 +68,7 @@
 1096 REM
 1099 PRINT "string manipulation on HELLO WORLD"
 1100 A$="HELLO WORLD"
-1200 PRINT A$, "len="len(a$)
+1200 PRINT A$, "len="len(A$)
 1300 PRINT "left 5, should produce HELLO: "LEFT$(A$,5)
 1400 PRINT "right 5, should produce WORLD: "right$(A$,5)
 1500 PRINT "mid 5, should produce O WORLD: "mid$(A$,5)
@@ -81,7 +82,7 @@
 1710 REM do some string manipulation using ANSI slices
 1720 REM
 1730 PRINT "string slicing on HELLO WORLD"
-1740 PRINT A$, "len="len(a$)
+1740 PRINT A$, "len="len(A$)
 1750 PRINT "(1:5), should produce HELLO: "A$(1:5)
 1760 PRINT "(4:5), should produce LO: "A$(4:5)
 1800 REM
@@ -108,11 +109,9 @@
 2996 REM
 3000 LET A=2
 4000 PRINT "A=2, A*10=";A*10
-4400 input "a prompt with comma",A
-4500 print a
-4700 input "a prompt with semi";B
-4800 print b
-4900 print "a is "a" b is "b
+4400 input "a prompt with comma, enter a number",A
+4700 input "a prompt with semi, enter a number";B
+4900 print "a is "A" b is "B
 4950 REM
 4955 REM input with three variables
 4956 REM

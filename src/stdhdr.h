@@ -28,10 +28,6 @@ Boston, MA 02111-1307, USA.  */
 
 #include <stdlib.h>
 
-#include <limits.h> // gives INT_MAX
-
-typedef enum {FALSE = 0, TRUE} boolean; // useful macro (imho)
-
 #ifndef HAVE_STRCASECMP
 #ifdef HAVE_STRICMP
 #define strcasecmp(A,B) stricmp((A),(B))
@@ -44,11 +40,13 @@ typedef enum {FALSE = 0, TRUE} boolean; // useful macro (imho)
 //#include <strings.h>
 //#endif
 
-#include <time.h>
 #include <ctype.h>
 #include <errno.h>
 #include <math.h>
-#include <time.h> // used for TIME and DATE
+#include <limits.h> // gives INT_MAX
+#include <time.h>   // used for TIME and DATE in main and stats
 
 #include "str.h"
 #include "lst.h"
+
+typedef enum {FALSE = 0, TRUE} boolean; // useful macro (imho)

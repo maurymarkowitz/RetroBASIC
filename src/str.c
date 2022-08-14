@@ -29,7 +29,7 @@ char* str_new(char *string)
     exit(EXIT_FAILURE);
   }
 
-  if(strlen(string) > 0)
+  if (strlen(string) > 0)
     strcpy(newstr, string);
   else
     newstr[0] = '\0';
@@ -43,7 +43,7 @@ char* str_escape(const char *source)
   char *dest;
   char *q;
 
-  if(!source)
+  if (!source)
     return NULL;
 
   p = (char *)source;
@@ -100,10 +100,10 @@ char* str_erase(char *string, size_t starting_pos, size_t no_of_chars)
   size_t len = strlen(string);
   
   size_t sp = starting_pos;
-  if(sp >= len) sp = len;
+  if (sp >= len) sp = len;
   
   size_t ep = starting_pos + no_of_chars - 1;
-  if(ep >= len) ep = len;
+  if (ep >= len) ep = len;
   
   size_t no = ep - sp + 1;
 
@@ -118,7 +118,7 @@ char* str_truncate(char *string, size_t no_of_chars)
   size_t len = strlen(string);
   
   size_t no = no_of_chars;
-  if(no > len) no = 0;
+  if (no > len) no = 0;
   
   string[len - no] = '\0'; // cheater's method, no -1 in thie case
 
@@ -130,7 +130,7 @@ char* str_fruncate(char *string, size_t no_of_chars)
   size_t len = strlen(string);
   
   size_t no = no_of_chars;
-  if(no > len) no = 0;
+  if (no > len) no = 0;
 
   memmove(string, string + no, len - no);
   string[len - no] = '\0';
