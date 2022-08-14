@@ -18,11 +18,11 @@
  the Free Software Foundation, 59 Temple Place - Suite 330,
  Boston, MA 02111-1307, USA.  */
 
+#include <getopt.h>
+
 #include "retrobasic.h"
 #include "statistics.h"
 #include "parse.h"
-
-#include <getopt.h>
 
 /* simple version info for --version command line option */
 static void print_version()
@@ -73,7 +73,7 @@ void parse_options(int argc, char *argv[])
   int option_index = 0;
   int printed_help = FALSE;
   
-  while(1) {
+  while (1) {
     // eat an option and exit if we're done
     int c = getopt_long(argc, argv, "hvua:t:r:i:o:w:spn", program_options, &option_index); // should match the items above, but with flag-setters excluded
     if (c == -1) break;
@@ -171,9 +171,8 @@ int main(int argc, char *argv[])
   // call the interpreter's setup to create the state needed to parse the file
   interpreter_setup();
   
-  // open the file...
+  // open the file and see if it exists
   yyin = fopen(source_file, "r");
-  // and see if it exists
   if (yyin == NULL) {
     if (errno == ENOENT) {
       fprintf(stderr, "File not found or no filename provided.");
