@@ -61,12 +61,7 @@ char* str_escape(const char *source);
  * @param string The string to convert.
  * @return The converted string.
  */
-char* str_tolower(char* s)
-{
-  for(char *p=s; *p; p++)
-    *p=tolower(*p);
-  return s;
-}
+char* str_tolower(char* s);
 
 /**
  * @brief Converts a string to upper-case
@@ -74,11 +69,7 @@ char* str_tolower(char* s)
  * @param string The string to convert.
  * @return The converted string.
  */
-char* str_toupper(char* s) {
-  for(char *p=s; *p; p++)
-    *p=toupper(*p);
-  return s;
-}
+char* str_toupper(char* s);
 
 /**
  * @brief Deletes characters from a string starting at @p starting_pos and running for @p no_of_chars.
