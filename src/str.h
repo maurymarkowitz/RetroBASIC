@@ -52,10 +52,35 @@ char* str_new(char *string);
 /**
  * @brief Escapes out C bits like \n.
  *
- * @param string The string to to clean.
+ * @param string The string to clean.
  * @return The cleaned string.
  */
 char* str_escape(const char *source);
+
+/**
+ * @brief Converts a string to lower-case
+ *
+ * @param string The string to convert.
+ * @return The converted string.
+ */
+char* str_tolower(char* s)
+{
+  for(char *p=s; *p; p++)
+    *p=tolower(*p);
+  return s;
+}
+
+/**
+ * @brief Converts a string to upper-case
+ *
+ * @param string The string to convert.
+ * @return The converted string.
+ */
+char* str_toupper(char* s) {
+  for(char *p=s; *p; p++)
+    *p=toupper(*p);
+  return s;
+}
 
 /**
  * @brief Deletes characters from a string starting at @p starting_pos and running for @p no_of_chars.
