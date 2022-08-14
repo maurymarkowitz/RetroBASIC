@@ -95,6 +95,23 @@ char* str_escape(const char *source)
   return dest;
 }
 
+/* convert a string to lower case */
+char* str_tolower(char* s)
+{
+  for(char *p=s; *p; p++)
+    *p=tolower(*p);
+  return s;
+}
+
+/* convert a string to upper case */
+char* str_toupper(char* s)
+{
+  for(char *p=s; *p; p++)
+    *p=toupper(*p);
+  return s;
+}
+
+/* removes a number of characters from a string */
 char* str_erase(char *string, size_t starting_pos, size_t no_of_chars)
 {
   size_t len = strlen(string);
@@ -113,6 +130,7 @@ char* str_erase(char *string, size_t starting_pos, size_t no_of_chars)
   return string;
 }
 
+/* remove a number of characters from the end of a string */
 char* str_truncate(char *string, size_t no_of_chars)
 {
   size_t len = strlen(string);
@@ -125,6 +143,7 @@ char* str_truncate(char *string, size_t no_of_chars)
   return string;
 }
 
+/* remove a number of characters from the front of a string */
 char* str_fruncate(char *string, size_t no_of_chars)
 {
   size_t len = strlen(string);
@@ -138,6 +157,7 @@ char* str_fruncate(char *string, size_t no_of_chars)
   return string;
 }
 
+/* append one string to another */
 char* str_append(char *orig_string, char *new_chars)
 {
   // this exists only to match the API from GLib, which is used to return a string into str_new
