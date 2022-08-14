@@ -53,7 +53,7 @@ char* str_new(char *string);
  * @param string The string to clean.
  * @return The cleaned string.
  */
-char* str_escape(const char *source);
+char* str_escape(const char *string);
 
 /**
  * @brief Converts a string to lower-case
@@ -61,7 +61,7 @@ char* str_escape(const char *source);
  * @param string The string to convert.
  * @return The converted string.
  */
-char* str_tolower(char* s);
+char* str_tolower(char *string);
 
 /**
  * @brief Converts a string to upper-case
@@ -69,7 +69,7 @@ char* str_tolower(char* s);
  * @param string The string to convert.
  * @return The converted string.
  */
-char* str_toupper(char* s);
+char* str_toupper(char *string);
 
 /**
  * @brief Deletes characters from a string starting at @p starting_pos and running for @p no_of_chars.
