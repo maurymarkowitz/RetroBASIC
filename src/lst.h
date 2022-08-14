@@ -91,6 +91,18 @@ typedef struct _list {
  */
 #define lst_next(list)          ((list) ? (((list_t *)(list))->next) : NULL)
 
+/** Stores an (int) in the data field in place of a pointer.
+ *
+ * @param value the int value to store in a node.
+ */
+#define INT_TO_POINTER(value)     ((void*)(size_t)(value))
+
+/** Retrieves an (int) from the data field.
+ *
+ * @param data the data field of a node.
+ */
+#define POINTER_TO_INT(data)   ((int)(size_t)(data))
+
 /**
  * Removes all nodes from a list. It is up to the user to free the items within.
  */
@@ -183,7 +195,7 @@ void* lst_data_at(list_t *list, int index);
  * @param key the number of the item to return
  * @return the node with a given key, or NULL if it was empty or not found
  */
-list_t* lst_node_with_key(list_t *list, char *key);
+list_t* lst_node_with_key(list_t *list, const char *key);
 
 /**
  * Returns the data for the node with the given @p key.
@@ -192,7 +204,7 @@ list_t* lst_node_with_key(list_t *list, char *key);
  * @param key the number of the item to return
  * @return the node with a given key, or NULL if it was empty or not found
  */
-void* lst_data_with_key(list_t *list, char *key);
+void* lst_data_with_key(list_t *list, const char *key);
 
 /**
  * @brief Returns the index of @p node in @p list.

@@ -79,25 +79,25 @@ static void is_string(void *key, void *value, void *user_data)
 {
   variable_storage_t *data = (variable_storage_t *)value;
   int *tot = (int *)user_data;
-  if(data->type == STRING) *tot += 1;
+  if (data->type == STRING) *tot += 1;
 }
 static void is_single(void *key, void *value, void *user_data)
 {
   variable_storage_t *data = (variable_storage_t *)value;
   int *tot = (int* )user_data;
-  if(data->type == SINGLE) *tot += 1;
+  if (data->type == SINGLE) *tot += 1;
 }
 static void is_double(void *key, void *value, void *user_data)
 {
   variable_storage_t *data = (variable_storage_t *)value;
   int *tot = (int *)user_data;
-  if(data->type == DOUBLE) *tot += 1;
+  if (data->type == DOUBLE) *tot += 1;
 }
 static void is_integer(void *key, void *value, void *user_data)
 {
   variable_storage_t *data = (variable_storage_t *)value;
   int *tot = (int *)user_data;
-  if(data->type == INTEGER) *tot += 1;
+  if (data->type == INTEGER) *tot += 1;
 }
 
 /* prints out various statistics from the static code,
@@ -136,7 +136,7 @@ void print_statistics()
   for(int i = interpreter_state.first_line; i < MAXLINE - 1; i++) {
     // get the next line's statements, and continue if its empty
     this_line = interpreter_state.lines[i];
-    if(interpreter_state.lines[i] == NULL)
+    if (interpreter_state.lines[i] == NULL)
       continue;
     
     // now find the next non-empty line
@@ -145,38 +145,32 @@ void print_statistics()
       next_num++;
     
     // if we ran off the end of the list, exit
-    if(next_num > MAXLINE - 1)
+    if (next_num > MAXLINE - 1)
       break;
     
     // otherwise we found the next line
     next_line = interpreter_state.lines[next_num];
     
     //TESTING
-    if(this_line == NULL)
+    if (this_line == NULL)
       break;
-    if(next_line == NULL)
+    if (next_line == NULL)
       break;
     
     // now count the number of statements between them
     diff = lst_index_of_node(start, next_line) - lst_index_of_node(start, this_line);
-    if(diff > stmts_max)
+    if (diff > stmts_max)
       stmts_max = diff;
   }
   
   // variables
   int num_total = lst_length(interpreter_state.variable_values);
-  //g_tree_nnodes(interpreter_state.variable_values);
+  
   int num_int = 0, num_sng = 0, num_dbl = 0, num_str = 0;
   lst_foreach(interpreter_state.variable_values, is_integer, &num_int);
   lst_foreach(interpreter_state.variable_values, is_single, &num_int);
   lst_foreach(interpreter_state.variable_values, is_double, &num_int);
   lst_foreach(interpreter_state.variable_values, is_string, &num_str);
-
-//  g_tree_foreach(interpreter_state.variable_values, is_integer, &num_int);
-//  g_tree_foreach(interpreter_state.variable_values, is_single, &num_sng);
-//  g_tree_foreach(interpreter_state.variable_values, is_double, &num_dbl);
-//  g_tree_foreach(interpreter_state.variable_values, is_single, &num_sng);
-//  g_tree_foreach(interpreter_state.variable_values, is_string, &num_str);
   
   // output to screen if selected
   if (print_stats == TRUE) {
@@ -259,7 +253,7 @@ void print_statistics()
   if (write_stats == TRUE) {
     //check that the file name is reasonable, and then try to open it
     FILE* fp = fopen(stats_file, "w+");
-    if(!fp) return;
+    if (!fp) return;
     
     double tu = (double)(end_time.tv_usec - start_time.tv_usec);
     double ts = (double)(end_time.tv_sec - start_time.tv_sec);
