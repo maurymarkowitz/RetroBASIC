@@ -96,19 +96,19 @@ char* str_escape(const char *source)
 }
 
 /* convert a string to lower case */
-char* str_tolower(char* s)
+char* str_tolower(char *string)
 {
-  for(char *p=s; *p; p++)
-    *p=tolower(*p);
-  return s;
+  for(char *p=string; *p; p++)
+    *p = tolower(*p);
+  return string;
 }
 
 /* convert a string to upper case */
-char* str_toupper(char* s)
+char* str_toupper(char* string)
 {
-  for(char *p=s; *p; p++)
-    *p=toupper(*p);
-  return s;
+  for(char *p=string; *p; p++)
+    *p = toupper(*p);
+  return string;
 }
 
 /* removes a number of characters from a string */
