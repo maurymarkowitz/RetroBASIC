@@ -18,19 +18,19 @@ mv=/bin/mv -f
 TARGET = retrobasic
 
 # the final program has three inputs, the lex/yacc and the interpreter source
-${TARGET}: ${TARGET} ${TARGET}.tab.c lex.yy.c
-	${CC} ${TARGET}.c ${TARGET}.tab.c lex.yy.c -o $TARGET
+$(TARGET): $(wildcard src/*.c) parse.tab.c lex.yy.c
+	$(CC) -Isrc $^ -o $(TARGET) -lm
 
 # if the lex or .tab.h file is changed, run lex again
-lex.yy.c: ${TARGET}.l ${TARGET}.tab.h
-	${LEX} ${LEXFLAGS} ${TARGET}.l
+lex.yy.c: src/scan.l parse.tab.h
+	$(LEX) $(LEXFLAGS) $<
 
 # If the yacc file is changed, run yacc again.
-${TARGET}.tab.c: ${TARGET}.y
-	${YAC} ${YFLAGS} ${TARGET}.y
+parse.tab.c: src/parse.y
+	$(YAC) $(YFLAGS) $<
 
 clean:
-	$(rm) ${TARGET} ${TARGET}.o
+	$(rm) $(TARGET) $(TARGET).o
 	$(rm) *.tab.h *.tab.c *.lex.c
 
 all: retrobasic
