@@ -695,6 +695,20 @@ static value_t evaluate_expression(expression_t *expression)
             }
             break;
             
+						// these are out of order to keep them closer to the string functions below
+					case LCASE:
+					{
+						result.type = STRING;
+						result.string = str_new(str_tolower(parameters[0].string));
+					}
+						break;
+					case UCASE:
+					{
+						result.type = STRING;
+						result.string = str_new(str_toupper(parameters[0].string));
+					}
+						break;
+						
           default:
             basic_error("Unhandled arity-1 function");
         } //switch
@@ -777,7 +791,7 @@ static value_t evaluate_expression(expression_t *expression)
           case OR:
             result = double_to_value((int)a | (int)b);
             break;
-            
+
             // NOTE: the strings in BASIC start on index 1, so we have to adjust that here for C
             //   so the starting-point parameters need to be shifted back one
           case LEFT:
@@ -1011,7 +1025,66 @@ static void perform_statement(list_t *L)
       case CALL:
         // do nothing
         break;
-        
+
+			case CHANGE:
+				// converts a string into a numeric array or vice versa
+				// this code assumes it only works between two variables
+				// and not expressions, even though the statement is stored
+				// as an expression
+			{
+				either_t *first_val, *second_val;
+				either_t *numeric_val, *string_val;
+				variable_t *numeric_var, *string_var;
+				int array_length, string_length;
+				int type1 = 0, type2 = 0;
+				
+				value_t exp_val;
+				
+				// get the two variables and their types
+				first_val = variable_value(ps->parms.change.var1, &type1);
+				second_val = variable_value(ps->parms.change.var2, &type2);
+				
+				// make sure one is a string and the other is numeric
+				if (type1 == STRING && type2 != NUMBER)
+					basic_error("Type mismatch in CHANGE, string to ?");
+				else if (type1 == NUMBER && type2 != STRING)
+					basic_error("Type mismatch in CHANGE, number to ?");
+				
+				if (type1 == NUMBER) {
+					numeric_var = ps->parms.change.var1;
+					string_var = ps->parms.change.var2;
+				}
+				else {
+					numeric_var = ps->parms.change.var1;
+					string_var = ps->parms.change.var2;
+				}
+
+				// whichever one is a number has to be an array
+				if (lst_length(numeric_var->subscripts) == 0)
+					basic_error("Type mismatch in CHANGE, numeric variable is not an array");
+				
+				// and that array has to be one-dimensional
+				if (lst_length(numeric_var->subscripts) > 1)
+					basic_error("Type mismatch in CHANGE, numeric variable has multiple dimensions");
+				
+//				// we are good to go...
+//				if (type1 == STRING) {
+//					// we are converting string to array
+//					for (int i = 0; i < strlen(string_val->string); i++) {
+//						numeric_var->
+//						v = evaluate_expression(L->data);
+//						int actual = (int)v.number + (1 - array_base); // if we're using 0-base indexing, we need to add one more slot
+//						storage->subscripts = lst_append(storage->subscripts, INT_TO_POINTER(actual));
+//						slots *= actual;
+//					}
+//
+//				}
+
+
+			}
+				
+				break;
+
       case CLEAR:
         // wipe out any variables and create a fresh list
         delete_variables();
@@ -1071,7 +1144,7 @@ static void perform_statement(list_t *L)
       case FOR:
       {
         forcontrol_t *new_for = malloc(sizeof(*new_for));
-        either_t *lv;
+        either_t *loop_value;
         int type = 0;
         
         new_for->index_variable = ps->parms._for.variable;
@@ -1090,8 +1163,8 @@ static void perform_statement(list_t *L)
           //                            new_for->step = -1;
         }
         new_for->head = L;
-        lv = variable_value(new_for->index_variable, &type);
-        lv->number = new_for->begin;
+        loop_value = variable_value(new_for->index_variable, &type);
+        loop_value->number = new_for->begin;
         
         interpreter_state.forstack = lst_append(interpreter_state.forstack, new_for);
       }
@@ -1120,10 +1193,10 @@ static void perform_statement(list_t *L)
         if (cond.number != 0) {
           /* THEN might be an expression including a GOTO or an implicit GOTO */
           if (ps->parms._if.then_expression) {
-            // this was formerly next = perform_statement, which meant it could only
-            // perform a single statement after the IF. for this to work properly,
-            // the then_expression has to be a list that is not connected to the
-            // next line, it has to end on a NULL
+            // in gnbasic this was next = perform_statement, which meant it could only
+            // perform a single statement after the IF, which is not the case in
+						// MS. for this to work properly, the then_expression has to be a list
+						// that is not connected to the next line, it has to end on a NULL.
             for (list_t *I = ps->parms._if.then_expression; I != NULL; I = lst_next(I)) {
               perform_statement(I);
             }
@@ -1144,7 +1217,10 @@ static void perform_statement(list_t *L)
         // not a variable, and a scan if it is
         //
         // NOTE: in C64 an empty input will exit without setting the
-        //    value of the associated variable, we do that here
+        //    value of the associated variable, leaving it what it
+				//    was. you can see this in SST - for instance, if you
+				//    simply press return on the computer command input it
+				//    will run the last command again.
         
         // loop over the items in the variable/prompt list
         for (list_t *I = ps->parms.input; I != NULL; I = lst_next(I)) {
@@ -1245,6 +1321,7 @@ static void perform_statement(list_t *L)
         } else {
           // we are done, remove this entry from the stack
           interpreter_state.forstack = lst_remove_node_with_data(interpreter_state.forstack, pfc);
+					free(pfc);
         }
       }
         break;

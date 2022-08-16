@@ -120,6 +120,10 @@ typedef struct statement_struct {
   int type;
   union {
     expression_t *generic_parameter, *generic_parameter2, *generic_parameter3;
+    struct {
+      variable_t *var1;
+      variable_t *var2;
+    } change;
     list_t *data; // list of values for data statements
     struct {
       variable_t *signature;
