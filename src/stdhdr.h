@@ -46,7 +46,7 @@ Boston, MA 02111-1307, USA.  */
 #include <limits.h> // gives INT_MAX
 #include <time.h>   // used for TIME and DATE in main and stats
 
-#include "str.h"
-#include "lst.h"
+#include "strng.h"
+#include "list.h"
 
 typedef enum {FALSE = 0, TRUE} boolean; // useful macro (imho)

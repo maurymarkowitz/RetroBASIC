@@ -24,16 +24,15 @@ Boston, MA 02111-1307, USA.  */
 #include "stdhdr.h"
 
 /**
- * @file string.h
+ * @file strng.h
  * @author Maury Markowitz
  * @date 8 August 2022
- * @brief Various utilities for strings, lists and hashes
+ * @brief Various utilities for strings based on GLib's gstring.
  *
  * The types and functions in this library are intended to closely mirror the API of the
  * GLib library. gnbasic was written using GLib to avoid recreating the wheel for common
- * functionality. However, installing GLib on anything other than generic *nix platforms
- * turned out to be more annoying that simply writing the code to perform these relatively
- * simple tasks.
+ * functionality.
+ * 
  */
 
 // this should be more than large enough for programs of the era,
