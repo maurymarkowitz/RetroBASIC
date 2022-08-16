@@ -153,6 +153,11 @@ DEFINT    { return DEFINT; }
 DEFSNG    { return DEFSNG; }
 DEFDBL    { return DEFDBL; }
 
+ /* other string commands and functiuons */
+CHANGE    { return CHANGE; }
+UCASE\$   { return UCASE; }
+LCASE\$   { return LCASE; }
+
  /* numeric constants and line numbers */
 [0-9]*[0-9.][0-9]*([Ee][-+]?[0-9]+)? {
               yylval.d = strtod(yytext, NULL);

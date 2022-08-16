@@ -134,11 +134,14 @@
      TAB = 350,
      POS = 351,
      USR = 352,
-     DEFSTR = 353,
-     DEFINT = 354,
-     DEFSNG = 355,
-     DEFDBL = 356,
-     LIN = 357
+     LIN = 353,
+     DEFSTR = 354,
+     DEFINT = 355,
+     DEFSNG = 356,
+     DEFDBL = 357,
+     CHANGE = 358,
+     UCASE = 359,
+     LCASE = 360
    };
 #endif
 /* Tokens.  */
@@ -237,18 +240,21 @@
 #define TAB 350
 #define POS 351
 #define USR 352
-#define DEFSTR 353
-#define DEFINT 354
-#define DEFSNG 355
-#define DEFDBL 356
-#define LIN 357
+#define LIN 353
+#define DEFSTR 354
+#define DEFINT 355
+#define DEFSNG 356
+#define DEFDBL 357
+#define CHANGE 358
+#define UCASE 359
+#define LCASE 360
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 71 "/Volumes/Bigger/Users/maury/Library/Mobile Documents/com~apple~CloudDocs/RetroBASIC/src/parse.y"
+#line 72 "/Users/maury/Documents/RetroBASIC/src/parse.y"
 {
   double d;
   int i;
@@ -259,7 +265,7 @@ typedef union YYSTYPE
   variable_t *variable;
 }
 /* Line 1529 of yacc.c.  */
-#line 261 "/Volumes/Bigger/Users/maury/Library/Mobile Documents/com~apple~CloudDocs/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
+#line 269 "/Users/maury/Documents/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
