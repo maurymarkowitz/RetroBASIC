@@ -176,6 +176,12 @@ static expression_t *make_operator(int arity, int o)
 %token DEFSNG
 %token DEFDBL
 
+ /* Dartmouth-style string manipulation */
+%token CHANGE
+ /* and some later string-relagted additions */
+%token UCASE
+%token LCASE
+
 %%
 
 /* Grammar rules */
@@ -259,6 +265,14 @@ statement:
   CALL expression
   {
     statement_t *new = make_statement(CALL);
+    $$ = new;
+  }
+  |
+  CHANGE expression TO expression
+  {
+    statement_t *new = make_statement(CHANGE);
+    new->parms.change.var1 = $2;
+    new->parms.change.var2 = $4;
     $$ = new;
   }
   |
@@ -860,7 +874,8 @@ fn_1:
 	COS  { $$ = COS; } |
   EXP  { $$ = EXP; } |
   FIX  { $$ = FIX; } |
-	INT  { $$ = INT; } |
+  INT  { $$ = INT; } |
+  LCASE  { $$ = LCASE; } |
   LEN  { $$ = LEN; } |
   LIN  { $$ = LIN; } |
   STR  { $$ = STR; } |
@@ -872,6 +887,7 @@ fn_1:
 	SQR  { $$ = SQR; } |
 	TAB  { $$ = TAB; } |
 	VAL  { $$ = VAL; } |
+  UCASE  { $$ = UCASE; } |
   USR  { $$ = USR; }
   ;
 	

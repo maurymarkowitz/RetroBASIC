@@ -91,6 +91,11 @@
 1830 PRINT "concat with plus, should produce HELLO WORLD: ";"HELLO" + " " + "WORLD"
 1840 PRINT "concat with amp, should produce HELLO WORLD: ";"HELLO" & " " & "WORLD"
 1850 PRINT "multi-concat, should produce 1 2 3 4: ";"1" & " " & "2" & " " & "3" & " " & "4"
+1860 REM
+1861 REM test upper and lower conversions
+1862 REM
+1870 PRINT"HelLO to upper, should produce HELLO: ";UCASE$("HelLO")
+1880 PRINT"WORld to lower, should produce world: ";LCASE$("WORld")
 1900 REM
 1910 REM time and date
 1920 REM
@@ -109,8 +114,8 @@
 2996 REM
 3000 LET A=2
 4000 PRINT "A=2, A*10=";A*10
-4400 input "a prompt with comma, enter a number",A
-4700 input "a prompt with semi, enter a number";B
+4400 input "an input prompt with comma, enter a number",A
+4700 input "an input prompt with semi, enter a number";B
 4900 print "a is "A" b is "B
 4950 REM
 4955 REM input with three variables
