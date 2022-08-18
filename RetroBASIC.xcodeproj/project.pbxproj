@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -24,12 +24,15 @@
 /* Begin PBXBuildRule section */
 		5533D04E28AE796400078A14 /* PBXBuildRule */ = {
 			isa = PBXBuildRule;
-			compilerSpec = com.apple.compilers.proxy.script;
+			compilerSpec = com.apple.compilers.yacc;
+			filePatterns = "*.y";
 			fileType = sourcecode.yacc;
 			inputFiles = (
+				"$(SRCROOT)/$(INPUT_FILE_BASE).y",
 			);
 			isEditable = 1;
 			outputFiles = (
+				"$(SRCROOT)/$(INPUT_FILE_BASE).y",
 			);
 			script = "# $(YACC)\n";
 		};
