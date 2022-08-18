@@ -26,7 +26,7 @@
 105 REM print a long number that should display as E format
 106 REM
 110 A=9999999999
-120 PRINT "this should print 1E+10:"A
+120 PRINT "printing A=9999999999, this should print 1E+10: "A
 124 REM
 125 REM some variations on the comment formats
 126 REM
@@ -86,16 +86,28 @@
 1750 PRINT "(1:5), should produce HELLO: "A$(1:5)
 1760 PRINT "(4:5), should produce LO: "A$(4:5)
 1800 REM
-1810 REM concats
-1820 REM
-1830 PRINT "concat with plus, should produce HELLO WORLD: ";"HELLO" + " " + "WORLD"
-1840 PRINT "concat with amp, should produce HELLO WORLD: ";"HELLO" & " " & "WORLD"
-1850 PRINT "multi-concat, should produce 1 2 3 4: ";"1" & " " & "2" & " " & "3" & " " & "4"
-1860 REM
-1861 REM test upper and lower conversions
-1862 REM
-1870 PRINT"HelLO to upper, should produce HELLO: ";UCASE$("HelLO")
-1880 PRINT"WORld to lower, should produce world: ";LCASE$("WORld")
+1801 REM concats
+1802 REM
+1810 PRINT "concat with plus, should produce HELLO WORLD: ";"HELLO" + " " + "WORLD"
+1820 PRINT "concat with amp, should produce HELLO WORLD: ";"HELLO" & " " & "WORLD"
+1830 PRINT "multi-concat, should produce 1 2 3 4: ";"1" & " " & "2" & " " & "3" & " " & "4"
+1840 REM
+1841 REM test upper and lower conversions
+1842 REM
+1850 PRINT"HelLO to upper, should produce HELLO: ";UCASE$("HelLO")
+1860 PRINT"WORld to lower, should produce world: ";LCASE$("WORld")
+1870 REM
+1871 REM try CHANGING strings to nums and back
+1872 REM
+1880 DIM B(50)
+1881 PRINT "changing hello to ASCII, should produce 5 104 101 108 108 111: ";
+1882 B$="hello"
+1883 CHANGE B$ TO B
+1884 FOR J=0 TO B(0):PRINT B(J),:NEXT J:PRINT
+1885 REM the line above only works on strings because CHANGE puts the length in (0)
+1890 PRINT "changing from ASCII back to string, should produce hello: ";
+1891 CHANGE B TO B$
+1892 PRINT B$
 1900 REM
 1910 REM time and date
 1920 REM
@@ -107,8 +119,7 @@
 2295 REM make sure B and B() are different
 2296 REM
 2300 B=10
-2400 PRINT "B",B,"B(1,1)",B(1,1)
-2500 print "hello"B
+2400 PRINT "B, should be 10: ",B,"B(1), should be 104: ",B(1)
 2994 REM
 2995 REM various prints and inputs with different separators
 2996 REM
