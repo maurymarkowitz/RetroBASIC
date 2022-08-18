@@ -45,6 +45,7 @@ Boston, MA 02111-1307, USA.  */
 #include <math.h>
 #include <limits.h> // gives INT_MAX
 #include <time.h>   // used for TIME and DATE in main and stats
+#include <stdint.h>
 
 #include "strng.h"
 #include "list.h"
