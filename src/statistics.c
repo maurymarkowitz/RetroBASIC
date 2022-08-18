@@ -151,12 +151,6 @@ void print_statistics()
     // otherwise we found the next line
     next_line = interpreter_state.lines[next_num];
     
-    //TESTING
-    if (this_line == NULL)
-      break;
-    if (next_line == NULL)
-      break;
-    
     // now count the number of statements between them
     diff = lst_index_of_node(start, next_line) - lst_index_of_node(start, this_line);
     if (diff > stmts_max)

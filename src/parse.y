@@ -268,7 +268,7 @@ statement:
     $$ = new;
   }
   |
-  CHANGE expression TO expression
+  CHANGE variable TO variable
   {
     statement_t *new = make_statement(CHANGE);
     new->parms.change.var1 = $2;
