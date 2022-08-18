@@ -86,15 +86,6 @@ static void basic_error(char *message)
   fprintf(stderr, "%s at line %d\n", message, current_line());
 }
 
-/************************************************************************/
-
-///* basic string compare used in the symbol tree to find variable names.
-// returning true stops the tree walk, so we do that on a match */
-//int symbol_compare(gconstpointer a, gconstpointer b)
-//{
-//  return strcasecmp(a, b);
-//}
-
 /* Returns an either_t containing a string or a number for the underlying
  variable, along with its type in the out-parameter 'type'. If the
  variable has not been encountered before it will be created here. */
@@ -109,6 +100,11 @@ either_t *variable_value(variable_t *variable, int *type)
   
   // in MS basic, A() and A are two different variables, so here
   // we mangle the name to include a "(" if its an array
+	//
+	// NOTE: Dartmouth v4 page states the same is true there, but as all
+	//       variables can also be treated as an array 1..10 without a DIM
+	//       it seems the decision of whether it was A or A( is a function
+	//       of the statement, like CHANGE or MAT.
   storage_name = str_new(variable->name);
   if (variable->subscripts != NULL)
     str_append(storage_name, "(");
@@ -154,7 +150,7 @@ either_t *variable_value(variable_t *variable, int *type)
       slots = 1;
       for (list_t *L = variable->subscripts; L != NULL; L = lst_next(L)) {
         v = evaluate_expression(L->data);
-				int actual = (int)v.number + (1 - array_base); // if we're using 0-base indexing, we need to add one more slot
+				int actual = (int)v.number + 1; // (1 - array_base); // if we're using 0-base indexing, we need to add one more slot
         storage->subscripts = lst_append(storage->subscripts, INT_TO_POINTER(actual));
         slots *= actual;
       }
@@ -197,13 +193,14 @@ either_t *variable_value(variable_t *variable, int *type)
 				int original_dimension = POINTER_TO_INT(original_dimensions->data);
 
 				// make sure the index is within the originally DIMed bounds
-        if ((this_index.number < array_base) || (original_dimension < this_index.number - array_base)) {
+				// NOTE: should check against array_base, not 0, but this doesn't work in Dartmouth. see notes
+        if ((this_index.number < 0) || (original_dimension < this_index.number)) {
           basic_error("Array subscript out of bounds");
-          this_index.number = array_base; // the first entry in the C array, so it continues
+					this_index.number = 0;//array_base; // the first entry in the C array, so it continues
         }
         
         // C arrays start at 0, BASIC arrays start at array_base
-        index = (index * original_dimension) + this_index.number - array_base;
+				index = (index * original_dimension) + this_index.number; // - array_base;
         
         // then move on to the next index in the list
         original_dimensions = lst_next(original_dimensions);
@@ -1028,19 +1025,26 @@ static void perform_statement(list_t *L)
 
 			case CHANGE:
 				// converts a string into a numeric array or vice versa
-				// this code assumes it only works between two variables
-				// and not expressions, even though the statement is stored
-				// as an expression
+				// this code assumes it only works between two variables, and not expressions
+				//
+				// the complexity here is because we are stepping through elements in the array,
+				// which is normally only possible using an index expression in the source code.
+				// So here we have to duplicate a small portion of the code in variable_value to
+				// get the right slot in the heap to insert into. This is somewhat eased by the
+				// fact that the array has to be 1-dimensional so finding the right slot is easy.
+				//
+				// NOTE: In Dartmouth, A and A() are the same variable, and one can CHANGE A to A$
+				//        this means we will have possible confusion between A and A(). However,
+				//        every example of the CHANGE command has a DIM on the array, likely as
+				//        the default value is 10 and that's too small in practice. So this code
+				//        assumes the stored variable is A( and adds the paren where needed
 			{
 				either_t *first_val, *second_val;
-				either_t *numeric_val, *string_val;
-				variable_t *numeric_var, *string_var;
-				int array_length, string_length;
+				variable_storage_t *array_store, *string_store;
+				int string_length;
 				int type1 = 0, type2 = 0;
 				
-				value_t exp_val;
-				
-				// get the two variables and their types
+				// get the types of the two variables
 				first_val = variable_value(ps->parms.change.var1, &type1);
 				second_val = variable_value(ps->parms.change.var2, &type2);
 				
@@ -1050,39 +1054,59 @@ static void perform_statement(list_t *L)
 				else if (type1 == NUMBER && type2 != STRING)
 					basic_error("Type mismatch in CHANGE, number to ?");
 				
-				if (type1 == NUMBER) {
-					numeric_var = ps->parms.change.var1;
-					string_var = ps->parms.change.var2;
-				}
-				else {
-					numeric_var = ps->parms.change.var1;
-					string_var = ps->parms.change.var2;
-				}
+				// get the storage for the numeric value by adding the (
+				char *array_storage_name = str_new((type1 == NUMBER) ? ps->parms.change.var1->name : ps->parms.change.var2->name);
+				str_append(array_storage_name, "("); // we are assuming it is missing
+				array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
+				free(array_storage_name);
+				
+				// and the same for the string
+				string_store = lst_data_with_key(interpreter_state.variable_values, (type1 == NUMBER) ? ps->parms.change.var2->name : ps->parms.change.var2->name);
 
 				// whichever one is a number has to be an array
-				if (lst_length(numeric_var->subscripts) == 0)
+				if (lst_length(array_store->subscripts) == 0)
 					basic_error("Type mismatch in CHANGE, numeric variable is not an array");
 				
 				// and that array has to be one-dimensional
-				if (lst_length(numeric_var->subscripts) > 1)
+				if (lst_length(array_store->subscripts) > 1)
 					basic_error("Type mismatch in CHANGE, numeric variable has multiple dimensions");
-				
-//				// we are good to go...
-//				if (type1 == STRING) {
-//					// we are converting string to array
-//					for (int i = 0; i < strlen(string_val->string); i++) {
-//						numeric_var->
-//						v = evaluate_expression(L->data);
-//						int actual = (int)v.number + (1 - array_base); // if we're using 0-base indexing, we need to add one more slot
-//						storage->subscripts = lst_append(storage->subscripts, INT_TO_POINTER(actual));
-//						slots *= actual;
-//					}
-//
-//				}
+											
+				// we are good to go...
+				if (type1 == STRING) {
+					// CONVERT STRING TO ARRAY OF ASCII
+					
+					// make sure the array is long enough for the string
+					string_length = (int)strlen(first_val->string);
+					if (POINTER_TO_INT(array_store->subscripts->data) < string_length)
+						basic_error("Out of memory in CHANGE, numeric variable is too small to hold the string");
+					
+					// put the length in the first slot
+					array_store->value[0].number = string_length;
 
+					// now loop over the string and insert the values
+					for (int i = 1; i <= string_length; i++) {
+						array_store->value[i].number = (int)first_val->string[i - 1];
+					}
+					// and pad out the rest of the array with zeros to be safe
+					for (int i = string_length + 1; i < POINTER_TO_INT(array_store->subscripts->data); i++) {
+						array_store->value[i].number = 0;
+					}
+				}
+				else {
+					// CONVERT ARRAY OF ASCII TO STRING
 
+					// this one is a little easier, we can keep going until we see a zero
+					char new_string[MAXSTRING];
+					for (int i = 1; i <= POINTER_TO_INT(array_store->subscripts->data) && array_store->value[i].number != 0; i++) {
+						new_string[i - 1] = (char)array_store->value[i].number;
+					}
+					
+					// delete any old valuye in the string and copy in the new one
+					string_store = lst_data_with_key(interpreter_state.variable_values, ps->parms.change.var2->name);
+					free(string_store->value->string);
+					string_store->value->string = str_new(new_string);
+				}
 			}
-				
 				break;
 
       case CLEAR:

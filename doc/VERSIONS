@@ -16,3 +16,14 @@ Version 1.1 - 2 June 2022
 Version 1.2 - 19 July 2022
 
 - removed GString and replaced them with normal C char-based strings
+
+Version 1.3 - 18 August 2022
+
+- removed GList, GTree and the GLib library itself
+- added UCASE and LCASE
+- added CHANGE command from Dartmouth v4, which required...
+- arrays/matrices now have an index 0 no matter the value of OPTION BASE,
+    a 1-based system that accesses 0 will no longer cause an error but
+    this should not occur in known-good code
+- added several changes to allow building using the makefile (thanks SK!)
+- added a custom build rule in Xcode to properly update parse.h
