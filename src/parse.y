@@ -112,6 +112,7 @@ static expression_t *make_operator(int arity, int o)
 %token LIST
 %token NEXT
 %token NEW
+%token OF
 %token ON
 %token PRINT
 %token PUT
@@ -178,7 +179,9 @@ static expression_t *make_operator(int arity, int o)
 
  /* Dartmouth-style string manipulation */
 %token CHANGE
- /* and some later string-relagted additions */
+ /* otherwise identical command from HP */
+%token CONVERT
+ /* and some later string-related additions */
 %token UCASE
 %token LCASE
 
@@ -271,6 +274,14 @@ statement:
   CHANGE variable TO variable
   {
     statement_t *new = make_statement(CHANGE);
+    new->parms.change.var1 = $2;
+    new->parms.change.var2 = $4;
+    $$ = new;
+  }
+  |
+  CONVERT variable TO variable
+  {
+    statement_t *new = make_statement(CONVERT);
     new->parms.change.var1 = $2;
     new->parms.change.var2 = $4;
     $$ = new;
@@ -382,12 +393,12 @@ statement:
     /* static analyser - consider anything with a STEP special even if it is a 1 */
     for_loops_total++;
   }
-	|
-	GOSUB expression
-	{
-	  statement_t *new = make_statement(GOSUB);
-	  new->parms.gosub = $2;
-	  $$ = new;
+  |
+  GOSUB expression
+  {
+    statement_t *new = make_statement(GOSUB);
+    new->parms.gosub = $2;
+    $$ = new;
       
     /* static analyzer */
     linenum_gosub_totals++;
@@ -401,6 +412,18 @@ statement:
           linenum_backwards++;
       }
     }
+  }
+	|
+	GOSUB expression OF exprlist
+	{
+    statement_t *new = make_statement(OF);
+    new->parms.on.type = GOSUB;
+    new->parms.on.expression = $2;
+    new->parms.on.numbers = $4;
+    $$ = new;
+      
+    linenum_constants_total = linenum_constants_total + lst_length($4);
+    linenum_on_totals++;
   }
 	|
 	GOTO expression
@@ -422,6 +445,18 @@ statement:
       }
     }
 	}
+  |
+  GOTO expression OF exprlist
+  {
+    statement_t *new = make_statement(OF);
+    new->parms.on.type = GOTO;
+    new->parms.on.expression = $2;
+    new->parms.on.numbers = $4;
+    $$ = new;
+      
+    linenum_constants_total = linenum_constants_total + lst_length($4);
+    linenum_on_totals++;
+  }
 	|
 	INPUT printlist
 	{

@@ -66,82 +66,84 @@
      LIST = 282,
      NEXT = 283,
      NEW = 284,
-     ON = 285,
-     PRINT = 286,
-     PUT = 287,
-     READ = 288,
-     RESTORE = 289,
-     RETURN = 290,
-     RUN = 291,
-     STEP = 292,
-     STOP = 293,
-     THEN = 294,
-     TO = 295,
-     USING = 296,
-     WAIT = 297,
-     OPEN = 298,
-     CLOSE = 299,
-     STATUS = 300,
-     PRINT_FILE = 301,
-     INPUT_FILE = 302,
-     GET_FILE = 303,
-     PUT_FILE = 304,
-     CALL = 305,
-     CLS = 306,
-     CMD = 307,
-     OPTION = 308,
-     BASE = 309,
-     PEEK = 310,
-     POKE = 311,
-     POP = 312,
-     RANDOMIZE = 313,
-     SYS = 314,
-     VARLIST = 315,
-     _ABS = 316,
-     SGN = 317,
-     ATN = 318,
-     COS = 319,
-     SIN = 320,
-     TAN = 321,
-     CLOG = 322,
-     EXP = 323,
-     LOG = 324,
-     SQR = 325,
-     RND = 326,
-     INT = 327,
-     FIX = 328,
-     CINT = 329,
-     CSNG = 330,
-     CDBL = 331,
-     ASC = 332,
-     LEFT = 333,
-     MID = 334,
-     RIGHT = 335,
-     LEN = 336,
-     STR = 337,
-     VAL = 338,
-     CHR = 339,
-     AND = 340,
-     OR = 341,
-     NOT = 342,
-     XOR = 343,
-     CMP_LE = 344,
-     CMP_GE = 345,
-     CMP_NE = 346,
-     CMP_HASH = 347,
-     FRE = 348,
-     SPC = 349,
-     TAB = 350,
-     POS = 351,
-     USR = 352,
-     LIN = 353,
-     DEFSTR = 354,
-     DEFINT = 355,
-     DEFSNG = 356,
-     DEFDBL = 357,
-     CHANGE = 358,
-     UCASE = 359,
-     LCASE = 360
+     OF = 285,
+     ON = 286,
+     PRINT = 287,
+     PUT = 288,
+     READ = 289,
+     RESTORE = 290,
+     RETURN = 291,
+     RUN = 292,
+     STEP = 293,
+     STOP = 294,
+     THEN = 295,
+     TO = 296,
+     USING = 297,
+     WAIT = 298,
+     OPEN = 299,
+     CLOSE = 300,
+     STATUS = 301,
+     PRINT_FILE = 302,
+     INPUT_FILE = 303,
+     GET_FILE = 304,
+     PUT_FILE = 305,
+     CALL = 306,
+     CLS = 307,
+     CMD = 308,
+     OPTION = 309,
+     BASE = 310,
+     PEEK = 311,
+     POKE = 312,
+     POP = 313,
+     RANDOMIZE = 314,
+     SYS = 315,
+     VARLIST = 316,
+     _ABS = 317,
+     SGN = 318,
+     ATN = 319,
+     COS = 320,
+     SIN = 321,
+     TAN = 322,
+     CLOG = 323,
+     EXP = 324,
+     LOG = 325,
+     SQR = 326,
+     RND = 327,
+     INT = 328,
+     FIX = 329,
+     CINT = 330,
+     CSNG = 331,
+     CDBL = 332,
+     ASC = 333,
+     LEFT = 334,
+     MID = 335,
+     RIGHT = 336,
+     LEN = 337,
+     STR = 338,
+     VAL = 339,
+     CHR = 340,
+     AND = 341,
+     OR = 342,
+     NOT = 343,
+     XOR = 344,
+     CMP_LE = 345,
+     CMP_GE = 346,
+     CMP_NE = 347,
+     CMP_HASH = 348,
+     FRE = 349,
+     SPC = 350,
+     TAB = 351,
+     POS = 352,
+     USR = 353,
+     LIN = 354,
+     DEFSTR = 355,
+     DEFINT = 356,
+     DEFSNG = 357,
+     DEFDBL = 358,
+     CHANGE = 359,
+     CONVERT = 360,
+     UCASE = 361,
+     LCASE = 362
    };
 #endif
 /* Tokens.  */
@@ -172,82 +174,84 @@
 #define LIST 282
 #define NEXT 283
 #define NEW 284
-#define ON 285
-#define PRINT 286
-#define PUT 287
-#define READ 288
-#define RESTORE 289
-#define RETURN 290
-#define RUN 291
-#define STEP 292
-#define STOP 293
-#define THEN 294
-#define TO 295
-#define USING 296
-#define WAIT 297
-#define OPEN 298
-#define CLOSE 299
-#define STATUS 300
-#define PRINT_FILE 301
-#define INPUT_FILE 302
-#define GET_FILE 303
-#define PUT_FILE 304
-#define CALL 305
-#define CLS 306
-#define CMD 307
-#define OPTION 308
-#define BASE 309
-#define PEEK 310
-#define POKE 311
-#define POP 312
-#define RANDOMIZE 313
-#define SYS 314
-#define VARLIST 315
-#define _ABS 316
-#define SGN 317
-#define ATN 318
-#define COS 319
-#define SIN 320
-#define TAN 321
-#define CLOG 322
-#define EXP 323
-#define LOG 324
-#define SQR 325
-#define RND 326
-#define INT 327
-#define FIX 328
-#define CINT 329
-#define CSNG 330
-#define CDBL 331
-#define ASC 332
-#define LEFT 333
-#define MID 334
-#define RIGHT 335
-#define LEN 336
-#define STR 337
-#define VAL 338
-#define CHR 339
-#define AND 340
-#define OR 341
-#define NOT 342
-#define XOR 343
-#define CMP_LE 344
-#define CMP_GE 345
-#define CMP_NE 346
-#define CMP_HASH 347
-#define FRE 348
-#define SPC 349
-#define TAB 350
-#define POS 351
-#define USR 352
-#define LIN 353
-#define DEFSTR 354
-#define DEFINT 355
-#define DEFSNG 356
-#define DEFDBL 357
-#define CHANGE 358
-#define UCASE 359
-#define LCASE 360
+#define OF 285
+#define ON 286
+#define PRINT 287
+#define PUT 288
+#define READ 289
+#define RESTORE 290
+#define RETURN 291
+#define RUN 292
+#define STEP 293
+#define STOP 294
+#define THEN 295
+#define TO 296
+#define USING 297
+#define WAIT 298
+#define OPEN 299
+#define CLOSE 300
+#define STATUS 301
+#define PRINT_FILE 302
+#define INPUT_FILE 303
+#define GET_FILE 304
+#define PUT_FILE 305
+#define CALL 306
+#define CLS 307
+#define CMD 308
+#define OPTION 309
+#define BASE 310
+#define PEEK 311
+#define POKE 312
+#define POP 313
+#define RANDOMIZE 314
+#define SYS 315
+#define VARLIST 316
+#define _ABS 317
+#define SGN 318
+#define ATN 319
+#define COS 320
+#define SIN 321
+#define TAN 322
+#define CLOG 323
+#define EXP 324
+#define LOG 325
+#define SQR 326
+#define RND 327
+#define INT 328
+#define FIX 329
+#define CINT 330
+#define CSNG 331
+#define CDBL 332
+#define ASC 333
+#define LEFT 334
+#define MID 335
+#define RIGHT 336
+#define LEN 337
+#define STR 338
+#define VAL 339
+#define CHR 340
+#define AND 341
+#define OR 342
+#define NOT 343
+#define XOR 344
+#define CMP_LE 345
+#define CMP_GE 346
+#define CMP_NE 347
+#define CMP_HASH 348
+#define FRE 349
+#define SPC 350
+#define TAB 351
+#define POS 352
+#define USR 353
+#define LIN 354
+#define DEFSTR 355
+#define DEFINT 356
+#define DEFSNG 357
+#define DEFDBL 358
+#define CHANGE 359
+#define CONVERT 360
+#define UCASE 361
+#define LCASE 362
 
 
 
@@ -265,7 +269,7 @@ typedef union YYSTYPE
   variable_t *variable;
 }
 /* Line 1529 of yacc.c.  */
-#line 269 "/Users/maury/Documents/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
+#line 273 "/Users/maury/Documents/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
