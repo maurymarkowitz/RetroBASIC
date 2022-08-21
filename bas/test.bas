@@ -102,7 +102,7 @@
 1880 DIM B(50)
 1881 PRINT "changing hello to ASCII, should produce 5 104 101 108 108 111: ";
 1882 B$="hello"
-1883 CHANGE B$ TO B
+1883 CONVERT B$ TO B
 1884 FOR J=0 TO B(0):PRINT B(J),:NEXT J:PRINT
 1885 REM the line above only works on strings because CHANGE puts the length in (0)
 1890 PRINT "changing from ASCII back to string, should produce hello: ";
@@ -125,9 +125,17 @@
 2996 REM
 3000 LET A=2
 4000 PRINT "A=2, A*10=";A*10
-4400 input "an input prompt with comma, enter a number",A
+4400 input "an input prompt with comma, enter a number (1 to 3)",A
 4700 input "an input prompt with semi, enter a number";B
 4900 print "a is "A" b is "B
+4901 REM
+4902 REM use the value of A for a GOTO..OF
+4903 REM
+4910 GOSUB A OF 4920,4930,4940
+4915 GOTO 4960
+4920 PRINT"A was 1":RETURN
+4930 PRINT"A was 2":RETURN
+4940 PRINT"A was 3":RETURN
 4950 REM
 4955 REM input with three variables
 4956 REM
