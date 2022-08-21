@@ -63,7 +63,8 @@ INPUT   { return INPUT; }
 LET	    { return LET; }
 NEXT	  { return NEXT; }
 NEW			{ return NEW; }
-ON			{ return ON; }
+OF      { return OF; }
+ON      { return ON; }
 POKE    { return POKE; }
 PRINT   { return PRINT; }
 READ		{ return READ; }
@@ -155,6 +156,7 @@ DEFDBL    { return DEFDBL; }
 
  /* other string commands and functiuons */
 CHANGE    { return CHANGE; }
+CONVERT   { return CONVERT; }
 UCASE\$   { return UCASE; }
 LCASE\$   { return LCASE; }
 

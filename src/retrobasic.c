@@ -1024,6 +1024,7 @@ static void perform_statement(list_t *L)
         break;
 
 			case CHANGE:
+			case CONVERT:
 				// converts a string into a numeric array or vice versa
 				// this code assumes it only works between two variables, and not expressions
 				//
@@ -1332,7 +1333,13 @@ static void perform_statement(list_t *L)
         // NEXT J inside a NEXT I
         // FIXME: this is easy to fix, simply get the variable name from the FOR
         //  stack and then check if it's the same as the one in the NEXT, error out
-        forcontrol_t *pfc = lst_last_node(interpreter_state.forstack)->data;
+				forcontrol_t *pfc;
+				if (interpreter_state.forstack  == NULL || lst_length(interpreter_state.forstack) == 0) {
+					basic_error("NEXT without FOR");
+					break;
+				}
+
+        pfc = lst_last_node(interpreter_state.forstack)->data;
         either_t *lv;
         int type = 0;
         
@@ -1362,6 +1369,7 @@ static void perform_statement(list_t *L)
         break;
         
       case ON:
+			case OF:
       {
         list_t *numslist;
         numslist = ps->parms.on.numbers;
@@ -1574,7 +1582,13 @@ static void perform_statement(list_t *L)
         
       case RETURN:
       {
-        gosubcontrol_t *pgc = lst_last_node(interpreter_state.gosubstack)->data;
+				gosubcontrol_t *pgc;
+				if (interpreter_state.gosubstack == NULL || lst_length(interpreter_state.gosubstack) == 0) {
+					basic_error("RETURN without GOSUB");
+					break;
+				}
+
+        pgc = lst_last_node(interpreter_state.gosubstack)->data;
         interpreter_state.next_statement = pgc->returnpoint;
         interpreter_state.gosubstack = lst_remove_node_with_data(interpreter_state.gosubstack, pgc);
       }

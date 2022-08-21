@@ -8,7 +8,7 @@ GW = GW-BASIC
 WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 
-- most non-HP dialects invisibly DIM x(10) for any variable that does not have an explicit DIM. This means one can A(5)=25 without an explicit DIM anywhere in the program. THis is rarely used in actual code, but should be added.
+- most non-HP dialects invisibly DIM A(10) for any variable that does not have an explicit DIM. This means one can A(5)=25 without a DIM A. This is rarely (if ever?) used in actual code, but should be added.
 
 - add TIME, TIME$ and DATE$
 
