@@ -82,6 +82,7 @@
 		55B9698B252F44E70021CD8B /* parse.y */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.yacc; path = parse.y; sourceTree = "<group>"; tabWidth = 2; };
 		55B96990252F4FCA0021CD8B /* makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = makefile; sourceTree = "<group>"; };
 		55B96993252F5AB80021CD8B /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		55C0605728B13842002B8345 /* retrobasic.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = retrobasic.1; sourceTree = "<group>"; };
 		55DEE88128A6A6B800270949 /* RetroBASIC design.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "RetroBASIC design.md"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -101,7 +102,6 @@
 			children = (
 				55B96990252F4FCA0021CD8B /* makefile */,
 				55B3D429238EB43100E6054E /* README.md */,
-				55B9698A252D26790021CD8B /* LICENCE */,
 				55B3D41F238E1B4500E6054E /* doc */,
 				55B3D40E238E051D00E6054E /* src */,
 				55B96987252CC1D30021CD8B /* bas */,
@@ -144,10 +144,12 @@
 		55B3D41F238E1B4500E6054E /* doc */ = {
 			isa = PBXGroup;
 			children = (
-				55DEE88128A6A6B800270949 /* RetroBASIC design.md */,
+				55B9698A252D26790021CD8B /* LICENCE */,
 				550EED6E257AC4F300FE6D78 /* VERSIONS */,
 				55B3D428238EB43100E6054E /* TODO */,
 				55B3D427238EB43100E6054E /* pass-fail.txt */,
+				55C0605728B13842002B8345 /* retrobasic.1 */,
+				55DEE88128A6A6B800270949 /* RetroBASIC design.md */,
 			);
 			path = doc;
 			sourceTree = "<group>";
