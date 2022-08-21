@@ -8,15 +8,17 @@ GW = GW-BASIC
 WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 
+- most non-HP dialects invisibly DIM x(10) for any variable that does not have an explicit DIM. This means one can A(5)=25 without an explicit DIM anywhere in the program. THis is rarely used in actual code, but should be added.
+
 - add TIME, TIME$ and DATE$
 
 - test and error on incorrect nesting of FOR loops, which we currently ignore
 
-- needs command-line switch for ANSI, controls tab stops and many errors
-
 - need to allow multiple INPUTs on a single line, currently it requires a CR between values
 
 - DEFINT/SNG/DBL/STR does not support the "range" syntax, DEFINT A-F. only comma lists work, DEFINT A,B
+
+- needs command-line switch for ANSI, controls tab stops and many errors
 
 - support Dartmouth/ANSI style FOR loops which skip the body if the test fails on the first loop
 

@@ -40,9 +40,9 @@ Command-line options include:
 `--slicing`, `-s`: enable string slicing like HP, Integer, Atari, etc.  
 `--output-file`, `-o`: redirect PRINT to the named file  
 `--input-file`, `-i`: redirect INPUT from the named file, one INPUT value per line  
-`--no_run`, `-n` : do not run the BASIC program, simply read and parse it and then exit  
-`--print_statistics`, `-p` : send a selection of statistics to the console  
-`--write_statistics`, `-w` : write the statistics to the named file in a machine readable format
+`--no_run`, `-n`: do not run the BASIC program, simply read and parse it and then exit  
+`--print_statistics`, `-p`: send a selection of statistics to the console  
+`--write_statistics`, `-w`: write the statistics to the named file in a machine readable format
 
 If you wish to use RetroBASIC to simply check syntax or collect statistics, use the -n and -p switches.
 
