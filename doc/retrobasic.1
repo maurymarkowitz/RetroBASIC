@@ -1,0 +1,157 @@
+.\" Copyright 2022 by Maury Markowitz
+.\" 
+.\" You may distribute under the terms of the GNU General Public
+.\" License V.2 as specified in the LICENSE file that comes with
+.\" the RetroBASIC distribution.  
+
+.TH RETROBASIC 1 "20 August 2022" v1.1.3 "RetroBASIC"
+.LO 1
+
+.SH NAME
+.B retrobasic
+\- run old BASIC programs
+
+.SH SYNOPSIS
+.B retrobasic
+.RB [ \-ghnpsuv ]
+.RB [ \-a 1|0]
+.RB [ \-t 
+.IR num ]
+.RB [ \-r 
+.IR num ] 
+.RB [ \-o 
+.IR file ]
+.RB [ \-i 
+.IR file ]
+.RB [ \-w 
+.IR file ]
+.I filename
+
+.SH DESCRIPTION 
+.B retrobasic
+is an interpreter designed to run programs from most 1970s and early 1980s BASIC dialects. It most closely follows DEC/Microsoft conventions, but includes a number of features from other popular systems like Dartmouth, HP, Apple, Atari and Sinclair. BASIC programs must be in text format, not tokenized.
+
+.SH OPTIONS
+.TP
+.B \-h
+Print a help message and exit.
+.TP
+.B \-v
+Print version info and exit.
+.TP
+.B \-u
+Convert all input to upper-case, like using caps lock.
+.TP
+.B \-a [1/0]
+Set the base index for arrays, normally 0 but some dialects use 1.
+.TP
+.BI \-t num
+Sets the number of spaces for comma-separated items, defaults to 10 based on the Commodore PET.
+.TP
+.B \-g
+Branches to a non-existant lines will continue on the next line, instead of raising an error.
+.TP
+.BI \-r num
+Seed the random number generator, passing 0 causes it to randomize.
+.TP
+.B \-s
+Enable string slicing like HP, Integer, Atari, etc. Turning this on makes arrays of strings inaccessible.
+.TP
+.BI \-o filename
+Redirect PRINT statement output to the named file.
+.TP
+.BI \-i filenme
+Redirect INPUT statements to read from the named file, one INPUT value per line.
+.TP
+.B \-n
+Do not run the BASIC program, simply parse it and exit. 
+.TP
+.B \-p
+Print a selection of statistics to the console.
+.TP
+.BI \-w filename
+Write the statistics to the named file in an alternative, system-readable format.
+
+.SH GENERAL DESIGN
+.B retrobasic
+is intended to run programs from a variety of 1970s and early 1980s BASIC dialects without any changes to the original code. Although there were a large number of individual additions and customizations across the many varied platforms, most dialects still followed the pattern set by 1964's Dartmouth BASIC. Whenever two dialect's changes do interfere,
+.B retrobasic
+always chooses the version that is closer to Microsoft BASIC as described in the introduction of
+.I "BASIC Computer Games" .
+
+The original purpose of the system was to collect statistics on common BASIC programs like 
+.I Super Star Trek.
+The statistics are collected during the parsing stage and can be printed out using the 
+.B \-p
+option, or written to a named file with
+.B \-w
+.I filename.
+If one is using
+.B retrobasic
+primarily for this purpose, this can be aided by adding the
+.B \-n
+option, which parses the program and collects the statistics, but simply exits instead of beginning to run the program.
+
+.B retrobasic
+may also be used for regression testing using the
+.B \-r
+,
+.B \-i
+and 
+.B \-o 
+options. The first seeds the random number generator to a given value so that subsequent runs will create the same series of events, the next reads inputs from a file recording previous interactive inputs, and the final one writes all output to another file. Diff'ing the resulting output from different versions of a program can be used to find changes.
+
+.SH STRING HANDLING
+One area where BASIC dialects vary widely is their support for string manipulation. The original Dartmouth versions did not include string variables or functions, and as new dialects were introduced these features were a common addition. Over time, three general families of string handling in BASIC emerged. The first was HP's Timeshare BASIC which used a FORTRAN-like syntax of array slicing,
+.B A(1,5).
+Dartmouth introduced their
+.B CHANGE
+command shortly thereafter. The final entry was DEC's string functions from BASIC-PLUS, including the now well-known
+.B MID$
+,
+.B LEFT$
+and
+.B RIGHT$.
+
+.B retrobasic
+attempts to support all three of these variations. This presents a problem; HP's slicing syntax looks identical to an array access in the other dialects. Following the general rule to default to MS-like behaviour,
+.B retrobasic
+normally interprets such syntax as an array access.
+
+To support the many BASICs that were patterned on the HP style, notably Apple BASIC (better known today as Interger BASIC), Atari and Sinclair, the
+.B -s
+option can be used. Turning this on tells
+.B retrobasic
+to interpret all such syntax as a slice, not an array access. If you are running programs from HP-style sources, like
+.I What to Do After you Hit Return
+, use this option and the code should run without complaint.
+
+There are additional variations to consider. HP allowed either parens or square brackets for array accesses or slicing. In practice, it seems the only use of square brackets is to denote slicing, although the opposite is not true, parens are often used for slicing and does not imply an array access. As no other interpreter allows this syntax, square brackets in code are interpreted as slicing. Another variation is the style introduced in the Full BASIC ANSI standard, which used a colon,
+.B A(1:5),
+which is distinct and can always be interpreted as a slice. This allows the use of arrays and slicing in the same command:
+.B A(1,2)(1:2).
+This syntax can be used without invoking the
+.B\-s
+option, although it does not appear to have ever been used in surviving code.
+
+.SH EXAMPLE
+
+.B retrobasic sst.bas
+\- play a game of Super Star Trek
+
+.B retrobasic -np sst.bas
+\- parse Super Star Trek and print statistics about the program structure
+
+
+
+.SH BUGS
+
+INPUT statements with multiple variables have to be entered on separate lines; most dialects allow these to be space delimited.
+
+Many dialects of BASIC will silently set up an otherwise un-DIMed variable to be an array 0..10. This is rarely seen in real code, where arrays are invariably DIMensioned near the top of the program.
+.B retrobasic
+does not currently follow this convention.
+
+.SH AUTHORS
+
+Maury Markowitz is the original author of RetroBASIC. It is based on gnbasic by James Bowman.
