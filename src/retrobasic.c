@@ -1333,17 +1333,36 @@ static void perform_statement(list_t *L)
         // NEXT J inside a NEXT I
         // FIXME: this is easy to fix, simply get the variable name from the FOR
         //  stack and then check if it's the same as the one in the NEXT, error out
-				forcontrol_t *pfc;
+				// make sure there is a stack
 				if (interpreter_state.forstack  == NULL || lst_length(interpreter_state.forstack) == 0) {
 					basic_error("NEXT without FOR");
 					break;
 				}
-
-        pfc = lst_last_node(interpreter_state.forstack)->data;
-        either_t *lv;
+				
+				// get the topmost FOR
+				forcontrol_t *pfc = lst_last_node(interpreter_state.forstack)->data;
+				
+				// see if the next has any variable names, that is, NEXT I vs. NEXT,
+				// and if so, ensure the latest FOR on the stack is one of those variables
+				if (lst_length(ps->parms.next) > 0) {
+					int foundIt = FALSE;
+					list_t *var = lst_first_node(ps->parms.next);
+					for (int i = 0; i < lst_length(ps->parms.next); i++) {
+						if (strcmp(pfc->index_variable->name, ((variable_t *)var->data)->name) == 0) {
+							foundIt = TRUE;
+						}
+						else {
+							var = lst_next(ps->parms.next);
+						}
+					}
+					if (!foundIt) {
+						basic_error("NEXT with mismatched FOR");
+						break;
+					}
+				}
+								
         int type = 0;
-        
-        lv = variable_value(pfc->index_variable, &type);
+				either_t *lv = variable_value(pfc->index_variable, &type);
         lv->number += pfc->step;
         if (((pfc->step < 0) && (lv->number >= pfc->end)) ||
             ((pfc->step > 0) && (lv->number <= pfc->end))) {
