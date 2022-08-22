@@ -14,9 +14,11 @@ RetroBASIC
 
 ## Introduction
 
-RetroBASIC is a BASIC interpreter whose ultimate goal is to run any program for the major 1970s/80s BASIC interpreters and is patterned mostly on MS-BASIC as seen on Commodore machines. It also includes the alternate string manipulation methods from Datrmouth BASIC v4 and HP Timeshare BASIC, the later of which was widely used in early microcomputer interpreters. The ultimate goal is to support almost any dialect from the era, including Tiny BASIC, Palo Alto Tiny BASIC (PATB), MS-BASIC (Altair, Commodore, etc.), HP TimeShare BASIC (Northstar, Apple, Atari, Sinclair, etc.) and others. 
+RetroBASIC is a BASIC interpreter whose ultimate goal is to run any program for the major 1970s/80s BASIC interpreters and is patterned mostly on MS-BASIC as seen on Commodore machines. It also includes the alternate string manipulation methods from Dartmouth BASIC v4 and HP Timeshare BASIC, the later of which was widely used in early microcomputer interpreters. The ultimate goal is to support almost any dialect from the era, including Tiny BASIC, Palo Alto Tiny BASIC (PATB), MS-BASIC (Altair, Commodore, etc.), HP TimeShare BASIC (Northstar, Apple, Atari, Sinclair, etc.) and others. 
 
 RetroBASIC also includes a simple static analizer that (optionally) prints statistics for the program after it completes. This includes the length of the program and its line number range, the number and types of variables used, and similar details. The original impetus for RetroBASIC was to collect statistics on common programs to provide hints to the retrocomputing field, where new BASICs continue to be developed.
+
+RetroBASIC can redirect the output from `PRINT` statements and `INPUT` prompts to a file, and read the responces to `INPUT` statements from a file. This can be used to provide the same input to a program multiple times, and then the output can be `diff`ed to look for changes. This ia aided by setting the random seed to the same value, which can be done on the command line to avoid editing the original BASIC code.
 
 RetroBASIC is based on gnbasic by James Bowman.
  
@@ -59,8 +61,9 @@ A sample Xcode project is included, as well as a basic makefile. If anyone would
 A complete list is maintained in the TODO file, but here are some important limitations:
 
 * INPUT statements with multiple values currently have to be entered with return/enter between each value, spaces do not work.
-* The system does not support "immediate mode" (command line) input. It is not supposed to, but could potentially do so.
+* Most dialects of basic perform an "invisible DIM" on all variables, defining them to be arrays 0..10. This is not currently supported, but is *rarely* seen in actual programs.
 * Variable names are currently limited to two characters, which is needed to support "crunched" statements without spaces in MS style.
+* The system does not support "immediate mode" (command line) input. It is not supposed to, but could potentially do so.
 * LIST, LOAD and SAVE are currently not implemented, in keeping with the use-case.
 * File I/O is not supported, commands like OPEN will be parsed but have no effect.
 * POKE does nothing, PEEK returns zero.
