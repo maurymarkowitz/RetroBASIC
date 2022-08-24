@@ -30,11 +30,17 @@ static void print_version()
   puts("RetroBASIC 1.2");
 }
 
-/* usage, both for the user and for documenting the code below */
+/* usage short form, just a list of the switches */
 static void print_usage(char *argv[])
 {
   printf("Usage: %s [-hvsngu] [-a number] [-t spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] source_file\n", argv[0]);
-  puts("Options:");
+}
+
+/* full usage notes, both for the user and for documenting the code below */
+static void print_help(char *argv[])
+{
+  printf("Usage: %s [-hvsngu] [-a number] [-t spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] source_file\n", argv[0]);
+  puts("\nOptions:");
   puts("  -h, --help: print this description");
   puts("  -v, --version: print version info");
   puts("  -u, --upper-case: convert all input to upper case");
@@ -85,7 +91,7 @@ void parse_options(int argc, char *argv[])
           break;
         
       case 'h':
-        print_usage(argv);
+        print_help(argv);
         printed_help = TRUE;
         break;
         
@@ -151,8 +157,10 @@ void parse_options(int argc, char *argv[])
     // not always a failure, we might have just been asked for usage
     if (printed_help)
       exit(EXIT_SUCCESS);
-    else
+    else {
+      print_usage(argv);
       exit(EXIT_FAILURE);
+    }
 }
 
 int main(int argc, char *argv[])
