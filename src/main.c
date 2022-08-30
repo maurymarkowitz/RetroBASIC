@@ -39,7 +39,7 @@ static void print_usage(char *argv[])
 /* full usage notes, both for the user and for documenting the code below */
 static void print_help(char *argv[])
 {
-  printf("Usage: %s [-hvsngu] [-a number] [-t spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] source_file\n", argv[0]);
+  printf("Usage: retrobasic [-hvsngu] [-a number] [-t spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] source_file\n");
   puts("\nOptions:");
   puts("  -h, --help: print this description");
   puts("  -v, --version: print version info");
