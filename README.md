@@ -52,9 +52,11 @@ Short options with no parameters can be gan ganged, for instance -unp.
 
 ## Building RetroBASIC
 
-The RetroBASIC interpreter is written for lex/yacc/c and is normally compiled with flex/bison. It has a single non-standard dependancy; it uses GLib for string, list and tree suppport. It should compile on any platform with GLib, and has been tested on macOS and Windows with the support of Cygwin.
+The RetroBASIC interpreter is written for lex/yacc/c and is normally compiled with flex/bison. It has no external depedancies, although cygwin is required for compiling on Windows. A makefile is included that should run on almost any Unix-like system, including macOS.
 
-A sample Xcode project is included, as well as a basic makefile. If anyone would like to contribute a VS.net project, it would be greatly appeciated.
+An Xcode project is also included, which is the primary building method during testing. It has one drawback (currently), the bison build rule in Xcode does not properly build `parse.h` into the `src` folder, but follows yacc-like rules and builds `y.tab.h` file in the `../DerivedFiles` folder. If you make changes to `parse.y`, be sure to copy the new `y.tab.h` to `/src/parse.h` for those changes to be visible.
+
+If anyone would like to contribute a VS.net project, it would be greatly appeciated.
 
 ## Missing features and Erata
 
