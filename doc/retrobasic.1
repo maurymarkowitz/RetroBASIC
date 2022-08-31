@@ -33,43 +33,53 @@ is an interpreter designed to run programs from most 1970s and early 1980s BASIC
 
 .SH OPTIONS
 .TP
-.B \-h
+.B \-h, \--help
 Print a help message and exit.
 .TP
-.B \-v
+.B \-v, \--version
 Print version info and exit.
 .TP
-.B \-u
+.B \-u, \--upper-case
 Convert all input to upper-case, like using caps lock.
 .TP
-.BR \-a [1/0]
+.BR \-a [1|0],
+.BR \--array-base =[1/0]
 Set the base index for arrays, normally 0 but some dialects use 1.
 .TP
-.BI \-t  num
+.BI \-t num,
+.BI \--tabs
 Sets the number of spaces for comma-separated items, defaults to 10 based on the Commodore PET.
 .TP
-.B \-g
+.B \-g,
+.B \--goto-next
 Branches to a non-existant lines will continue on the next line, instead of raising an error.
 .TP
-.BI \-r num
+.BI -r num
+.BI --random num
 Seed the random number generator, passing 0 causes it to randomize.
 .TP
-.B \-s
+.B \-s,
+.B \--slicing
 Enable string slicing like HP, Integer, Atari, etc. Turning this on makes arrays of strings inaccessible.
 .TP
-.BI \-o filename
+.BI \-o filename,
+.BI \--output-file filename
 Redirect PRINT statement output to the named file.
 .TP
-.BI \-i filenme
+.BI \-i filenme,
+.BI \--input-file filenme
 Redirect INPUT statements to read from the named file, one INPUT value per line.
 .TP
-.B \-n
-Do not run the BASIC program, simply parse it and exit. 
+.B \-n,
+.B \--no-run
+Do not run the BASIC program, simply parse it and exit.
 .TP
-.B \-p
+.B \-p,
+.B \--print-statistics
 Print a selection of statistics to the console.
 .TP
-.BI \-w filename
+.BI \-w filename,
+.BI \--write-statistics filename
 Write the statistics to the named file in an alternative, system-readable format.
 
 .SH GENERAL DESIGN
@@ -86,27 +96,25 @@ The statistics are collected during the parsing stage and can be printed out usi
 option, or written to a named file with
 .B \-w
 .I filename.
-If the statistics are all that is needed,
-.B RetroBASIC
-add the
+If the statistics are all that is needed, add the
 .B \-n
 option, which parses the program and then immediately exits without running the program.
 
 .B RetroBASIC
 may also be used for regression testing using the
-.B \-r
-,
-.B \-i
-and 
-.B \-o 
+.BR -r , -i and -o
 options. The first seeds the random number generator to a given value so that subsequent runs will create the same series of events, the next reads inputs from a file recording previous interactive inputs, and the final one writes all output to another file. Diff'ing the resulting output from different versions of a program can be used to find changes.
 
 .SH STRING HANDLING
-One area where BASIC dialects vary widely is their support for string manipulation. The original Dartmouth versions did not include string variables or functions, and as new dialects were introduced these features were a common addition. Over time, three general families of string handling in BASIC emerged. The first was HP's Timeshare BASIC which used a FORTRAN-like syntax of array slicing,
-.BR A(1,5) .
-Dartmouth introduced their
+One area where BASIC dialects vary widely is their support for string manipulation. The original Dartmouth versions did not include string variables or functions, and new dialects ofted added their own string features.
+
+Over time, three general families emerged. The first was Dartmouth's
 .B CHANGE
-command shortly thereafter. The final entry was DEC's string functions from BASIC-PLUS, including the now well-known
+command, which converted a string into an numeric array of ASCII values. HP's Time-Sharing BASIC also included a similar feature,
+.B CONVERT
+, but also added a FORTRAN-like syntax of array slicing,
+.BR A(1,5) .
+The final entry was DEC's string functions from BASIC-PLUS, including the now well-known
 .BR MID$ ,
 .BR LEFT$ and
 .BR RIGHT$ .
@@ -116,7 +124,7 @@ attempts to support all three of these variations. This presents a problem; HP's
 .B RetroBASIC
 normally interprets such syntax as an array access.
 
-To support the many BASICs that were patterned on the HP style, notably Apple BASIC (better known today as Interger BASIC), Atari and Sinclair, the
+To support the many BASICs that were patterned on the HP style, notably Apple BASIC (better known today as Integer BASIC), Atari and Sinclair, the
 .B -s
 option can be used. Turning this on tells
 .B RetroBASIC
@@ -127,18 +135,18 @@ to interpret all such syntax as a slice, not an array access. If you are running
 There are additional variations to consider. HP allowed either parens or square brackets for array accesses or slicing. In practice, it seems the only use of square brackets is to denote slicing, although the opposite is not true and parens are used both for slicing and arrays. As no other interpreter allows this syntax, square brackets in code are interpreted as slicing. Another variation is the style introduced in the ANSI Full BASIC standard, which used a colon,
 .BR A(1:5) ,
 which is distinct and can always be interpreted as a slice. This allows the use of arrays and slicing in the same command:
-.BR A(1,2)(1:2) .
+.BR A(1,2)(1:2) \.
 This syntax can be used without invoking the
 .B\-s
 option, although it does not appear to have ever been used in surviving code.
 
-.SH EXAMPLE
+.SH EXAMPLES
 
-.B -u retrobasic sst.bas
+.B retrobasic -u sst.bas
 \- play a game of Super Star Trek with caps lock turned on.
 
 .B retrobasic -np sst.bas
-\- parse Super Star Trek and print statistics about the program structure and exit.
+\- parse Super Star Trek, print statistics about the program structure, and exit.
 
 .SH BUGS
 

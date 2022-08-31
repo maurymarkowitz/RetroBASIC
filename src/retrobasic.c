@@ -1014,6 +1014,22 @@ static void perform_statement(list_t *L)
   statement_t *ps = L->data;
   if (ps) {
     switch (ps->type) {
+			case BASE:
+				if (ps->parms.generic_parameter != NULL) {
+					value_t baseval;
+					baseval = evaluate_expression(ps->parms.generic_parameter);
+					if (baseval.number == 0 || baseval.number == 1)
+						array_base = (int)baseval.number;
+					else {
+						char buffer[80];
+						sprintf(buffer, "OPTION BASE with invalid parameter %g", baseval.number);
+						basic_error(buffer);
+					}
+				} else {
+					basic_error("OPTION BASE with no parameter");
+				}
+				break;
+
       case BYE:
         // unlike END, this exits BASIC entirely
         exit(EXIT_SUCCESS);
@@ -1327,19 +1343,13 @@ static void perform_statement(list_t *L)
         
       case NEXT:
       {
-        // this version does not precisely match MS, it always gets the last
-        // entry on the FOR stack and uses that variable, ignoring the variable
-        // that might have been entered in the source. this means you can't put a
-        // NEXT J inside a NEXT I
-        // FIXME: this is easy to fix, simply get the variable name from the FOR
-        //  stack and then check if it's the same as the one in the NEXT, error out
 				// make sure there is a stack
 				if (interpreter_state.forstack  == NULL || lst_length(interpreter_state.forstack) == 0) {
 					basic_error("NEXT without FOR");
 					break;
 				}
 				
-				// get the topmost FOR
+				// get the most-recent FOR, which is the *end* of the list
 				forcontrol_t *pfc = lst_last_node(interpreter_state.forstack)->data;
 				
 				// see if the next has any variable names, that is, NEXT I vs. NEXT,
@@ -1360,16 +1370,19 @@ static void perform_statement(list_t *L)
 						break;
 					}
 				}
-								
+				
+				// do a STEP
         int type = 0;
 				either_t *lv = variable_value(pfc->index_variable, &type);
         lv->number += pfc->step;
+				
+				// and see if we need to go back to the FOR or we're done and we continue on
         if (((pfc->step < 0) && (lv->number >= pfc->end)) ||
             ((pfc->step > 0) && (lv->number <= pfc->end))) {
           // we're not done, go back to the head of the loop
           interpreter_state.next_statement = lst_next(pfc->head);
         } else {
-          // we are done, remove this entry from the stack
+          // we are done, remove this entry from the stack and just keep going
           interpreter_state.forstack = lst_remove_node_with_data(interpreter_state.forstack, pfc);
 					free(pfc);
         }
@@ -1383,8 +1396,8 @@ static void perform_statement(list_t *L)
         delete_variables();
         delete_functions();
         delete_lines();
+				interpreter_state.next_statement = NULL; // stop execution, there's nothing left
       }
-        interpreter_state.next_statement = NULL; // stop execution, there's nothing left
         break;
         
       case ON:
@@ -1439,22 +1452,6 @@ static void perform_statement(list_t *L)
           interpreter_state.next_statement = find_line(linenum);
         }
       }
-        break;
-        
-      case BASE:
-        if (ps->parms.generic_parameter != NULL) {
-          value_t baseval;
-          baseval = evaluate_expression(ps->parms.generic_parameter);
-          if (baseval.number == 0 || baseval.number == 1)
-            array_base = (int)baseval.number;
-          else {
-            char buffer[80];
-            sprintf(buffer, "OPTION BASE with invalid parameter %g", baseval.number);
-            basic_error(buffer);
-          }
-        } else {
-          basic_error("OPTION BASE with no parameter");
-        }
         break;
         
       case POKE:
