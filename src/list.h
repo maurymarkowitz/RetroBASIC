@@ -79,13 +79,13 @@ typedef struct _list {
 } list_t;
 
 /**
- * Returns the next node.
+ * Returns the previous node.
  *
  * @param list the list to traverse.
  */
 #define lst_previous(list)      ((list) ? (((list_t *)(list))->prev) : NULL)
 
-/** Returns the previous node.
+/** Returns the next node.
  *
  * @param list the list to traverse.
  */
@@ -123,8 +123,8 @@ void lst_free_everything(list_t *list);
  *
  * lst_copy makes a shallow copy of the original list, creating new nodes
  * but not duplicating the original user data. This means that freeing objects
- * from either list will cause the other to contain invalid pointers. It is up to the
- * user to manage the malloc/free of the underlying data.
+ * from either list will cause the other to contain invalid pointers. It is up
+ * to the user to manage the malloc/free of the underlying data.
  */
 list_t* lst_copy(list_t *list);
 
