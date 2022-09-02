@@ -30,8 +30,9 @@ Boston, MA 02111-1307, USA.  */
  * @brief Various utilities for strings based on GLib's gstring.
  *
  * The types and functions in this library are intended to closely mirror the API of the
- * GLib library. gnbasic was written using GLib to avoid recreating the wheel for common
- * functionality.
+ * GLib GString library. gnbasic was written using GLib to avoid recreating the wheel for
+ * common functionality. It also includes a replacement for strndup, which is POSIX and
+ * not available in windows.
  * 
  */
 
@@ -40,11 +41,22 @@ Boston, MA 02111-1307, USA.  */
 #define MAXSTRING 256
 
 /**
- * @brief mallocs a new string and copies the optional @p string into it.
+ * mallocs a new string and copies the optional @p string into it.
  *
  * @param string The string to to copy from, or NULL.
  */
 char* str_new(char *string);
+
+/**
+ * mallocs a new string and copies in the contents of @p string, up to @p no_of_chars.
+ * Replaces strndup, as this is only available in POSIX and thus doesn't exist
+ * on Windows.
+ *
+ * @param string The string to copy.
+ * @param no_of_chars Number of characters to delete.
+ * @return The copied string.
+ */
+char* str_copy(const char *string, size_t no_of_chars);
 
 /**
  * @brief Escapes out C bits like \n.
@@ -55,7 +67,7 @@ char* str_new(char *string);
 char* str_escape(const char *string);
 
 /**
- * @brief Converts a string to lower-case
+ * Converts a string to lower-case.
  *
  * @param string The string to convert.
  * @return The converted string.
@@ -63,7 +75,7 @@ char* str_escape(const char *string);
 char* str_tolower(char *string);
 
 /**
- * @brief Converts a string to upper-case
+ * Converts a string to upper-case.
  *
  * @param string The string to convert.
  * @return The converted string.
@@ -71,7 +83,7 @@ char* str_tolower(char *string);
 char* str_toupper(char *string);
 
 /**
- * @brief Deletes characters from a string starting at @p starting_pos and running for @p no_of_chars.
+ * Deletes characters from a string starting at @p starting_pos and running for @p no_of_chars.
  *
  * @param string The string to delete from.
  * @param starting_pos Starting location to delete from.
@@ -83,7 +95,7 @@ char* str_toupper(char *string);
 char* str_erase(char *string, size_t starting_pos, size_t no_of_chars);
 
 /**
- * @brief Deletes @p no_of_chars characters at the end a string.
+ * Deletes @p no_of_chars characters at the end a string.
  *
  * @param string The string to delete from.
  * @param no_of_chars How many to delete.
@@ -94,7 +106,7 @@ char* str_erase(char *string, size_t starting_pos, size_t no_of_chars);
 char* str_truncate(char *string, size_t no_of_chars);
 
 /**
- * @brief Deletes @p no_of_chars characters at the front of a string.
+ * Deletes @p no_of_chars characters at the front of a string.
  *
  * @param string The string to delete from.
  * @param no_of_chars How many to delete.
@@ -105,7 +117,7 @@ char* str_truncate(char *string, size_t no_of_chars);
 char* str_fruncate(char *string, size_t no_of_chars);
 
 /**
- * @brief Appends @p new_string to the end of @p orig_string and returns resulting @p orig_string.
+ * Appends @p new_string to the end of @p orig_string and returns resulting @p orig_string.
  *
  * @param orig_string The string to append onto.
  * @param new_string The string to append.

@@ -38,6 +38,22 @@ char* str_new(char *string)
   return newstr;
 }
 
+/* copies one string to another, replaces strndup */
+char* str_copy(const char *string, size_t no_of_chars)
+{
+  size_t len = 0;
+  while (len < no_of_chars && string[len])
+    len++;
+
+  char *new_str = malloc(len + 1);
+  if (new_str) {
+    memcpy(new_str, string, len);
+    new_str[len] = 0;
+  }
+
+  return new_str;
+}
+
 /* escapes C-string sequences like \n */
 char* str_escape(const char *string)
 {
