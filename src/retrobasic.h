@@ -37,7 +37,7 @@
  */
 
 /* consts used during parsing the source */
-#define MAXLINE 32767
+#define MAXLINE 65535
 
 /* internal state variables used for I/O and other tasks */
 extern int run_program;                 // default to running the program, not just parsing it
