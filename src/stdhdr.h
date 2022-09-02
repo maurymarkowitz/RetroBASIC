@@ -24,15 +24,7 @@ Boston, MA 02111-1307, USA.  */
 #pragma once
 
 #include <stdio.h>
-#include <assert.h>
-
 #include <stdlib.h>
-
-#ifndef HAVE_STRCASECMP
-#ifdef HAVE_STRICMP
-#define strcasecmp(A,B) stricmp((A),(B))
-#endif
-#endif
 
 //#ifdef HAVE_STRING_H
 #include <string.h>
@@ -40,12 +32,18 @@ Boston, MA 02111-1307, USA.  */
 //#include <strings.h>
 //#endif
 
-#include <ctype.h>
-#include <errno.h>
-#include <math.h>
+#ifndef HAVE_STRCASECMP
+#ifdef HAVE_STRICMP
+#define strcasecmp(A,B) stricmp((A),(B))
+#endif
+#endif
+
+#include <ctype.h>  // toupper and tolower
+#include <errno.h>  // used only while opening the program file, could be removed?
+#include <math.h>   // fmax, fabs, etc.
 #include <limits.h> // gives INT_MAX
+
 #include <time.h>   // used for TIME and DATE in main and stats
-#include <stdint.h>
 
 #include "strng.h"
 #include "list.h"
