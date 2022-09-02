@@ -26,4 +26,7 @@ Version 1.3 - 18 August 2022
     a 1-based system that accesses 0 will no longer cause an error but
     this should not occur in known-good code
 - added several changes to allow building using the makefile (thanks SK!)
-- added a custom build rule in Xcode to properly update parse.h
+
+Version 1.4 - 2 September 2022
+
+- removing POSIX and GNU calls to make it more compatible with MSVC

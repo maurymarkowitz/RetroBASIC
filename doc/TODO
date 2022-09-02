@@ -40,13 +40,13 @@ PA = Palo Alto Tiny BASIC
 
 - file handling, OPEN, PRINT# etc.
 
-- a number of less-commonly-used math and string functions are not yet implemented: CINT CSNG CDBL
+- CINT CSNG CDBL are not implemented
 
 - GW BASIC string formatters in PRINT USING, but number formats work
 
 Will not be done:
 
-- WB allows RESTORE to use an ordinal position in the list, as opposed to a line number
+- WB allows RESTORE to use an ordinal position in the list, as opposed to a line number. There appears to be no easy way to distinguish this.
 
 - WB uses CONVERT for ASC, which steps on HPs CONVERT
 
