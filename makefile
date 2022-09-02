@@ -20,7 +20,7 @@ TARGET = retrobasic
 # the final program has three inputs, the lex/yacc and the interpreter source
 $(TARGET): $(wildcard src/*.c) parse.tab.c lex.yy.c
 	$(CC) -Isrc $^ -o $(TARGET) -lm
- 
+
 # if the lex or .tab.h file is changed, run lex again
 lex.yy.c: src/scan.l parse.tab.h
 	$(LEX) $(LEXFLAGS) $<
