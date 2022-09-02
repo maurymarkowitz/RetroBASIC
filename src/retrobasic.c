@@ -1616,7 +1616,7 @@ static void perform_statement(list_t *L)
           value_t message = evaluate_expression(ps->parms.generic_parameter);
           printf("STOP: %s\n", message.string);
         }
-        assert(1==2);
+        exit(0);
       }
         break;
 
@@ -1626,7 +1626,7 @@ static void perform_statement(list_t *L)
         
       default:
         printf("Unimplemented statement %d\n", ps->type);
-        assert(0);
+				exit(0);
     } //end switch
   }
 }
@@ -1639,22 +1639,22 @@ static void print_symbol(void *key, void *value, void *unused)
   printf("\n%s ", (char *)key);
 }
 /* ...and their values */
-static int print_value(void *key, void *value, void *unused)
-{
-	variable_storage_t *storage;
-	storage = lst_data_with_key(interpreter_state.variable_values, key);
-	
-  either_t *p = storage->value;
-  int type = storage->type;
-  if (type == STRING)
-    if (p->string == 0)
-      printf("\n%s: %s", (char *)key, "NULL");
-    else
-      printf("\n%s: %s", (char *)key, (char *)p->string);
-  else
-    printf("\n%s: %f", (char *)key, (double)p->number);
-  return FALSE;
-}
+//static int print_value(void *key, void *value, void *unused)
+//{
+//	variable_storage_t *storage;
+//	storage = lst_data_with_key(interpreter_state.variable_values, key);
+//
+//  either_t *p = storage->value;
+//  int type = storage->type;
+//  if (type == STRING)
+//    if (p->string == 0)
+//      printf("\n%s: %s", (char *)key, "NULL");
+//    else
+//      printf("\n%s: %s", (char *)key, (char *)p->string);
+//  else
+//    printf("\n%s: %f", (char *)key, (double)p->number);
+//  return FALSE;
+//}
 /* used for VARLIST in those versions of BASIC that support it */
 static void print_variables() {
 	lst_foreach(interpreter_state.variable_values, print_symbol, NULL);

@@ -27,11 +27,11 @@ Boston, MA 02111-1307, USA.  */
  * @brief A simple linked-list implementation and various work methods
  *
  * This code implements a doubly-linked list and various common functionality like
- * inserting and deleting items from the list, calculating the number of items (length),
+ * inserting and deleting items from the list, counting the number of items (length),
  * and so forth.
  *
  * The list consists of a linked series of "nodes", which are also the basic struct of
- * the list itself. Lists and the nodes are synonomous, a minimal valid list consists
+ * the list itself. Lists and the nodes are synonomous. A minimal valid list consists
  * of a single node. The empty list is NULL, not a single empty node.
  *
  * The list normally contains data via a void* pointer which the user has to allocate
@@ -81,14 +81,16 @@ typedef struct _list {
 /**
  * Returns the previous node.
  *
- * @param list the list to traverse.
- */
+ * @param list a node in the list to traverse.
+ * @return the previous node.
+*/
 #define lst_previous(list)      ((list) ? (((list_t *)(list))->prev) : NULL)
 
 /** Returns the next node.
  *
- * @param list the list to traverse.
- */
+ * @param list a node in the list to traverse.
+ * @return the next node.
+*/
 #define lst_next(list)          ((list) ? (((list_t *)(list))->next) : NULL)
 
 /** Stores an (int) in the data field in place of a pointer.
