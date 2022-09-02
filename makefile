@@ -26,7 +26,7 @@ lex.yy.c: src/scan.l parse.tab.h
 	$(LEX) $(LEXFLAGS) $<
 
 # If the yacc file is changed, run yacc again.
-parse.tab.c: src/parse.y
+parse.tab.c parse.tab.h: src/parse.y
 	$(YAC) $(YFLAGS) $<
 
 clean:
