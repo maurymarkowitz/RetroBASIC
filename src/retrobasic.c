@@ -67,7 +67,7 @@ typedef struct {
 
 /* forward declares */
 static value_t evaluate_expression(expression_t *e);
-static int line_for_statement(list_t *s);
+static int line_for_statement(const list_t *s);
 static int current_line(void);
 
 static void print_variables(void);
@@ -81,7 +81,7 @@ struct timeval start_time, end_time;     // start and end clock, for total run t
 
 /************************************************************************/
 
-static void basic_error(char *message)
+static void basic_error(const char *message)
 {
   fprintf(stderr, "%s at line %d\n", message, current_line());
 }
@@ -92,7 +92,7 @@ static void basic_error(char *message)
 /* NOTE: this code also handles string slicing. it would be much preferrable
  to do that as a function call so it could overload the MID$-style functions
  but I could not figure out how to do that at runtime in the yacc code. */
-either_t *variable_value(variable_t *variable, int *type)
+either_t *variable_value(const variable_t *variable, int *type)
 {
   variable_storage_t *storage;
   char *storage_name;
@@ -288,14 +288,14 @@ either_t *variable_value(variable_t *variable, int *type)
 
 /* cover method for variable_value, allows it to be exported to the parser
  without it having to know about either_t, which is private  */
-void insert_variable(variable_t *variable)
+void insert_variable(const variable_t *variable)
 {
   int ignore = 0;
   variable_value(variable, &ignore);
 }
 
 /* and another version which takes the type for use with DEFINT etc. */
-void insert_typed_variable(variable_t *variable, int type)
+void insert_typed_variable(const variable_t *variable, int type)
 {
   variable_value(variable, &type);
 }
@@ -304,7 +304,7 @@ void insert_typed_variable(variable_t *variable, int type)
  user-defined functions to find a matching name and/or inserts it if it's new.
  the difference is that this returns an expression which we then evaluate.
  */
-expression_t *function_expression(variable_t *function, expression_t *expression)
+expression_t *function_expression(const variable_t *function, expression_t *expression)
 {
   // see if we can find the entry in the symbol list
   function_storage_t *storage;
@@ -345,7 +345,7 @@ expression_t *function_expression(variable_t *function, expression_t *expression
 }
 
 /* converts a number to a new value_t */
-static value_t double_to_value(double v)
+static value_t double_to_value(const double v)
 {
   value_t r;
   r.type = NUMBER;
@@ -368,7 +368,7 @@ static value_t double_to_value(double v)
  in the IFs so that if we find new versions in the future that follow other rules its easy to
  add them.
  */
-static char *number_to_string(double d)
+static char *number_to_string(const double d)
 {
   static char str[40]; // use static so we know it won't be collected between calls
   if (d == 0.0) {
@@ -851,7 +851,7 @@ static value_t evaluate_expression(expression_t *expression)
 }
 
 /* handles the PRINT and PRINT USING statements, which can get complex */
-static void print_expression(expression_t *e, char *format)
+static void print_expression(expression_t *e, const char *format)
 {
   // get the value of the expression for this item
   value_t v = evaluate_expression(e);
@@ -916,7 +916,7 @@ static void print_expression(expression_t *e, char *format)
 /* NOTE: this is likely expensive, because is uses the index lookup
 				methods in list_t, which loop. So only use it when required!
  */
-static int line_for_statement(list_t *statement)
+static int line_for_statement(const list_t *statement)
 {
   // get a pointer to the program from the first line
   list_t *program = interpreter_state.lines[interpreter_state.first_line];
