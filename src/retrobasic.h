@@ -206,7 +206,7 @@ typedef struct {
 extern interpreterstate_t interpreter_state;
 
 /* the only piece of the interpreter the parser needs to know about is the variable table */
-void insert_variable(variable_t *variable);
+void insert_variable(const variable_t *variable);
 
 /* called by main to set up the interpreter state */
 void interpreter_setup(void);
