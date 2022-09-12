@@ -66,9 +66,8 @@ void lst_free_everything(list_t *list)
   if (tail->next != NULL)
     tail = lst_last_node(list);
   
-  list_t* temp;
   while (tail->prev != NULL) {
-    temp = tail;
+    list_t* temp = tail;
     tail = tail->prev;
     if (temp->data != NULL)
       free(temp->data);
