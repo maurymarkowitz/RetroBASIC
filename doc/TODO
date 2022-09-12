@@ -8,7 +8,7 @@ GW = GW-BASIC
 WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 
-- add slicing-based concat in LET, A(10) = B(5,10)
+- add slicing-based concat, A(10) = B(5,10)
 
 - most non-HP dialects invisibly DIM A(10) for any variable that does not have an explicit DIM. This means one can A(5)=25 without a DIM A() statement. This is rarely (if ever?) used in actual code, but should be added.
 
