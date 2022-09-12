@@ -221,9 +221,9 @@ either_t *variable_value(const variable_t *variable, int *type)
     list_t *slice_param = NULL;
     
     // see if there is an ANSI slice defined, if so, use that
-    if (variable->slicing != NULL && lst_length(variable->slicing)) {
+    if (lst_length(variable->slicing)) {
       // ANSI slices will always have two parameters in the slicing list
-      if (variable->slicing != NULL && lst_length(variable->slicing) != 2)
+      if (lst_length(variable->slicing) != 2)
         basic_error("Wrong number of parameters in string slice");
       
       slice_param = variable->slicing;
@@ -1057,8 +1057,7 @@ static void perform_statement(list_t *L)
 				//        assumes the stored variable is A( and adds the paren where needed
 			{
 				either_t *first_val, *second_val;
-				variable_storage_t *array_store, *string_store;
-				int string_length;
+				variable_storage_t *array_store;
 				int type1 = 0, type2 = 0;
 				
 				// get the types of the two variables
@@ -1076,9 +1075,6 @@ static void perform_statement(list_t *L)
 				str_append(array_storage_name, "("); // we are assuming it is missing
 				array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
 				free(array_storage_name);
-				
-				// and the same for the string
-				string_store = lst_data_with_key(interpreter_state.variable_values, (type1 == NUMBER) ? ps->parms.change.var2->name : ps->parms.change.var2->name);
 
 				// whichever one is a number has to be an array
 				if (lst_length(array_store->subscripts) == 0)
@@ -1093,7 +1089,7 @@ static void perform_statement(list_t *L)
 					// CONVERT STRING TO ARRAY OF ASCII
 					
 					// make sure the array is long enough for the string
-					string_length = (int)strlen(first_val->string);
+					int string_length = (int)strlen(first_val->string);
 					if (POINTER_TO_INT(array_store->subscripts->data) < string_length)
 						basic_error("Out of memory in CHANGE, numeric variable is too small to hold the string");
 					
@@ -1111,6 +1107,7 @@ static void perform_statement(list_t *L)
 				}
 				else {
 					// CONVERT ARRAY OF ASCII TO STRING
+					variable_storage_t *string_store;
 
 					// this one is a little easier, we can keep going until we see a zero
 					char new_string[MAXSTRING];
@@ -1118,7 +1115,7 @@ static void perform_statement(list_t *L)
 						new_string[i - 1] = (char)array_store->value[i].number;
 					}
 					
-					// delete any old valuye in the string and copy in the new one
+					// delete any old value in the string and copy in the new one
 					string_store = lst_data_with_key(interpreter_state.variable_values, ps->parms.change.var2->name);
 					free(string_store->value->string);
 					string_store->value->string = str_new(new_string);

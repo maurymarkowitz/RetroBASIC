@@ -130,12 +130,12 @@ void print_statistics()
   // out the number per line. so this code checks each node to see
   // if the ->next is the first item on the next line
   int stmts_max = 0, diff = 0, next_num;
-  list_t *this_line, *next_line;
+  list_t *next_line;
   list_t *start = interpreter_state.lines[interpreter_state.first_line];
   
   for(int i = interpreter_state.first_line; i < MAXLINE - 1; i++) {
     // get the next line's statements, and continue if its empty
-    this_line = interpreter_state.lines[i];
+    list_t *this_line = interpreter_state.lines[i];
     if (interpreter_state.lines[i] == NULL)
       continue;
     
