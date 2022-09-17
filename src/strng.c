@@ -67,6 +67,8 @@ char* str_escape(const char *string)
   p = (char *)string;
   /* Each source byte needs maximally four destination chars (\777) */
   q = dest = malloc(strlen(string) * 4 + 1);
+  if (!q)
+    return NULL;
 
   while (*p) {
     switch (*p)

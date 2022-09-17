@@ -91,7 +91,7 @@ static void is_double(void *key, void *value, void *user_data)
 {
   variable_storage_t *data = (variable_storage_t *)value;
   int *tot = (int *)user_data;
-  if (data->type == DOUBLE) *tot += 1;
+  if (data->type == _DOUBLE) *tot += 1;
 }
 static void is_integer(void *key, void *value, void *user_data)
 {
@@ -165,11 +165,20 @@ void print_statistics()
   lst_foreach(interpreter_state.variable_values, is_single, &num_int);
   lst_foreach(interpreter_state.variable_values, is_double, &num_int);
   lst_foreach(interpreter_state.variable_values, is_string, &num_str);
-  
+
+#ifdef _WIN32
+  double tu = (double)(end_time.wMilliseconds - start_time.wMilliseconds);
+  double ts = (double)(end_time.wSecond - start_time.wSecond);
+#else
+  double tu = (double)(end_time.tv_usec - start_time.tv_usec);
+  double ts = (double)(end_time.tv_sec - start_time.tv_sec);
+#endif
+
+
   // output to screen if selected
   if (print_stats == TRUE) {
-    printf("\nRUN TIME: %g\n", (double)(end_time.tv_usec - start_time.tv_usec) / 1000000 + (double)(end_time.tv_sec - start_time.tv_sec));
-    printf("CPU TIME: %g\n", ((double) (end_ticks - start_ticks)) / CLOCKS_PER_SEC);
+    printf("RUN TIME: %g\n", tu / 1000000 + ts);
+    printf("CPU TIME: %g\n", ((double)(end_ticks - start_ticks)) / CLOCKS_PER_SEC);
     
     printf("\nLINE NUMBERS\n\n");
     printf("  total: %i\n", lines_total);
@@ -248,9 +257,7 @@ void print_statistics()
     //check that the file name is reasonable, and then try to open it
     FILE* fp = fopen(stats_file, "w+");
     if (!fp) return;
-    
-    double tu = (double)(end_time.tv_usec - start_time.tv_usec);
-    double ts = (double)(end_time.tv_sec - start_time.tv_sec);
+
     fprintf(fp, "RUN TIME: %g\n", tu / 1000000 + ts);
     fprintf(fp, "CPU TIME,%g\n", ((double) (end_ticks - start_ticks)) / CLOCKS_PER_SEC);
     
