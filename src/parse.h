@@ -41,7 +41,7 @@
    enum yytokentype {
      STRING = 258,
      NUMBER = 259,
-     DOUBLE = 260,
+     _DOUBLE = 260,
      SINGLE = 261,
      INTEGER = 262,
      VARIABLE_NAME = 263,
@@ -61,7 +61,7 @@
      GOSUB = 277,
      GOTO = 278,
      IF = 279,
-     INPUT = 280,
+     _INPUT = 280,
      LET = 281,
      LIST = 282,
      NEXT = 283,
@@ -109,7 +109,7 @@
      LOG = 325,
      SQR = 326,
      RND = 327,
-     INT = 328,
+     _INT = 328,
      FIX = 329,
      CINT = 330,
      CSNG = 331,
@@ -149,7 +149,7 @@
 /* Tokens.  */
 #define STRING 258
 #define NUMBER 259
-#define DOUBLE 260
+#define _DOUBLE 260
 #define SINGLE 261
 #define INTEGER 262
 #define VARIABLE_NAME 263
@@ -169,7 +169,7 @@
 #define GOSUB 277
 #define GOTO 278
 #define IF 279
-#define INPUT 280
+#define _INPUT 280
 #define LET 281
 #define LIST 282
 #define NEXT 283
@@ -217,7 +217,7 @@
 #define LOG 325
 #define SQR 326
 #define RND 327
-#define INT 328
+#define _INT 328
 #define FIX 329
 #define CINT 330
 #define CSNG 331

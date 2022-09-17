@@ -23,6 +23,9 @@ Boston, MA 02111-1307, USA.  */
 
 #pragma once
 
+// this is for MSVC, which complains about standard calls like sprintf
+#define _CRT_SECURE_NO_WARNINGS 1
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -48,4 +51,7 @@ Boston, MA 02111-1307, USA.  */
 #include "strng.h"
 #include "list.h"
 
-typedef enum {FALSE = 0, TRUE} boolean; // useful macro (imho)
+#define FALSE 0
+#define TRUE 1
+
+//typedef enum {FALSE = 0, TRUE} boolean; // useful macro (imho)

@@ -25,8 +25,14 @@
 #include "retrobasic.h"
 
 /* additional externs used for the static analyzer, used in parse.y */
-extern clock_t start_ticks, end_ticks;  // start and end ticks, for calculating CPU time
+#ifdef _WIN32
+#include <Windows.h>
+extern ULONGLONG start_ticks, end_ticks;            // start and end ticks, for calculating CPU time
+extern SYSTEMTIME start_time, end_time;
+#else
+extern clock_t start_ticks = 0, end_ticks = 0;  // start and end ticks, for calculating CPU time
 extern struct timeval start_time, end_time;     // start and end clock, for total run time
+#endif
 
 extern int variables_total;
 extern int variables_default;

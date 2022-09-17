@@ -21,7 +21,11 @@
  the Free Software Foundation, 59 Temple Place - Suite 330,
  Boston, MA 02111-1307, USA.  */
 
+#ifdef _WIN32
+
+#else
 #include <sys/time.h>
+#endif // _WIN32
 
 #include "retrobasic.h"
 #include "parse.h"
@@ -74,10 +78,6 @@ static void print_variables(void);
 static void delete_variables(void);
 static void delete_functions(void);
 static void delete_lines(void);
-
-/* defitions of variables used by the static analyzer */
-clock_t start_ticks = 0, end_ticks = 0;  // start and end ticks, for calculating CPU time
-struct timeval start_time, end_time;     // start and end clock, for total run time
 
 /************************************************************************/
 
@@ -136,7 +136,7 @@ either_t *variable_value(variable_t *variable, int *type)
     else if (trailer == '!')
       storage->type = SINGLE;
     else if (trailer == '#')
-      storage->type = DOUBLE;
+      storage->type = _DOUBLE;
 		
     // now see if this reference includes subscripts
     if (variable->subscripts != NULL) {
@@ -200,7 +200,7 @@ either_t *variable_value(variable_t *variable, int *type)
         }
         
         // C arrays start at 0, BASIC arrays start at array_base
-				index = (index * original_dimension) + this_index.number; // - array_base;
+				index = (index * original_dimension) + (int)this_index.number; // - array_base;
         
         // then move on to the next index in the list
         original_dimensions = lst_next(original_dimensions);
@@ -245,38 +245,40 @@ either_t *variable_value(variable_t *variable, int *type)
     // if either of those got us something, pull out both parameters
     if (slice_param != NULL) {
       long slice_start, slice_end;
-      
+
       startPoint = evaluate_expression(slice_param->data);
       slice_start = (long)startPoint.number;
       slice_param = lst_next(slice_param);
-			if (slice_param && slice_param->data)
-				endPoint = evaluate_expression(slice_param->data);
-			else
-				endPoint = startPoint;
+      if (slice_param && slice_param->data)
+        endPoint = evaluate_expression(slice_param->data);
+      else
+        endPoint = startPoint;
       slice_end = (long)endPoint.number;
 
       // according to ANSI, numbers outside the string should be forced to the string's bounds
       // for non-ANSI, we'll error on odd numbers?
       if (variable->slicing != NULL) {
         slice_start = (int)fmax(slice_start, 1);
-        slice_end = (int)fmin(slice_end, strlen(storage->value->string));
-      } else {
-        if (slice_start < 1 || slice_end < 1 || slice_end > strlen(storage->value->string) - 1)
+        slice_end = (int)fmin(slice_end, (int)strlen(storage->value->string));
+      }
+      else {
+        if (slice_start < 1 || slice_end < 1 || slice_end >(int)strlen(storage->value->string) - 1)
           basic_error("String slice out of bounds");
       }
-      
+
       // again, the numbers above are 1-indexed from BASIC, so we need to...
       slice_start--;
       slice_end--;
 
       // the source string is at the selected array index, which is zero for non-ANSI
       either_t orig_string = storage->value[index];
-      
+
       // build a new string (this is leaking!)
-      either_t *result = malloc(sizeof(*result));
-      result->string = str_new(orig_string.string);
-      str_erase(result->string, slice_start, slice_end - slice_start + 1);
-      
+      either_t* result = malloc(sizeof(*result));
+      if (result) {
+        result->string = str_new(orig_string.string);
+        str_erase(result->string, slice_start, slice_end - slice_start + 1);
+      }
       return result; // this is being leaked?
       // otherwise just continue...
     }
@@ -314,6 +316,8 @@ expression_t *function_expression(variable_t *function, expression_t *expression
   if (!storage) {
     // malloc an entry
     storage = malloc(sizeof(*storage));
+    if (!storage)
+      exit(1);
     
     // set the return type based on the name
     char trailer = function->name[strlen(function->name) - 1];
@@ -328,7 +332,7 @@ expression_t *function_expression(variable_t *function, expression_t *expression
     else if (trailer == '!')
       storage->type = SINGLE;
     else if (trailer == '#')
-      storage->type = DOUBLE;
+      storage->type = _DOUBLE;
     
     // copy over the list of parameters
     storage->parameters = lst_copy(function->subscripts);
@@ -607,7 +611,7 @@ static value_t evaluate_expression(expression_t *expression)
             if (parameters[0].string == NULL)
               result.number = 0;
             else
-              result.number = strlen(parameters[0].string);
+              result.number = (double)strlen(parameters[0].string);
             break;
           case STR:
             result.type = STRING;
@@ -622,7 +626,7 @@ static value_t evaluate_expression(expression_t *expression)
           case COS:
             result.number = cos(a);
             break;
-          case INT:
+          case _INT:
             result.number = floor(a);
             break;
           case FIX:
@@ -796,7 +800,7 @@ static value_t evaluate_expression(expression_t *expression)
           {
             size_t len = strlen(parameters[0].string);
             result.string = str_new(parameters[0].string);
-            str_truncate(result.string, len - b);
+            str_truncate(result.string, (int)(len - b));
           }
             break;
           case RIGHT:
@@ -804,7 +808,7 @@ static value_t evaluate_expression(expression_t *expression)
           {
             size_t len = strlen(parameters[0].string);
             result.string = str_new(parameters[0].string);
-            str_fruncate(result.string, len - b);
+            str_fruncate(result.string, (int)(len - b));
           }
             break;
           case MID: // this is the two-parameter version, three follows
@@ -813,7 +817,7 @@ static value_t evaluate_expression(expression_t *expression)
           {
             size_t len = strlen(parameters[0].string);
             result.string = str_new(parameters[0].string);
-            str_erase(result.string, b - 1, len - b + 1);
+            str_erase(result.string, (int)b - 1, (int)(len - b + 1));
           }
             break;
           default:
@@ -826,14 +830,14 @@ static value_t evaluate_expression(expression_t *expression)
       // and finally, arity=3, which is currently only the MID
       else if (expression->parms.op.arity == 3)  {
         double b = parameters[1].number;
-        double c = parameters[2].number; // yeah, these could be ints
+        double c = parameters[2].number;
         
         switch (expression->parms.op.opcode) {
           case MID:
             result.type = STRING;
           {
             result.string = str_new(parameters[0].string);
-            str_erase(result.string, b - 1, c);
+            str_erase(result.string, (int)b - 1, (int)c);
           }
             break;
           default:
@@ -963,7 +967,13 @@ static list_t *find_line(int linenumber)
     basic_error(buffer);
     return NULL;
   }
-  
+  // this is included to stop MSVC from complaining about returning invalid data
+  if (linenumber = 0) {
+    sprintf(buffer, "Zero target line %i in branch", linenumber);
+    basic_error(buffer);
+    return NULL;
+  }
+
   // apparently some BASICs allow you to branch to a non-existant line and it will
   // go to the next-highest. this is definitely not what MS does, nor ANSI apparently,
   // but if this does come up we can use this flag on the command line
@@ -1066,19 +1076,19 @@ static void perform_statement(list_t *L)
 				second_val = variable_value(ps->parms.change.var2, &type2);
 				
 				// make sure one is a string and the other is numeric
-				if (type1 == STRING && type2 != NUMBER)
+				if (type1 == STRING && type2 < NUMBER)
 					basic_error("Type mismatch in CHANGE, string to ?");
-				else if (type1 == NUMBER && type2 != STRING)
+				else if (type1 >= NUMBER && type2 != STRING)
 					basic_error("Type mismatch in CHANGE, number to ?");
 				
 				// get the storage for the numeric value by adding the (
-				char *array_storage_name = str_new((type1 == NUMBER) ? ps->parms.change.var1->name : ps->parms.change.var2->name);
+				char *array_storage_name = str_new((type1 >= NUMBER) ? ps->parms.change.var1->name : ps->parms.change.var2->name);
 				str_append(array_storage_name, "("); // we are assuming it is missing
 				array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
 				free(array_storage_name);
 				
 				// and the same for the string
-				string_store = lst_data_with_key(interpreter_state.variable_values, (type1 == NUMBER) ? ps->parms.change.var2->name : ps->parms.change.var2->name);
+				string_store = lst_data_with_key(interpreter_state.variable_values, (type1 >= NUMBER) ? ps->parms.change.var2->name : ps->parms.change.var2->name);
 
 				// whichever one is a number has to be an array
 				if (lst_length(array_store->subscripts) == 0)
@@ -1217,13 +1227,13 @@ static void perform_statement(list_t *L)
         
         new->returnpoint = lst_next(L);
         interpreter_state.gosubstack = lst_append(interpreter_state.gosubstack, new);
-        interpreter_state.next_statement = find_line(evaluate_expression(ps->parms.gosub).number);
+        interpreter_state.next_statement = find_line((int)evaluate_expression(ps->parms.gosub).number);
       }
         break;
         
       case GOTO:
       {
-        interpreter_state.next_statement = find_line(evaluate_expression(ps->parms._goto).number);
+        interpreter_state.next_statement = find_line((int)evaluate_expression(ps->parms._goto).number);
       }
         break;
         
@@ -1249,7 +1259,7 @@ static void perform_statement(list_t *L)
       }
         break;
         
-      case INPUT:
+      case _INPUT:
       {
         // INPUT can mix together prompts and variables, it doesn't
         // *have* to be a single prompt at the start, although that is
@@ -1302,7 +1312,7 @@ static void perform_statement(list_t *L)
             // find the storage for this variable, and assign the value
             value = variable_value(ppi->expression->parms.variable, &type);
             if (type >= NUMBER) {
-              sscanf(line, "%lg", &value->number);
+              int ignored = sscanf(line, "%lg", &value->number);
             } else {
               value->string = str_new(line);
             }
@@ -1517,8 +1527,8 @@ static void perform_statement(list_t *L)
         if (ps->parms.generic_parameter == NULL)
           srand((unsigned int)time(0));
         else {
-          value_t seed_value = evaluate_expression(ps->parms.generic_parameter);
-          srand(seed_value.number);
+          value_t seed = evaluate_expression(ps->parms.generic_parameter);
+          srand((unsigned int)seed.number);
         }
       }
         break;
@@ -1616,7 +1626,7 @@ static void perform_statement(list_t *L)
           value_t message = evaluate_expression(ps->parms.generic_parameter);
           printf("STOP: %s\n", message.string);
         }
-        assert(1==2);
+        exit(0);
       }
         break;
 
@@ -1626,7 +1636,7 @@ static void perform_statement(list_t *L)
         
       default:
         printf("Unimplemented statement %d\n", ps->type);
-        assert(0);
+        exit(0);
     } //end switch
   }
 }
@@ -1723,11 +1733,6 @@ void interpreter_run(void)
 {
   // the cursor starts in col 0
   interpreter_state.cursor_column = 0;
-
-  // start the clock and mark us as running
-  start_ticks = clock();
-  gettimeofday(&start_time, NULL);
-  interpreter_state.running_state = 1;
   
   // last line number we ran, used for tracing/stepping
   int last_line = interpreter_state.first_line;
@@ -1753,8 +1758,6 @@ void interpreter_run(void)
     }
   }
   
-  // stop the clock and mark us as stopped
-  end_ticks = clock();
-  gettimeofday(&end_time, NULL);
+  // mark us as stopped
   interpreter_state.running_state = 0;
 }

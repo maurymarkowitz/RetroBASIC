@@ -88,7 +88,7 @@ static expression_t *make_operator(int arity, int o)
 
  // make sure STRING is before the numbers, so you can test all numbers as > STRING
 %token <s> STRING
-%token <d> NUMBER DOUBLE SINGLE INTEGER
+%token <d> NUMBER _DOUBLE SINGLE INTEGER
 %token <s> VARIABLE_NAME
 %token <s> FUNCTION_NAME
 
@@ -107,7 +107,7 @@ static expression_t *make_operator(int arity, int o)
 %token GOSUB
 %token GOTO
 %token IF
-%token INPUT
+%token _INPUT
 %token LET
 %token LIST
 %token NEXT
@@ -152,7 +152,7 @@ static expression_t *make_operator(int arity, int o)
 %token ATN COS SIN TAN
 %token CLOG EXP LOG SQR
 %token RND
-%token INT FIX CINT CSNG CDBL // fix=SGN(x)*INT(ABS(x))
+%token _INT FIX CINT CSNG CDBL // fix=SGN(x)*INT(ABS(x))
 
  /* string functions */
 %token ASC
@@ -351,7 +351,7 @@ statement:
   {
     statement_t *new = make_statement(DEFSTR);
     new->parms.deftype.vars = $2;
-    new->parms.deftype.type = DOUBLE;
+    new->parms.deftype.type = _DOUBLE;
     $$ = new;
   }
   |
