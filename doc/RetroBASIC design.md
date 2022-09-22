@@ -92,19 +92,18 @@ RetroBASIC is writen in a semi-cannonical C format, as defined by the [Canonical
   while (condition) dosomething;
   
 2) multi-line blocks have the opening brace on the statement line, to make them look more like single-line blocks
-
+```
   while (condition) {
      dosomething;
      andsomethingelse;
   }
-  
+```
     as opposed to:
 
+```
   while (condition)
   {
      dosomething;
      andsomethingelse;
   }
-
-
-
+```
