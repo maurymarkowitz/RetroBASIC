@@ -45,7 +45,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include <time.h>   // used for TIME and DATE in main and stats
 
-#include "strng.h"
-#include "list.h"
+#include "strng.h"  // our replacement for GLib.String
+#include "list.h"   // ... and GLib.List and .Tree
 
 typedef enum {FALSE = 0, TRUE} boolean; // useful macro (imho)
