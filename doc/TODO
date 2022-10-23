@@ -12,8 +12,6 @@ PA = Palo Alto Tiny BASIC
 
 - most non-HP dialects invisibly DIM A(10) for any variable that does not have an explicit DIM. This means one can A(5)=25 without a DIM A() statement. This is rarely (if ever?) used in actual code, but should be added.
 
-- add TIME, TIME$ and DATE$
-
 - test and error on incorrect nesting of FOR loops, which we currently ignore
 
 - need to allow multiple INPUTs on a single line, currently it requires a CR between values
