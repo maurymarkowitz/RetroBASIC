@@ -84,6 +84,7 @@
 		55B96993252F5AB80021CD8B /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		55C0605728B13842002B8345 /* retrobasic.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = retrobasic.1; sourceTree = "<group>"; };
 		55DEE88128A6A6B800270949 /* RetroBASIC design.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "RetroBASIC design.md"; sourceTree = "<group>"; };
+		55E12DB82904279A0005D17F /* RetroBASIC build notes.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "RetroBASIC build notes.md"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -150,6 +151,7 @@
 				55B3D427238EB43100E6054E /* pass-fail.txt */,
 				55C0605728B13842002B8345 /* retrobasic.1 */,
 				55DEE88128A6A6B800270949 /* RetroBASIC design.md */,
+				55E12DB82904279A0005D17F /* RetroBASIC build notes.md */,
 			);
 			path = doc;
 			sourceTree = "<group>";
@@ -216,7 +218,7 @@
 		55B3D404238E051D00E6054E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1340;
+				LastUpgradeCheck = 1400;
 				ORGANIZATIONNAME = "Maury Markowitz";
 				TargetAttributes = {
 					55B3D40B238E051D00E6054E = {
