@@ -1,6 +1,6 @@
 RetroBASIC version history
 
-Version 1.0 - initial release
+Version 1.0 - initial release, 2020
 
 - basic functionality needed to run all games in BASIC Computer Games
 - limited to the syntax and features of early MS BASICS like Commodore BASIC 1.x
@@ -22,7 +22,8 @@ Version 1.3 - 18 August 2022
 - removed GList, GTree and the GLib library itself
 - added UCASE and LCASE
 - added CHANGE command from Dartmouth v4, which required...
-- arrays/matrices now have an index 0 no matter the value of OPTION BASE,
+- arrays/matrices now have an index 0 no matter the value of OPTION BASE.
+    this is because the length of the string is placed in index 0.
     a 1-based system that accesses 0 will no longer cause an error but
     this should not occur in known-good code
 - added several changes to allow building using the makefile (thanks SK!)
@@ -30,3 +31,9 @@ Version 1.3 - 18 August 2022
 Version 1.4 - 2 September 2022
 
 - removing POSIX and GNU calls to make it more compatible with MSVC
+
+Version 1.5 - 22 October 2022
+
+- using stdbool instead of rolling my own boolean enum
+- added CLR, the MS analog of CLEAR
+- added TIME, TIME$, and the ability to reset the clock
