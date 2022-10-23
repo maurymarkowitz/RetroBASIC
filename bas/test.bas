@@ -109,21 +109,23 @@
 1891 CHANGE B TO B$
 1892 PRINT B$
 1900 REM
-1910 REM time and date
-1920 REM
-1930 !PRINT "the unix time is "TIME
-1940 !PRINT "the BASIC time string is "TIME$
-1950 !PRINT "the date value is "DATE
-1960 !PRINT "the date string is "DATE$
 2294 REM
 2295 REM make sure B and B() are different
 2296 REM
 2300 B=10
 2400 PRINT "B, should be 10: ",B,"B(1), should be 104: ",B(1)
-2994 REM
-2995 REM various prints and inputs with different separators
-2996 REM
-3000 LET A=2
+3000 REM
+3010 REM time functions
+3020 REM
+3030 PRINT "jiffies so far: ";TIME
+3040 PRINT "time so far: ";TIME$
+3050 PRINT "resetting time to 001000, 10 minutes, 36000 jiffies"
+3060 TIME$="001000"
+3070 PRINT "time now: ";TIME$
+3994 REM
+3995 REM various prints and inputs with different separators
+3996 REM
+3998 LET A=2
 4000 PRINT "A=2, A*10=";A*10
 4400 input "an input prompt with comma, enter a number (1 to 3)",A
 4700 input "an input prompt with semi, enter a number";B

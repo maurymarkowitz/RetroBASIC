@@ -167,7 +167,7 @@ void print_statistics()
   lst_foreach(interpreter_state.variable_values, is_string, &num_str);
   
   // output to screen if selected
-  if (print_stats == TRUE) {
+  if (print_stats) {
     printf("\nRUN TIME: %g\n", (double)(end_time.tv_usec - start_time.tv_usec) / 1000000 + (double)(end_time.tv_sec - start_time.tv_sec));
     printf("CPU TIME: %g\n", ((double) (end_ticks - start_ticks)) / CLOCKS_PER_SEC);
     
@@ -244,7 +244,7 @@ void print_statistics()
     printf("   != x: %i\n",compare_not_equals_other);
   }
   /* and/or the file if selected */
-  if (write_stats == TRUE) {
+  if (write_stats) {
     //check that the file name is reasonable, and then try to open it
     FILE* fp = fopen(stats_file, "w+");
     if (!fp) return;

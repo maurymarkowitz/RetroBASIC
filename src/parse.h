@@ -51,99 +51,102 @@
      BANGREM = 267,
      BYE = 268,
      CLEAR = 269,
-     DATA = 270,
-     DEF = 271,
-     DIM = 272,
-     END = 273,
-     EXIT = 274,
-     FOR = 275,
-     GET = 276,
-     GOSUB = 277,
-     GOTO = 278,
-     IF = 279,
-     INPUT = 280,
-     LET = 281,
-     LIST = 282,
-     NEXT = 283,
-     NEW = 284,
-     OF = 285,
-     ON = 286,
-     PRINT = 287,
-     PUT = 288,
-     READ = 289,
-     RESTORE = 290,
-     RETURN = 291,
-     RUN = 292,
-     STEP = 293,
-     STOP = 294,
-     THEN = 295,
-     TO = 296,
-     USING = 297,
-     WAIT = 298,
-     OPEN = 299,
-     CLOSE = 300,
-     STATUS = 301,
-     PRINT_FILE = 302,
-     INPUT_FILE = 303,
-     GET_FILE = 304,
-     PUT_FILE = 305,
-     CALL = 306,
-     CLS = 307,
-     CMD = 308,
-     OPTION = 309,
-     BASE = 310,
-     PEEK = 311,
-     POKE = 312,
-     POP = 313,
-     RANDOMIZE = 314,
-     SYS = 315,
-     VARLIST = 316,
-     _ABS = 317,
-     SGN = 318,
-     ATN = 319,
-     COS = 320,
-     SIN = 321,
-     TAN = 322,
-     CLOG = 323,
-     EXP = 324,
-     LOG = 325,
-     SQR = 326,
-     RND = 327,
-     INT = 328,
-     FIX = 329,
-     CINT = 330,
-     CSNG = 331,
-     CDBL = 332,
-     ASC = 333,
-     LEFT = 334,
-     MID = 335,
-     RIGHT = 336,
-     LEN = 337,
-     STR = 338,
-     VAL = 339,
-     CHR = 340,
-     AND = 341,
-     OR = 342,
-     NOT = 343,
-     XOR = 344,
-     CMP_LE = 345,
-     CMP_GE = 346,
-     CMP_NE = 347,
-     CMP_HASH = 348,
-     FRE = 349,
-     SPC = 350,
-     TAB = 351,
-     POS = 352,
-     USR = 353,
-     LIN = 354,
-     DEFSTR = 355,
-     DEFINT = 356,
-     DEFSNG = 357,
-     DEFDBL = 358,
-     CHANGE = 359,
-     CONVERT = 360,
-     UCASE = 361,
-     LCASE = 362
+     CLR = 270,
+     DATA = 271,
+     DEF = 272,
+     DIM = 273,
+     END = 274,
+     EXIT = 275,
+     FOR = 276,
+     GET = 277,
+     GOSUB = 278,
+     GOTO = 279,
+     IF = 280,
+     INPUT = 281,
+     LET = 282,
+     LIST = 283,
+     NEXT = 284,
+     NEW = 285,
+     OF = 286,
+     ON = 287,
+     PRINT = 288,
+     PUT = 289,
+     READ = 290,
+     RESTORE = 291,
+     RETURN = 292,
+     RUN = 293,
+     STEP = 294,
+     STOP = 295,
+     THEN = 296,
+     TO = 297,
+     USING = 298,
+     WAIT = 299,
+     OPEN = 300,
+     CLOSE = 301,
+     STATUS = 302,
+     PRINT_FILE = 303,
+     INPUT_FILE = 304,
+     GET_FILE = 305,
+     PUT_FILE = 306,
+     CALL = 307,
+     CLS = 308,
+     CMD = 309,
+     OPTION = 310,
+     BASE = 311,
+     PEEK = 312,
+     POKE = 313,
+     POP = 314,
+     RANDOMIZE = 315,
+     SYS = 316,
+     VARLIST = 317,
+     _ABS = 318,
+     SGN = 319,
+     ATN = 320,
+     COS = 321,
+     SIN = 322,
+     TAN = 323,
+     CLOG = 324,
+     EXP = 325,
+     LOG = 326,
+     SQR = 327,
+     RND = 328,
+     INT = 329,
+     FIX = 330,
+     CINT = 331,
+     CSNG = 332,
+     CDBL = 333,
+     ASC = 334,
+     LEFT = 335,
+     MID = 336,
+     RIGHT = 337,
+     LEN = 338,
+     STR = 339,
+     VAL = 340,
+     CHR = 341,
+     AND = 342,
+     OR = 343,
+     NOT = 344,
+     XOR = 345,
+     CMP_LE = 346,
+     CMP_GE = 347,
+     CMP_NE = 348,
+     CMP_HASH = 349,
+     FRE = 350,
+     SPC = 351,
+     TAB = 352,
+     POS = 353,
+     USR = 354,
+     LIN = 355,
+     DEFSTR = 356,
+     DEFINT = 357,
+     DEFSNG = 358,
+     DEFDBL = 359,
+     CHANGE = 360,
+     CONVERT = 361,
+     UCASE = 362,
+     LCASE = 363,
+     TIME = 364,
+     TIME_STR = 365
    };
 #endif
 /* Tokens.  */
@@ -159,106 +162,109 @@
 #define BANGREM 267
 #define BYE 268
 #define CLEAR 269
-#define DATA 270
-#define DEF 271
-#define DIM 272
-#define END 273
-#define EXIT 274
-#define FOR 275
-#define GET 276
-#define GOSUB 277
-#define GOTO 278
-#define IF 279
-#define INPUT 280
-#define LET 281
-#define LIST 282
-#define NEXT 283
-#define NEW 284
-#define OF 285
-#define ON 286
-#define PRINT 287
-#define PUT 288
-#define READ 289
-#define RESTORE 290
-#define RETURN 291
-#define RUN 292
-#define STEP 293
-#define STOP 294
-#define THEN 295
-#define TO 296
-#define USING 297
-#define WAIT 298
-#define OPEN 299
-#define CLOSE 300
-#define STATUS 301
-#define PRINT_FILE 302
-#define INPUT_FILE 303
-#define GET_FILE 304
-#define PUT_FILE 305
-#define CALL 306
-#define CLS 307
-#define CMD 308
-#define OPTION 309
-#define BASE 310
-#define PEEK 311
-#define POKE 312
-#define POP 313
-#define RANDOMIZE 314
-#define SYS 315
-#define VARLIST 316
-#define _ABS 317
-#define SGN 318
-#define ATN 319
-#define COS 320
-#define SIN 321
-#define TAN 322
-#define CLOG 323
-#define EXP 324
-#define LOG 325
-#define SQR 326
-#define RND 327
-#define INT 328
-#define FIX 329
-#define CINT 330
-#define CSNG 331
-#define CDBL 332
-#define ASC 333
-#define LEFT 334
-#define MID 335
-#define RIGHT 336
-#define LEN 337
-#define STR 338
-#define VAL 339
-#define CHR 340
-#define AND 341
-#define OR 342
-#define NOT 343
-#define XOR 344
-#define CMP_LE 345
-#define CMP_GE 346
-#define CMP_NE 347
-#define CMP_HASH 348
-#define FRE 349
-#define SPC 350
-#define TAB 351
-#define POS 352
-#define USR 353
-#define LIN 354
-#define DEFSTR 355
-#define DEFINT 356
-#define DEFSNG 357
-#define DEFDBL 358
-#define CHANGE 359
-#define CONVERT 360
-#define UCASE 361
-#define LCASE 362
+#define CLR 270
+#define DATA 271
+#define DEF 272
+#define DIM 273
+#define END 274
+#define EXIT 275
+#define FOR 276
+#define GET 277
+#define GOSUB 278
+#define GOTO 279
+#define IF 280
+#define INPUT 281
+#define LET 282
+#define LIST 283
+#define NEXT 284
+#define NEW 285
+#define OF 286
+#define ON 287
+#define PRINT 288
+#define PUT 289
+#define READ 290
+#define RESTORE 291
+#define RETURN 292
+#define RUN 293
+#define STEP 294
+#define STOP 295
+#define THEN 296
+#define TO 297
+#define USING 298
+#define WAIT 299
+#define OPEN 300
+#define CLOSE 301
+#define STATUS 302
+#define PRINT_FILE 303
+#define INPUT_FILE 304
+#define GET_FILE 305
+#define PUT_FILE 306
+#define CALL 307
+#define CLS 308
+#define CMD 309
+#define OPTION 310
+#define BASE 311
+#define PEEK 312
+#define POKE 313
+#define POP 314
+#define RANDOMIZE 315
+#define SYS 316
+#define VARLIST 317
+#define _ABS 318
+#define SGN 319
+#define ATN 320
+#define COS 321
+#define SIN 322
+#define TAN 323
+#define CLOG 324
+#define EXP 325
+#define LOG 326
+#define SQR 327
+#define RND 328
+#define INT 329
+#define FIX 330
+#define CINT 331
+#define CSNG 332
+#define CDBL 333
+#define ASC 334
+#define LEFT 335
+#define MID 336
+#define RIGHT 337
+#define LEN 338
+#define STR 339
+#define VAL 340
+#define CHR 341
+#define AND 342
+#define OR 343
+#define NOT 344
+#define XOR 345
+#define CMP_LE 346
+#define CMP_GE 347
+#define CMP_NE 348
+#define CMP_HASH 349
+#define FRE 350
+#define SPC 351
+#define TAB 352
+#define POS 353
+#define USR 354
+#define LIN 355
+#define DEFSTR 356
+#define DEFINT 357
+#define DEFSNG 358
+#define DEFDBL 359
+#define CHANGE 360
+#define CONVERT 361
+#define UCASE 362
+#define LCASE 363
+#define TIME 364
+#define TIME_STR 365
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 72 "/Users/maury/Documents/RetroBASIC/src/parse.y"
+#line 72 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/src/parse.y"
 {
   double d;
   int i;
@@ -269,8 +275,8 @@ typedef union YYSTYPE
   variable_t *variable;
 }
 /* Line 1529 of yacc.c.  */
-#line 273 "/Users/maury/Documents/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
-	YYSTYPE;
+#line 279 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
+    YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1

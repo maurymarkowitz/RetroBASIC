@@ -97,6 +97,7 @@ static expression_t *make_operator(int arity, int o)
 %token BANGREM
 %token BYE
 %token CLEAR
+%token CLR
 %token DATA
 %token DEF
 %token DIM
@@ -184,6 +185,10 @@ static expression_t *make_operator(int arity, int o)
  /* and some later string-related additions */
 %token UCASE
 %token LCASE
+
+ /* time and date patterened on MS style */
+%token TIME
+%token TIME_STR
 
 %%
 
@@ -679,6 +684,20 @@ statement:
     new->parms.generic_parameter = $2;
     $$ = new;
   }
+  |
+  TIME_STR '=' expression /* this is the weird variable-set version, which operates as a statement */
+  {
+    statement_t *new = make_statement(TIME_STR);
+    new->parms.generic_parameter = $3;
+    $$ = new;
+  }
+  |
+  LET TIME_STR '=' expression /* unlikely to ever be see in the wild, but just in case... */
+  {
+    statement_t *new = make_statement(TIME_STR);
+    new->parms.generic_parameter = $4;
+    $$ = new;
+  }
 	|
 	VARLIST /* lists out all the variables and their values */
 	{
@@ -845,6 +864,13 @@ unary_op:
 function:
 	factor
   |
+  /* functions with no parameters, like TIME */
+  fn_0
+  {
+    expression_t *new = make_operator(0, $1);
+    $$ = new;
+  }
+  |
   /* functions with optional parameters, which we store but ignore */
   fn_0 '(' ')'
   {
@@ -897,7 +923,9 @@ function:
  /* optional-parameter functions */
 fn_0:
   FRE { $$ = FRE; } |
-  RND { $$ = RND; }
+  RND { $$ = RND; } |
+  TIME { $$ = TIME; } |
+  TIME_STR { $$ = TIME_STR; }
   ;
 
  /* arity-1 functions */

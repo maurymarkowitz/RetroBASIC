@@ -30,18 +30,18 @@
 interpreterstate_t interpreter_state;
 
 /* and the same for the various flags */
-int run_program = TRUE;                 // default to running the program, not just parsing it
-int print_stats = FALSE;                // do not print or write stats by default
-int write_stats = FALSE;
+bool run_program = true;                 // default to running the program, not just parsing it
+bool print_stats = false;                // do not print or write stats by default
+bool write_stats = false;
 int tab_columns = 10;                   // based on PET BASIC, which is a good enough target
-int trace_lines = FALSE;
-int upper_case = FALSE;                 // force INPUT to upper case
+bool trace_lines = false;
+bool upper_case = false;                 // force INPUT to upper case
 int array_base = 1;                     // lower bound of arrays, can be set to 0 with OPTION BASE
 double random_seed = -1;                // reset with RANDOMIZE, if -1 then auto-seeds
-int string_slicing = FALSE;             // are references like A$(1,1) referring to an array entry or doing slicing?
-int goto_next_highest = FALSE;          // if a branch targets an non-existant line, should we go to the next highest?
-int ansi_on_boundaries = FALSE;         // if the value for an ON statement <1 or >num entries, should it continue or error?
-int ansi_tab_behaviour = FALSE;         // if a TAB < current column, ANSI inserts a CR, MS does not
+bool string_slicing = false;             // are references like A$(1,1) referring to an array entry or doing slicing?
+bool goto_next_highest = false;          // if a branch targets an non-existant line, should we go to the next highest?
+bool ansi_on_boundaries = false;         // if the value for an ON statement <1 or >num entries, should it continue or error?
+bool ansi_tab_behaviour = false;         // if a TAB < current column, ANSI inserts a CR, MS does not
 
 char *source_file = "";
 char *input_file = "";
@@ -61,8 +61,8 @@ typedef struct {
 /* function_storage_t holds the expression from the DEF */
 typedef struct {
   int type;               /* NUMBER, STRING */
-  list_t *parameters;      // parameters, if any, as variable_t
-  expression_t *formula;  // related formula
+  list_t *parameters;     // parameters, if any, as variable_t
+  expression_t *formula;	// related formula
 } function_storage_t;
 
 /* forward declares */
@@ -76,8 +76,9 @@ static void delete_functions(void);
 static void delete_lines(void);
 
 /* defitions of variables used by the static analyzer */
-clock_t start_ticks = 0, end_ticks = 0;  // start and end ticks, for calculating CPU time
-struct timeval start_time, end_time;     // start and end clock, for total run time
+clock_t start_ticks = 0, end_ticks = 0;	// start and end ticks, for calculating CPU time
+struct timeval start_time, end_time;    // start and end clock, for total run time
+struct timeval reset_time;     					// if the user resets the time with TIME$, this replaces start_time
 
 /************************************************************************/
 
@@ -383,6 +384,32 @@ static char *number_to_string(const double d)
   return str;
 }
 
+/* number of jiffies since program start (or reset) 1/60th in Commodore/Atari format */
+static int elapsed_jiffies() {
+	struct timeval current_time, elapsed_time, reset_delta;
+	
+	// get the delta between the original start time and the reset time (likely zero)
+	timersub(&reset_time, &start_time, &reset_delta);
+	
+	// then add that to the current time (seconds only, the format has no jiffies)
+	gettimeofday(&current_time, NULL);
+	timersub(&current_time, &start_time, &elapsed_time);
+
+	// adjust for any seconds in the reset
+	elapsed_time.tv_sec = elapsed_time.tv_sec + reset_delta.tv_sec;
+	
+	// convert to jiffies
+	long jiffies = elapsed_time.tv_sec * 60;
+	jiffies = jiffies + (int)(elapsed_time.tv_usec / 1000000 * 60);
+	
+	// the result has to be clamped to 5183999 (=24*60^3 -1) to match MS BASIC
+	// we'll mod the number to prevent an overflow in BASIC, but given the run
+	// this should never occur
+	jiffies = jiffies % 5183999;
+	
+	return (int)jiffies;
+}
+
 /* recursively evaluates an expression and returns a value_t with the result */
 static value_t evaluate_expression(expression_t *expression)
 {
@@ -539,9 +566,6 @@ static value_t evaluate_expression(expression_t *expression)
         if (original_definition->parameters->next != NULL)
           original_parameter = lst_next(original_definition->parameters)->data;
       }
-
-      // kill the stack to be safe
-		//	lst_free(stack); // we already killed the values above
     }
       break;
       
@@ -565,6 +589,39 @@ static value_t evaluate_expression(expression_t *expression)
             // TODO: support alternative RNDs that return limited values
             result.number = ((double)rand() / (double)RAND_MAX); // don't forget the cast!
             break;
+						
+						// TIME is the number of jiffies since the last restart, always 1/60 even on PAL.
+						// In our code, we treat the start of the program as the restart time. This can
+						// be changed by setting the value of TIME$ (which is really weird if you think
+						// about it, why not set TIME?) so we keep track of that value in reset_ticks
+						// and modify the value if it's not zero
+					case TIME:
+					{
+						result.type = NUMBER;
+						result.number = elapsed_jiffies();
+					}
+						break;
+						
+						// returns the number of seconds since restart in HMS format
+						// this is the case where TIME$ appears on its own in a function-like call,
+						// the other syntax is TIME=value, which is handled as a statement, not a function
+					case TIME_STR:
+					{
+						result.type = STRING;
+						
+						int elapsed_secs = (int)(elapsed_jiffies() / 60);
+						int h = (elapsed_secs / 3600);
+						int m = (elapsed_secs - (3600 * h)) / 60;
+						int s = (elapsed_secs - (3600 * h) - (m * 60));
+						
+						char buff[7];
+						sprintf(buff, "%02d%02d%02d", h, m, s);
+						result.string = str_new(buff);
+					}
+						break;
+
+					default:
+						basic_error("Unhandled arity-0 function");
         }
       }
       else if (expression->parms.op.arity == 1) {
@@ -705,7 +762,7 @@ static value_t evaluate_expression(expression_t *expression)
 						result.string = str_new(str_toupper(parameters[0].string));
 					}
 						break;
-						
+												
           default:
             basic_error("Unhandled arity-1 function");
         } //switch
@@ -1352,11 +1409,11 @@ static void perform_statement(list_t *L)
 				// see if the next has any variable names, that is, NEXT I vs. NEXT,
 				// and if so, ensure the latest FOR on the stack is one of those variables
 				if (lst_length(ps->parms.next) > 0) {
-					int foundIt = FALSE;
+					bool foundIt = false;
 					list_t *var = lst_first_node(ps->parms.next);
 					for (int i = 0; i < lst_length(ps->parms.next); i++) {
 						if (strcmp(pfc->index_variable->name, ((variable_t *)var->data)->name) == 0) {
-							foundIt = TRUE;
+							foundIt = true;
 						}
 						else {
 							var = lst_next(ps->parms.next);
@@ -1616,6 +1673,56 @@ static void perform_statement(list_t *L)
         exit(0);
       }
         break;
+				
+				// this handles the weird-syntax case of TIME$=, which looks like a variable set but
+				// is really a statement
+			case TIME_STR:
+			{
+				if (ps->parms.generic_parameter != NULL) {
+					// value is in HMS format, so make sure we got a strong
+					value_t hms = evaluate_expression(ps->parms.generic_parameter);
+					if (hms.type != STRING) {
+						basic_error("TIME$ being set with non-string value");
+						break;
+					}
+					// and that it's exactly six digits long
+					if (strlen(hms.string) != 6) {
+						basic_error("TIME$ being set with string of the wrong length");
+						break;
+					}
+					// pull it apart into ints
+					int h, m, s;
+					char bit[2];
+
+					memcpy(bit, &hms.string[0], 2);
+					h = atoi(bit);
+					if (h > 23)
+						h = 23;
+					if (h < 0)
+						h = 0;
+
+					memcpy(bit, &hms.string[2], 2);
+					m = atoi(bit);
+					if (m > 59)
+						m = 59;
+					if (m < 0)
+						m = 0;
+
+					memcpy(bit, &hms.string[4], 2);
+					s = atoi(bit);
+					if (s > 59)
+						s = 59;
+					if (s < 0)
+						s = 0;
+
+					// now convert that into jiffies offset from the start time
+					// note theres no way to change the jiffies
+					int delta = (h * 3600) + (m * 60) + s;
+					reset_time.tv_sec = start_time.tv_sec + delta;
+				}
+			}
+				break;
+
 
       case VARLIST:
         print_variables();
@@ -1628,7 +1735,7 @@ static void perform_statement(list_t *L)
   }
 }
 
-/* variable tree walking methods, returning FALSE means "keep going" */
+/* variable tree walking methods */
 
 /* cheater method for printing out all the variable names */
 static void print_symbol(void *key, void *value, void *unused)
@@ -1723,8 +1830,11 @@ void interpreter_run(void)
 
   // start the clock and mark us as running
   start_ticks = clock();
-  gettimeofday(&start_time, NULL);
+	gettimeofday(&start_time, NULL);
   interpreter_state.running_state = 1;
+	
+	// and set the reset to now as well
+	gettimeofday(&reset_time, NULL);
   
   // last line number we ran, used for tracing/stepping
   int last_line = interpreter_state.first_line;
