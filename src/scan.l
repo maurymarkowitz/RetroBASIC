@@ -52,6 +52,7 @@ REM.*   { yylval.s = str_new(str_copy(yytext + 3, yyleng - 3)); return REM; }
 !.*     { yylval.s = str_new(str_copy(yytext + 1, yyleng - 1)); return BANGREM; }  // later MS allow bang as well
 BYE     { return BYE; }
 CLEAR   { return CLEAR; }
+CLR     { return CLEAR; } /* synonyms */
 DEF     { return DEF; }
 DATA    { return DATA; }
 DIM     { return DIM; }
@@ -155,11 +156,18 @@ DEFINT    { return DEFINT; }
 DEFSNG    { return DEFSNG; }
 DEFDBL    { return DEFDBL; }
 
- /* other string commands and functiuons */
+ /* other string commands and functions */
 CHANGE    { return CHANGE; }
 CONVERT   { return CONVERT; }
 UCASE\$   { return UCASE; }
 LCASE\$   { return LCASE; }
+
+ /* commodore-style TIME and TIME$ */
+TIME\$  { return TIME_STR; }
+TIME    { return TIME; }
+ /* and their alternate short forms */
+TI\$    { return TIME_STR; }
+TI      { return TIME; }
 
  /* numeric constants and line numbers */
 [0-9]*[0-9.][0-9]*([Ee][-+]?[0-9]+)? {

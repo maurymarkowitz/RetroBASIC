@@ -77,7 +77,7 @@ static struct option program_options[] =
 void parse_options(int argc, char *argv[])
 {
   int option_index = 0;
-  int printed_help = FALSE;
+  int printed_help = false;
   
   while (1) {
     // eat an option and exit if we're done
@@ -92,32 +92,32 @@ void parse_options(int argc, char *argv[])
         
       case 'h':
         print_help(argv);
-        printed_help = TRUE;
+        printed_help = true;
         break;
         
       case 'v':
         print_version();
-        printed_help = TRUE;
+        printed_help = true;
         break;
         
       case 'u':
-        upper_case = TRUE;
+        upper_case = true;
         break;
         
       case 'g':
-        goto_next_highest = TRUE;
+        goto_next_highest = true;
         break;
         
       case 'n':
-        run_program = FALSE;
+        run_program = false;
         break;
         
       case 's':
-        string_slicing = TRUE;
+        string_slicing = true;
         break;
         
       case 'p':
-        print_stats = TRUE;
+        print_stats = true;
         break;
         
       case 'a':
