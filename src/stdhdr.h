@@ -25,6 +25,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 //#ifdef HAVE_STRING_H
 #include <string.h>
@@ -48,4 +49,4 @@ Boston, MA 02111-1307, USA.  */
 #include "strng.h"  // our replacement for GLib.String
 #include "list.h"   // ... and GLib.List and .Tree
 
-typedef enum {FALSE = 0, TRUE} boolean; // useful macro (imho)
+//typedef enum {FALSE = 0, TRUE} boolean; // useful macro (imho)
