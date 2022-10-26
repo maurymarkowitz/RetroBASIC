@@ -320,19 +320,11 @@ statement:
     $$ = new;
   }
   |
-  DIM varlist
-  {
-    statement_t *new = make_statement(DIM);
-    new->parms.dim = $2;
-    $$ = new;
-  }
-  // placing these here as they are really variants of DIM
-  |
-  DEFSTR varlist
+  DEFDBL varlist
   {
     statement_t *new = make_statement(DEFSTR);
     new->parms.deftype.vars = $2;
-    new->parms.deftype.type = STRING;
+    new->parms.deftype.type = DOUBLE;
     $$ = new;
   }
   |
@@ -352,11 +344,18 @@ statement:
     $$ = new;
   }
   |
-  DEFDBL varlist
+  DEFSTR varlist
   {
     statement_t *new = make_statement(DEFSTR);
     new->parms.deftype.vars = $2;
-    new->parms.deftype.type = DOUBLE;
+    new->parms.deftype.type = STRING;
+    $$ = new;
+  }
+  |
+  DIM varlist
+  {
+    statement_t *new = make_statement(DIM);
+    new->parms.dim = $2;
     $$ = new;
   }
   |

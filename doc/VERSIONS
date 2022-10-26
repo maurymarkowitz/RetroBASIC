@@ -37,3 +37,4 @@ Version 1.5 - 22 October 2022
 - using stdbool instead of rolling my own boolean enum
 - added CLR, the MS analog of CLEAR
 - added TIME, TIME$, and the ability to reset the clock
+- added unDIMed variables, all subscrips now have a minimum dimension of 11
