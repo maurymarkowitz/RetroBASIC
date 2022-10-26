@@ -59,7 +59,7 @@ extern char *input_file;
 extern char *print_file;
 extern char *stats_file;
 
-/* variables */
+/* variable references */
 /* ultimately the only thing we store in the variable reference is
  its name and any dimensional size if it's an array.
  Values are stored in a private type in a separate area.
@@ -79,9 +79,9 @@ typedef union {
 
 /* variable_storage_t holds the *value* of a variable in memory, it is a variable_t */
 typedef struct {
-  int type;               /* NUMBER, STRING */
-  list_t *subscripts;      // subscript definitions, if any (from a DIM)
-  either_t *value;        // actual value(s), malloced out
+  int type;             /* NUMBER, STRING */
+  list_t *subscripts;   // subscript definitions, if any (from a DIM)
+  either_t *value;      // actual value(s), malloced out
 } variable_storage_t;
 
 /* expressions */
