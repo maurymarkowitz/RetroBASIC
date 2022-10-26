@@ -108,12 +108,21 @@
 1890 PRINT "changing from ASCII back to string, should produce hello: ";
 1891 CHANGE B TO B$
 1892 PRINT B$
-1900 REM
 2294 REM
 2295 REM make sure B and B() are different
 2296 REM
 2300 B=10
 2400 PRINT "B, should be 10: ",B,"B(1), should be 104: ",B(1)
+2500 REM
+2501 REM test J vs. J(0) vs. J(1) on non-DIMed variables
+2502 REM
+2510 L=5:L(1)=10
+2515 PRINT "L should be 5 "J
+2520 PRINT "L(1) should be 10 "L(1)
+2525 PRINT "L(0) should be 0 "L(0)
+2530 DIM K(5)
+2535 PRINT "K(5) should be 0 "K(5)
+2540 PRINT "K(6) should fail "K(6)
 3000 REM
 3010 REM time functions
 3020 REM

@@ -88,24 +88,31 @@ static void basic_error(const char *message)
 }
 
 /* Returns an either_t containing a string or a number for the underlying
- variable, along with its type in the out-parameter 'type'. If the
- variable has not been encountered before it will be created here. */
+   variable, along with its type in the out-parameter 'type'. If the
+   variable has not been encountered before it will be created here. */
 /* NOTE: this code also handles string slicing. it would be much preferrable
- to do that as a function call so it could overload the MID$-style functions
- but I could not figure out how to do that at runtime in the yacc code. */
+   to do that as a function call so it could overload the MID$-style functions
+   but I could not figure out how to do that at runtime in the yacc code. */
 either_t *variable_value(const variable_t *variable, int *type)
 {
   variable_storage_t *storage;
   char *storage_name;
 	int index;
   
-  // in MS basic, A() and A are two different variables, so here
-  // we mangle the name to include a "(" if its an array
+  // In MS basic, A() and A are two different variables, so here
+  // we mangle the name to include a "(" if it's an array. This is also
+	// true in the original Dartmouth BASIC, according to the DTSS emulator.
+	// also see notes in CHANGE/CONVERT
 	//
-	// NOTE: Dartmouth v4 page states the same is true there, but as all
-	//       variables can also be treated as an array 1..10 without a DIM
-	//       it seems the decision of whether it was A or A( is a function
-	//       of the statement, like CHANGE or MAT.
+	// NOTE: Dartmouth v4 page 38 states all variables can be used as an
+	//       array of 0..10 without a DIM statement, and DIM is only needed
+	//       if it is larger. Using a PET emulator, I found that this is
+	//       also true for 2D arrays, you can assign to A(5,5) without it
+	//       being DIMed. This code thus makes the minimum size of any
+	//       dimension 11 slots. The only downside to this approach is that
+	//       if a DIM is encountered with smaller limits it has no effect,
+	//       which means that a SUBSCRIPT ERROR will not be raised. Given
+	//       we are running known-good code, this seems fine.
   storage_name = str_new(variable->name);
   if (variable->subscripts != NULL)
     str_append(storage_name, "(");
@@ -129,7 +136,8 @@ either_t *variable_value(const variable_t *variable, int *type)
       storage->type = NUMBER; // this works for all of them, int, dbl, etc.
     
     // see if we have a type being passed in, which is used in the DEFINT/SNG/DBL/STR
-    if (*type != 0)
+		// NOTE: use >0 because DIM passes -1
+    if (*type > 0)
       storage->type = *type;
     // otherwise see if there's a subtype in the trailer
     else if (trailer == '%')
@@ -146,12 +154,22 @@ either_t *variable_value(const variable_t *variable, int *type)
       // now clear out any existing list of subscripts in storage, eval each of the
       // values in the variable ref, and store that value in our ->subs list_t
       // (as the value, not a pointer), and then calculate the total size we need
-      //
       storage->subscripts = NULL;
       slots = 1;
       for (list_t *L = variable->subscripts; L != NULL; L = lst_next(L)) {
         v = evaluate_expression(L->data);
-				int actual = (int)v.number + 1; // (1 - array_base); // if we're using 0-base indexing, we need to add one more slot
+				int actual = (int)v.number + 1; 			// we need to add one more slot for index 0
+				
+				// if the line that's calling us is DIM A(5), we need to make it 5+1 slots, but if
+				// we're being called by an "invisible DIM" we need to set it to 10+1, no matter
+				// what the actual parameter is. Otherwise if you have A(1)=10:A(2)=11 it will fail
+				// because the first instance would dim it to 1+1.
+				// NOTE: if there is a real DIM, it should return a BAD SUBSCRIPT if the index is
+				//   larger, so DIM A(5) should return an error on PRINT A(6). In this code, the
+				//   minimum dimension is always 10, so this will not return an error
+				if (actual < 10)
+					actual = 11;
+				
         storage->subscripts = lst_append(storage->subscripts, INT_TO_POINTER(actual));
         slots *= actual;
       }
@@ -214,6 +232,7 @@ either_t *variable_value(const variable_t *variable, int *type)
   //g_string_free(storage_name, FALSE);
   
   // returning the type
+	// NOTE: if this is part of a DIM, it's been correctly set above
   *type = storage->type;
   
   // if we are using string slicing OR there is a ANSI-style slice, return that part of the string
@@ -288,7 +307,8 @@ either_t *variable_value(const variable_t *variable, int *type)
 }
 
 /* cover method for variable_value, allows it to be exported to the parser
- without it having to know about either_t, which is private  */
+ without it having to know about either_t, which is private.
+ */
 void insert_variable(const variable_t *variable)
 {
   int ignore = 0;
@@ -396,16 +416,16 @@ static int elapsed_jiffies() {
 	timersub(&current_time, &start_time, &elapsed_time);
 
 	// adjust for any seconds in the reset
-	elapsed_time.tv_sec = elapsed_time.tv_sec + reset_delta.tv_sec;
+	elapsed_time.tv_sec += reset_delta.tv_sec;
 	
 	// convert to jiffies
 	long jiffies = elapsed_time.tv_sec * 60;
-	jiffies = jiffies + (int)(elapsed_time.tv_usec / 1000000 * 60);
+	jiffies += (int)(elapsed_time.tv_usec / 1000000 * 60);
 	
 	// the result has to be clamped to 5183999 (=24*60^3 -1) to match MS BASIC
 	// we'll mod the number to prevent an overflow in BASIC, but given the run
-	// this should never occur
-	jiffies = jiffies % 5183999;
+	// times this should never occur
+	jiffies %= 5183999;
 	
 	return (int)jiffies;
 }
@@ -1203,27 +1223,14 @@ static void perform_statement(list_t *L)
         break;
         
       case DIM:
-        // the parser has already pulled out the variable names, so they already
-        // have slots in the table. we still need to call insert_variable to set up
-      {
-        for (list_t *I = ps->parms.dim; I != NULL; I = lst_next(I)) {
-          variable_t *pv = I->data;
-          insert_variable(pv);
-        }
-      }
-        break;
-        
-      case DEFSTR:
-      case DEFINT:
-      case DEFSNG:
-      case DEFDBL:
-        // done here because they are really varieties of DIM, not DEF
-      {
-        for (list_t *I = ps->parms.deftype.vars; I != NULL; I = lst_next(I)) {
-          variable_t *pv = I->data;
-          insert_typed_variable(pv, ps->parms.deftype.type);
-        }
-      }
+			case DEFDBL:
+			case DEFINT:
+			case DEFSNG:
+			case DEFSTR:
+        // the parser has already pulled out the variable names and set the up,
+				// so there's really nothing to do here
+				// TODO: we could pull the dimensions here and set something like
+				//    original_subscripts and use that to test bounds
         break;
         
       case END:
