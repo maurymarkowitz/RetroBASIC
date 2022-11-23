@@ -31,8 +31,10 @@ Boston, MA 02111-1307, USA.  */
  *
  * The types and functions in this library are intended to closely mirror the API of the
  * GLib GString library. gnbasic was written using GLib to avoid recreating the wheel for
- * common functionality. It also includes a replacement for strndup, which is POSIX and
- * not available in windows.
+ * common functionality. Unfortunately, using GLib on anything other than bog-standard
+ * Unix is annoying.
+ *
+ * It also includes a replacement for strndup, which is POSIX and not available in windows.
  * 
  */
 
