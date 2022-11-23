@@ -7,10 +7,11 @@ IB = Integer BASIC (aka Apple BASIC)
 GW = GW-BASIC
 WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
+BP - DEC BASIC-PLUS
 
 - add longer variable names
 
-- add slicing-based concat in LET, A(10) = B(5,10)
+- add slicing-based concat in LET, A[10] = B[5,10]
 
 - test and error on incorrect nesting of FOR loops, which we currently ignore
 
@@ -28,7 +29,9 @@ PA = Palo Alto Tiny BASIC
 
 - support AB's DEG and RAD modes? WB also had gradians; SELECT G
 
-- PA allows multiple assignments in a LET, separated by commas, see assignlist
+- PA allows multiple assignments in a LET, separated by commas, see assignlist.
+
+- BP (and HP?) allows multiple assignments with equals, A=B=C=10
 
 - PA allows single or double quotes around strings
 
@@ -44,10 +47,14 @@ PA = Palo Alto Tiny BASIC
 
 - GW BASIC string formatters in PRINT USING, but number formats work
 
+Debatable:
+
+- backslash for statement separators seen in Multics and BASIC-PLUS. The later requires spaces on either side. Easy to convert to colons, although the formating in BASIC-PLUS documentation is nice.
+
+- To support the "feature" (bug!) of Dartmouth and MS that an unDIMed variable is really 0..10, this code makes the minimum size for any subscript 11. Because the variables are set up at parse time, not run time, there is no easy way to know if the variable is being encountered as a DIM or calculate what the dimensions are. In theory, we could watch for DIMs at runtime and set a second set of limits to check against, leaving the original memory allocation alone, but this seems like more work than is needed given the concept of using knonw-good code. Note that BP's default DIM is 121.
+
 Will not be done:
 
 - WB allows RESTORE to use an ordinal position in the list, as opposed to a line number. There appears to be no easy way to distinguish this.
 
 - WB uses CONVERT for ASC, which steps on HPs CONVERT
-
-- To support the "feature" (bug!) of Dartmouth and MS that an unDIMed variable is really 0..10, this code makes the minimum size for any subscript 11. In theory we should read the actual DIMensions if they are eventually encountered, but this simply doesn't seem worth fixing.

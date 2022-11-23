@@ -229,7 +229,6 @@ either_t *variable_value(const variable_t *variable, int *type)
   
   // done with this temp name, but don't pass TRUE or it will kill the original too
   //free(storage_name);
-  //g_string_free(storage_name, FALSE);
   
   // returning the type
 	// NOTE: if this is part of a DIM, it's been correctly set above
@@ -374,7 +373,7 @@ static value_t double_to_value(const double v)
   return r;
 }
 
-/* converts a number to a string using MS's odd formatting rules */
+/* converts a number to a string */
 /* this system follows the rules found in MS BASICs like the PET
  that is, generally:
  1) if the number is zero, return 0
