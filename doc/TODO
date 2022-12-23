@@ -13,6 +13,8 @@ BP - DEC BASIC-PLUS
 
 - add slicing-based concat in LET, A[10] = B[5,10]
 
+- add BPs STRING$(X,Y)/STRING$(X,Y$) which makes a string of length X filled with character with ASCII Y or character Y$
+
 - test and error on incorrect nesting of FOR loops, which we currently ignore
 
 - need to allow multiple INPUTs on a single line, currently it requires a CR between values
@@ -33,7 +35,7 @@ BP - DEC BASIC-PLUS
 
 - BP (and HP?) allows multiple assignments with equals, A=B=C=10
 
-- PA allows single or double quotes around strings
+- PA and BP allow single or double quotes around strings
 
 - PA allows # to define field widths in PRINT, so PRINT A,#3,B,C will print B and C in 3-character widths. All expressions following the format use that format until reset by another # or another PRINT
 
@@ -58,3 +60,5 @@ Will not be done:
 - WB allows RESTORE to use an ordinal position in the list, as opposed to a line number. There appears to be no easy way to distinguish this.
 
 - WB uses CONVERT for ASC, which steps on HPs CONVERT
+
+- INPUT LINE is not needed (for now) as all INPUTs are treated as LINE
