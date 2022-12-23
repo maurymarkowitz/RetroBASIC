@@ -1225,6 +1225,8 @@ static void perform_statement(list_t *L)
 			case DEFINT:
 			case DEFSNG:
 			case DEFSTR:
+				// don't do anything here, the variables will be set up already
+				// NOTE: what to do about STR?
         break;
 				
 			case DIM:
@@ -1242,6 +1244,7 @@ static void perform_statement(list_t *L)
       case EXIT:
       case POP:
         // TODO: make this work, should be easy enough
+				// NOTE: exit is not the same as pop
         break;
         
       case FOR:
@@ -1259,7 +1262,7 @@ static void perform_statement(list_t *L)
           new_for->step = 1;
           
           // the original gnbasic code did this, which is definitely non-standard and caused problems in SST
-          // is this perhaps ANSI?
+          // is this perhaps ANSI? UPDATE: nope, ANSI actually uses this as an example of a no-body loop
           //                        if (new_for->begin < new_for->end)
           //                            new_for->step = 1;
           //                        else
