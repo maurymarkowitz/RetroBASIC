@@ -1220,17 +1220,19 @@ static void perform_statement(list_t *L)
         // sets up a function in storage. the only interesting thing here is that the
         function_expression(ps->parms.def.signature, ps->parms.def.formula);
         break;
-        
-      case DIM:
+
 			case DEFDBL:
 			case DEFINT:
 			case DEFSNG:
 			case DEFSTR:
-        // the parser has already pulled out the variable names and set the up,
+        break;
+				
+			case DIM:
+				// the parser has already pulled out the variable names and set them up,
 				// so there's really nothing to do here
 				// TODO: we could pull the dimensions here and set something like
 				//    original_subscripts and use that to test bounds
-        break;
+				break;
         
       case END:
         // set the instruction pointer to null so it exits below
