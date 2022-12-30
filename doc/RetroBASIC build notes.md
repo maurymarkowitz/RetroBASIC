@@ -9,7 +9,7 @@ RetroBASIC design notes
 
 This document lists a number of known issues found when building on different platforms.
 
-## Basic makefile use
+## makefile use
 
 RetroBASIC should build on any system with a working makefile system. It uses standard ANSI-C, lex and yacc, and has no external depandancies. A simple `make` should produce a runnable binary. If it does not, please file bug reports and/or pull requests. There may be a few warnings from the lex/yacc code but these will be addressed over over time.
 
