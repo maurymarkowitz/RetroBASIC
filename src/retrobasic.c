@@ -154,7 +154,8 @@ either_t *variable_value(const variable_t *variable, int *type)
       // now clear out any existing list of subscripts in storage, eval each of the
       // values in the variable ref, and store that value in our ->subs list_t
       // (as the value, not a pointer), and then calculate the total size we need
-      storage->subscripts = NULL;
+			storage->actual_dimensions = NULL;
+			storage->defed_dimensions = NULL;
       slots = 1;
       for (list_t *L = variable->subscripts; L != NULL; L = lst_next(L)) {
         v = evaluate_expression(L->data);
@@ -170,13 +171,13 @@ either_t *variable_value(const variable_t *variable, int *type)
 				if (actual < 10)
 					actual = 11;
 				
-        storage->subscripts = lst_append(storage->subscripts, INT_TO_POINTER(actual));
+        storage->actual_dimensions = lst_append(storage->actual_dimensions, INT_TO_POINTER(actual));
         slots *= actual;
       }
     }
     // if it doesn't include subscripts, null them out and set the number of slots to 1
     else {
-      storage->subscripts = NULL;
+      storage->actual_dimensions = NULL;
       slots = 1;
     }
     
@@ -195,21 +196,25 @@ either_t *variable_value(const variable_t *variable, int *type)
   // compute array index, or leave it at zero if there is none
   index = 0;
   if (!string_slicing) {
-    list_t *original_dimensions;         // list of actual dimensions in storage (from the DIM), stored as integers
-    list_t *variable_indexes;            // list of indices in this variable reference, each is an expression, likely a constant
+    list_t *num_dimensions;         // list of actual dimensions in storage, maybe the default 10
+		list_t *def_dimensions;					// list of DIMmed dimensions, if a DIM was encountered
+    list_t *variable_indexes;       // list of indices in this variable reference, each is an expression, likely a constant
     
-    original_dimensions = lst_first_node(storage->subscripts);
+		num_dimensions = lst_first_node(storage->actual_dimensions);
+		def_dimensions = lst_first_node(storage->defed_dimensions);
     variable_indexes = lst_first_node(variable->subscripts);
     
     // the *number* of dimensions has to match, you can't DIM A(1,1) and then LET B=A(1)
-    if (lst_length(original_dimensions) != lst_length(variable_indexes))
+    if (lst_length(num_dimensions) != lst_length(variable_indexes))
       basic_error("Array dimension of variable does not match storage"); // should we exit at this point?
     else
-      while (original_dimensions && variable_indexes) {
+      while (num_dimensions && variable_indexes) {
         // evaluate the variable reference's index for a given dimension
         value_t this_index = evaluate_expression(variable_indexes->data);
-        // and get the originally DIMmed size for that same dimension
-				int original_dimension = POINTER_TO_INT(original_dimensions->data);
+				
+        // and get the originally defined size for that same dimension
+				// NOTE: this may or may not be the same as the DIM, see notes above
+				int original_dimension = POINTER_TO_INT(num_dimensions->data);
 
 				// make sure the index is within the originally DIMed bounds
 				// NOTE: should check against array_base, not 0, but this doesn't work in Dartmouth. see notes
@@ -217,12 +222,21 @@ either_t *variable_value(const variable_t *variable, int *type)
           basic_error("Array subscript out of bounds");
 					this_index.number = 0;//array_base; // the first entry in the C array, so it continues
         }
+				
+				// now check to see if there are dimed_dimensions, and check against them
+				if (def_dimensions != NULL) {
+					int def_dimension = POINTER_TO_INT(def_dimensions->data);
+					if ((this_index.number < 0) || (def_dimension < this_index.number)) {
+						basic_error("Array subscript out of DIMmed bounds");
+						this_index.number = 0;
+					}
+				}
         
         // C arrays start at 0, BASIC arrays start at array_base
 				index = (index * original_dimension) + this_index.number; // - array_base;
         
         // then move on to the next index in the list
-        original_dimensions = lst_next(original_dimensions);
+        num_dimensions = lst_next(num_dimensions);
         variable_indexes = lst_next(variable_indexes);
       }
   }
@@ -1153,11 +1167,11 @@ static void perform_statement(list_t *L)
 				free(array_storage_name);
 
 				// whichever one is a number has to be an array
-				if (lst_length(array_store->subscripts) == 0)
+				if (lst_length(array_store->actual_dimensions) == 0)
 					basic_error("Type mismatch in CHANGE, numeric variable is not an array");
 				
 				// and that array has to be one-dimensional
-				if (lst_length(array_store->subscripts) > 1)
+				if (lst_length(array_store->actual_dimensions) > 1)
 					basic_error("Type mismatch in CHANGE, numeric variable has multiple dimensions");
 											
 				// we are good to go...
@@ -1166,7 +1180,7 @@ static void perform_statement(list_t *L)
 					
 					// make sure the array is long enough for the string
 					int string_length = (int)strlen(first_val->string);
-					if (POINTER_TO_INT(array_store->subscripts->data) < string_length)
+					if (POINTER_TO_INT(array_store->actual_dimensions->data) < string_length)
 						basic_error("Out of memory in CHANGE, numeric variable is too small to hold the string");
 					
 					// put the length in the first slot
@@ -1177,7 +1191,7 @@ static void perform_statement(list_t *L)
 						array_store->value[i].number = (int)first_val->string[i - 1];
 					}
 					// and pad out the rest of the array with zeros to be safe
-					for (int i = string_length + 1; i < POINTER_TO_INT(array_store->subscripts->data); i++) {
+					for (int i = string_length + 1; i < POINTER_TO_INT(array_store->actual_dimensions->data); i++) {
 						array_store->value[i].number = 0;
 					}
 				}
@@ -1187,7 +1201,7 @@ static void perform_statement(list_t *L)
 
 					// this one is a little easier, we can keep going until we see a zero
 					char new_string[MAXSTRING];
-					for (int i = 1; i <= POINTER_TO_INT(array_store->subscripts->data) && array_store->value[i].number != 0; i++) {
+					for (int i = 1; i <= POINTER_TO_INT(array_store->actual_dimensions->data) && array_store->value[i].number != 0; i++) {
 						new_string[i - 1] = (char)array_store->value[i].number;
 					}
 					
@@ -1227,13 +1241,47 @@ static void perform_statement(list_t *L)
 			case DEFSTR:
 				// don't do anything here, the variables will be set up already
 				// NOTE: what to do about STR?
+				// we could test type changes here, but
         break;
 				
-			case DIM:
-				// the parser has already pulled out the variable names and set them up,
-				// so there's really nothing to do here
-				// TODO: we could pull the dimensions here and set something like
-				//    original_subscripts and use that to test bounds
+				case DIM:
+					// the parser has already pulled out the variable names and set them up,
+					// so here at runtime all we do is write down the original definition
+				  // so we can check bounds. In most cases the first instance of an array
+				  // will be the DIM, but we do this for the "invisible DIM" cases where
+				  // the parser set it to the minimum length of 10 and now we are actually
+				  // interpreting the real bounds. it also gives us a chance to look for
+				  // a REDIMing if the original_bounds are not null
+				{
+					// there is a varlist of items in the parameters, loop over them
+					for (list_t *variable = lst_first_node(ps->parms.dim); variable != NULL; variable = lst_next(variable)) {
+						// get the name of this variable and munge it to an array have
+						variable_t *var = variable->data;
+						char *storage_name = str_new(var->name);
+						if (var->subscripts != NULL)
+							str_append(storage_name, "(");
+						
+						// look up the storage, error if it's not found (should never happen)
+						variable_storage_t *storage;
+						storage = lst_data_with_key(interpreter_state.variable_values, storage_name);
+						if (storage == NULL) {
+							basic_error("DIM on unknown variable.");
+							break;
+						}
+						
+						// see if there already are dimensions, if so report a redim
+						if (storage->defed_dimensions != NULL)
+							basic_error("REDIM of already DIMmed variable.");
+						
+						// loop over the dimensions, eval them, and insert
+						// NOTE: we do NOT add a slot for 0 here, this is only for bounds checking
+						value_t v;
+						for (list_t *L = var->subscripts; L != NULL; L = lst_next(L)) {
+							v = evaluate_expression(L->data);
+							storage->defed_dimensions = lst_append(storage->defed_dimensions, INT_TO_POINTER(v.number));
+						}
+					}
+				}
 				break;
         
       case END:
