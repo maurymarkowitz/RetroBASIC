@@ -123,6 +123,13 @@
 2530 DIM K(5)
 2535 PRINT "K(5) should be 0 "K(5)
 2540 PRINT "K(6) should fail "K(6)
+2600 REM
+2610 REM test that a small DIMmed array correctly errors on index > 10
+2620 REM
+2630 L(3)=3
+2640 DIM L(5)
+2650 PRINT "L(3) should be 3 "L(3)
+2670 PRINT "L(6) should cause error "L(6)
 3000 REM
 3010 REM time functions
 3020 REM

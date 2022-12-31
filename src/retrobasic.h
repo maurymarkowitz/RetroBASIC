@@ -59,19 +59,19 @@ extern char *input_file;
 extern char *print_file;
 extern char *stats_file;
 
-/* variable references */
-/* ultimately the only thing we store in the variable reference is
- its name and any dimensional size if it's an array.
- Values are stored in a private type in a separate area.
+/* variable **references** */
+/* this is used to record a reference to a variable in the code,
+   not it's value. So this might be A or A$ or A(1,2).
+   The current value is held in a separate variable_storage_t
+   in the variable_values list of the interpreter_state.
  */
 typedef struct {
   char *name;
-  list_t *subscripts;      /* subscripts, list of expressions */
-  list_t *slicing;         /* up to two expressions holding string slicing limits */
+  list_t *subscripts;      // subscripts, list of expressions
+  list_t *slicing;         // up to two expressions holding string slicing limits
 } variable_t;
 
 /* either_t is used within variable_value_t for the actual data */
-// FIXME: is there any real reason not to use a value_t here?
 typedef union {
   char *string;
   double number;
@@ -80,8 +80,9 @@ typedef union {
 /* variable_storage_t holds the *value* of a variable in memory, it is a variable_t */
 typedef struct {
   int type;             /* NUMBER, STRING */
-  list_t *subscripts;   // subscript definitions, if any (from a DIM)
-  either_t *value;      // actual value(s), malloced out
+  list_t *actual_dimensions;    // actual dimensions, even if auto-DIMmed
+  list_t *defed_dimensions;     // subscript definitions, if any (from a DIM)
+  either_t *value;      // actual value(s), malloced
 } variable_storage_t;
 
 /* expressions */
