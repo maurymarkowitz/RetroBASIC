@@ -1146,13 +1146,13 @@ static void perform_statement(list_t *L)
 				//        the default value is 10 and that's too small in practice. So this code
 				//        assumes the stored variable is A( and adds the paren where needed
 			{
-				either_t *first_val, *second_val;
+				either_t *first_val;
 				variable_storage_t *array_store;
 				int type1 = 0, type2 = 0;
 				
 				// get the types of the two variables
 				first_val = variable_value(ps->parms.change.var1, &type1);
-				second_val = variable_value(ps->parms.change.var2, &type2);
+				variable_value(ps->parms.change.var2, &type2); // we only need the type here, the value is not used
 				
 				// make sure one is a string and the other is numeric
 				if (type1 == STRING && type2 != NUMBER)
