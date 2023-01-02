@@ -11,9 +11,9 @@ BP - DEC BASIC-PLUS
 
 - add longer variable names
 
-- add slicing-based concat in LET, A[10] = B[5,10]
+- add slicing-based concat, A[10] = B[5,10]
 
-- add BPs STRING$(X,Y)/STRING$(X,Y$) which makes a string of length X filled with character with ASCII Y or character Y$
+- make POP/EXIT work
 
 - test and error on incorrect nesting of FOR loops, which we currently ignore
 
@@ -32,6 +32,8 @@ BP - DEC BASIC-PLUS
 - add HEX$, OCT$ etc
 
 - support AB's DEG and RAD modes? WB also had gradians; SELECT G
+
+- add BPs STRING$(X,Y)/STRING$(X,Y$) which makes a string of length X filled with character with ASCII Y or character Y$
 
 - PA allows multiple assignments in a LET, separated by commas, see assignlist.
 
