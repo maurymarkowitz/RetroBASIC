@@ -78,6 +78,8 @@
 1630 PRINT "left 100, should produce HELLO WORLD: "left$(A$,100)
 1640 PRINT "mid 100,100 should produce nothing: "mid$(A$,100,100)
 1640 PRINT "mid 5,100 should produce O WORLD: "mid$(A$,5,100)
+1650 PRINT "seg 4,5, should produce LO WO: "seg$(A$,4,5)
+1660 PRINT "substr 4,5, should produce LO WO: "substr$(A$,4,5)
 1700 REM
 1710 REM do some string manipulation using ANSI slices
 1720 REM
@@ -122,14 +124,14 @@
 2525 PRINT "L(0) should be 0 "L(0)
 2530 DIM K(5)
 2535 PRINT "K(5) should be 0 "K(5)
-2540 PRINT "K(6) should fail "K(6)
+2540 PRINT "K(6) should cause error: "K(6)
 2600 REM
 2610 REM test that a small DIMmed array correctly errors on index > 10
 2620 REM
 2630 L(3)=3
 2640 DIM L(5)
-2650 PRINT "L(3) should be 3 "L(3)
-2670 PRINT "L(6) should cause error "L(6)
+2650 PRINT "L(3) should be 3: "L(3)
+2670 PRINT "L(6) should cause error: "L(6)
 3000 REM
 3010 REM time functions
 3020 REM

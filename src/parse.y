@@ -159,6 +159,7 @@ static expression_t *make_operator(int arity, int o)
 %token ASC
 %token LEFT MID RIGHT
 %token LEN STR VAL CHR
+%token SEG SUBSTR
 
  /* boolean operations and comparisons */
 %token AND OR NOT XOR
@@ -961,7 +962,9 @@ fn_2:
 
  /* arity-2 or 3 functions */
 fn_x:
-  MID { $$ = MID; }
+ MID { $$ = MID; } |
+ SEG { $$ = SEG; } |
+ SUBSTR { $$ = SUBSTR; }
   ;
 
  /* ultimately all expressions end up here in factor, which is either a

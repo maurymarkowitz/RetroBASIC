@@ -42,3 +42,7 @@ Version 1.5 - 22 October 2022
 Version 1.6 - 31 December 2022
 
 - added code to check real DIM limits even if defaulted to 11
+
+Version 1.6.2 - 2 January 2023
+
+- added SEG and SUBSTR, aliases for MID found in PDP-8 and others

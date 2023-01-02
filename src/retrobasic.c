@@ -920,6 +920,8 @@ static value_t evaluate_expression(expression_t *expression)
         
         switch (expression->parms.op.opcode) {
           case MID:
+					case SEG:
+					case SUBSTR:
             result.type = STRING;
           {
             result.string = str_new(parameters[0].string);
@@ -1131,7 +1133,7 @@ static void perform_statement(list_t *L)
 
 			case CHANGE:
 			case CONVERT:
-				// converts a string into a numeric array or vice versa
+				// converts a string into a numeric array of ASCII values or vice versa
 				// this code assumes it only works between two variables, and not expressions
 				//
 				// the complexity here is because we are stepping through elements in the array,
@@ -1231,7 +1233,7 @@ static void perform_statement(list_t *L)
         break;
         
       case DEF:
-        // sets up a function in storage. the only interesting thing here is that the
+        // sets up a function in storage
         function_expression(ps->parms.def.signature, ps->parms.def.formula);
         break;
 
@@ -1240,8 +1242,8 @@ static void perform_statement(list_t *L)
 			case DEFSNG:
 			case DEFSTR:
 				// don't do anything here, the variables will be set up already
-				// NOTE: what to do about STR?
-				// we could test type changes here, but
+				// NOTE: what to do about STR? it appears to allow A="HELLO"
+				// we could test type changes here, like the bounds test in DIM
         break;
 				
 				case DIM:

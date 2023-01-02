@@ -119,6 +119,9 @@ RIGHT\$		{ return RIGHT; }
 MID\$     { return MID; }
 LEN       { return LEN; }
 STR       { return STR; }
+ /* aliases for MID found in some versions */
+SEG\$     { return SEG; }
+SUBSTR\$  { return SUBSTR; }
 
  /* system functions */
 TAB			  { return TAB; }
