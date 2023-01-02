@@ -123,30 +123,32 @@
      STR = 339,
      VAL = 340,
      CHR = 341,
-     AND = 342,
-     OR = 343,
-     NOT = 344,
-     XOR = 345,
-     CMP_LE = 346,
-     CMP_GE = 347,
-     CMP_NE = 348,
-     CMP_HASH = 349,
-     FRE = 350,
-     SPC = 351,
-     TAB = 352,
-     POS = 353,
-     USR = 354,
-     LIN = 355,
-     DEFSTR = 356,
-     DEFINT = 357,
-     DEFSNG = 358,
-     DEFDBL = 359,
-     CHANGE = 360,
-     CONVERT = 361,
-     UCASE = 362,
-     LCASE = 363,
-     TIME = 364,
-     TIME_STR = 365
+     SEG = 342,
+     SUBSTR = 343,
+     AND = 344,
+     OR = 345,
+     NOT = 346,
+     XOR = 347,
+     CMP_LE = 348,
+     CMP_GE = 349,
+     CMP_NE = 350,
+     CMP_HASH = 351,
+     FRE = 352,
+     SPC = 353,
+     TAB = 354,
+     POS = 355,
+     USR = 356,
+     LIN = 357,
+     DEFSTR = 358,
+     DEFINT = 359,
+     DEFSNG = 360,
+     DEFDBL = 361,
+     CHANGE = 362,
+     CONVERT = 363,
+     UCASE = 364,
+     LCASE = 365,
+     TIME = 366,
+     TIME_STR = 367
    };
 #endif
 /* Tokens.  */
@@ -234,30 +236,32 @@
 #define STR 339
 #define VAL 340
 #define CHR 341
-#define AND 342
-#define OR 343
-#define NOT 344
-#define XOR 345
-#define CMP_LE 346
-#define CMP_GE 347
-#define CMP_NE 348
-#define CMP_HASH 349
-#define FRE 350
-#define SPC 351
-#define TAB 352
-#define POS 353
-#define USR 354
-#define LIN 355
-#define DEFSTR 356
-#define DEFINT 357
-#define DEFSNG 358
-#define DEFDBL 359
-#define CHANGE 360
-#define CONVERT 361
-#define UCASE 362
-#define LCASE 363
-#define TIME 364
-#define TIME_STR 365
+#define SEG 342
+#define SUBSTR 343
+#define AND 344
+#define OR 345
+#define NOT 346
+#define XOR 347
+#define CMP_LE 348
+#define CMP_GE 349
+#define CMP_NE 350
+#define CMP_HASH 351
+#define FRE 352
+#define SPC 353
+#define TAB 354
+#define POS 355
+#define USR 356
+#define LIN 357
+#define DEFSTR 358
+#define DEFINT 359
+#define DEFSNG 360
+#define DEFDBL 361
+#define CHANGE 362
+#define CONVERT 363
+#define UCASE 364
+#define LCASE 365
+#define TIME 366
+#define TIME_STR 367
 
 
 
@@ -275,8 +279,8 @@ typedef union YYSTYPE
   variable_t *variable;
 }
 /* Line 1529 of yacc.c.  */
-#line 279 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
-    YYSTYPE;
+#line 283 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
+	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1
