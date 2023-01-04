@@ -913,7 +913,7 @@ static value_t evaluate_expression(expression_t *expression)
         }
       }
       
-      // and finally, arity=3, which is currently only the MID
+      // and finally, arity=3, which is currently only the MID/SEG/SUBSTR
       else if (expression->parms.op.arity == 3)  {
         double b = parameters[1].number;
         double c = parameters[2].number; // yeah, these could be ints
@@ -922,9 +922,14 @@ static value_t evaluate_expression(expression_t *expression)
           case MID:
 					case SEG:
 					case SUBSTR:
-            result.type = STRING;
           {
+						result.type = STRING;
             result.string = str_new(parameters[0].string);
+						
+						// SEG is based on positions, not lengths, so adjust parameter c
+						if (expression->parms.op.opcode == SEG)
+							c -= b;
+						
             str_erase(result.string, b - 1, c);
           }
             break;
