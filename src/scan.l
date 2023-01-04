@@ -122,6 +122,7 @@ STR       { return STR; }
  /* aliases for MID found in some versions */
 SEG\$     { return SEG; }
 SUBSTR\$  { return SUBSTR; }
+SUBSTRING\$  { return SUBSTR; }
 
  /* system functions */
 TAB			  { return TAB; }
