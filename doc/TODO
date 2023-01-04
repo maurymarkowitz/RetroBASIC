@@ -29,7 +29,7 @@ BP - DEC BASIC-PLUS
 
 - flesh out GET and PUT, which are just placeholders for now
 
-- add HEX$, OCT$ etc
+- add BIN$, HEX$, OCT$ etc
 
 - support AB's DEG and RAD modes? WB also had gradians; SELECT G
 

@@ -965,7 +965,7 @@ fn_x:
  MID { $$ = MID; } |
  SEG { $$ = SEG; } |
  SUBSTR { $$ = SUBSTR; }
-  ;
+ ;
 
  /* ultimately all expressions end up here in factor, which is either a
     constant value, a variable value, or a parened expression. in

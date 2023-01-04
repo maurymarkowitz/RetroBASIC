@@ -78,8 +78,9 @@
 1630 PRINT "left 100, should produce HELLO WORLD: "left$(A$,100)
 1640 PRINT "mid 100,100 should produce nothing: "mid$(A$,100,100)
 1640 PRINT "mid 5,100 should produce O WORLD: "mid$(A$,5,100)
-1650 PRINT "seg 4,5, should produce LO WO: "seg$(A$,4,5)
+1650 PRINT "seg 4,5, should produce L: "seg$(A$,4,5)
 1660 PRINT "substr 4,5, should produce LO WO: "substr$(A$,4,5)
+1660 PRINT "substring 4,5, should produce LO WO: "substring$(A$,4,5)
 1700 REM
 1710 REM do some string manipulation using ANSI slices
 1720 REM
