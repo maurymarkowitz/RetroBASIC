@@ -11,7 +11,7 @@ BP - DEC BASIC-PLUS
 
 - add longer variable names
 
-- add slicing-based concat, A[10] = B[5,10]
+- add slicing-based concat, A[10]=B[5,10] and replacement, A[10,15]="HELLO"
 
 - make POP/EXIT work
 

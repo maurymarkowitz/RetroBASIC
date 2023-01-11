@@ -153,7 +153,7 @@ static expression_t *make_operator(int arity, int o)
 %token ATN COS SIN TAN
 %token CLOG EXP LOG SQR
 %token RND
-%token INT FIX CINT CSNG CDBL // fix=SGN(x)*INT(ABS(x))
+%token INT FIX FRAC CINT CSNG CDBL // fix=SGN(x)*INT(ABS(x)), frac=A-INT(A)
 
  /* string functions */
 %token ASC
