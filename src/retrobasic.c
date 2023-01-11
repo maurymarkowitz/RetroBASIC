@@ -718,7 +718,10 @@ static value_t evaluate_expression(expression_t *expression)
           case FIX:
             result.number = trunc(a);
             break;
-          case SQR:
+					case FRAC:
+						result.number = a - trunc(a);
+						break;
+         case SQR:
             result.number = sqrt(a);
             break;
           case VAL:
@@ -928,7 +931,7 @@ static value_t evaluate_expression(expression_t *expression)
 						
 						// SEG is based on positions, not lengths, so adjust parameter c
 						if (expression->parms.op.opcode == SEG)
-							c -= b;
+							c = c - b + 1;
 						
             str_erase(result.string, b - 1, c);
           }
@@ -1161,7 +1164,7 @@ static void perform_statement(list_t *L)
 				first_val = variable_value(ps->parms.change.var1, &type1);
 				variable_value(ps->parms.change.var2, &type2); // we only need the type here, the value is not used
 				
-				// make sure one is a string and the other is numeric
+				// make sure one is a string and the other is snumeric
 				if (type1 == STRING && type2 != NUMBER)
 					basic_error("Type mismatch in CHANGE, string to ?");
 				else if (type1 == NUMBER && type2 != STRING)
