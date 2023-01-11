@@ -96,12 +96,13 @@ POP         { return POP; }
 EXIT        { return EXIT; }    // same as POP
 
  /* math functions */
-ABS			  { return _ABS; } /* has to have the _ because GLib has an ABS */
+ABS			  { return _ABS; } /* token has to have the _ because GLib has an ABS */
 ATN			  { return ATN; }
 COS			  { return COS; }
 CLOG		  { return CLOG; }
 EXP       { return EXP; }
 FIX       { return FIX; }
+FRAC      { return FRAC; }
 INT			  { return INT; }
 LOG			  { return LOG; }
 POS			  { return POS; }
@@ -118,7 +119,7 @@ LEFT\$		{ return LEFT; }
 RIGHT\$		{ return RIGHT; }
 MID\$     { return MID; }
 LEN       { return LEN; }
-STR       { return STR; }
+STR       { return STR; } // also NUM$ in some dialects
  /* aliases for MID found in some versions */
 SEG\$     { return SEG; }
 SUBSTR\$  { return SUBSTR; }
@@ -131,6 +132,9 @@ PEEK      { return PEEK; }
 FRE       { return FRE; }
 USR       { return USR; }
 LIN       { return LIN; }
+ /* aliases for SPC */
+SPACE\$   { return SPC; }
+SPA       { return SPC; } // from HP
 
  /* various operators and punctuation */
 [:,;()\^=+\-*/\<\>\&]     { return yytext[0]; }

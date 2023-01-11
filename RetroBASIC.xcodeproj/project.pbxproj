@@ -64,7 +64,6 @@
 		550EED702580071200FE6D78 /* ahl.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = ahl.bas; sourceTree = "<group>"; };
 		550EED7425800B8A00FE6D78 /* sieve.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = sieve.bas; sourceTree = "<group>"; };
 		5568AD6C240753C2001138F5 /* lunar.bas */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = lunar.bas; sourceTree = "<group>"; };
-		5592DE2529633EB10013D02D /* parse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = parse.h; path = obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/parse.h; sourceTree = SOURCE_ROOT; };
 		5599AEF8239C0A6E00490A3A /* retrobasic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = retrobasic.h; sourceTree = "<group>"; };
 		5599AEF9239C0A6F00490A3A /* retrobasic.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.c.c; path = retrobasic.c; sourceTree = "<group>"; tabWidth = 2; usesTabs = 1; };
 		5599AEFB239C0A8800490A3A /* stdhdr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stdhdr.h; sourceTree = "<group>"; };
@@ -85,6 +84,7 @@
 		55C0605728B13842002B8345 /* retrobasic.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = retrobasic.1; sourceTree = "<group>"; };
 		55DEE88128A6A6B800270949 /* RetroBASIC design.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "RetroBASIC design.md"; sourceTree = "<group>"; };
 		55E12DB82904279A0005D17F /* RetroBASIC build notes.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "RetroBASIC build notes.md"; sourceTree = "<group>"; };
+		55EBA451296E3A3F00FCD43A /* parse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = parse.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -132,7 +132,7 @@
 				550D54A4289BF9670062DF12 /* list.h */,
 				550D54A5289BF9670062DF12 /* list.c */,
 				5599AEFC239C0ABF00490A3A /* scan.l */,
-				5592DE2529633EB10013D02D /* parse.h */,
+				55EBA451296E3A3F00FCD43A /* parse.h */,
 				55B9698B252F44E70021CD8B /* parse.y */,
 				5599AEF8239C0A6E00490A3A /* retrobasic.h */,
 				5599AEF9239C0A6F00490A3A /* retrobasic.c */,
