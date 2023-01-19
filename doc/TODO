@@ -1,7 +1,7 @@
 RetroBASIC TODO/BUGS/ERRATA list
 
 MS = MS BASIC, 6502 40-bit version
-HP = HP Time-Sharing BASIC
+HP = HP Time-Shared BASIC
 AB = Atari BASIC
 IB = Integer BASIC (aka Apple BASIC)
 GW = GW-BASIC
@@ -12,6 +12,8 @@ BP - DEC BASIC-PLUS
 - add longer variable names
 
 - add slicing-based concat, A[10]=B[5,10] and replacement, A[10,15]="HELLO"
+
+- merge for and gosub stacks into one stack, so that...
 
 - make POP/EXIT work
 

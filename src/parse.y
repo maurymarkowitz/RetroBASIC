@@ -186,6 +186,8 @@ static expression_t *make_operator(int arity, int o)
  /* and some later string-related additions */
 %token UCASE
 %token LCASE
+ /* string builders */
+%token STRNG
 
  /* time and date patterened on MS style */
 %token TIME
@@ -678,6 +680,13 @@ statement:
     $$ = new;
   }
   |
+  STRING expression /* Wang BASIC allows a print-like expression here */
+  {
+    statement_t *new = make_statement(STOP);
+    new->parms.generic_parameter = $2;
+    $$ = new;
+  }
+  |
   SYS expression /* same as CALL */
   {
     statement_t *new = make_statement(SYS);
@@ -957,7 +966,8 @@ fn_1:
  /* arity-2 functions */
 fn_2:
   LEFT { $$ = LEFT; } |
-  RIGHT { $$ = RIGHT; }
+  RIGHT { $$ = RIGHT; } |
+  STRNG { $$ = STRNG; }
 	;
 
  /* arity-2 or 3 functions */

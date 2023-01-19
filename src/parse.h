@@ -148,8 +148,9 @@
      CONVERT = 364,
      UCASE = 365,
      LCASE = 366,
-     TIME = 367,
-     TIME_STR = 368
+     STRNG = 367,
+     TIME = 368,
+     TIME_STR = 369
    };
 #endif
 /* Tokens.  */
@@ -262,8 +263,9 @@
 #define CONVERT 364
 #define UCASE 365
 #define LCASE 366
-#define TIME 367
-#define TIME_STR 368
+#define STRNG 367
+#define TIME 368
+#define TIME_STR 369
 
 
 
@@ -281,8 +283,8 @@ typedef union YYSTYPE
   variable_t *variable;
 }
 /* Line 1529 of yacc.c.  */
-#line 285 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
-	YYSTYPE;
+#line 287 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
+    YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1

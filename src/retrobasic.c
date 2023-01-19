@@ -769,6 +769,10 @@ static value_t evaluate_expression(expression_t *expression)
             break;
           case SPC:
             // SPC adds the indicated number of spaces to the output
+						// NOTE: this also handles SPACE$, which is a little different in most BASICs because
+						//       SPC would normally not return anything, it simply writes the spaces directly
+						//       to the outuput. Since we're handling all of this with a string, SPC works
+						//       for SPACE$ too
             result.type = STRING;
             result.string = str_new("");
             for (int i = 0; i <= parameters[0].number - 1; i++) {
@@ -909,6 +913,15 @@ static value_t evaluate_expression(expression_t *expression)
             str_erase(result.string, b - 1, len - b + 1);
           }
             break;
+					case STRNG:
+						// makes N copies of the given string
+						result.type = STRING;
+						result.string = str_new("");
+						for (int i = 0; i <= parameters[1].number - 1; i++) {
+							str_append(result.string, parameters[0].string);
+						}
+						break;
+
           default:
             result.number = 0;
             basic_error("Unhandled arity-2 function");
