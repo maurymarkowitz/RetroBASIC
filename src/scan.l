@@ -50,7 +50,7 @@ Boston, MA 02111-1307, USA.  */
 REM.*   { yylval.s = str_new(str_copy(yytext + 3, yyleng - 3)); return REM; }
 '.*     { yylval.s = str_new(str_copy(yytext + 1, yyleng - 1)); return QUOTEREM; } // short form in MS
 !.*     { yylval.s = str_new(str_copy(yytext + 1, yyleng - 1)); return BANGREM; }  // later MS allow bang as well
-BYE     { return BYE; }
+BYE     { return BYE; } // also SYSTEM and GOODBYE
 CLEAR   { return CLEAR; }
 CLR     { return CLEAR; } /* synonyms */
 DEF     { return DEF; }
@@ -64,7 +64,7 @@ IF      { return IF; }
 INPUT   { return INPUT; }
 LET	    { return LET; }
 NEXT	  { return NEXT; }
-NEW			{ return NEW; }
+NEW			{ return NEW; } // also CLEAR (sometimes with options), ERASE and SCRATCH
 OF      { return OF; }
 ON      { return ON; }
 POKE    { return POKE; }
@@ -99,13 +99,13 @@ EXIT        { return EXIT; }    // same as POP
 ABS			  { return _ABS; } /* token has to have the _ because GLib has an ABS */
 ATN			  { return ATN; }
 COS			  { return COS; }
-CLOG		  { return CLOG; }
+CLOG		  { return CLOG; } // CLG on Honeywell Series 60
 EXP       { return EXP; }
 FIX       { return FIX; }
 FRAC      { return FRAC; }
 INT			  { return INT; }
 LOG			  { return LOG; }
-POS			  { return POS; }
+POS			  { return POS; } // COUNT in Atom
 SIN			  { return SIN; }
 SGN			  { return SGN; }
 SQR			  { return SQR; }
@@ -113,8 +113,8 @@ RND			  { return RND; }
 VAL			  { return VAL; }
 
  /* string-related functions */
-ASC       { return ASC; }
-CHR\$     { return CHR; }
+ASC       { return ASC; } // CODE on Sinclair due to being non-ASCII, CH on Atom (no parens), ASCII on DEC?
+CHR\$     { return CHR; } // CHR (SOL and SWTP), CHAR (MAX-BASIC), CHAR$ (Micropolis)
 LEFT\$		{ return LEFT; }
 RIGHT\$		{ return RIGHT; }
 MID\$     { return MID; }
@@ -128,13 +128,13 @@ SUBSTRING\$  { return SUBSTR; }
  /* system functions */
 TAB			  { return TAB; }
 SPC			  { return SPC; }
-PEEK      { return PEEK; }
+PEEK      { return PEEK; } // also EXAM (North Star) and FETCH (Digital Group Opus)
 FRE       { return FRE; }
 USR       { return USR; }
 LIN       { return LIN; }
  /* aliases for SPC */
-SPACE\$   { return SPC; }
-SPA       { return SPC; } // from HP
+SPA       { return SPC; } // from HP, same as above
+SPACE\$   { return SPC; } // returns a string with spaces, doesn't just output it, but we allow assignment anyway so this works
 
  /* various operators and punctuation */
 [:,;()\^=+\-*/\<\>\&]     { return yytext[0]; }
@@ -169,6 +169,7 @@ CHANGE    { return CHANGE; }
 CONVERT   { return CONVERT; }
 UCASE\$   { return UCASE; }
 LCASE\$   { return LCASE; }
+STRING\$  { return STRNG; } // returns n copies of a given string
 
  /* commodore-style TIME and TIME$ */
 TIME\$  { return TIME_STR; }
@@ -176,6 +177,7 @@ TIME    { return TIME; }
  /* and their alternate short forms */
 TI\$    { return TIME_STR; }
 TI      { return TIME; }
+CLK\$   { return TIME_STR; } // from BASIC-PLUS, Univac System 9 has CLK(x) where x is numeric
 
  /* numeric constants and line numbers */
 [0-9]*[0-9.][0-9]*([Ee][-+]?[0-9]+)? {

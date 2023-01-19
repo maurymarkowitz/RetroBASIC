@@ -111,6 +111,11 @@
 1890 PRINT "changing from ASCII back to string, should produce hello: ";
 1891 CHANGE B TO B$
 1892 PRINT B$
+1900 REM
+1901 REM some new string commands
+1002 REM
+1910 PRINT "using SPACE$, should print three spaces and HELLO";SPACE$(3);"HELLO"
+1920 PRINT "using STRING$, should print HELLO three times";STRING$("HELLO",3)
 2294 REM
 2295 REM make sure B and B() are different
 2296 REM
