@@ -14,11 +14,11 @@ RetroBASIC
 
 ## Introduction
 
-RetroBASIC is a BASIC interpreter whose ultimate goal is to run any program for the major 1970s/80s BASIC interpreters and is patterned mostly on MS-BASIC as seen on Commodore machines. It also includes the alternate string manipulation methods from Dartmouth BASIC v4 and HP Timeshare BASIC, the later of which was widely used in early microcomputer interpreters. The ultimate goal is to support almost any dialect from the era, including Tiny BASIC, Palo Alto Tiny BASIC (PATB), MS-BASIC (Altair, Commodore, etc.), HP TimeShare BASIC (Northstar, Apple, Atari, Sinclair, etc.) and others. 
+RetroBASIC is a BASIC interpreter for programms written using 1970s/80s BASIC interpreters. It is patterned mostly on MS-BASIC as seen on Commodore machines and Apple II (and many others). It also includes the alternate string manipulation methods from Dartmouth BASIC v4 and HP Timeshared BASIC, the later of which was widely used in early microcomputer interpreters. The ultimate goal is to support almost any dialect from the era, including Tiny BASIC, Palo Alto Tiny BASIC (PATB), MS-BASIC (Altair, Commodore, etc.), HP Timeshared BASIC (Northstar, Apple, Atari, Sinclair, etc.) and others. 
 
 RetroBASIC also includes a simple static analizer that (optionally) prints statistics for the program after it completes. This includes the length of the program and its line number range, the number and types of variables used, and similar details. The original impetus for RetroBASIC was to collect statistics on common programs to provide hints to the retrocomputing field, where new BASICs continue to be developed.
 
-RetroBASIC can redirect the output from `PRINT` statements and `INPUT` prompts to a file, and read the responces to `INPUT` statements from a file. This can be used to provide the same input to a program multiple times, and then the output can be `diff`ed to look for changes. This ia aided by setting the random seed to the same value, which can be done on the command line to avoid editing the original BASIC code.
+RetroBASIC can redirect the output from `PRINT` statements and `INPUT` prompts to a file, and read the responces to `INPUT` statements from a file. This can be used to provide the same input to a program multiple times, and then the output can be `diff`ed to look for changes. This ia aided by setting the random seed value, which can be done on the command line to avoid editing the original BASIC code.
 
 RetroBASIC is based on gnbasic by James Bowman.
  
