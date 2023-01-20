@@ -14,7 +14,7 @@ RetroBASIC
 
 ## Introduction
 
-RetroBASIC is a BASIC interpreter for programms written using 1970s/80s variations of BASIC. It is patterned mostly on MS-BASIC as seen on Commodore machines and Apple II (and many others). It also includes the alternate string manipulation methods from Dartmouth BASIC v4 and HP Timeshared BASIC, the later of which was widely used in early microcomputer interpreters. The ultimate goal is to support almost any dialect from the era, including Tiny BASIC, Palo Alto Tiny BASIC (PATB), MS-BASIC (Altair, Commodore, etc.), HP Timeshared BASIC (Northstar, Apple, Atari, Sinclair, etc.) and others. 
+RetroBASIC is an interpreter for programms written using 1970s/80s variations of BASIC. It is patterned mostly on MS-BASIC as seen on Commodore machines and Apple II (and many others). It also includes the alternate string manipulation methods from Dartmouth BASIC v4 and HP Timeshared BASIC, the later of which was widely used in early microcomputer interpreters. The ultimate goal is to support almost any dialect from the era, including Tiny BASIC, Palo Alto Tiny BASIC (PATB), MS-BASIC (Altair, Commodore, etc.), HP Timeshared BASIC (Northstar, Apple, Atari, Sinclair, etc.) and others. 
 
 RetroBASIC also includes a simple static analizer that (optionally) prints statistics for the program after it completes. This includes the length of the program and its line number range, the number and types of variables used, and similar details. The original impetus for RetroBASIC was to collect statistics on common programs to provide hints to the retrocomputing field, where new BASICs continue to be developed.
 
@@ -63,7 +63,6 @@ If anyone would like to contribute a VS.net project, it would be greatly appecia
 A complete list is maintained in the TODO file, but here are some important limitations:
 
 * INPUT statements with multiple values currently have to be entered with return/enter between each value, spaces do not work.
-* Most dialects of basic perform an "invisible DIM" on all variables, defining them to be arrays 0..10. This is not currently supported, but is *rarely* seen in actual programs.
 * Variable names are currently limited to two characters, which is needed to support "crunched" statements without spaces in MS style.
 * The system does not support "immediate mode" (command line) input. It is not supposed to, but could potentially do so.
 * LIST, LOAD and SAVE are currently not implemented, in keeping with the use-case.
