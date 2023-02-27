@@ -775,25 +775,34 @@ expression1:
 	  new->parms.op.p[1] = $3;
 	  $$ = new;
     
-    /* static analyser - see if this is a comparison to zero */
+    /* static analyser - see if this is a comparison to zero or one */
     if (new->parms.op.p[1]->type == number) {
-      if ((int)new->parms.op.p[1]->parms.number == 0) {
-        if (new->parms.op.opcode == '=') {
-          compare_equals_zero++;
-        } else {
-          compare_not_equals_zero++;
-        }
-      } else if ((int)new->parms.op.p[1]->parms.number == 1) {
-        if (new->parms.op.opcode == '=') {
-          compare_equals_one++;
-        } else {
-          compare_not_equals_one++;
-        }
-      } else {
+      // test for floats first
+      if (ceil(new->parms.op.p[1]->parms.number) != new->parms.op.p[1]->parms.number) {
         if (new->parms.op.opcode == '=') {
           compare_equals_other++;
         } else {
           compare_not_equals_other++;
+        }
+      } else { // otherwise test ints
+        if ((int)new->parms.op.p[1]->parms.number == 0) {
+          if (new->parms.op.opcode == '=') {
+            compare_equals_zero++;
+          } else {
+            compare_not_equals_zero++;
+          }
+        } else if ((int)new->parms.op.p[1]->parms.number == 1) {
+          if (new->parms.op.opcode == '=') {
+            compare_equals_one++;
+          } else {
+            compare_not_equals_one++;
+          }
+        } else {
+          if (new->parms.op.opcode == '=') {
+            compare_equals_other++;
+          } else {
+            compare_not_equals_other++;
+          }
         }
       }
     }
