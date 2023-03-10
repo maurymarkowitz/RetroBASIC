@@ -680,7 +680,7 @@ statement:
     $$ = new;
   }
   |
-  STRING expression /* Wang BASIC allows a print-like expression here */
+  STRING expression
   {
     statement_t *new = make_statement(STOP);
     new->parms.generic_parameter = $2;
