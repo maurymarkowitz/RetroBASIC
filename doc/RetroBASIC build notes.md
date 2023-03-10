@@ -1,5 +1,5 @@
-RetroBASIC design notes
-=======================
+RetroBASIC build notes
+======================
 
 **Copyright © 2020 Maury Markowitz**
 
