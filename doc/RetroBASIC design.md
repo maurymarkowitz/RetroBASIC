@@ -65,7 +65,7 @@ Things started changing in 1977; over a period of about six months, the Apple II
 
 ### RetroBASICs solution
 
-RetroBASIC aims to run any early BASIC program without modification. There is the important caveat that the programs does not make use of platform-specific extensions or invoke code using CALL or PEEKs and POKEs. But such was the case for most early programs when BASIC was a primary language on many different platforms and users exchanging programs wrote them to be as portable as possible. In most cases, it was only the string handling and a few more subtle differences that had to be ported.
+RetroBASIC aims to run any early BASIC program without modification. There is the important caveat that the program cannot not make use of platform-specific extensions or invoke code using CALL or PEEKs and POKEs. But such was the case for most early programs when BASIC was a primary language on many different platforms and users exchanging programs wrote them to be as portable as possible. In most cases, it was only the string handling and a few more subtle differences that had to be ported.
 
 There are many additional keywords and features found in one dialect or another. Some of these are incompatible with each other. For instance, the of Commodore BASIC for the (unreleased) C65 included a CHANGE command used for doing find and replace in a program text, which is incompatible with the Dartmouth CHANGE command. HP had its own version of CHANGE, (the better-named) CONVERT, but Wang BASIC had an entirely different CONVERT function. When such issues arose, RetroBASIC selected the "most standard" version, the one that would result in the most programs working properly without conversion.
 
