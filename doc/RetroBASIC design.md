@@ -33,7 +33,7 @@ The original BASIC is Dartmouth BASIC, released in 1964. Almost everything you c
 
 Dartmouth released a series of updates to the original version. String variables appeared in the fourth version, in 1968. This also added a single way to manipulate the data, the `CHANGE` command, which converted a string into an array of ASCII values or vice versa. So, for instance, to concatenate two strings you would first use `CHANGE A$ TO D` and `CHANGE B$ TO E`, and then loop over E and copy the values one by one into D, assuming the array D is long enough, and then finally `CHANGE D TO C$`. Yikes!
 
-Dartmouth was developed on a mainframe and they chose to implement the language as a compiler. Compilers generally require a fair amount of temporary memory, which smaller minicomputers didn't have. These machines normally used an interpreter instead. This meant that smaller machines generally didn't use the original Darmouth. So while versions of the Dartmouth code were found on almost all mainframes by 1970, it saw little use outside that market. Even large minis generally didn't use the Darmouth dialect.
+Dartmouth was developed on a mainframe and they chose to implement the language as a compiler. Compilers generally require a fair amount of temporary memory, which smaller computers didn't have. These machines normally used an interpreter instead, using their own code base. So while versions of the Dartmouth code were found on almost all mainframes by 1970, it saw little use outside that market. Even large minis generally didn't use the Darmouth dialect.
 
 ### HP
 
