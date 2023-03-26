@@ -108,14 +108,14 @@ void print_statistics()
   
   // start with line number stats
   lines_total = 0;
-  line_max = MAXLINE + 1;
-  line_min = -1;
+  line_min = MAXLINE + 1;
+  line_max = -1;
   // just look for any entry with a list
   for(int i = 0; i < MAXLINE; i++) {
     if (interpreter_state.lines[i] != NULL) {
       lines_total++;
-      if (i < line_max) line_max = i;
-      if (i > line_min) line_min = i;
+      if (i < line_min) line_min = i;
+      if (i > line_max) line_max = i;
     }
   }
   
@@ -173,12 +173,12 @@ void print_statistics()
     
     printf("\nLINE NUMBERS\n\n");
     printf("  total: %i\n", lines_total);
-    printf("  first: %i\n", line_max);
-    printf("   last: %i\n", line_min);
+    printf("  first: %i\n", line_min);
+    printf("   last: %i\n", line_max);
     
     printf("\nSTATEMENTS\n\n");
-    printf("  total: %i\n", lst_length(interpreter_state.lines[line_max]));
-    printf("average: %2.2f\n", (double)lst_length(interpreter_state.lines[line_max])/(double)lines_total);
+    printf("  total: %i\n", lst_length(interpreter_state.lines[line_min]));
+    printf("average: %2.2f\n", (double)lst_length(interpreter_state.lines[line_min])/(double)lines_total);
     printf("    max: %i\n", stmts_max);
     
     printf("\nVARIABLES\n\n");
@@ -255,11 +255,11 @@ void print_statistics()
     fprintf(fp, "CPU TIME,%g\n", ((double) (end_ticks - start_ticks)) / CLOCKS_PER_SEC);
     
     fprintf(fp, "LINE NUMBERS,total,%i\n", lines_total);
-    fprintf(fp, "LINE NUMBERS,first,%i\n", line_max);
-    fprintf(fp, "LINE NUMBERS,last,%i\n", line_min);
+    fprintf(fp, "LINE NUMBERS,first,%i\n", line_min);
+    fprintf(fp, "LINE NUMBERS,last,%i\n", line_max);
     
-    fprintf(fp, "STATEMENTS,total,%i\n", lst_length(interpreter_state.lines[line_max]));
-    fprintf(fp, "STATEMENTS,average,%g\n", (double)lst_length(interpreter_state.lines[line_max])/(double)lines_total);
+    fprintf(fp, "STATEMENTS,total,%i\n", lst_length(interpreter_state.lines[line_min]));
+    fprintf(fp, "STATEMENTS,average,%g\n", (double)lst_length(interpreter_state.lines[line_min])/(double)lines_total);
     fprintf(fp, "STATEMENTS,max/ln,%i\n", stmts_max);
     
     fprintf(fp, "VARIABLES,total,%i\n",num_total);
@@ -306,7 +306,6 @@ void print_statistics()
     fprintf(fp, "OTHER,ASSIGN 0: %i\n",assign_zero);
     fprintf(fp, "OTHER,ASSIGN 1: %i\n",assign_one);
     fprintf(fp, "OTHER,ASSIGN OTHER: %i\n",assign_other);
-    fprintf(fp, "OTHER,FORs step 1: %i\n",for_loops_step_1);
     fprintf(fp, "OTHER,FORs: %i\n",for_loops_total);
     fprintf(fp, "OTHER,FORs step 1: %i\n",for_loops_step_1);
     fprintf(fp, "OTHER,incs: %i\n",increments);
