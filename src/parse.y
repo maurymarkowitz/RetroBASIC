@@ -1175,34 +1175,34 @@ printlist:
 	  printitem_t *new = malloc(sizeof(*new));
 	  new->expression = $1;
 	  new->separator = 0;
-	  $$ = lst_prepend(NULL, new);
+	  $$ = lst_append(NULL, new);
 	}
   |
   // this handles MS semi-is-the-same as nothing, PRINT"I="I
-  expression printlist
+  printlist expression
   {
     printitem_t *new = malloc(sizeof(*new));
-    new->expression = $1;
+    new->expression = $2;
     new->separator = 0;
-    $$ = lst_prepend($2, new);
+    $$ = lst_append($1, new);
   }
   |
-	expression printsep printlist
-	{
-	  printitem_t *new = malloc(sizeof(*new));
-	  new->expression = $1;
-	  new->separator = $2;
-	  $$ = lst_prepend($3, new);
-	}
-  |
-	// this is found in the BCG "bug.bas", it's a print with a *leading* semi
-  printsep printlist
+  // this is found in the BCG "bug.bas", it's a print with a *leading* semi
+  printsep
   {
     printitem_t *new = malloc(sizeof(*new));
     new->expression = NULL;
     new->separator = $1;
-    $$ = lst_prepend($2, new);
+    $$ = lst_append(NULL, new);
   }
+  |
+  printlist printsep
+	{
+	  printitem_t *new = malloc(sizeof(*new));
+	  new->expression = NULL;
+	  new->separator = $2;
+	  $$ = lst_append($1, new);
+	}
 	;
 
 printsep:
