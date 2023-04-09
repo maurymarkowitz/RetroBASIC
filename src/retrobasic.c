@@ -968,9 +968,13 @@ static void print_expression(expression_t *e, const char *format)
 {
   // get the value of the expression for this item
   value_t v = evaluate_expression(e);
+	
+	// if the format string is empty, NULL it
+	if (format != NULL && strlen(format) == 0)
+		format = NULL;
   
   // if there is a USING string, build a c-style format string from it
-  if (format) {
+  if (format != NULL) {
     char copy[MAXSTRING];
     char *hash;
     int width = 0, prec = 0;
@@ -1405,7 +1409,10 @@ static void perform_statement(list_t *L)
           int type = 0;
           
           printitem_t *ppi = I->data;
-          if (ppi->expression->type == variable) {
+					if (ppi->expression == NULL) {
+						// skip this one
+					}
+					else if (ppi->expression->type == variable) {
             char line[80];
             
             // if there is a previous item in the printlist, look at the separator
@@ -1597,30 +1604,35 @@ static void perform_statement(list_t *L)
       case PRINT:
       {
         printitem_t *pp;
-        // loop over the items in the print list
-        for (list_t *I = ps->parms.print.item_list; I != NULL; I = lst_next(I)) {
-          pp = I->data;
-          
-          // if there's a USING, evaluate the format string it and print using it
-          if (ps->parms.print.format) {
-            value_t format_string;
-            format_string = evaluate_expression(ps->parms.print.format);
-            print_expression(pp->expression, format_string.string);
-          }
-          // otherwise, see if there's a separator and print using the width
-          else {
-            print_expression(pp->expression, NULL);
-          }
-          
-          // for each item in the list, look at the separator, if there is one
-          // and it's a comma, advance the cursor to the next tab column
-          if (pp->separator == ',')
-            //FIXME: this should wrap at 80 columns
-            while (interpreter_state.cursor_column % tab_columns != 0) {
-              printf(" ");
-              interpreter_state.cursor_column++;
-            }
-        }
+				
+				// see if the list has a formatter, and set up the format string or set it to default
+				value_t format_string;
+				format_string.type = STRING;
+				if (ps->parms.print.format)
+					format_string = evaluate_expression(ps->parms.print.format);
+				else
+					format_string.string = NULL;
+				
+        // now loop over the items in the print list
+				for (list_t *I = ps->parms.print.item_list; I != NULL; I = lst_next(I)) {
+					pp = I->data;
+					
+					// if this is a printsep, there will only be the separator and no expression
+					// but the separator itself will be handled below, so for now we just need
+					// to see if there is an expression to print
+					if (pp->expression != NULL) {
+						print_expression(pp->expression, format_string.string);
+					}
+					
+					// for each item in the list, look at the separator, if there is one
+					// and it's a comma, advance the cursor to the next tab column
+					if (pp->separator == ',')
+						//FIXME: this should wrap at 80 columns
+						while (interpreter_state.cursor_column % tab_columns != 0) {
+							printf(" ");
+							interpreter_state.cursor_column++;
+						}
+				}
         
         // now get the last item in the list so we can see if it's a ; or ,
         if (lst_last_node(ps->parms.print.item_list))
@@ -1628,10 +1640,10 @@ static void perform_statement(list_t *L)
         else
           pp = NULL;
         
-        // if the last item is SPC or TAB, fake a trailing semi, which is the way PET does it
-        if (pp != NULL && pp->expression->type == op && (pp->expression->parms.op.opcode == SPC || pp->expression->parms.op.opcode == TAB)) {
-          pp->separator = ';';
-        }
+				// if the last item is SPC or TAB, fake a trailing semi, which is the way PET does it
+				if (pp != NULL && pp->expression != NULL && pp->expression->type == op)
+					if (pp->expression->parms.op.opcode == SPC || pp->expression->parms.op.opcode == TAB)
+						pp->separator = ';';
         
         // if there are no more items, or it's NOT a separator, do a CR
         if (pp == NULL || pp->separator == 0) {
