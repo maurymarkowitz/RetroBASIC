@@ -421,7 +421,7 @@ statement:
     }
   }
 	|
-	GOSUB expression OF exprlist
+	GOSUB expression OF exprlist // this is the alternative form of ON..GOSUB seen in some dialects
 	{
     statement_t *new = make_statement(OF);
     new->parms.on.type = GOSUB;
@@ -429,7 +429,7 @@ statement:
     new->parms.on.numbers = $4;
     $$ = new;
       
-    linenum_constants_total = linenum_constants_total + lst_length($4);
+    linenum_constants_total += lst_length($4);
     linenum_on_totals++;
   }
 	|
@@ -461,7 +461,7 @@ statement:
     new->parms.on.numbers = $4;
     $$ = new;
       
-    linenum_constants_total = linenum_constants_total + lst_length($4);
+    linenum_constants_total += lst_length($4);
     linenum_on_totals++;
   }
 	|
@@ -574,7 +574,7 @@ statement:
 	  new->parms.on.numbers = $4;
 	  $$ = new;
       
-    linenum_constants_total++;
+    linenum_constants_total += lst_length($4);
     linenum_on_totals++;
 	}
 	|
@@ -586,7 +586,7 @@ statement:
     new->parms.on.numbers = $4;
     $$ = new;
     
-    linenum_constants_total++;
+    linenum_constants_total += lst_length($4);
     linenum_on_totals++;
   }
   |
