@@ -35,6 +35,8 @@ BP - DEC BASIC-PLUS
 
 - support AB's DEG and RAD modes? WB also had gradians; SELECT G
 
+- add BPs STRING$(X,Y)/STRING$(X,Y$) which makes a string of length X filled with character with ASCII Y or character Y$
+
 - PA allows multiple assignments in a LET, separated by commas, see assignlist.
 
 - BP (and HP?) allows multiple assignments with equals, A=B=C=10
