@@ -917,8 +917,18 @@ static value_t evaluate_expression(expression_t *expression)
 						// makes N copies of the given string
 						result.type = STRING;
 						result.string = str_new("");
+						
+						// BASIC-PLUS allows the first parameter to be either a string or ASCII number
+						char *temp;
+						if (parameters[0].type == STRING)
+							temp = parameters[0].string;
+						else {
+							char asc = parameters[0].number;
+							temp = str_new((char *)&asc);
+						}
+						
 						for (int i = 0; i <= parameters[1].number - 1; i++) {
-							str_append(result.string, parameters[0].string);
+							str_append(result.string, temp);
 						}
 						break;
 
