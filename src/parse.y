@@ -401,6 +401,26 @@ statement:
     for_loops_total++;
   }
   |
+  GOSUB NUMBER
+  {
+    statement_t *new = make_statement(GOSUB);
+    expression_t *exp = make_expression(number);
+    exp->parms.number = $2;
+    new->parms._goto = exp;
+    $$ = new;
+      
+    /* static analyzer */
+    linenum_goto_totals++;
+    linenum_constants_total++;
+    if ($2 == errline) {
+      linenum_same_line++;
+    } else if ($2 > errline) {
+      linenum_forwards++;
+    } else {
+      linenum_backwards++;
+    }
+  }
+  |
   GOSUB expression
   {
     statement_t *new = make_statement(GOSUB);
@@ -431,6 +451,26 @@ statement:
       
     linenum_constants_total += lst_length($4);
     linenum_on_totals++;
+  }
+  |
+  GOTO NUMBER
+  {
+    statement_t *new = make_statement(GOTO);
+    expression_t *exp = make_expression(number);
+    exp->parms.number = $2;
+    new->parms._goto = exp;
+    $$ = new;
+      
+    /* static analyzer */
+    linenum_goto_totals++;
+    linenum_constants_total++;
+    if ($2 == errline) {
+      linenum_same_line++;
+    } else if ($2 > errline) {
+      linenum_forwards++;
+    } else {
+      linenum_backwards++;
+    }
   }
 	|
 	GOTO expression
