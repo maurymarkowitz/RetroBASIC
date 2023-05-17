@@ -49,6 +49,7 @@ extern int numeric_constants_one_byte;
 extern int numeric_constants_two_byte;
 extern int numeric_constants_four_byte;
 extern int string_constants_total;
+extern int string_constants_zero;
 extern int string_constants_one_byte;
 extern int string_constants_two_byte;
 extern int string_constants_four_byte;

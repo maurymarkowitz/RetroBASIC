@@ -1097,7 +1097,9 @@ factor:
     /* static analyzer code */
     size_t len = strlen($1);
     string_constants_total++;
-    if (len == 1) {
+    if (len == 0) {
+      string_constants_zero++;
+    } else if (len == 1) {
       string_constants_one_byte++;
     } else if (len == 2) {
       string_constants_two_byte++;

@@ -45,6 +45,7 @@ int numeric_constants_four_byte = 0;
 int numeric_constants_big = 0;
 
 int string_constants_total = 0;
+int string_constants_zero = 0;
 int string_constants_one_byte = 0;
 int string_constants_two_byte = 0;
 int string_constants_four_byte = 0;
@@ -208,6 +209,7 @@ void print_statistics()
     
     printf("\nSTRING CONSTANTS\n\n");
     printf("  total: %i\n",string_constants_total);
+    printf("0 chars: %i\n",string_constants_zero);
     printf(" 1 char: %i\n",string_constants_one_byte);
     printf("2 chars: %i\n",string_constants_two_byte);
     printf("4 chars: %i\n",string_constants_four_byte);
@@ -286,6 +288,7 @@ void print_statistics()
     fprintf(fp, "NUMERIC CONSTANTS,4 byte,%i\n",numeric_constants_four_byte);
     
     fprintf(fp, "STRING CONSTANTS,total,%i\n",string_constants_total);
+    fprintf(fp, "STRING CONSTANTS,0 chars,%i\n",string_constants_zero);
     fprintf(fp, "STRING CONSTANTS,1 char,%i\n",string_constants_one_byte);
     fprintf(fp, "STRING CONSTANTS,2 chars,%i\n",string_constants_two_byte);
     fprintf(fp, "STRING CONSTANTS,4 chars,%i\n",string_constants_four_byte);
