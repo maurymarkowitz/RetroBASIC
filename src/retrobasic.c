@@ -861,24 +861,36 @@ static value_t evaluate_expression(expression_t *expression)
               result = double_to_value(-!strcmp(parameters[0].string, parameters[1].string));
             break;
           case '<':
-            result = double_to_value(-(a < b));
-            break;
+						if (parameters[0].type >= NUMBER)
+							result = double_to_value(-(a < b));
+						else
+							result = double_to_value(-!strcmp(parameters[0].string, parameters[1].string));
+						break;
           case '>':
-            result = double_to_value(-(a > b));
-            break;
+						if (parameters[0].type >= NUMBER)
+							result = double_to_value(-(a > b));
+						else
+							result = double_to_value(strcmp(parameters[0].string, parameters[1].string) > 0 ? -1 : 0);
+						break;
           case CMP_LE:
-            result = double_to_value(-(a <= b));
-            break;
+						if (parameters[0].type >= NUMBER)
+							result = double_to_value(-(a <= b));
+						else
+							result = double_to_value(strcmp(parameters[0].string, parameters[1].string) < 0 ? -1 : 0);
+						break;
           case CMP_GE:
-            result = double_to_value(-(a >= b));
-            break;
+						if (parameters[0].type >= NUMBER)
+							result = double_to_value(-(a >= b));
+						else
+							result = double_to_value(strcmp(parameters[0].string, parameters[1].string) >= 0 ? -1 : 0);
+						break;
           case CMP_NE:
           case CMP_HASH:
-            if (parameters[0].type >= NUMBER)
-              result = double_to_value(-(a != b));
-            else
-              result = double_to_value(-!!strcmp(parameters[0].string, parameters[1].string));
-            break;
+						if (parameters[0].type >= NUMBER)
+							result = double_to_value(-(a != b));
+						else
+							result = double_to_value(strcmp(parameters[0].string, parameters[1].string) != 0 ? -1 : 0);
+						break;
           case AND:
             result = double_to_value((int)a & (int)b);
             break;
