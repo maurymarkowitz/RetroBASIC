@@ -67,8 +67,8 @@ extern char *stats_file;
  */
 typedef struct {
   char *name;
-  list_t *subscripts;      // subscripts, list of expressions
-  list_t *slicing;         // up to two expressions holding string slicing limits
+  list_t *subscripts;   // subscripts, list of expressions
+  list_t *slicing;      // up to two expressions holding string slicing limits
 } variable_t;
 
 /* either_t is used within variable_value_t for the actual data */
@@ -79,10 +79,10 @@ typedef union {
 
 /* variable_storage_t holds the *value* of a variable in memory, it is a variable_t */
 typedef struct {
-  int type;             /* NUMBER, STRING */
+  int type;                     // NUMBER, STRING
   list_t *actual_dimensions;    // actual dimensions, even if auto-DIMmed
   list_t *defed_dimensions;     // subscript definitions, if any (from a DIM)
-  either_t *value;      // actual value(s), malloced
+  either_t *value;              // actual value(s), malloced
 } variable_storage_t;
 
 /* expressions */
