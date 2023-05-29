@@ -1149,62 +1149,72 @@ user_function:
     // do NOT insert it now, the variables are private and will be set up during the DEF
   }
 
- /* variables may contain an array reference or parameter list for functions */
- /* they may also include slicing in the ANSI model - the HP/Apple/Atari style
-    looks like a normal array reference */
-open_bracket:
- '(' | '[';
-close_bracket:
- ')' | ']';
-
 variable:
   VARIABLE_NAME
   {
-	  variable_t *new = malloc(sizeof(*new));
-	  new->name = $1;
-	  new->subscripts = NULL;
+    variable_t *new = malloc(sizeof(*new));
+    new->name = $1;
+    new->subscripts = NULL;
     new->slicing = NULL;
     $$ = new;
     
     /* add it to the interpreter's variable list for the analyizer*/
     insert_variable(new);
-	}
-	|
-  VARIABLE_NAME open_bracket exprlist close_bracket
+  }
+  |
+  VARIABLE_NAME '(' exprlist ')'
   {
     variable_t *new = malloc(sizeof(*new));
     new->name = $1;
     new->subscripts = $3;
     new->slicing = NULL;
+    new->bracket = '(';
     $$ = new;
-
+    
     /* this may result in errors about array bounds if you OPTION BASE after the DIM */
     insert_variable(new);
   }
   |
-  VARIABLE_NAME open_bracket slicelist close_bracket
+  VARIABLE_NAME '[' exprlist ']'
+  {
+    variable_t *new = malloc(sizeof(*new));
+    new->name = $1;
+    new->subscripts = $3;
+    new->slicing = NULL;
+    new->bracket = '[';
+    $$ = new;
+    
+    /* this may result in errors about array bounds if you OPTION BASE after the DIM */
+    insert_variable(new);
+  }
+  |
+  VARIABLE_NAME '(' slicelist  ')'
   {
     /* this is the ANSI-style slicing command */
+    /* NOTE: this should only ever occur in non-HP dialects, so the []'s would never appear */
     variable_t *new = malloc(sizeof(*new));
     new->name = $1;
     new->subscripts = NULL;
     new->slicing = $3;
+    new->bracket = '(';
     $$ = new;
-
+    
     insert_variable(new);
   }
   |
-  VARIABLE_NAME open_bracket exprlist close_bracket open_bracket slicelist close_bracket
+  VARIABLE_NAME '(' exprlist  ')' '(' slicelist  ')'
   {
     /* and this is ANSI slicing of an entry in a string array */
     variable_t *new = malloc(sizeof(*new));
     new->name = $1;
     new->subscripts = $3;
     new->slicing = $6;
+    new->bracket = '(';
     $$ = new;
-
+    
     insert_variable(new);
   }
+  ;
 
  /* a null printlist is valid, it means "new line" */
 printlist:
