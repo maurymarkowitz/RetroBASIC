@@ -410,7 +410,7 @@ statement:
     $$ = new;
       
     /* static analyzer */
-    linenum_goto_totals++;
+    linenum_gosub_totals++;
     linenum_constants_total++;
     if ($2 == errline) {
       linenum_same_line++;
@@ -1168,7 +1168,6 @@ variable:
     new->name = $1;
     new->subscripts = $3;
     new->slicing = NULL;
-    new->bracket = '(';
     $$ = new;
     
     /* this may result in errors about array bounds if you OPTION BASE after the DIM */
@@ -1181,7 +1180,6 @@ variable:
     new->name = $1;
     new->subscripts = $3;
     new->slicing = NULL;
-    new->bracket = '[';
     $$ = new;
     
     /* this may result in errors about array bounds if you OPTION BASE after the DIM */
@@ -1196,7 +1194,6 @@ variable:
     new->name = $1;
     new->subscripts = NULL;
     new->slicing = $3;
-    new->bracket = '(';
     $$ = new;
     
     insert_variable(new);
@@ -1209,7 +1206,6 @@ variable:
     new->name = $1;
     new->subscripts = $3;
     new->slicing = $6;
-    new->bracket = '(';
     $$ = new;
     
     insert_variable(new);
