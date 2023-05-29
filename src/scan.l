@@ -137,7 +137,7 @@ SPA       { return SPC; } // from HP, same as above
 SPACE\$   { return SPC; } // returns a string with spaces, doesn't just output it, but we allow assignment anyway so this works
 
  /* various operators and punctuation */
-[:,;()\^=+\-*/\<\>\&]     { return yytext[0]; }
+[:,;()\[\]\^=+\-*/\<\>\&]     { return yytext[0]; }
 
  /* alternate form for power */
 "**"      { return '^'; } // FIXME: we should have a separate token for this?
