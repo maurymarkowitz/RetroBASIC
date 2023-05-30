@@ -87,6 +87,28 @@ static void basic_error(const char *message)
   fprintf(stderr, "%s at line %d\n", message, current_line());
 }
 
+/* Returns an int containing the type of the variable based on its name
+	 or an initial type being passed in. Note that this only works on variable
+	 *references*, not the stored versions, as those have mangled names. */
+int variable_type(const variable_t *variable)
+{
+	int type;
+	
+	char trailer = variable->name[strlen(variable->name) - 1];
+	if (trailer == '$')
+		type = STRING;
+	else if (trailer == '%')
+		type = INTEGER;
+	else if (trailer == '!')
+		type = SINGLE;
+	else if (trailer == '#')
+		type = DOUBLE;
+	else
+		type = NUMBER; // this works for all of them, int, dbl, etc.
+
+	return type;
+}
+
 /* Returns an either_t containing a string or a number for the underlying
    variable, along with its type in the out-parameter 'type'. If the
    variable has not been encountered before it will be created here. */
@@ -102,7 +124,11 @@ either_t *variable_value(const variable_t *variable, int *type)
   // In MS basic, A() and A are two different variables, so here
   // we mangle the name to include a "(" if it's an array. This is also
 	// true in the original Dartmouth BASIC, according to the DTSS emulator.
-	// also see notes in CHANGE/CONVERT
+	// Also see notes in CHANGE/CONVERT.
+	//
+	// If we are in a dialect where () is a string slice, not an array access,
+	// like HP and Atari, then references to A$() are actually to A$ and we
+	// do *not* munge the name.
 	//
 	// NOTE: Dartmouth v4 page 38 states all variables can be used as an
 	//       array of 0..10 without a DIM statement, and DIM is only needed
@@ -114,7 +140,7 @@ either_t *variable_value(const variable_t *variable, int *type)
 	//       which means that a SUBSCRIPT ERROR will not be raised. Given
 	//       we are running known-good code, this seems fine.
   storage_name = str_new(variable->name);
-  if (variable->subscripts != NULL)
+	if ((!string_slicing || variable_type(variable) != STRING) && variable->subscripts != NULL)
     str_append(storage_name, "(");
 
 	// see if we can find the entry in the symbol list
@@ -127,26 +153,13 @@ either_t *variable_value(const variable_t *variable, int *type)
     // malloc a single slot, if it's an array we'll use this as the template
     storage = malloc(sizeof(*storage));
     
-    // set the type based on the name, which will override any passed type
-		// NOTE: don't use storage_name here, we might have added a (, always use variable->name
-    char trailer = variable->name[strlen(variable->name) - 1];
-    if (trailer == '$')
-      storage->type = STRING;
-    else
-      storage->type = NUMBER; // this works for all of them, int, dbl, etc.
-    
-    // see if we have a type being passed in, which is used in the DEFINT/SNG/DBL/STR
-		// NOTE: use >0 because DIM passes -1
-    if (*type > 0)
-      storage->type = *type;
-    // otherwise see if there's a subtype in the trailer
-    else if (trailer == '%')
-      storage->type = INTEGER;
-    else if (trailer == '!')
-      storage->type = SINGLE;
-    else if (trailer == '#')
-      storage->type = DOUBLE;
-		
+		// the type is normally set as part of the variable name, like $
+		// however, there is an exception to this in later MS dialects,
+		// they include the DEFSTR/SNG/DBL/INT, in which case the variable
+		// names do not have the trailer. To handle this case, we pass in
+		// the type when encountering those statements.
+		storage->type = variable_type(variable);
+
     // now see if this reference includes subscripts
     if (variable->subscripts != NULL) {
       value_t v;
@@ -294,7 +307,7 @@ either_t *variable_value(const variable_t *variable, int *type)
         slice_start = (int)fmax(slice_start, 1);
         slice_end = (int)fmin(slice_end, strlen(storage->value->string));
       } else {
-        if (slice_start < 1 || slice_end < 1 || slice_end > strlen(storage->value->string) - 1)
+        if (slice_start < 1 || slice_end < 1 || slice_end > strlen(storage->value->string)) // no -1, we adjust that next line
           basic_error("String slice out of bounds");
       }
       
@@ -1211,7 +1224,7 @@ static void perform_statement(list_t *L)
 				
 				// get the storage for the numeric value by adding the (
 				char *array_storage_name = str_new((type1 == NUMBER) ? ps->parms.change.var1->name : ps->parms.change.var2->name);
-				str_append(array_storage_name, "("); // we are assuming it is missing
+				str_append(array_storage_name, "("); // we are assuming it is missing, don't have to check type here
 				array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
 				free(array_storage_name);
 
@@ -1304,10 +1317,14 @@ static void perform_statement(list_t *L)
 				{
 					// there is a varlist of items in the parameters, loop over them
 					for (list_t *variable = lst_first_node(ps->parms.dim); variable != NULL; variable = lst_next(variable)) {
-						// get the name of this variable and munge it to an array have
+						// get the name of this variable and munge it to an array if appropriate
 						variable_t *var = variable->data;
+						
+						// if this is a DIM on a string, and we're using slicing, then this is DIMming
+						// the string's length, not making an array. In that case we want the original
+						// variable name, not the munged version
 						char *storage_name = str_new(var->name);
-						if (var->subscripts != NULL)
+						if ((!string_slicing || variable_type(var) != STRING) && var->subscripts != NULL)
 							str_append(storage_name, "(");
 						
 						// look up the storage, error if it's not found (should never happen)
