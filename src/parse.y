@@ -1182,7 +1182,9 @@ variable:
     new->slicing = NULL;
     $$ = new;
     
-    /* this may result in errors about array bounds if you OPTION BASE after the DIM */
+    // square brackets tell us we are in the HP dialect, which means...
+    string_slicing = true;
+    
     insert_variable(new);
   }
   |
