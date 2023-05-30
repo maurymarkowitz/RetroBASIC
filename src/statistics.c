@@ -223,11 +223,11 @@ void print_statistics()
     printf(" gosubs: %i\n",linenum_gosub_totals);
     printf("  gotos: %i\n",linenum_goto_totals);
     printf("  thens: %i\n",linenum_then_goto_totals);
-    printf("    ons: %i\n",linenum_on_totals);
     printf("forward: %i\n",linenum_forwards);
     printf("bckward: %i\n",linenum_backwards);
     printf("same ln: %i\n",linenum_same_line);
-    
+    printf("    ons: %i\n",linenum_on_totals);
+
     printf("\nOTHER BITS\n\n");
     printf(" asgn 0: %i\n",assign_zero);
     printf(" asgn 1: %i\n",assign_one);
@@ -301,11 +301,11 @@ void print_statistics()
     fprintf(fp, "BRANCHES,gosubs,%i\n",linenum_gosub_totals);
     fprintf(fp, "BRANCHES,gotos,%i\n",linenum_goto_totals);
     fprintf(fp, "BRANCHES,thens,%i\n",linenum_then_goto_totals);
-    fprintf(fp, "BRANCHES,ons,%i\n",linenum_on_totals);
     fprintf(fp, "BRANCHES,forward,%i\n",linenum_forwards);
     fprintf(fp, "BRANCHES,backward,%i\n",linenum_backwards);
     fprintf(fp, "BRANCHES,same line,%i\n",linenum_same_line);
-    
+    fprintf(fp, "BRANCHES,ons,%i\n",linenum_on_totals);
+
     fprintf(fp, "OTHER,ASSIGN 0: %i\n",assign_zero);
     fprintf(fp, "OTHER,ASSIGN 1: %i\n",assign_one);
     fprintf(fp, "OTHER,ASSIGN OTHER: %i\n",assign_other);
