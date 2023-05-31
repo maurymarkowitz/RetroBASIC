@@ -52,7 +52,7 @@ extern bool string_slicing;             // are references like A$(1,1) referring
 extern bool goto_next_highest;          // if a branch targets a non-existant line, should we go to the next line?
 extern bool ansi_on_boundaries;         // if the value for an ON statement <1 or >num entries, should it continue, or error?
 extern bool ansi_tab_behaviour;         // if a TAB < current column, ANSI inserts a CR, MS does not
-extern double random_seed;              // reset with RANDOMIZE, if -1 then auto-seeds
+extern int random_seed;                 // reset with RANDOMIZE, if -1 then auto-seeds
 
 extern char *source_file;
 extern char *input_file;
