@@ -63,7 +63,7 @@ static struct option program_options[] =
   {"upper-case", no_argument, NULL, 'u'},
   {"array-base", required_argument, NULL, 'a'},
   {"tabs", required_argument, NULL, 't'},
-  {"random", required_argument, NULL, 'r'},
+  {"random", optional_argument, NULL, 'r'},
   {"slicing", no_argument, NULL, 's'},
   {"goto-next", no_argument, NULL, 'g'},
   {"input-file", required_argument, NULL, 'i'},
