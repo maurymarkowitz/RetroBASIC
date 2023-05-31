@@ -200,8 +200,13 @@ int main(int argc, char *argv[])
   if (random_seed > -1)
     srand(random_seed);
   else
-    srand((unsigned int)time(0));
+    srand((unsigned int)time(NULL) | (getpid() << 8));
   
+  // now call rand to prime the pump, see:
+  // https://stackoverflow.com/questions/76367489/srand-rand-slowly-changing-starting-value/76367884#76367884
+  double pump = rand();
+  pump = rand();
+
   // and go!
   if (run_program)
     interpreter_run();
