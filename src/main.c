@@ -143,6 +143,7 @@ void parse_options(int argc, char *argv[])
         
       case 'r':
         random_seed = strtol(optarg, 0, INT_MAX);
+        break;
         
       default:
         abort();
