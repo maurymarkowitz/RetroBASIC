@@ -30,18 +30,18 @@
 interpreterstate_t interpreter_state;
 
 /* and the same for the various flags */
-bool run_program = true;                 // default to running the program, not just parsing it
-bool print_stats = false;                // do not print or write stats by default
+bool run_program = true;							// default to running the program, not just parsing it
+bool print_stats = false;							// do not print or write stats by default
 bool write_stats = false;
-int tab_columns = 10;                   // based on PET BASIC, which is a good enough target
+int tab_columns = 10;									// based on PET BASIC, which is a good enough target
 bool trace_lines = false;
-bool upper_case = false;                 // force INPUT to upper case
-int array_base = 1;                     // lower bound of arrays, can be set to 0 with OPTION BASE
-double random_seed = -1;                // reset with RANDOMIZE, if -1 then auto-seeds
-bool string_slicing = false;             // are references like A$(1,1) referring to an array entry or doing slicing?
-bool goto_next_highest = false;          // if a branch targets an non-existant line, should we go to the next highest?
-bool ansi_on_boundaries = false;         // if the value for an ON statement <1 or >num entries, should it continue or error?
-bool ansi_tab_behaviour = false;         // if a TAB < current column, ANSI inserts a CR, MS does not
+bool upper_case = false;							// force INPUT to upper case
+int array_base = 1;										// lower bound of arrays, can be set to 0 with OPTION BASE
+int random_seed = -1;									// reset with RANDOMIZE, if -1 then auto-seeds
+bool string_slicing = false;					// are references like A$(1,1) referring to an array entry or doing slicing?
+bool goto_next_highest = false;				// if a branch targets an non-existant line, should we go to the next highest?
+bool ansi_on_boundaries = false;			// if the value for an ON statement <1 or >num entries, should it continue or error?
+bool ansi_tab_behaviour = false;			// if a TAB < current column, ANSI inserts a CR, MS does not
 
 char *source_file = "";
 char *input_file = "";
