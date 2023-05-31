@@ -71,7 +71,7 @@
 		5599AEFB239C0A8800490A3A /* stdhdr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stdhdr.h; sourceTree = "<group>"; };
 		5599AEFC239C0ABF00490A3A /* scan.l */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.lex; path = scan.l; sourceTree = "<group>"; tabWidth = 2; };
 		55A42360287360B00070AF00 /* statistics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = statistics.h; sourceTree = "<group>"; };
-		55A42361287360B00070AF00 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		55A42361287360B00070AF00 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; tabWidth = 2; };
 		55A42362287360B00070AF00 /* statistics.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.c.c; path = statistics.c; sourceTree = "<group>"; tabWidth = 2; };
 		55B3D40C238E051D00E6054E /* retrobasic */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = retrobasic; sourceTree = BUILT_PRODUCTS_DIR; };
 		55B3D420238E1B9900E6054E /* test.bas */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.bas; sourceTree = "<group>"; };
