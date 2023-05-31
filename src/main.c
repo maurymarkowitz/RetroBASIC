@@ -79,6 +79,16 @@ void parse_options(int argc, char *argv[])
   int option_index = 0;
   int printed_help = false;
   
+  // one annoyance with getopt is that if you define a switch with an optional_argument,
+  // it will always eat the next entry, if there is one, as its parameter. So, for instance:
+  //
+  // ./retrobasic -r sst.bas
+  //
+  // will return "sst.bas" as the parameter for -r, and eat the input. So for any optional
+  // parameter switches, be sure to test the input is what you expect, and if not, back
+  // up optind one space so it can be used by the next loop. see -r for an example
+  char *test;
+  
   while (1) {
     // eat an option and exit if we're done
     int c = getopt_long(argc, argv, "hvua:t:r:i:o:w:spn", program_options, &option_index); // should match the items above, but with flag-setters excluded
@@ -121,11 +131,11 @@ void parse_options(int argc, char *argv[])
         break;
         
       case 'a':
-        array_base = (int)strtol(optarg, 0, INT_MAX);;
+        array_base = (int)strtol(optarg, 0, 10);
         break;
         
       case 't':
-        tab_columns = (int)strtol(optarg, 0, INT_MAX);;
+        tab_columns = (int)strtol(optarg, 0, 10);
         break;
         
       case 'i':
@@ -142,7 +152,15 @@ void parse_options(int argc, char *argv[])
         break;
         
       case 'r':
-        random_seed = strtol(optarg, 0, INT_MAX);
+        test = optarg;
+        random_seed = (int)strtol(optarg, &test, 10);
+        
+        // now see if we actually read anything, we might have been handed the
+        // next switch or option rather than a number. if so, use zero as the
+        // seed and back up the optind so it can read it correctly
+        if (test == optarg)
+          optind--;
+        
         break;
         
       default:
@@ -151,8 +169,7 @@ void parse_options(int argc, char *argv[])
   } // while
   
   // now see if there's a filename
-  if (optind < argc)
-    // we'll just assume one file if any
+  if (optind <= argc)
     source_file = argv[argc - 1];
   else
     // not always a failure, we might have just been asked for usage
