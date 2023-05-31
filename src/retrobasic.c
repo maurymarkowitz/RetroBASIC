@@ -1702,11 +1702,15 @@ static void perform_statement(list_t *L)
         
         // see if there's a parameter, if not, seed time
         if (ps->parms.generic_parameter == NULL)
-          srand((unsigned int)time(0));
+          srand((unsigned int)time(NULL));
         else {
           value_t seed_value = evaluate_expression(ps->parms.generic_parameter);
           srand(seed_value.number);
         }
+				
+				// prime the RNG, see notes in main loop
+				double pump = rand();
+				pump = rand();
       }
         break;
 
