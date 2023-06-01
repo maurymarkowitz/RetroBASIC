@@ -9,6 +9,8 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
+- check string sizes against DIM in slicing dialects
+
 - add longer variable names
 
 - add slicing-based concat, A[10]=B[5,10] and replacement, A[10,15]="HELLO"
