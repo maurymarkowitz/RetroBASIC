@@ -33,13 +33,13 @@ static void print_version()
 /* usage short form, just a list of the switches */
 static void print_usage(char *argv[])
 {
-  printf("Usage: %s [-hvsngu] [-a number] [-t spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] source_file\n", argv[0]);
+  printf("Usage: %s [-hvsngu] [-a number] [-t spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] FILE\n", argv[0]);
 }
 
 /* full usage notes, both for the user and for documenting the code below */
 static void print_help(char *argv[])
 {
-  printf("Usage: retrobasic [-hvsngu] [-a number] [-t spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] source_file\n");
+  printf("Usage: retrobasic [-hvsngu] [-a number] [-t spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] FILE\n");
   puts("\nOptions:");
   puts("  -h, --help: print this description");
   puts("  -v, --version: print version info");
@@ -169,7 +169,7 @@ void parse_options(int argc, char *argv[])
   } // while
   
   // now see if there's a filename
-  if (optind <= argc)
+  if (optind <= argc && argc > 1)
     source_file = argv[argc - 1];
   else
     // not always a failure, we might have just been asked for usage
@@ -190,6 +190,8 @@ int main(int argc, char *argv[])
 #if YYDEBUG
   yydebug = 1;
 #endif
+#define YYDEBUG 1
+
 
   // parse the options and make sure we got a filename somewhere
   parse_options(argc, argv);
@@ -198,13 +200,17 @@ int main(int argc, char *argv[])
   interpreter_setup();
   
   // open the file and see if it exists
+  if (strlen(source_file) == 0) {
+    fprintf(stderr, "No filename provided.\n");
+    exit(EXIT_FAILURE);
+  }
   yyin = fopen(source_file, "r");
   if (yyin == NULL) {
     if (errno == ENOENT) {
-      fprintf(stderr, "File not found or no filename provided.");
+      fprintf(stderr, "File not found or invalid filename provided.\n");
       exit(EXIT_FAILURE);
     } else {
-      fprintf(stderr, "Error %i when opening file.", errno);
+      fprintf(stderr, "Error %i when opening file.\n", errno);
       exit(EXIT_FAILURE);
     }
   }
