@@ -30,6 +30,8 @@ Boston, MA 02111-1307, USA.  */
 
 %option noyywrap
 %option caseless
+%option yylineno
+ //%option nodefault
 
 %%
 
@@ -119,7 +121,7 @@ LEFT\$		{ return LEFT; }
 RIGHT\$		{ return RIGHT; }
 MID\$     { return MID; }
 LEN       { return LEN; }
-STR       { return STR; } // also NUM$ in some dialects
+STR\$     { return STR; } // also NUM$ in some dialects
  /* aliases for MID found in some versions */
 SEG\$     { return SEG; }
 SUBSTR\$  { return SUBSTR; }
@@ -158,7 +160,7 @@ XOR       { return XOR; }
 #         { return CMP_HASH; } // use a separate token here to preserve it in LIST
 
  /* defs added in Extended BASIC */
- /* FIXME: these are actually easy to do, simply run them as DIMs so they get entered into the btree */
+ /* FIXME: these are actually easy to do, simply run them as DIMs so they get entered into the var list */
 DEFSTR    { return DEFSTR; }
 DEFINT    { return DEFINT; }
 DEFSNG    { return DEFSNG; }
@@ -211,5 +213,7 @@ CLK\$   { return TIME_STR; } // from BASIC-PLUS, Univac System 9 has CLK(x) wher
 
  /* eat other whitespace */
 [ \t\r\l]   {  }
+
+. printf("Bad input character '%s' at line %d\n", yytext, yylineno);
 
 %%
