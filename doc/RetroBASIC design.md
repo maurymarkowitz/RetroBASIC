@@ -80,34 +80,3 @@ As a result, RetroBASIC is essentially a superset of MS BASIC with the following
 ## Random notes
 
 Later versions of MS, and those that followed its pattern, allow FOR loops to be terminated in one of three ways. `NEXT I` closes the current loop and returns "NEXT WITHOUT FOR" if the currrent loop isn't I. `NEXT` closes any open loop, including multiple open loops. Finally, `NEXT I,J` closes the loops opened with I or J. This last case is weird, the order doesn't matter, `NEXT J,I` does the same thing. If the code `FOR I=` and then `FOR J=`, `NEXT I,J` will work properly.
-
-## Coding style
-
-RetroBASIC is writen in a semi-cannonical C format, as defined by the [Canonical C Style Guide](https://people.canonical.com/~msawicz/guides/c/cguide.html). There are two main differences:
-
-1) single-line "blocks" are separated onto two lines to make them look more like multi-line blocks
-```
-  while (condition)
-     dosomething;
-```
-  as opposed to:
-
-```
-  while (condition) dosomething;
-```
-2) multi-line blocks have the opening brace on the statement line, to make them look more like single-line blocks
-```
-  while (condition) {
-     dosomething;
-     andsomethingelse;
-  }
-```
-    as opposed to:
-
-```
-  while (condition)
-  {
-     dosomething;
-     andsomethingelse;
-  }
-```
