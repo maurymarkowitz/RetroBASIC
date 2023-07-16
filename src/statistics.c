@@ -76,6 +76,9 @@ int assign_zero = 0;
 int assign_one = 0;
 int assign_other = 0;
 
+/* variables used internally only */
+double linenum_ave_digits = 0;
+
 static void is_string(void *key, void *value, void *user_data)
 {
   variable_storage_t *data = (variable_storage_t *)value;
@@ -105,18 +108,25 @@ static void is_integer(void *key, void *value, void *user_data)
  or if the write_stats flag is on, writes them to a file */
 void print_statistics()
 {
-  int lines_total, line_min, line_max;
+  int lines_total = 0, line_min = MAXLINE + 1, line_max = -1;
+  double linenum_1_digit = 0.0, linenum_2_digit = 0.0, linenum_3_digit = 0.0, linenum_4_digit = 0.0, linenum_5_digit = 0.0;
+  double linenum_tot_digits = 0.0;
   
   // start with line number stats
-  lines_total = 0;
-  line_min = MAXLINE + 1;
-  line_max = -1;
-  // just look for any entry with a list
+  // just look for any entry in the arra with a non-empty statement list
   for(int i = 0; i < MAXLINE; i++) {
     if (interpreter_state.lines[i] != NULL) {
       lines_total++;
       if (i < line_min) line_min = i;
       if (i > line_max) line_max = i;
+      
+      switch(i) {
+        case 0 ... 9 : linenum_1_digit++; linenum_tot_digits = linenum_tot_digits + 1; break;
+        case 10 ... 99 : linenum_2_digit++; linenum_tot_digits = linenum_tot_digits + 2; break;
+        case 100 ... 999 : linenum_3_digit++; linenum_tot_digits = linenum_tot_digits + 3; break;
+        case 1000 ... 9999 : linenum_4_digit++; linenum_tot_digits = linenum_tot_digits + 4; break;
+        case 10000 ... 99999 : linenum_5_digit++; linenum_tot_digits = linenum_tot_digits + 5; break;
+      }
     }
   }
   
@@ -125,6 +135,12 @@ void print_statistics()
     printf("\nNO PROGRAM TO EXAMINE\n\n");
     return;
   }
+  
+  // average number of digits in a line number
+  linenum_ave_digits = (
+                        (linenum_1_digit * 1) + (linenum_2_digit * 2) + (linenum_3_digit * 3) + (linenum_4_digit * 4) + (linenum_5_digit * 5)
+                        ) / lines_total;
+
   
   // since the statements are run together as one long list, it's
   // easy to print out the total number, but not so easy to print
@@ -176,7 +192,8 @@ void print_statistics()
     printf("  total: %i\n", lines_total);
     printf("  first: %i\n", line_min);
     printf("   last: %i\n", line_max);
-    
+    printf(" digits: %2.2f\n", linenum_ave_digits);
+
     printf("\nSTATEMENTS\n\n");
     printf("  total: %i\n", lst_length(interpreter_state.lines[line_min]));
     printf("average: %2.2f\n", (double)lst_length(interpreter_state.lines[line_min])/(double)lines_total);
@@ -259,7 +276,8 @@ void print_statistics()
     fprintf(fp, "LINE NUMBERS,total,%i\n", lines_total);
     fprintf(fp, "LINE NUMBERS,first,%i\n", line_min);
     fprintf(fp, "LINE NUMBERS,last,%i\n", line_max);
-    
+    fprintf(fp, "LINE NUMBERS,average digits: %2.2f\n", linenum_ave_digits);
+
     fprintf(fp, "STATEMENTS,total,%i\n", lst_length(interpreter_state.lines[line_min]));
     fprintf(fp, "STATEMENTS,average,%g\n", (double)lst_length(interpreter_state.lines[line_min])/(double)lines_total);
     fprintf(fp, "STATEMENTS,max/ln,%i\n", stmts_max);
