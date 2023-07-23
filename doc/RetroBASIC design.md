@@ -11,7 +11,7 @@ This document explains some of the design goals, coding decisions and style sele
 
 ## Feature creep at its finest
 
-RetroBASIC started in 2020 as a project to collect statistics from classic BASIC programs in an effort to find ways to improve the notoriously slow Atari BASIC. The goal was to find low-hanging fruit that would offer the most significant improvements for the least amount of changes to the original code. For this I needed useful statistics on what sorts of things programs of the era actually did.
+RetroBASIC started in 2020 as a project to collect statistics from classic BASIC programs in an effort to find ways to improve the notoriously slow Atari BASIC. The goal was to find changes that would offer the most significant improvements for the least amount of changes to the original code. For this I needed useful statistics on what sorts of things programs of the era actually did.
 
 Initially this led to some regex-like work in Python, but it quickly became clear that the complexity of the code was daunting. For instance, one of the statistics that I wanted to collect was the number and distribution of numeric constants in a typical program. These took up lots of memory in Atari BASIC and I felt that there were possible savings here. But it was also useful to know the difference between constants and line numbers, and the distribution of each. When one considers all of the places such numbers appear - in formulas, array indexes, line numbers, etc. - separating out the cases was annoying.
 
