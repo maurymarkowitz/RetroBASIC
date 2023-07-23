@@ -1709,8 +1709,8 @@ static void perform_statement(list_t *L)
         }
 				
 				// prime the RNG, see notes in main loop
-				double pump = rand();
-				pump = rand();
+				(void)rand();
+				(void)rand();
       }
         break;
 
