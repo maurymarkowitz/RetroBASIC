@@ -228,8 +228,8 @@ int main(int argc, char *argv[])
   
   // now call rand to prime the pump, see:
   // https://stackoverflow.com/questions/76367489/srand-rand-slowly-changing-starting-value/76367884#76367884
-  double pump = rand();
-  pump = rand();
+  (void)rand();
+  (void)rand();
 
   // and go!
   if (run_program)
