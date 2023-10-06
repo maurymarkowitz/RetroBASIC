@@ -76,7 +76,7 @@ static expression_t *make_operator(int arity, int o)
   list_t *l;
   statement_t *statement;
   expression_t *expression;
-  variable_t *variable;
+  variable_reference_t *variable;
 }
 
 %type <l> program line statements
@@ -192,6 +192,10 @@ static expression_t *make_operator(int arity, int o)
  /* time and date patterened on MS style */
 %token TIME
 %token TIME_STR
+
+ /* hex, oct and binary strings */
+%token HEX OCT BIN
+%token HEXSTR OCTSTR BINSTR
 
 %%
 
@@ -990,17 +994,23 @@ fn_0:
 fn_1:
  _ABS { $$ = _ABS; } |
 	ATN  { $$ = ATN; } |
+  BIN  { $$ = BIN; } |
+  BINSTR { $$ = BINSTR; } |
 	CHR  { $$ = CHR; } |
 	CLOG { $$ = CLOG;} |
 	COS  { $$ = COS; } |
   EXP  { $$ = EXP; } |
   FIX  { $$ = FIX; } |
+  HEX  { $$ = HEX; } |
+  HEXSTR { $$ = HEXSTR; } |
   INT  { $$ = INT; } |
   LCASE  { $$ = LCASE; } |
   LEN  { $$ = LEN; } |
   LIN  { $$ = LIN; } |
   STR  { $$ = STR; } |
   LOG  { $$ = LOG; } |
+  OCT  { $$ = OCT; } |
+  OCTSTR { $$ = OCTSTR; } |
   PEEK { $$ = PEEK;} |
   SGN  { $$ = SGN; } |
 	SIN  { $$ = SIN; } |
@@ -1142,7 +1152,7 @@ factor:
 user_function:
   FUNCTION_NAME '(' exprlist ')'
   {
-    variable_t *new = malloc(sizeof(*new));
+    variable_reference_t *new = malloc(sizeof(*new));
     new->name = $1;
     new->subscripts = $3;
     $$ = new;
@@ -1152,7 +1162,7 @@ user_function:
 variable:
   VARIABLE_NAME
   {
-    variable_t *new = malloc(sizeof(*new));
+    variable_reference_t *new = malloc(sizeof(*new));
     new->name = $1;
     new->subscripts = NULL;
     new->slicing = NULL;
@@ -1164,7 +1174,7 @@ variable:
   |
   VARIABLE_NAME '(' exprlist ')'
   {
-    variable_t *new = malloc(sizeof(*new));
+    variable_reference_t *new = malloc(sizeof(*new));
     new->name = $1;
     new->subscripts = $3;
     new->slicing = NULL;
@@ -1176,7 +1186,7 @@ variable:
   |
   VARIABLE_NAME '[' exprlist ']'
   {
-    variable_t *new = malloc(sizeof(*new));
+    variable_reference_t *new = malloc(sizeof(*new));
     new->name = $1;
     new->subscripts = $3;
     new->slicing = NULL;
@@ -1192,7 +1202,7 @@ variable:
   {
     /* this is the ANSI-style slicing command */
     /* NOTE: this should only ever occur in non-HP dialects, so the []'s would never appear */
-    variable_t *new = malloc(sizeof(*new));
+    variable_reference_t *new = malloc(sizeof(*new));
     new->name = $1;
     new->subscripts = NULL;
     new->slicing = $3;
@@ -1204,7 +1214,7 @@ variable:
   VARIABLE_NAME '(' exprlist  ')' '(' slicelist  ')'
   {
     /* and this is ANSI slicing of an entry in a string array */
-    variable_t *new = malloc(sizeof(*new));
+    variable_reference_t *new = malloc(sizeof(*new));
     new->name = $1;
     new->subscripts = $3;
     new->slicing = $6;
