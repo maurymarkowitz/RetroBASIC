@@ -138,6 +138,14 @@ LIN       { return LIN; }
 SPA       { return SPC; } // from HP, same as above
 SPACE\$   { return SPC; } // returns a string with spaces, doesn't just output it, but we allow assignment anyway so this works
 
+ /* HEX, OCT and BIN conversions */
+BIN       { return BIN; }
+BIN\$     { return BINSTR; }
+HEX       { return HEX; }
+HEX\$     { return HEXSTR; }
+OCT       { return OCT; }
+OCT\$     { return OCTSTR; }
+
  /* various operators and punctuation */
 [:,;()\[\]\^=+\-*/\<\>\&]     { return yytext[0]; }
 
