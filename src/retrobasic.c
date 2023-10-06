@@ -61,12 +61,15 @@ typedef struct {
 /* function_storage_t holds the expression from the DEF */
 typedef struct {
   int type;               /* NUMBER, STRING */
-  list_t *parameters;     // parameters, if any, as variable_t
+  list_t *parameters;     // parameters, if any, as variable_reference_t
   expression_t *formula;	// related formula
 } function_storage_t;
 
 /* forward declares */
+static bool slice_limits(const variable_reference_t *variable, const variable_storage_t *value, int *start, int* end);
+
 static value_t evaluate_expression(expression_t *e);
+
 static int line_for_statement(const list_t *s);
 static int current_line(void);
 
@@ -90,7 +93,7 @@ static void basic_error(const char *message)
 /* Returns an int containing the type of the variable based on its name
 	 or an initial type being passed in. Note that this only works on variable
 	 *references*, not the stored versions, as those have mangled names. */
-int variable_type(const variable_t *variable)
+int variable_type(const variable_reference_t *variable)
 {
 	int type;
 	
@@ -109,13 +112,27 @@ int variable_type(const variable_t *variable)
 	return type;
 }
 
+/* Returns the storage record for a given variable. */
+// NOTE: this should be refactored so we don't duplicate the code below
+variable_storage_t* variable_storage(const variable_reference_t *variable)
+{
+  variable_storage_t *storage;
+  char *storage_name = str_new(variable->name);
+  if ((!string_slicing || variable_type(variable) != STRING) && variable->subscripts != NULL)
+    str_append(storage_name, "(");
+
+  // see if we can find the entry in the symbol list
+  storage = lst_data_with_key(interpreter_state.variable_values, storage_name);
+  return storage;
+}
+
 /* Returns an either_t containing a string or a number for the underlying
    variable, along with its type in the out-parameter 'type'. If the
    variable has not been encountered before it will be created here. */
 /* NOTE: this code also handles string slicing. it would be much preferrable
    to do that as a function call so it could overload the MID$-style functions
    but I could not figure out how to do that at runtime in the yacc code. */
-either_t *variable_value(const variable_t *variable, int *type)
+either_t* variable_value(const variable_reference_t *variable, int *type)
 {
   variable_storage_t *storage;
   char *storage_name;
@@ -167,8 +184,8 @@ either_t *variable_value(const variable_t *variable, int *type)
       // now clear out any existing list of subscripts in storage, eval each of the
       // values in the variable ref, and store that value in our ->subs list_t
       // (as the value, not a pointer), and then calculate the total size we need
-			storage->actual_dimensions = NULL;
-			storage->defed_dimensions = NULL;
+      storage->actual_dimensions = NULL;
+      storage->defed_dimensions = NULL;
       slots = 1;
       for (list_t *L = variable->subscripts; L != NULL; L = lst_next(L)) {
         v = evaluate_expression(L->data);
@@ -255,7 +272,7 @@ either_t *variable_value(const variable_t *variable, int *type)
   }
   
   // done with this temp name, but don't pass TRUE or it will kill the original too
-  //free(storage_name);
+  free(storage_name);
   
   // returning the type
 	// NOTE: if this is part of a DIM, it's been correctly set above
@@ -263,70 +280,20 @@ either_t *variable_value(const variable_t *variable, int *type)
   
   // if we are using string slicing OR there is a ANSI-style slice, return that part of the string
   if (*type == STRING) {
-    value_t startPoint, endPoint;
-    list_t *slice_param = NULL;
-    
-    // see if there is an ANSI slice defined, if so, use that
-    if (lst_length(variable->slicing)) {
-      // ANSI slices will always have two parameters in the slicing list
-      if (lst_length(variable->slicing) != 2)
-        basic_error("Wrong number of parameters in string slice");
-      
-      slice_param = variable->slicing;
-    }
-    
-    // the other possibility is that we have the slicing option turned on,
-    // in that case the index we calculated earlier is not correct, so we
-    // return that to zero and then use those params as the slices
-    if (string_slicing && lst_length(variable->subscripts) > 0) {
-      index = 0;
-      
-      // HP style slices will have one or two parameters
-      if (string_slicing && (lst_length(variable->subscripts) != 1 && lst_length(variable->subscripts) != 2))
-        basic_error("Wrong number of parameters in string slice");
-      
-      slice_param = variable->subscripts;
-    }
-    
-    // if either of those got us something, pull out both parameters
-    if (slice_param != NULL) {
-      long slice_start, slice_end;
-      
-      startPoint = evaluate_expression(slice_param->data);
-      slice_start = (long)startPoint.number;
-      slice_param = lst_next(slice_param);
-			if (slice_param && slice_param->data)
-				endPoint = evaluate_expression(slice_param->data);
-			else
-				endPoint = startPoint;
-      slice_end = (long)endPoint.number;
-
-      // according to ANSI, numbers outside the string should be forced to the string's bounds
-      // for non-ANSI, we'll error on odd numbers?
-      if (variable->slicing != NULL) {
-        slice_start = (int)fmax(slice_start, 1);
-        slice_end = (int)fmin(slice_end, strlen(storage->value->string));
-      } else {
-        if (slice_start < 1 || slice_end < 1 || slice_end > strlen(storage->value->string)) // no -1, we adjust that next line
-          basic_error("String slice out of bounds");
-      }
-      
-      // again, the numbers above are 1-indexed from BASIC, so we need to...
-      slice_start--;
-      slice_end--;
-
-      // the source string is at the selected array index, which is zero for non-ANSI
-      either_t orig_string = storage->value[index];
-      
+    int slice_start, slice_end;
+    if (slice_limits(variable, storage, &slice_start, &slice_end)) {
+      // if there was a slice, and slicing is on, we need to ignore the subscripts
+      if (string_slicing)
+        index = 0;
+  
       // build a new string (this is leaking!)
+      either_t orig_string = storage->value[index];
       either_t *result = malloc(sizeof(*result));
       result->string = str_new(orig_string.string);
       str_erase(result->string, slice_start, slice_end - slice_start + 1);
-      
-      return result; // this is being leaked?
-      // otherwise just continue...
-    }
-  }
+      return result; // NOTE: this is leaking!
+    } // had a slice
+  } // looking for slicing
 
   // all done, return the value at that index
   return &storage->value[index];
@@ -335,23 +302,90 @@ either_t *variable_value(const variable_t *variable, int *type)
 /* cover method for variable_value, allows it to be exported to the parser
  without it having to know about either_t, which is private.
  */
-void insert_variable(const variable_t *variable)
+void insert_variable(const variable_reference_t *variable)
 {
   int ignore = 0;
   variable_value(variable, &ignore);
 }
 
 /* and another version which takes the type for use with DEFINT etc. */
-void insert_typed_variable(const variable_t *variable, int type)
+void insert_typed_variable(const variable_reference_t *variable, int type)
 {
   variable_value(variable, &type);
 }
+
+/* Returns true if the variable is a string and the ref has a slice applied. If true
+ it returns the start and end points for the slice, otherwise -1. */
+bool slice_limits(const variable_reference_t *variable, const variable_storage_t *storage, int* start, int* end)
+{
+  // the slice could be in the slice list or the subscripts lists
+  list_t *slice_param = NULL;
+
+  // default these to failed
+  *start = -1;
+  *end = -1;
+  
+  // needs to be a string, obviously
+  if (storage->type != STRING)
+    return false;
+    
+  // see if there is an ANSI slice defined, if so, use that
+  if (lst_length(variable->slicing)) {
+    // ANSI slices will always have two parameters in the slicing list
+    if (lst_length(variable->slicing) != 2)
+      basic_error("Wrong number of parameters in string slice");
+    
+    slice_param = variable->slicing;
+  }
+  
+  // the other possibility is that we have the slicing option turned on,
+  // in that case the index we calculated earlier is not correct, so we
+  // return that to zero and then use those params as the slices
+  if (string_slicing && lst_length(variable->subscripts) > 0) {
+    // HP style slices will have one or two parameters
+    if (string_slicing && (lst_length(variable->subscripts) != 1 && lst_length(variable->subscripts) != 2))
+      basic_error("Wrong number of parameters in string slice");
+    
+    slice_param = variable->subscripts;
+  }
+  
+  // if either of those got us something, pull out both parameters
+  if (slice_param != NULL) {
+    *start = evaluate_expression(slice_param->data).number;
+    slice_param = lst_next(slice_param);
+    if (slice_param && slice_param->data)
+      *end = evaluate_expression(slice_param->data).number;
+    else
+      *end = *start;
+    
+    // according to ANSI, numbers outside the string should be forced to the string's bounds
+    // for non-ANSI, we'll error on odd numbers?
+    if (variable->slicing != NULL) {
+      *start = (int)fmax(*start, 1);
+      *end = (int)fmin(*end, strlen(storage->value->string));
+    } else {
+      if (*start < 1 || *end < 1 || *end > strlen(storage->value->string)) // no -1, we adjust that next line
+        basic_error("String slice out of bounds");
+    }
+    
+    // the numbers above are 1-indexed from BASIC, so we need to...
+    *start = *start - 1;
+    *end = *end - 1;
+    
+    // and we're good
+    return true;
+  }
+  
+  // if we got here, there was no slice on the reference, so...
+  return false;
+}
+
 
 /* Similar to variable_value in concept, this code looks through the list of
  user-defined functions to find a matching name and/or inserts it if it's new.
  the difference is that this returns an expression which we then evaluate.
  */
-expression_t *function_expression(const variable_t *function, expression_t *expression)
+expression_t *function_expression(const variable_reference_t *function, expression_t *expression)
 {
   // see if we can find the entry in the symbol list
   function_storage_t *storage;
@@ -427,6 +461,42 @@ static char *number_to_string(const double d)
   } else {
     sprintf(str, "% -.9G", d);
   }
+  return str;
+}
+
+/* C does not include formatters to convert to binary, only hex and oct, so from:
+ * https://stackoverflow.com/questions/111928/is-there-a-printf-converter-to-print-in-binary-format
+ */
+static char* number_to_bin_string(const double d)
+{
+  static char str[33]; // use static so we know it won't be collected between calls
+  str[0] = '\0';       // safety first!
+
+  // floor the value, assuming BASICs would INT() it
+  int i = floor(d);
+  
+  // type prunning because signed shift is implementation-defined
+  unsigned u = *(unsigned *)&i;
+  for (int bit = 32; bit > 0; bit >>= 1)
+    strcat(str, ((u & bit) == bit) ? "1" : "0");
+  
+  return str;
+}
+
+/* for oct and hex, we can just use the formatters
+ */
+static char* number_to_oct_string(const double d)
+{
+  static char str[33];
+  int i = floor(d);
+  sprintf(str, "%o", i);
+  return str;
+}
+static char* number_to_hex_string(const double d)
+{
+  static char str[33];
+  int i = floor(d);
+  sprintf(str, "%X", i);
   return str;
 }
 
@@ -815,6 +885,42 @@ static value_t evaluate_expression(expression_t *expression)
 						result.string = str_new(str_toupper(parameters[0].string));
 					}
 						break;
+            
+            // clustered these for clarity
+          case BIN:
+          {
+            result.number = (double)strtoul(parameters[0].string, NULL, 2);
+          }
+            break;
+          case OCT:
+          {
+            result.number = (double)strtoul(parameters[0].string, NULL, 8);
+          }
+            break;
+          case HEX:
+          {
+            result.number = (double)strtoul(parameters[0].string, NULL, 16);
+          }
+            break;
+
+          case BINSTR:
+          {
+            result.type = STRING;
+            result.string = str_new(number_to_bin_string(parameters[0].number));
+          }
+            break;
+          case OCTSTR:
+          {
+            result.type = STRING;
+            result.string = str_new(number_to_oct_string(parameters[0].number));
+          }
+            break;
+          case HEXSTR:
+          {
+            result.type = STRING;
+            result.string = str_new(number_to_hex_string(parameters[0].number));
+          }
+            break;
 												
           default:
             basic_error("Unhandled arity-1 function");
@@ -948,7 +1054,8 @@ static value_t evaluate_expression(expression_t *expression)
 						if (parameters[0].type == STRING)
 							temp = parameters[0].string;
 						else {
-							char asc = parameters[0].number;
+              char asc[2] = {0};
+							asc[0] = (char)parameters[0].number;
 							temp = str_new((char *)&asc);
 						}
 						
@@ -1318,7 +1425,7 @@ static void perform_statement(list_t *L)
 					// there is a varlist of items in the parameters, loop over them
 					for (list_t *variable = lst_first_node(ps->parms.dim); variable != NULL; variable = lst_next(variable)) {
 						// get the name of this variable and munge it to an array if appropriate
-						variable_t *var = variable->data;
+						variable_reference_t *var = variable->data;
 						
 						// if this is a DIM on a string, and we're using slicing, then this is DIMming
 						// the string's length, not making an array. In that case we want the original
@@ -1511,16 +1618,31 @@ static void perform_statement(list_t *L)
         exp_val = evaluate_expression(ps->parms.let.expression);
         
         // make sure we got the right type, and assign it if we did
-        if (exp_val.type == type) {
-          if (type == STRING)
-            stored_val->string = exp_val.string;
-          else
-            stored_val->number = exp_val.number;
-        } else {
-          // if the type we stored last time is different than this time...
+        if (exp_val.type != type) {
           basic_error("Type mismatch in assignment");
+          break;
         }
-      }
+        
+        // it was the right type, so...
+        if (type > STRING) {
+          stored_val->number = exp_val.number;
+        } else {
+          // see if the variable being assigned to has a slice
+          variable_storage_t *stored_var = variable_storage(ps->parms.let.variable);
+          int slice_start, slice_end;
+          if (slice_limits(ps->parms.let.variable, stored_var, &slice_start, &slice_end)) {
+            // limit the length of the replacement to the shorter of the slice or the inserted string
+            if (slice_end - slice_start < strlen(exp_val.string) - 1)
+              slice_end = (int)strlen(exp_val.string) - slice_start;
+            
+            // copy everything over, except the trailing null
+            for (int i = 0; i <= slice_end - slice_start; i++)
+              stored_var->value->string[i + slice_start] = exp_val.string[i];
+          } else {
+            stored_val->string = exp_val.string;
+          }
+        }
+      } //let
         break;
         
       case NEXT:
@@ -1540,7 +1662,7 @@ static void perform_statement(list_t *L)
 					bool foundIt = false;
 					list_t *var = lst_first_node(ps->parms.next);
 					for (int i = 0; i < lst_length(ps->parms.next); i++) {
-						if (strcmp(pfc->index_variable->name, ((variable_t *)var->data)->name) == 0) {
+						if (strcmp(pfc->index_variable->name, ((variable_reference_t *)var->data)->name) == 0) {
 							foundIt = true;
 						}
 						else {
@@ -1568,7 +1690,7 @@ static void perform_statement(list_t *L)
           interpreter_state.forstack = lst_remove_node_with_data(interpreter_state.forstack, pfc);
 					free(pfc);
         }
-      }
+      } // next
         break;
         
       case NEW:
@@ -1860,7 +1982,6 @@ static void perform_statement(list_t *L)
 			}
 				break;
 
-
       case VARLIST:
         print_variables();
         break;
@@ -1882,7 +2003,7 @@ static void print_symbol(void *key, void *value, void *unused)
 /* ...and their values */
 //static int print_value(void *key, void *value, void *unused)
 //{
-//	variable_storage_t *storage;
+//	variable_value_t *storage;
 //	storage = lst_data_with_key(interpreter_state.variable_values, key);
 //
 //  either_t *p = storage->value;
