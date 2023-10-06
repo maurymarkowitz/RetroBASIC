@@ -10,9 +10,9 @@
 20 DEFINT X,Y
 25 PRINT "printing var list"
 30 VARLIST
-34 REM
-35 REM simple loop
-36 REM
+44 REM
+45 REM simple loop
+46 REM
 50 FOR I=1 TO 3
 60 PRINT "loop with NEXT I"I
 70 NEXT I
@@ -88,6 +88,12 @@
 1740 PRINT A$, "len="len(A$)
 1750 PRINT "(1:5), should produce HELLO: "A$(1:5)
 1760 PRINT "(4:5), should produce LO: "A$(4:5)
+1770 REM
+1771 REM assign string into a slice
+1772 REM
+1780 A$="HELLO WORLD"
+1790 A$(1:4)="GOOD"
+1791 PRINT "assigned into a slice, should produce GOODO WORLD: "A$
 1800 REM
 1801 REM concats
 1802 REM
@@ -117,6 +123,15 @@
 1910 PRINT "using SPACE$, should print three spaces and HELLO: ";SPACE$(3);"HELLO"
 1920 PRINT "using STRING$, should print HELLO three times: ";STRING$("HELLO",3)
 1930 PRINT "using STRING$ with ASCII value, should print three X's: ";STRING$(88,3)
+2000 REM
+2001 REM bin/oct/hex conversions
+2002 REM
+2010 PRINT "Convert hex FFFE to number, should print 65534: ";HEX("FFFE")
+2020 PRINT "Convert oct 7654 to number, should print 4012: ";OCT("7654")
+2030 PRINT "Convert bin 101010 to number, should print 42: ";BIN("101010")
+2040 PRINT "Convert 5432 to hex, should print 1538: ";HEX$(5432)
+2050 PRINT "Convert 4321 to oct, should print 10341: ";OCT$(4321)
+2060 PRINT "Convert 55 to bin, should print 110111: ";BIN$(55)
 2294 REM
 2295 REM make sure B and B() are different
 2296 REM
