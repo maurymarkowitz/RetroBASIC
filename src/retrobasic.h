@@ -62,14 +62,14 @@ extern char *stats_file;
 /* variable **references** */
 /* this is used to record a reference to a variable in the code,
    not it's value. So this might be A or A$ or A(1,2).
-   The current value is held in a separate variable_storage_t
+   The current value is held in a separate variable_value_t
    in the variable_values list of the interpreter_state.
  */
 typedef struct {
   char *name;
   list_t *subscripts;   // subscripts, list of expressions
   list_t *slicing;      // up to two expressions holding string slicing limits
-} variable_t;
+} variable_reference_t;
 
 /* either_t is used within variable_value_t for the actual data */
 typedef union {
@@ -77,7 +77,7 @@ typedef union {
   double number;
 } either_t;
 
-/* variable_storage_t holds the *value* of a variable in memory, it is a variable_t */
+/* variable_value_t holds the *value* of a variable in memory, it is a variable_reference_t */
 typedef struct {
   int type;                     // NUMBER, STRING
   list_t *actual_dimensions;    // actual dimensions, even if auto-DIMmed
@@ -95,7 +95,7 @@ typedef struct expression_struct {
   union {
     double number;
     char *string;
-    variable_t *variable;   // also used for user-defined function names and parameters
+    variable_reference_t *variable;   // also used for user-defined function names and parameters
     struct {
       int arity;
       int opcode;
@@ -122,12 +122,12 @@ typedef struct statement_struct {
   union {
     expression_t *generic_parameter, *generic_parameter2, *generic_parameter3;
     struct {
-      variable_t *var1;
-      variable_t *var2;
+      variable_reference_t *var1;
+      variable_reference_t *var2;
     } change;
     list_t *data; // list of values for data statements
     struct {
-      variable_t *signature;
+      variable_reference_t *signature;
       expression_t *formula;
     } def;
     struct {
@@ -136,7 +136,7 @@ typedef struct statement_struct {
     } deftype;
     list_t *dim; // list of variable definitions
     struct {
-      variable_t *variable;
+      variable_reference_t *variable;
       expression_t *begin, *end, *step;
     } _for;
     expression_t *gosub;
@@ -148,7 +148,7 @@ typedef struct statement_struct {
     } _if;
     list_t *input;
     struct {
-      variable_t *variable;
+      variable_reference_t *variable;
       expression_t *expression;
     } let;
     struct {
@@ -176,7 +176,7 @@ typedef struct statement_struct {
  */
 typedef struct {
   list_t *head;
-  variable_t *index_variable;
+  variable_reference_t *index_variable;
   double begin, end, step;
 } forcontrol_t;
 
@@ -207,7 +207,7 @@ typedef struct {
 extern interpreterstate_t interpreter_state;
 
 /* the only piece of the interpreter the parser needs to know about is the variable table */
-void insert_variable(const variable_t *variable);
+void insert_variable(const variable_reference_t *variable);
 
 /* called by main to set up the interpreter state */
 void interpreter_setup(void);
