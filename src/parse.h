@@ -150,7 +150,13 @@
      LCASE = 366,
      STRNG = 367,
      TIME = 368,
-     TIME_STR = 369
+     TIME_STR = 369,
+     HEX = 370,
+     OCT = 371,
+     BIN = 372,
+     HEXSTR = 373,
+     OCTSTR = 374,
+     BINSTR = 375
    };
 #endif
 /* Tokens.  */
@@ -266,6 +272,12 @@
 #define STRNG 367
 #define TIME 368
 #define TIME_STR 369
+#define HEX 370
+#define OCT 371
+#define BIN 372
+#define HEXSTR 373
+#define OCTSTR 374
+#define BINSTR 375
 
 
 
@@ -280,11 +292,11 @@ typedef union YYSTYPE
   list_t *l;
   statement_t *statement;
   expression_t *expression;
-  variable_t *variable;
+  variable_reference_t *variable;
 }
 /* Line 1529 of yacc.c.  */
-#line 287 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
-    YYSTYPE;
+#line 299 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
+	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1
