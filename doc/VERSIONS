@@ -59,3 +59,11 @@ Version 1.7.0 - 30 May 2023
 Version 1.7.2 - 16 July 2023
 
 - added statistic for average number of digits in a line number
+
+Version 1.8.0 - 3 October 2023
+
+- added array-slicing for string assignments - LET A$(4:5)="B"
+- refactored some of the code to support that, added slice_limits and variable_storage funcs
+- renamed variable_t to variable_value_t for clarity
+- added HEX, OCT, BIN, HEX$, OCT$, BIN$
+- fixed bug in STRING$ when passing ASCII numbers
