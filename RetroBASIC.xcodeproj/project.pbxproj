@@ -12,6 +12,7 @@
 		550EED72258007FD00FE6D78 /* ahl.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 550EED702580071200FE6D78 /* ahl.bas */; };
 		550EED7525800B9E00FE6D78 /* sieve.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 550EED7425800B8A00FE6D78 /* sieve.bas */; };
 		5568AD6D240753E6001138F5 /* lunar.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5568AD6C240753C2001138F5 /* lunar.bas */; };
+		55873BDB2AF2B8C600005C6A /* amazing.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 55873BDA2AF2B84600005C6A /* amazing.bas */; };
 		5599AEFA239C0A6F00490A3A /* retrobasic.c in Sources */ = {isa = PBXBuildFile; fileRef = 5599AEF9239C0A6F00490A3A /* retrobasic.c */; };
 		5599AEFE239C0ABF00490A3A /* scan.l in Sources */ = {isa = PBXBuildFile; fileRef = 5599AEFC239C0ABF00490A3A /* scan.l */; };
 		55A42363287360B00070AF00 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 55A42361287360B00070AF00 /* main.c */; };
@@ -46,6 +47,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 16;
 			files = (
+				55873BDB2AF2B8C600005C6A /* amazing.bas in CopyFiles */,
 				55CFD0BE2A23CCB200DC9896 /* letter.hpb in CopyFiles */,
 				550EED7525800B9E00FE6D78 /* sieve.bas in CopyFiles */,
 				550EED72258007FD00FE6D78 /* ahl.bas in CopyFiles */,
@@ -66,6 +68,7 @@
 		550EED702580071200FE6D78 /* ahl.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = ahl.bas; sourceTree = "<group>"; };
 		550EED7425800B8A00FE6D78 /* sieve.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = sieve.bas; sourceTree = "<group>"; };
 		5568AD6C240753C2001138F5 /* lunar.bas */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = lunar.bas; sourceTree = "<group>"; };
+		55873BDA2AF2B84600005C6A /* amazing.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = amazing.bas; sourceTree = "<group>"; };
 		5599AEF8239C0A6E00490A3A /* retrobasic.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.c.h; path = retrobasic.h; sourceTree = "<group>"; tabWidth = 2; };
 		5599AEF9239C0A6F00490A3A /* retrobasic.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.c.c; path = retrobasic.c; sourceTree = "<group>"; tabWidth = 2; usesTabs = 0; };
 		5599AEFB239C0A8800490A3A /* stdhdr.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.c.h; path = stdhdr.h; sourceTree = "<group>"; tabWidth = 2; };
@@ -168,6 +171,7 @@
 				550EED702580071200FE6D78 /* ahl.bas */,
 				550EED7425800B8A00FE6D78 /* sieve.bas */,
 				55CFD0BD2A23CC7700DC9896 /* letter.hpb */,
+				55873BDA2AF2B84600005C6A /* amazing.bas */,
 			);
 			path = bas;
 			sourceTree = "<group>";

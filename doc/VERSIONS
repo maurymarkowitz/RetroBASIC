@@ -67,3 +67,8 @@ Version 1.8.0 - 3 October 2023
 - renamed variable_t to variable_value_t for clarity
 - added HEX, OCT, BIN, HEX$, OCT$, BIN$
 - fixed bug in STRING$ when passing ASCII numbers
+
+Version 1.8.1 - 2 November 2023
+
+- added amazing.bas, which led to...
+- refactored setup of arrays so that you can pass in variables - DIM A(X,Y)
