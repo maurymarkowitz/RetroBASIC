@@ -11,6 +11,8 @@ BP - DEC BASIC-PLUS
 
 - add bin/oct/hex constants, like "0hFFFE"?
 
+- add UBOUND and LBOUND for arrays
+
 - add input checking to functions, currently most of them don't check that they were passed a string/number
 
 - check string sizes against DIM in slicing dialects
