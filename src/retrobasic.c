@@ -214,11 +214,13 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
         // if there are DIMmed dimensions, always use that size
         for (list_t *L = dim_dimensions; L != NULL; L = lst_next(L)) {
           // dimmed dimensions are stored as integer values, no need to eval
-          actual = POINTER_TO_INT(dim_dimensions->data) + 1; // we need to add one more slot for index 0
-          slots *= actual;
+          actual = POINTER_TO_INT(L->data);
           
-          // save the result to act_
+          // copy that value into actual
           storage->actual_dimensions = lst_append(storage->actual_dimensions, INT_TO_POINTER(actual));
+
+          // and add 1 slot for item 0
+          slots *= actual + 1; // +1 for the 0th entry
         }
       }
       else {
@@ -247,7 +249,6 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
     // the array is now set up, now calculate which slot is being accessed, if any
     
     // the *number* of dimensions has to match, you can't DIM A(1,1) and then LET B=A(1)
-    // FIXME: why is act_dimensions null at this point? why do I need to use storage->actual_dimensions?
     if (lst_length(storage->actual_dimensions) != lst_length(variable_indexes))
       basic_error("Array dimension of variable does not match storage");
     else
@@ -279,6 +280,7 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
 				index = (index * original_dimension) + this_index.number; // - array_base;
         
         // then move on to the next index in the list
+        dim_dimensions = lst_next(dim_dimensions);
         act_dimensions = lst_next(act_dimensions);
         variable_indexes = lst_next(variable_indexes);
       }
