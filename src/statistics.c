@@ -47,10 +47,6 @@ int numeric_constants_big = 0;
 int string_constants_total = 0;
 int string_constants_zero = 0;
 int string_constants_one_byte = 0;
-int string_constants_two_byte = 0;
-int string_constants_four_byte = 0;
-int string_constants_eight_byte = 0;
-int string_constants_sixteen_byte = 0;
 int string_constants_big = 0;
 int string_constants_max = 0;
 int linenum_constants_total = 0;
@@ -228,11 +224,6 @@ void print_statistics()
     printf("  total: %i\n",string_constants_total);
     printf("0 chars: %i\n",string_constants_zero);
     printf(" 1 char: %i\n",string_constants_one_byte);
-    printf("2 chars: %i\n",string_constants_two_byte);
-    printf("4 chars: %i\n",string_constants_four_byte);
-    printf("8 chars: %i\n",string_constants_eight_byte);
-    printf("16 char: %i\n",string_constants_sixteen_byte);
-    printf(" bigger: %i\n",string_constants_big);
     printf("biggest: %i\n",string_constants_max);
     
     printf("\nBRANCHES\n\n");
@@ -308,11 +299,6 @@ void print_statistics()
     fprintf(fp, "STRING CONSTANTS,total,%i\n",string_constants_total);
     fprintf(fp, "STRING CONSTANTS,0 chars,%i\n",string_constants_zero);
     fprintf(fp, "STRING CONSTANTS,1 char,%i\n",string_constants_one_byte);
-    fprintf(fp, "STRING CONSTANTS,2 chars,%i\n",string_constants_two_byte);
-    fprintf(fp, "STRING CONSTANTS,4 chars,%i\n",string_constants_four_byte);
-    fprintf(fp, "STRING CONSTANTS,8 chars,%i\n",string_constants_eight_byte);
-    fprintf(fp, "STRING CONSTANTS,16 chars,%i\n",string_constants_sixteen_byte);
-    fprintf(fp, "STRING CONSTANTS,bigger,%i\n",string_constants_big);
     fprintf(fp, "STRING CONSTANTS,biggest,%i\n",string_constants_max);
     
     fprintf(fp, "BRANCHES,total,%i\n",linenum_constants_total);
