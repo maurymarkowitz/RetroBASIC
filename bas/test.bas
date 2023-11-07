@@ -10,6 +10,13 @@
 20 DEFINT X,Y
 25 PRINT "printing var list"
 30 VARLIST
+33 REM
+34 REM hex, oct, bin constants
+35 REM
+36 PRINT "hex &FF, should print 255: ";&FF
+37 PRINT "hex 0hFF, should print 255: ";0hFF
+38 PRINT "oct 0o77, should print 63: ";0o77
+39 PRINT "bin 0b10101010, should print 170: ";0b10101010
 44 REM
 45 REM simple loop
 46 REM
@@ -187,8 +194,22 @@
 4995 REM using the values just input, do ON GOTO
 4996 REM
 4997 PRINT "using ON with value A="A
-5000 ON A GOTO 6000,7000,8000
-6000 PRINT "A WAS 1":END
-7000 PRINT "A WAS 2":END
-8000 PRINT "A WAS 3":END
+5000 ON A GOTO 5010,5020,5030
+5010 PRINT "A WAS 1":GOTO 5100
+5020 PRINT "A WAS 2":GOTO 5100
+5030 PRINT "A WAS 3":GOTO 5100
+5097 REM
+5098 REM TEST UBOUND AND LBOUND
+5099 REM
+5100 H=5:V=4
+5110 DIM X(H,V)
+5120 PRINT "X is 5 by 4, UBOUND should print 5: "UBOUND(X)
+5130 PRINT "X is 5 by 4, UBOUND 2 should print 4: "UBOUND(X,2)
+5200 REM
+5201 REM test pausing
+5202 REM
+5210 PRINT "jiffies so far: ";TIME
+5220 PRINT "pausing for 5 seconds"
+5230 PAUSE 300
+5240 PRINT "after pause: ";TIME
 9000 END
