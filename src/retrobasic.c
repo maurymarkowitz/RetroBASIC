@@ -21,7 +21,8 @@
  the Free Software Foundation, 59 Temple Place - Suite 330,
  Boston, MA 02111-1307, USA.  */
 
-#include <sys/time.h>
+#include <sys/time.h> // for run timers
+#include <unistd.h>   // used for sleep
 
 #include "retrobasic.h"
 #include "parse.h"
@@ -168,7 +169,7 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
 		// the type when encountering those statements.
 		storage->type = variable_type(variable);
     storage->actual_dimensions = NULL;
-    storage->defed_dimensions = NULL;
+    storage->dimed_dimensions = NULL;
     
     // now malloc the result and insert it into the values tree
     storage->value = malloc(sizeof(storage->value[0]));
@@ -190,7 +191,7 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
     list_t *variable_indexes;       // list of indices in this variable reference, each is an expression, likely a constant
     
 		act_dimensions = lst_first_node(storage->actual_dimensions);
-		dim_dimensions = lst_first_node(storage->defed_dimensions);
+		dim_dimensions = lst_first_node(storage->dimed_dimensions);
     variable_indexes = lst_first_node(variable->subscripts);
     
     // first off, test whether this array has been set up yet, which is in act_
@@ -936,6 +937,38 @@ static value_t evaluate_expression(expression_t *expression)
             result.string = str_new(number_to_hex_string(parameters[0].number));
           }
             break;
+            
+            // 1-arity versions of UBOUND and LBOUND
+          case UBOUND:
+          {
+            result.type = NUMBER;
+
+            // the 1-arity version is just a variable
+            variable_reference_t *exp = expression->parms.op.p[0]->parms.variable;
+
+            // like CHANGE and CONVERT, you do not pass in the ()'s here,
+            // so the name has to be munged
+            char *array_storage_name = str_new(exp->name);
+            str_append(array_storage_name, "("); // we are assuming it is missing, don't have to check type here
+            variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
+            free(array_storage_name);
+
+            // and if it does, get the first value
+            if (lst_length(array_store->actual_dimensions) > 0)
+              result.number = (double)POINTER_TO_INT(array_store->actual_dimensions->data);
+            else if (lst_length(array_store->dimed_dimensions) > 0)
+              result.number = (double)POINTER_TO_INT(array_store->dimed_dimensions->data);
+            else {
+              basic_error("UBOUND called on non-array variable");
+              result.number = 0;
+            }
+          }
+            break;
+            
+            // and this one is really easy...
+          case LBOUND:
+            result.number = (double)array_base;
+            break;
 												
           default:
             basic_error("Unhandled arity-1 function");
@@ -1078,13 +1111,58 @@ static value_t evaluate_expression(expression_t *expression)
 							str_append(result.string, temp);
 						}
 						break;
+            
+            // 2-arity versions of UBOUND and LBOUND, which differ from the
+            // 1-arity versions in that they have to traverse the list to get
+            // the right axis
+          case UBOUND:
+          {
+            result.type = NUMBER;
+            
+            variable_reference_t *exp = expression->parms.op.p[0]->parms.variable;
+            int axis = parameters[1].number;
+            
+            // munge the name
+            char *array_storage_name = str_new(exp->name);
+            str_append(array_storage_name, "(");
+            variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
+            free(array_storage_name);
+            
+            // so first, let's just check the bounds now, to simplify the following
+            // remember: basic is 1-based!
+            if (lst_length(array_store->actual_dimensions) < axis - 1 && lst_length(array_store->dimed_dimensions) < axis - 1) {
+              basic_error("UBOUND called with index greater than variable dimensions");
+              result.number = 0.0;
+              break;
+            }
+            
+            // the index is OK, get that dimension and return it
+            list_t *dim;
+            if (lst_length(array_store->actual_dimensions) <= axis) {
+              dim = lst_first_node(array_store->actual_dimensions);
+            } else {
+              dim = lst_first_node(array_store->dimed_dimensions);
+            }
+            for (int i = 1; i < axis; i++)
+              dim = lst_next(dim);
+            if (dim != NULL && dim->data != NULL)
+              result.number = (double)POINTER_TO_INT(dim->data);
+            else
+              result.number = 0.0;
+          }
+            break;
+            
+            // and this one is still really easy
+          case LBOUND:
+            result.number = (double)array_base;
+            break;
 
           default:
             result.number = 0;
             basic_error("Unhandled arity-2 function");
             break;
-        }
-      }
+        } //switch
+      } //arity = 2
       
       // and finally, arity=3, which is currently only the MID/SEG/SUBSTR
       else if (expression->parms.op.arity == 3)  {
@@ -1110,8 +1188,9 @@ static value_t evaluate_expression(expression_t *expression)
             result.number = 0;
             basic_error("Unhandled arity-3 function");
             break;
-        }
-      }
+        } // switch
+      } //arity = 3
+      
       else {
         result.number = 0;
         break;
@@ -1461,7 +1540,7 @@ static void perform_statement(list_t *L)
 						}
 						
 						// see if there already are dimensions, if so report a redim
-            if (storage->defed_dimensions != NULL) {
+            if (storage->dimed_dimensions != NULL) {
               basic_error("REDIM of already DIMmed variable.");
               break;
             }
@@ -1471,11 +1550,15 @@ static void perform_statement(list_t *L)
 						value_t v;
 						for (list_t *L = var->subscripts; L != NULL; L = lst_next(L)) {
 							v = evaluate_expression(L->data);
-							storage->defed_dimensions = lst_append(storage->defed_dimensions, INT_TO_POINTER(v.number));
+							storage->dimed_dimensions = lst_append(storage->dimed_dimensions, INT_TO_POINTER(v.number));
 						}
             
             // and all done with this
             free(storage_name);
+            
+            // and now call value again so that the dimensions are set up in storage
+            int ignore = 0;
+            variable_value(var, &ignore);
 					}
 				}
 				break;
@@ -1777,6 +1860,23 @@ static void perform_statement(list_t *L)
           new->returnpoint = lst_next(L);
           interpreter_state.gosubstack = lst_append(interpreter_state.gosubstack, new);
           interpreter_state.next_statement = find_line(linenum);
+        }
+      }
+        break;
+        
+        // two different things here, if there are no paramters it pauses until
+        // a key is hit, otherwise the parameter is the number of jiffies, which
+        // we assume to be 1/6ths of a second
+      case PAUSE:
+      {
+        if (ps->parms.generic_parameter == NULL) {
+          // only pause if we're not reading from a file
+          if (strcmp(input_file,"")) {
+            getchar();
+          }
+        } else {
+          value_t sleep_value = evaluate_expression(ps->parms.generic_parameter);
+          sleep(sleep_value.number / 60.0);
         }
       }
         break;
