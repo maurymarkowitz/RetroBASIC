@@ -72,3 +72,10 @@ Version 1.8.1 - 2 November 2023
 
 - added amazing.bas, which led to...
 - refactored setup of arrays so that you can pass in variables - DIM A(X,Y)
+
+Version 1.8.2 - 7 November 2023
+
+- add UBOUND and LBOUND (mostly for testing purposes)
+- added PAUSE statement, used to wait for input or pause for a given time
+- added hex, oct and bin constants, for instance, &FFFF, or 0b10101010
+
