@@ -94,6 +94,7 @@ RANDOMIZE   { return RANDOMIZE; }
 SYS         { return SYS; }     // same as CALL
 USING       { return USING; }
 VARLIST     { return VARLIST; }
+PAUSE       { return PAUSE; }
 POP         { return POP; }
 EXIT        { return EXIT; }    // same as POP
 
@@ -138,14 +139,6 @@ LIN       { return LIN; }
 SPA       { return SPC; } // from HP, same as above
 SPACE\$   { return SPC; } // returns a string with spaces, doesn't just output it, but we allow assignment anyway so this works
 
- /* HEX, OCT and BIN conversions */
-BIN       { return BIN; }
-BIN\$     { return BINSTR; }
-HEX       { return HEX; }
-HEX\$     { return HEXSTR; }
-OCT       { return OCT; }
-OCT\$     { return OCTSTR; }
-
  /* various operators and punctuation */
 [:,;()\[\]\^=+\-*/\<\>\&]     { return yytext[0]; }
 
@@ -189,32 +182,62 @@ TI\$    { return TIME_STR; }
 TI      { return TIME; }
 CLK\$   { return TIME_STR; } // from BASIC-PLUS, Univac System 9 has CLK(x) where x is numeric
 
- /* numeric constants and line numbers */
+ /* HEX, OCT and BIN conversions */
+BIN       { return BIN; }
+BIN\$     { return BINSTR; }
+HEX       { return HEX; }
+HEX\$     { return HEXSTR; }
+OCT       { return OCT; }
+OCT\$     { return OCTSTR; }
+
+ /* array utilities */
+UBOUND    { return UBOUND; }
+LBOUND    { return LBOUND; }
+
+ /* hex, oct and bin strings encoding numbers */
+\&[0-F]*  {
+            yylval.d = (double)strtol(yytext + 1, NULL, 16);
+            return NUMBER;
+          }
+0[x|h|X|H][0-F]* {
+           yylval.d = (double)strtol(yytext + 2, NULL, 16);
+           return NUMBER;
+         }
+0[o|O][0-7]* {
+            yylval.d = (double)strtol(yytext + 2, NULL, 8);
+            return NUMBER;
+          }
+0[b|B][0-1]* {
+            yylval.d = (double)strtol(yytext + 2, NULL, 2);
+            return NUMBER;
+          }
+
+ /* other numeric constants and line numbers */
 [0-9]*[0-9.][0-9]*([Ee][-+]?[0-9]+)? {
-              yylval.d = strtod(yytext, NULL);
-              return NUMBER;
-            }
+            yylval.d = strtod(yytext, NULL);
+            return NUMBER;
+          }
 
  /* user defined functions */
 "FN"[A-Za-z@][A-Za-z0-9_]?[\$%\!#]? {
-              yylval.s = str_new(yytext);
-              return FUNCTION_NAME;
-            }
+            yylval.s = str_new(yytext);
+            return FUNCTION_NAME;
+          }
 
  /* variable references */
  /* currently set to allow only one or two chars plus an optional type indicator
     replace the ? with a * for multi-char variables */
 [A-Za-z@][A-Za-z0-9_]?[\$%\!#]? {
-              yylval.s = str_new(yytext);
-              return VARIABLE_NAME;
-            }
+            yylval.s = str_new(yytext);
+            return VARIABLE_NAME;
+          }
 
  /* string constants */
-\"[^"]*\"   {
-              yytext[strlen(yytext) - 1] = '\0';
-              yylval.s = str_new(yytext + 1);
-              return STRING;
-            }
+\"[^"]*\" {
+            yytext[strlen(yytext) - 1] = '\0';
+            yylval.s = str_new(yytext + 1);
+            return STRING;
+          }
 
  /* preserve line ends */
 [\n]        { return '\n'; }
