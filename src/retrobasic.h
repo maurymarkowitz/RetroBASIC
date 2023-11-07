@@ -81,17 +81,17 @@ typedef union {
 typedef struct {
   int type;                     // NUMBER, STRING
   list_t *actual_dimensions;    // actual dimensions, even if auto-DIMmed
-  list_t *defed_dimensions;     // subscript definitions, if any (from a DIM)
+  list_t *dimed_dimensions;     // subscript definitions, if any (from a DIM)
   either_t *value;              // actual value(s), malloced
 } variable_storage_t;
 
 /* expressions */
 typedef enum {
   number, string, variable, op, fn
-} expression_type_t;
+} expression_type_e;
 
 typedef struct expression_struct {
-  expression_type_t type;
+  expression_type_e type;
   union {
     double number;
     char *string;
