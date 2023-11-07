@@ -44,7 +44,7 @@ static statement_t *make_statement(int t)
   return new;
 }
 
-static expression_t *make_expression(expression_type_t t)
+static expression_t *make_expression(expression_type_e t)
 {
   expression_t *new = malloc(sizeof(*new));
   new->type = t;
@@ -80,7 +80,7 @@ static expression_t *make_operator(int arity, int o)
 }
 
 %type <l> program line statements
-%type <l> printlist exprlist varlist slicelist //assignlist //numlist
+%type <l> printlist exprlist varlist slicelist //assignlist
 %type <i> printsep binary_op comparison_op e2op term unary_op fn_0 fn_1 fn_2 fn_x
 %type <expression> expression expression0 expression1 expression2 expression3 expression4 function factor
 %type <statement> statement
@@ -91,6 +91,7 @@ static expression_t *make_operator(int arity, int o)
 %token <d> NUMBER DOUBLE SINGLE INTEGER
 %token <s> VARIABLE_NAME
 %token <s> FUNCTION_NAME
+%token <s> HEX_STR OCT_STR BIN_STR
 
 %token REM
 %token QUOTEREM
@@ -147,6 +148,7 @@ static expression_t *make_operator(int arity, int o)
 %token RANDOMIZE
 %token SYS
 %token VARLIST
+%token PAUSE
 
  /* common math functions */
 %token _ABS SGN
@@ -196,6 +198,10 @@ static expression_t *make_operator(int arity, int o)
  /* hex, oct and binary strings */
 %token HEX OCT BIN
 %token HEXSTR OCTSTR BINSTR
+
+/* array utilities */
+%token UBOUND
+%token LBOUND
 
 %%
 
@@ -641,6 +647,19 @@ statement:
     $$ = new;
   }
   |
+  PAUSE // if there is no expression, it waits for a keypress
+  {
+    statement_t *new = make_statement(PAUSE);
+    $$ = new;
+  }
+  |
+  PAUSE expression // if there is an expression it's jiffies
+  {
+    statement_t *new = make_statement(PAUSE);
+    new->parms.generic_parameter = $2;
+    $$ = new;
+  }
+  |
   POKE expression ',' expression
   {
     statement_t *new = make_statement(POKE);
@@ -961,7 +980,15 @@ function:
 	  new->parms.op.p[1] = $5;
 	  $$ = new;
 	}
-  /* multi-arity function being called with two inputs... */
+  /* multi-arity function being called with one input... */
+  |
+  fn_x '(' expression ')'
+  {
+    expression_t *new = make_operator(1, $1);
+    new->parms.op.p[0] = $3;
+    $$ = new;
+  }
+  /* ...or two ...*/
   |
   fn_x '(' expression ',' expression ')'
   {
@@ -1029,11 +1056,13 @@ fn_2:
   STRNG { $$ = STRNG; }
 	;
 
- /* arity-2 or 3 functions */
+ /* arity-1, 2 or 3 functions */
 fn_x:
  MID { $$ = MID; } |
  SEG { $$ = SEG; } |
- SUBSTR { $$ = SUBSTR; }
+ SUBSTR { $$ = SUBSTR; } |
+ UBOUND  { $$ = UBOUND; } |
+ LBOUND  { $$ = LBOUND; }
  ;
 
  /* ultimately all expressions end up here in factor, which is either a
@@ -1111,14 +1140,6 @@ factor:
       string_constants_zero++;
     } else if (len == 1) {
       string_constants_one_byte++;
-    } else if (len == 2) {
-      string_constants_two_byte++;
-    } else if (len <= 4) {
-      string_constants_four_byte++;
-    } else if (len <= 8) {
-      string_constants_eight_byte++;
-    } else if (len <= 16) {
-      string_constants_sixteen_byte++;
     } else {
         string_constants_big++;
     }
@@ -1329,22 +1350,5 @@ varlist:
 	  $$ = lst_append($1, $3);
 	}
 	;
-
- /* used in the ON syntax for the list of line numbers
-    Not currently used, re-using expression instead because that's
-    a pointer so its easy to put into the list. however, we could
-    take the number, INT it, and the put that into the pointer
-numlist:
-	NUMBER
-	{
-	  $$ = lst_prepend(NULL, &($1));
-	}
-	|
-	numlist ',' NUMBER
-	{
-	  $$ = lst_append($1, &($3));
-	}
-	;
-	*/
 
 %%
