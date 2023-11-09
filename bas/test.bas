@@ -17,6 +17,7 @@
 37 PRINT "hex 0hFF, should print 255: ";0hFF
 38 PRINT "oct 0o77, should print 63: ";0o77
 39 PRINT "bin 0b10101010, should print 170: ";0b10101010
+40 GOSUB te
 44 REM
 45 REM simple loop
 46 REM
@@ -212,4 +213,11 @@
 5220 PRINT "pausing for 5 seconds"
 5230 PAUSE 300
 5240 PRINT "after pause: ";TIME
+8000 STOP
+8100 REM
+8101 REM test label'ed gosub
+8102 REM
+8110 LABEL te
+8120 PRINT "successfully GOSUBed to label which had line number: "te
+8130 RETURN
 9000 END
