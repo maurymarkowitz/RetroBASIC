@@ -79,3 +79,7 @@ Version 1.8.2 - 7 November 2023
 - added PAUSE statement, used to wait for input or pause for a given time
 - added hex, oct and bin constants, for instance, &FFFF, or 0b10101010
 
+Version 1.8.3 - 9 November 2023
+
+- added LABEL statement, which allows branches to named lines
+- fixed a problem setting up array sizes at runtime that caused amazing to fail at 2x2
