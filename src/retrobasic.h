@@ -149,6 +149,10 @@ typedef struct statement_struct {
     list_t *input;
     struct {
       variable_reference_t *variable;
+      int linenumber;
+    } label;
+    struct {
+      variable_reference_t *variable;
       expression_t *expression;
     } let;
     struct {
