@@ -232,7 +232,7 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
           actual = (int)v.number + 1;       // we need to add one more slot for index 0
 
           // in this case we don't have a DIM, so it's always a minimum of 11 slots
-          if (actual < 10)
+          if (actual < 11)
             actual = 11;
           
           slots *= actual;
@@ -245,12 +245,15 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
       // and now malloc it
       // FIXME: we should free the single slot original set up above
       storage->value = malloc(slots * sizeof(storage->value[0]));
+      
+      // and since we have now set up the actual_dimensions, re-cache this
+      act_dimensions = lst_first_node(storage->actual_dimensions);
     } // setting up new array
     
     // the array is now set up, now calculate which slot is being accessed, if any
     
     // the *number* of dimensions has to match, you can't DIM A(1,1) and then LET B=A(1)
-    if (lst_length(storage->actual_dimensions) != lst_length(variable_indexes))
+    if (lst_length(act_dimensions) != lst_length(variable_indexes))
       basic_error("Array dimension of variable does not match storage");
     else
       while (act_dimensions && variable_indexes) {
@@ -1609,6 +1612,8 @@ static void perform_statement(list_t *L)
         
         new->returnpoint = lst_next(L);
         interpreter_state.gosubstack = lst_append(interpreter_state.gosubstack, new);
+        
+        // the GOSUB can take any expression, so we have to evaluate it (GOTO as well, but *not* THEN)
         interpreter_state.next_statement = find_line(evaluate_expression(ps->parms.gosub).number);
       }
         break;
@@ -1622,9 +1627,9 @@ static void perform_statement(list_t *L)
       case IF:
       {
         value_t cond = evaluate_expression(ps->parms._if.condition);
-        /* if only does something when the condition is true */
+        // if only does something when the condition is true
         if (cond.number != 0) {
-          /* THEN might be an expression including a GOTO or an implicit GOTO */
+          // THEN might be an expression including a GOTO or an implicit GOTO
           if (ps->parms._if.then_expression) {
             // in gnbasic this was next = perform_statement, which meant it could only
             // perform a single statement after the IF, which is not the case in
@@ -1710,6 +1715,11 @@ static void perform_statement(list_t *L)
       }
         break;
         
+        // LABEL doesn't do anything at run time, everything has already
+        // been set up at parse time
+      case LABEL:
+        break;
+
       case LET:
       {
         // this handles both the explicit and implicit LET
@@ -2169,6 +2179,30 @@ void interpreter_setup()
 	interpreter_state.functions = NULL;
 }
 
+/* labels are stored as variables, but variables don't get an actual
+  value until they are encountered in the program, which is too late
+  for a forward jump - which is often the purpose of a label. So now
+  that the program is a single long string of statements, we check all
+  of them to see if it is a label, and if so, call eval to set its
+  value. The code is essentially idential to LET. This is called from
+  post_setup, so it doesn't need to be public */
+void interpreter_eval_labels(void)
+{
+  list_t *next_statement = interpreter_state.lines[interpreter_state.first_line];
+  while (next_statement) {
+    statement_t *ps = next_statement->data;
+    if (ps && ps->type == LABEL) {
+      
+      // get/make the storage entry for this variable
+      variable_storage_t *stored_val = variable_storage(ps->parms.label.variable);
+      
+      // and set it's number
+      stored_val->value->number = (double)ps->parms.label.linenumber;
+    }
+    next_statement = lst_next(next_statement);
+  }
+}
+
 /* after yacc has done it's magic, we form a program by pointing
  the ->next for each line to the head of the next non-empty line.
  that way we don't have to search through the line array for the
@@ -2201,6 +2235,9 @@ void interpreter_post_parse(void)
   interpreter_state.current_statement = first_statement;          // the first statement
   interpreter_state.current_data_statement = first_statement;     // the DATA can point anywhere
   interpreter_state.current_data_element = NULL;                  // the element within the DATA is nothing
+  
+  // and find and cache all the lables
+  interpreter_eval_labels();
 }
 
 /* the main loop for the program */
@@ -2209,13 +2246,13 @@ void interpreter_run(void)
   // the cursor starts in col 0
   interpreter_state.cursor_column = 0;
 
-  // start the clock and mark us as running
+  // start the clocks
   start_ticks = clock();
 	gettimeofday(&start_time, NULL);
-  interpreter_state.running_state = 1;
-	
-	// and set the reset to now as well
 	gettimeofday(&reset_time, NULL);
+  
+  // mark us as running
+  interpreter_state.running_state = 1;
   
   // last line number we ran, used for tracing/stepping
   int last_line = interpreter_state.first_line;
