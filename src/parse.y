@@ -203,6 +203,9 @@ static expression_t *make_operator(int arity, int o)
 %token UBOUND
 %token LBOUND
 
+ /* line lables, procedures, etc. */
+%token LABEL
+
 %%
 
 /* Grammar rules */
@@ -573,6 +576,14 @@ statement:
 	  new->parms._if.then_linenumber = 0;
 	  $$ = new;
 	}
+  |
+  LABEL variable // labels are placeholders for their own linenumber, which we can get...
+  {
+    statement_t *new = make_statement(LABEL);
+    new->parms.label.variable = $2;
+    new->parms.label.linenumber = errline;
+    $$ = new;
+  }
 	|
 	LET variable '=' expression /* explicit LET, implicit LET is at the bottom */
 	{
