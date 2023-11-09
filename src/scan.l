@@ -194,6 +194,9 @@ OCT\$     { return OCTSTR; }
 UBOUND    { return UBOUND; }
 LBOUND    { return LBOUND; }
 
+ /* line lables, procedures, etc. */
+LABEL    { return LABEL; }
+
  /* hex, oct and bin strings encoding numbers */
 \&[0-F]*  {
             yylval.d = (double)strtol(yytext + 1, NULL, 16);
