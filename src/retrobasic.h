@@ -118,7 +118,7 @@ typedef struct {
  statements can store additional parameters in the params union.
  */
 typedef struct statement_struct {
-  int type;
+  int type; // the enum for this is in yy
   union {
     expression_t *generic_parameter, *generic_parameter2, *generic_parameter3;
     struct {
@@ -178,15 +178,23 @@ typedef struct statement_struct {
  be two separate types here, as this might making popping a FOR from an early
  RETURN more difficult?
  */
-typedef struct {
-  list_t *head;
-  variable_reference_t *index_variable;
-  double begin, end, step;
-} forcontrol_t;
+typedef enum {
+  for_entry, gosub_entry
+} stack_entry_type_e;
 
 typedef struct {
-  list_t *returnpoint;
-} gosubcontrol_t;
+  stack_entry_type_e type;
+  union {
+    struct {
+      list_t *head, *tail;
+      variable_reference_t *index_variable;
+      double begin, end, step;
+    } _for;
+    struct {
+      list_t *returnpoint;
+    } gosub;
+  };
+} stack_entry_t;
 
 /* this is the main state for the interpreter, largely consisting of the lines of
  code, a pointer to the first line for easy lookup, a pointer to the current
@@ -201,8 +209,7 @@ typedef struct {
   list_t *current_data_element;	  // current 'DATA' expression within current_data_statement
   list_t *variable_values;		    // name/value pairs used to store variable values
   list_t *functions;              // name/expression pairs for user-defined functions
-  list_t *forstack;	              // current stack of FOR statements
-  list_t *gosubstack;	            // current stack of gosub statements
+  list_t *runtime_stack;	        // stack of FOR and GOSUB statements
   int cursor_column;              // current column of the output cursor
   int running_state;              // is the program running (1), paused/stopped (0), or setting up a function (-1)
 } interpreterstate_t;
