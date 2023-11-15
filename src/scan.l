@@ -198,19 +198,19 @@ LBOUND    { return LBOUND; }
 LABEL    { return LABEL; }
 
  /* hex, oct and bin strings encoding numbers */
-\&[0-F]*  {
+\&[0-9a-fA-F]+  {
             yylval.d = (double)strtol(yytext + 1, NULL, 16);
             return NUMBER;
           }
-0[x|h|X|H][0-F]* {
-           yylval.d = (double)strtol(yytext + 2, NULL, 16);
-           return NUMBER;
-         }
-0[o|O][0-7]* {
+0[x|h|X|H][0-9a-fA-F]+ {
+            yylval.d = (double)strtol(yytext + 2, NULL, 16);
+            return NUMBER;
+          }
+0[o|O][0-7]+ {
             yylval.d = (double)strtol(yytext + 2, NULL, 8);
             return NUMBER;
           }
-0[b|B][0-1]* {
+0[b|B][0-1]+ {
             yylval.d = (double)strtol(yytext + 2, NULL, 2);
             return NUMBER;
           }
