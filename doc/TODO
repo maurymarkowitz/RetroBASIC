@@ -9,19 +9,15 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
+- need to allow multiple INPUTs on a single line, currently it requires a CR between values
+
+- test and error on incorrect nesting of FOR loops, which we currently ignore
+
 - add input checking to functions, currently most of them don't check that they were passed a string/number
 
 - check string sizes against DIM in slicing dialects
 
 - add longer variable names
-
-- merge for and gosub stacks into one stack, so that...
-
-- make POP/EXIT work
-
-- test and error on incorrect nesting of FOR loops, which we currently ignore
-
-- need to allow multiple INPUTs on a single line, currently it requires a CR between values
 
 - DEFINT/SNG/DBL/STR does not support the "range" syntax, DEFINT A-F. only comma lists work, DEFINT A,B
 
