@@ -210,9 +210,17 @@
 5201 REM test pausing
 5202 REM
 5210 PRINT "jiffies so far: ";TIME
-5220 PRINT "pausing for 5 seconds"
-5230 PAUSE 300
+5220 PRINT "pausing for 2 seconds"
+5230 PAUSE 2*60
 5240 PRINT "after pause: ";TIME
+5300 REM
+5301 REM testing exit from a loop
+5302 REM
+5310 PRINT "running loop 1..4 on index R, exiting when 2"
+5320 FOR R=1 TO 4
+5330 IF R=2 THEN EXIT
+5340 NEXT
+5350 PRINT "R is now: "R
 8000 STOP
 8100 REM
 8101 REM test label'ed gosub
