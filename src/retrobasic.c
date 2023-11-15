@@ -141,7 +141,7 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
 	int index;
   
   // In MS basic, A() and A are two different variables, so here
-  // we mangle the name to include a "(" if it's an array. This is also
+  // we mangle the name to include a "(" if it's an array. This is also5
 	// true in the original Dartmouth BASIC, according to the DTSS emulator.
 	// Also see notes in CHANGE/CONVERT.
 	//
@@ -1364,16 +1364,16 @@ static list_t *find_line(int linenumber)
 //}
 
 /* performs a single statement */
-static void perform_statement(list_t *L)
+static void perform_statement(list_t *statement_entry)
 {
   // now process this statement
-  statement_t *ps = L->data;
-  if (ps) {
-    switch (ps->type) {
+  statement_t *statement = statement_entry->data;
+  if (statement) {
+    switch (statement->type) {
 			case BASE:
-				if (ps->parms.generic_parameter != NULL) {
+				if (statement->parms.generic_parameter != NULL) {
 					value_t baseval;
-					baseval = evaluate_expression(ps->parms.generic_parameter);
+					baseval = evaluate_expression(statement->parms.generic_parameter);
 					if (baseval.number == 0 || baseval.number == 1)
 						array_base = (int)baseval.number;
 					else {
@@ -1417,8 +1417,8 @@ static void perform_statement(list_t *L)
 				int type1 = 0, type2 = 0;
 				
 				// get the types of the two variables
-				first_val = variable_value(ps->parms.change.var1, &type1);
-				variable_value(ps->parms.change.var2, &type2); // we only need the type here, the value is not used
+				first_val = variable_value(statement->parms.change.var1, &type1);
+				variable_value(statement->parms.change.var2, &type2); // we only need the type here, the value is not used
 				
 				// make sure one is a string and the other is snumeric
 				if (type1 == STRING && type2 != NUMBER)
@@ -1427,7 +1427,7 @@ static void perform_statement(list_t *L)
 					basic_error("Type mismatch in CHANGE, number to ?");
 				
 				// get the storage for the numeric value by adding the (
-				char *array_storage_name = str_new((type1 == NUMBER) ? ps->parms.change.var1->name : ps->parms.change.var2->name);
+				char *array_storage_name = str_new((type1 == NUMBER) ? statement->parms.change.var1->name : statement->parms.change.var2->name);
 				str_append(array_storage_name, "("); // we are assuming it is missing, don't have to check type here
 				array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
 				free(array_storage_name);
@@ -1472,7 +1472,7 @@ static void perform_statement(list_t *L)
 					}
 					
 					// delete any old value in the string and copy in the new one
-					string_store = lst_data_with_key(interpreter_state.variable_values, ps->parms.change.var2->name);
+					string_store = lst_data_with_key(interpreter_state.variable_values, statement->parms.change.var2->name);
 					free(string_store->value->string);
 					string_store->value->string = str_new(new_string);
 				}
@@ -1498,7 +1498,7 @@ static void perform_statement(list_t *L)
         
       case DEF:
         // sets up a function in storage
-        function_expression(ps->parms.def.signature, ps->parms.def.formula);
+        function_expression(statement->parms.def.signature, statement->parms.def.formula);
         break;
 
 			case DEFDBL:
@@ -1523,7 +1523,7 @@ static void perform_statement(list_t *L)
         // re-build the array if the values are larger.
 				{
 					// there is a varlist of items in the parameters, loop over them
-					for (list_t *variable = lst_first_node(ps->parms.dim); variable != NULL; variable = lst_next(variable)) {
+					for (list_t *variable = lst_first_node(statement->parms.dim); variable != NULL; variable = lst_next(variable)) {
 						// get the name of this variable and munge it to an array if appropriate
 						variable_reference_t *var = variable->data;
 						
@@ -1572,75 +1572,114 @@ static void perform_statement(list_t *L)
         break;
         
       case EXIT:
-      case POP:
-        // TODO: make this work, should be easy enough
-				// NOTE: exit is not the same as pop
+        // when found in a sub, EXIT is essentially a RETURN, but in
+        // a FOR loop it has to find and move past the NEXT
+      {
+        list_t *stack_node;
+        stack_entry_t *stack_entry;
+        
+        // error if there is nothing there
+        if (interpreter_state.runtime_stack  == NULL || lst_length(interpreter_state.runtime_stack) == 0) {
+          basic_error("EXIT without FOR or GOSUB");
+          break;
+        }
+        
+        // get the last item on the stack
+        stack_node = lst_last_node(interpreter_state.runtime_stack);
+        stack_entry = stack_node->data;
+        
+        // for a sub, we simply remove the entry and go to that line
+        if (stack_entry->type == gosub_entry) {
+          interpreter_state.next_statement = stack_entry->gosub.returnpoint;
+          interpreter_state.runtime_stack = lst_remove_node_with_data(interpreter_state.runtime_stack, stack_entry);
+        }
+        
+        // for the FOR..NEXT case, we need to find the NEXT and move past it
+        else {
+          // pop the NEXT so it doesn't continue looping if it sees it
+          interpreter_state.runtime_stack = lst_remove_node_with_data(interpreter_state.runtime_stack, stack_entry);
+
+          // and now roll foward until we get to a corresponding NEXT statement in the code,
+          // and then set the next statement to the one after that
+          list_t *test_statement = interpreter_state.next_statement;
+          while (test_statement != NULL) {
+            if (((statement_t *)test_statement->data)->type == NEXT)
+              break;
+            else
+              test_statement = lst_next(test_statement);
+          }
+          // see if the last thing we found was a NEXT
+          if (test_statement != NULL && ((statement_t *)test_statement->data)->type == NEXT) {
+            interpreter_state.next_statement = test_statement->next;
+          }
+        } // it's a FOR
+      }
         break;
         
       case FOR:
       {
-        forcontrol_t *new_for = malloc(sizeof(*new_for));
-        either_t *loop_value;
+        stack_entry_t *new_for = malloc(sizeof(*new_for));
+        interpreter_state.runtime_stack = lst_append(interpreter_state.runtime_stack, new_for);
+        
+        new_for->type = for_entry;
+        new_for->_for.head = statement_entry; // unlike a gosub, we return to the front of the FOR
+        new_for->_for.index_variable = statement->parms._for.variable;
+        new_for->_for.begin = evaluate_expression(statement->parms._for.begin).number;
+        new_for->_for.end = evaluate_expression(statement->parms._for.end).number;
+        
+        // the original gnbasic code did this, which is definitely non-standard and caused problems in SST
+        // is this perhaps ANSI? UPDATE: nope, ANSI actually uses this as an example of a no-body loop
+        //                        if (new_for->begin < new_for->end)
+        //                            new_for->step = 1;
+        //                        else
+        //                            new_for->step = -1;
+        if (statement->parms._for.step)
+          new_for->_for.step = evaluate_expression(statement->parms._for.step).number;
+        else
+          new_for->_for.step = 1;
+        
+        // update the variable in storage to the starting value
         int type = 0;
-        
-        new_for->index_variable = ps->parms._for.variable;
-        new_for->begin = evaluate_expression(ps->parms._for.begin).number;
-        new_for->end = evaluate_expression(ps->parms._for.end).number;
-        if (ps->parms._for.step)
-          new_for->step = evaluate_expression(ps->parms._for.step).number;
-        else {
-          new_for->step = 1;
-          
-          // the original gnbasic code did this, which is definitely non-standard and caused problems in SST
-          // is this perhaps ANSI? UPDATE: nope, ANSI actually uses this as an example of a no-body loop
-          //                        if (new_for->begin < new_for->end)
-          //                            new_for->step = 1;
-          //                        else
-          //                            new_for->step = -1;
-        }
-        new_for->head = L;
-        loop_value = variable_value(new_for->index_variable, &type);
-        loop_value->number = new_for->begin;
-        
-        interpreter_state.forstack = lst_append(interpreter_state.forstack, new_for);
+        either_t *loop_value = variable_value(new_for->_for.index_variable, &type);
+        loop_value->number = new_for->_for.begin;
       }
         break;
         
       case GOSUB:
       {
-        gosubcontrol_t *new = malloc(sizeof(*new));
-        
-        new->returnpoint = lst_next(L);
-        interpreter_state.gosubstack = lst_append(interpreter_state.gosubstack, new);
-        
+        stack_entry_t *new_sub = malloc(sizeof(*new_sub));
+        interpreter_state.runtime_stack = lst_append(interpreter_state.runtime_stack, new_sub);
+
+        new_sub->type = gosub_entry;
+        new_sub->gosub.returnpoint = lst_next(statement_entry);
         // the GOSUB can take any expression, so we have to evaluate it (GOTO as well, but *not* THEN)
-        interpreter_state.next_statement = find_line(evaluate_expression(ps->parms.gosub).number);
+        interpreter_state.next_statement = find_line(evaluate_expression(statement->parms.gosub).number);
       }
         break;
         
       case GOTO:
       {
-        interpreter_state.next_statement = find_line(evaluate_expression(ps->parms._goto).number);
+        interpreter_state.next_statement = find_line(evaluate_expression(statement->parms._goto).number);
       }
         break;
         
       case IF:
       {
-        value_t cond = evaluate_expression(ps->parms._if.condition);
+        value_t cond = evaluate_expression(statement->parms._if.condition);
         // if only does something when the condition is true
         if (cond.number != 0) {
           // THEN might be an expression including a GOTO or an implicit GOTO
-          if (ps->parms._if.then_expression) {
+          if (statement->parms._if.then_expression) {
             // in gnbasic this was next = perform_statement, which meant it could only
             // perform a single statement after the IF, which is not the case in
 						// MS. for this to work properly, the then_expression has to be a list
 						// that is not connected to the next line, it has to end on a NULL.
-            for (list_t *I = ps->parms._if.then_expression; I != NULL; I = lst_next(I)) {
+            for (list_t *I = statement->parms._if.then_expression; I != NULL; I = lst_next(I)) {
               perform_statement(I);
             }
           } else {
             // if the THEN is not an expression, jump to that line
-            interpreter_state.next_statement = find_line(ps->parms._if.then_linenumber);
+            interpreter_state.next_statement = find_line(statement->parms._if.then_linenumber);
           }
         }
       }
@@ -1661,7 +1700,7 @@ static void perform_statement(list_t *L)
 				//    will run the last command again.
         
         // loop over the items in the variable/prompt list
-        for (list_t *I = ps->parms.input; I != NULL; I = lst_next(I)) {
+        for (list_t *I = statement->parms.input; I != NULL; I = lst_next(I)) {
           either_t *value;
           int type = 0;
           
@@ -1728,10 +1767,10 @@ static void perform_statement(list_t *L)
         value_t exp_val;
         
         // get/make the storage entry for this variable
-        stored_val = variable_value(ps->parms.let.variable, &type);
+        stored_val = variable_value(statement->parms.let.variable, &type);
         
         // evaluate the expression
-        exp_val = evaluate_expression(ps->parms.let.expression);
+        exp_val = evaluate_expression(statement->parms.let.expression);
         
         // make sure we got the right type, and assign it if we did
         if (exp_val.type != type) {
@@ -1744,9 +1783,9 @@ static void perform_statement(list_t *L)
           stored_val->number = exp_val.number;
         } else {
           // see if the variable being assigned to has a slice
-          variable_storage_t *stored_var = variable_storage(ps->parms.let.variable);
+          variable_storage_t *stored_var = variable_storage(statement->parms.let.variable);
           int slice_start, slice_end;
-          if (slice_limits(ps->parms.let.variable, stored_var, &slice_start, &slice_end)) {
+          if (slice_limits(statement->parms.let.variable, stored_var, &slice_start, &slice_end)) {
             // limit the length of the replacement to the shorter of the slice or the inserted string
             if (slice_end - slice_start < strlen(exp_val.string) - 1)
               slice_end = (int)strlen(exp_val.string) - slice_start;
@@ -1763,26 +1802,48 @@ static void perform_statement(list_t *L)
         
       case NEXT:
       {
-				// make sure there is a stack
-				if (interpreter_state.forstack  == NULL || lst_length(interpreter_state.forstack) == 0) {
-					basic_error("NEXT without FOR");
-					break;
-				}
-				
-				// get the most-recent FOR, which is the *end* of the list
-				forcontrol_t *pfc = lst_last_node(interpreter_state.forstack)->data;
+        list_t *stack_node, *previous_node;
+        stack_entry_t *stack_entry;
+        
+        // make sure there is a stack
+        if (interpreter_state.runtime_stack  == NULL || lst_length(interpreter_state.runtime_stack) == 0) {
+          basic_error("NEXT without FOR");
+          break;
+        }
+
+        // get the most-recent FOR, which should be the last item on the stack.
+        // unlike a gosub, there doesn't seem to be a case where the last item is
+        // is a leftover RETURN, if one exited from a gosub then the RETURN should
+        // have been removed one way or the other. It IS possible to exit from
+        // a FOR inside a gosub, but this should have removed the for statements
+        // as it exited. Nevertheless, better safe than sorry...
+        stack_node = lst_last_node(interpreter_state.runtime_stack);
+        while (stack_node != NULL && ((stack_entry_t *)stack_node->data)->type != for_entry) {
+          previous_node = lst_previous(stack_node);
+          lst_remove_node_with_data(interpreter_state.runtime_stack, stack_node);
+          stack_node = previous_node;
+        }
+        
+        // if that emptied the stack...
+        if (stack_node == NULL) {
+          basic_error("NEXT without FOR");
+          break;
+        }
+        
+        // we have a for
+        stack_entry = stack_node->data;
 				
 				// see if the next has any variable names, that is, NEXT I vs. NEXT,
 				// and if so, ensure the latest FOR on the stack is one of those variables
-				if (lst_length(ps->parms.next) > 0) {
+				if (lst_length(statement->parms.next) > 0) {
 					bool foundIt = false;
-					list_t *var = lst_first_node(ps->parms.next);
-					for (int i = 0; i < lst_length(ps->parms.next); i++) {
-						if (strcmp(pfc->index_variable->name, ((variable_reference_t *)var->data)->name) == 0) {
+					list_t *var = lst_first_node(statement->parms.next);
+					for (int i = 0; i < lst_length(statement->parms.next); i++) {
+						if (strcmp(stack_entry->_for.index_variable->name, ((variable_reference_t *)var->data)->name) == 0) {
 							foundIt = true;
 						}
 						else {
-							var = lst_next(ps->parms.next);
+							var = lst_next(statement->parms.next);
 						}
 					}
 					if (!foundIt) {
@@ -1793,24 +1854,24 @@ static void perform_statement(list_t *L)
 				
 				// do a STEP
         int type = 0;
-				either_t *lv = variable_value(pfc->index_variable, &type);
-        lv->number += pfc->step;
+				either_t *lv = variable_value(stack_entry->_for.index_variable, &type);
+        lv->number += stack_entry->_for.step;
 				
 				// and see if we need to go back to the FOR or we're done and we continue on
-        if (((pfc->step < 0) && (lv->number >= pfc->end)) ||
-            ((pfc->step > 0) && (lv->number <= pfc->end))) {
+        if (((stack_entry->_for.step < 0) && (lv->number >= stack_entry->_for.end)) ||
+            ((stack_entry->_for.step > 0) && (lv->number <= stack_entry->_for.end))) {
           // we're not done, go back to the head of the loop
-          interpreter_state.next_statement = lst_next(pfc->head);
+          interpreter_state.next_statement = lst_next(stack_entry->_for.head);
         } else {
           // we are done, remove this entry from the stack and just keep going
-          interpreter_state.forstack = lst_remove_node_with_data(interpreter_state.forstack, pfc);
-					free(pfc);
+          interpreter_state.runtime_stack = lst_remove_node_with_data(interpreter_state.runtime_stack, stack_entry);
+					free(stack_entry);
         }
       } // next
         break;
         
       case NEW:
-        /* it's not entirely clear what this should do INSIDE a program, but... */
+        // it's not entirely clear what this should do INSIDE a program, but...
       {
         // wipe out any variables and functions and create new lists
         delete_variables();
@@ -1824,10 +1885,10 @@ static void perform_statement(list_t *L)
 			case OF:
       {
         list_t *numslist;
-        numslist = ps->parms.on.numbers;
+        numslist = statement->parms.on.numbers;
 
         // eval, returning a double...
-        value_t val = evaluate_expression(ps->parms.on.expression);
+        value_t val = evaluate_expression(statement->parms.on.expression);
         
         // if the value is not a number...
         if (val.type == STRING)
@@ -1863,12 +1924,13 @@ static void perform_statement(list_t *L)
         int linenum = (int)floor(lineval.number);
         
         // and then it's either GOTO or GOSUB...
-        if (ps->parms.on.type == GOTO) {
+        if (statement->parms.on.type == GOTO) {
           interpreter_state.next_statement = find_line(linenum);
         } else {
-          gosubcontrol_t *new = malloc(sizeof(*new));
-          new->returnpoint = lst_next(L);
-          interpreter_state.gosubstack = lst_append(interpreter_state.gosubstack, new);
+          stack_entry_t *new_sub = malloc(sizeof(*new_sub));
+          new_sub->type = gosub_entry;
+          new_sub->gosub.returnpoint = lst_next(statement_entry);
+          interpreter_state.runtime_stack = lst_append(interpreter_state.runtime_stack, new_sub);
           interpreter_state.next_statement = find_line(linenum);
         }
       }
@@ -1879,13 +1941,13 @@ static void perform_statement(list_t *L)
         // we assume to be 1/6ths of a second
       case PAUSE:
       {
-        if (ps->parms.generic_parameter == NULL) {
+        if (statement->parms.generic_parameter == NULL) {
           // only pause if we're not reading from a file
           if (strcmp(input_file,"")) {
             getchar();
           }
         } else {
-          value_t sleep_value = evaluate_expression(ps->parms.generic_parameter);
+          value_t sleep_value = evaluate_expression(statement->parms.generic_parameter);
           sleep(sleep_value.number / 60.0);
         }
       }
@@ -1895,6 +1957,27 @@ static void perform_statement(list_t *L)
         // do nothing
         break;
         
+      case POP:
+        // see also EXIT
+      {
+        list_t *stack_node;
+        
+        // error if there is nothing there
+        if (interpreter_state.runtime_stack  == NULL || lst_length(interpreter_state.runtime_stack) == 0) {
+          basic_error("POP without FOR or GOSUB");
+          break;
+        }
+        
+        // get the last item
+        stack_node = lst_last_node(interpreter_state.runtime_stack);
+        
+        // for a POP, we simply remove the entry
+        if (stack_node != NULL) {
+          lst_remove_node_with_data(interpreter_state.runtime_stack, stack_node);
+        }
+      }
+        break;
+        
       case PRINT:
       {
         printitem_t *pp;
@@ -1902,13 +1985,13 @@ static void perform_statement(list_t *L)
 				// see if the list has a formatter, and set up the format string or set it to default
 				value_t format_string;
 				format_string.type = STRING;
-				if (ps->parms.print.format)
-					format_string = evaluate_expression(ps->parms.print.format);
+				if (statement->parms.print.format)
+					format_string = evaluate_expression(statement->parms.print.format);
 				else
 					format_string.string = NULL;
 				
         // now loop over the items in the print list
-				for (list_t *I = ps->parms.print.item_list; I != NULL; I = lst_next(I)) {
+				for (list_t *I = statement->parms.print.item_list; I != NULL; I = lst_next(I)) {
 					pp = I->data;
 					
 					// if this is a printsep, there will only be the separator and no expression
@@ -1929,8 +2012,8 @@ static void perform_statement(list_t *L)
 				}
         
         // now get the last item in the list so we can see if it's a ; or ,
-        if (lst_last_node(ps->parms.print.item_list))
-          pp = (printitem_t *)(lst_last_node(ps->parms.print.item_list)->data);
+        if (lst_last_node(statement->parms.print.item_list))
+          pp = (printitem_t *)(lst_last_node(statement->parms.print.item_list)->data);
         else
           pp = NULL;
         
@@ -1956,10 +2039,10 @@ static void perform_statement(list_t *L)
         // which is even more odd.
         
         // see if there's a parameter, if not, seed time
-        if (ps->parms.generic_parameter == NULL)
+        if (statement->parms.generic_parameter == NULL)
           srand((unsigned int)time(NULL));
         else {
-          value_t seed_value = evaluate_expression(ps->parms.generic_parameter);
+          value_t seed_value = evaluate_expression(statement->parms.generic_parameter);
           srand(seed_value.number);
         }
 				
@@ -1977,7 +2060,7 @@ static void perform_statement(list_t *L)
           basic_error("No more DATA for READ");
         }
         
-        variable_list = ps->parms.read;
+        variable_list = statement->parms.read;
         while (variable_list) {
           either_t *variable_definition;
           int type = 0;
@@ -2029,10 +2112,10 @@ static void perform_statement(list_t *L)
         
       case RESTORE:
         // resets the DATA pointer
-        if (ps->parms.generic_parameter != NULL) {
+        if (statement->parms.generic_parameter != NULL) {
           // if there is a parameter, treat it as a line number
           // Wang BASIC treats the parameter as an ordinal, 'reset to nth global entry', we do not support it
-          value_t linenum = evaluate_expression(ps->parms.generic_parameter);
+          value_t linenum = evaluate_expression(statement->parms.generic_parameter);
           interpreter_state.current_data_statement = find_line((int)linenum.number);
           interpreter_state.current_data_element = NULL;
         } else {
@@ -2044,22 +2127,42 @@ static void perform_statement(list_t *L)
         
       case RETURN:
       {
-				gosubcontrol_t *pgc;
-				if (interpreter_state.gosubstack == NULL || lst_length(interpreter_state.gosubstack) == 0) {
+        list_t *stack_node, *previous_node;
+        
+        // check that we have something
+				if (interpreter_state.runtime_stack == NULL || lst_length(interpreter_state.runtime_stack) == 0) {
 					basic_error("RETURN without GOSUB");
 					break;
 				}
+        
+        // if we call a sub that has FORs, and then return from inside one,
+        // there will be FOR entries on the stack above the return point.
+        // we need to remove any non-GOSUB entries first
+        stack_node = lst_last_node(interpreter_state.runtime_stack);
+        while (stack_node != NULL && ((stack_entry_t *)stack_node->data)->type != gosub_entry) {
+          previous_node = lst_previous(stack_node);
+          lst_remove_node_with_data(interpreter_state.runtime_stack, stack_node);
+          stack_node = previous_node;
+        }
+        
+        // if that emptied the stack...
+        if (stack_node == NULL) {
+          basic_error("RETURN without GOSUB");
+          break;
+        }
 
-        pgc = lst_last_node(interpreter_state.gosubstack)->data;
-        interpreter_state.next_statement = pgc->returnpoint;
-        interpreter_state.gosubstack = lst_remove_node_with_data(interpreter_state.gosubstack, pgc);
+        // set the next statement to the returnpoint
+        interpreter_state.next_statement = ((stack_entry_t *)stack_node->data)->gosub.returnpoint;
+        
+        // and remove the RETURN
+        interpreter_state.runtime_stack = lst_remove_node_with_data(interpreter_state.runtime_stack, stack_node->data);
       }
         break;
         
       case STOP:
       {
-        if (ps->parms.generic_parameter != NULL) {
-          value_t message = evaluate_expression(ps->parms.generic_parameter);
+        if (statement->parms.generic_parameter != NULL) {
+          value_t message = evaluate_expression(statement->parms.generic_parameter);
           printf("STOP: %s\n", message.string);
         }
         exit(0);
@@ -2070,9 +2173,9 @@ static void perform_statement(list_t *L)
 				// is really a statement
 			case TIME_STR:
 			{
-				if (ps->parms.generic_parameter != NULL) {
+				if (statement->parms.generic_parameter != NULL) {
 					// value is in HMS format, so make sure we got a strong
-					value_t hms = evaluate_expression(ps->parms.generic_parameter);
+					value_t hms = evaluate_expression(statement->parms.generic_parameter);
 					if (hms.type != STRING) {
 						basic_error("TIME$ being set with non-string value");
 						break;
@@ -2120,7 +2223,7 @@ static void perform_statement(list_t *L)
         break;
         
       default:
-        printf("Unimplemented statement %d\n", ps->type);
+        printf("Unimplemented statement %d\n", statement->type);
 				exit(0);
     } //end switch
   }
