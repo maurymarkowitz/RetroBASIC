@@ -259,6 +259,9 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
       while (act_dimensions && variable_indexes) {
         // evaluate the variable reference's index for a given dimension
         value_t this_index = evaluate_expression(variable_indexes->data);
+        
+        // have to clamp that value
+        this_index.number = floor(this_index.number);
 				
         // and get the originally defined size for that same dimension
 				// NOTE: this may or may not be the same as the DIM, see notes above
