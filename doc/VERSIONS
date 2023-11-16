@@ -84,8 +84,13 @@ Version 1.8.3 - 9 November 2023
 - added LABEL statement, which allows branches to named lines
 - fixed a problem setting up array sizes at runtime that caused amazing to fail at 2x2
 
-Version 1.8.4 - 9 November 2023
+Version 1.8.4 - 15 November 2023
 
 - merged FOR and GOSUB stacks so that a RETURN correctly pops off any local FORs
 - added POP for manual stack pops
 - fixed an error in octal constants that caused SST to fail to parse
+
+Version 1.8.5 - 16 November 2023
+
+- added floor() during the calculation of array indexes, the lack of which caused
+  SST to fail when entering directions >8 but <9.
