@@ -2378,7 +2378,7 @@ void interpreter_run(void)
     interpreter_state.current_statement = interpreter_state.next_statement;
     
     // trace, only on line changes
-    if (trace_lines && last_line != current_line()) {
+    if (trace_lines && interpreter_state.current_statement != NULL && last_line != current_line()) {
       last_line = current_line();
       printf("[%i]\n", last_line);
     }
