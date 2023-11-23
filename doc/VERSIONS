@@ -94,3 +94,7 @@ Version 1.8.5 - 16 November 2023
 
 - added floor() during the calculation of array indexes, the lack of which caused
   SST to fail when entering directions >8 but <9.
+
+Version 1.8.6 - 23 November 2023
+
+- fix problem in array initialization that was causing amazing.bas to fail
