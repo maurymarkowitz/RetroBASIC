@@ -159,8 +159,8 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
   
   // if not, make a new variable slot in values and set it up
   if (storage == NULL) {
-    // malloc a single slot, if it's an array we'll use this as the template
-    storage = malloc(sizeof(*storage));
+    // calloc a single slot, if it's an array we'll use this as the template
+    storage = calloc(1, sizeof(*storage));
     
 		// the type is normally set as part of the variable name, like $
 		// however, there is an exception to this in later MS dialects,
@@ -171,8 +171,8 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
     storage->actual_dimensions = NULL;
     storage->dimed_dimensions = NULL;
     
-    // now malloc the result and insert it into the values tree
-    storage->value = malloc(sizeof(storage->value[0]));
+    // now calloc the result and insert it into the values tree
+    storage->value = calloc(1, sizeof(storage->value[0]));
 		interpreter_state.variable_values = lst_insert_with_key_sorted(interpreter_state.variable_values, storage, storage_name);
   }
   
@@ -242,9 +242,9 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
         }
       }
       
-      // and now malloc it
+      // and now calloc it
       // FIXME: we should free the single slot original set up above
-      storage->value = malloc(slots * sizeof(storage->value[0]));
+      storage->value = calloc(slots, sizeof(storage->value[0]));
       
       // and since we have now set up the actual_dimensions, re-cache this
       act_dimensions = lst_first_node(storage->actual_dimensions);
@@ -310,7 +310,7 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
   
       // build a new string (this is leaking!)
       either_t orig_string = storage->value[index];
-      either_t *result = malloc(sizeof(*result));
+      either_t *result = calloc(1, sizeof(*result));
       result->string = str_new(orig_string.string);
       str_erase(result->string, slice_start, slice_end - slice_start + 1);
       return result; // NOTE: this is leaking!
@@ -415,8 +415,8 @@ expression_t *function_expression(const variable_reference_t *function, expressi
   
   // if not, make a new slot in functions and set it up
   if (!storage) {
-    // malloc an entry
-    storage = malloc(sizeof(*storage));
+    // calloc an entry
+    storage = calloc(1, sizeof(*storage));
     
     // set the return type based on the name
     char trailer = function->name[strlen(function->name) - 1];
@@ -631,9 +631,9 @@ static value_t evaluate_expression(expression_t *expression)
         stored_val = variable_value(original_parameter->parms.variable, &type);
 
         // make a slot and push the value onto the stack
-        storage = malloc(sizeof(*storage));
+        storage = calloc(1, sizeof(*storage));
         storage->type = type;
-        storage->value = malloc(sizeof(either_t));
+        storage->value = calloc(1, sizeof(either_t));
           if (type == STRING)
             storage->value->string = stored_val->string;
           else
@@ -1621,7 +1621,7 @@ static void perform_statement(list_t *statement_entry)
         
       case FOR:
       {
-        stack_entry_t *new_for = malloc(sizeof(*new_for));
+        stack_entry_t *new_for = calloc(1, sizeof(*new_for));
         interpreter_state.runtime_stack = lst_append(interpreter_state.runtime_stack, new_for);
         
         new_for->type = for_entry;
@@ -1650,7 +1650,7 @@ static void perform_statement(list_t *statement_entry)
         
       case GOSUB:
       {
-        stack_entry_t *new_sub = malloc(sizeof(*new_sub));
+        stack_entry_t *new_sub = calloc(1, sizeof(*new_sub));
         interpreter_state.runtime_stack = lst_append(interpreter_state.runtime_stack, new_sub);
 
         new_sub->type = gosub_entry;
@@ -1930,7 +1930,7 @@ static void perform_statement(list_t *statement_entry)
         if (statement->parms.on.type == GOTO) {
           interpreter_state.next_statement = find_line(linenum);
         } else {
-          stack_entry_t *new_sub = malloc(sizeof(*new_sub));
+          stack_entry_t *new_sub = calloc(1, sizeof(*new_sub));
           new_sub->type = gosub_entry;
           new_sub->gosub.returnpoint = lst_next(statement_entry);
           interpreter_state.runtime_stack = lst_append(interpreter_state.runtime_stack, new_sub);
