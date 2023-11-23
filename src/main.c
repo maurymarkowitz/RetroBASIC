@@ -27,7 +27,7 @@
 /* simple version info for --version command line option */
 static void print_version()
 {
-  puts("RetroBASIC 1.8.5");
+  puts("RetroBASIC 1.8.6");
 }
 
 /* usage short form, just a list of the switches */
