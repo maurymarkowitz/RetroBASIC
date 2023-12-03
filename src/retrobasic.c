@@ -1306,7 +1306,7 @@ static int line_for_statement(const list_t *statement)
 }
 
 /* curries line_for_statement to return the current line */
-static int current_line()
+static int current_line(void)
 {
   return line_for_statement(interpreter_state.current_statement);
 }
