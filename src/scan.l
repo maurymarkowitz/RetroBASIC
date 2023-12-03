@@ -131,13 +131,11 @@ SUBSTRING\$  { return SUBSTR; }
  /* system functions */
 TAB			  { return TAB; }
 SPC			  { return SPC; }
-PEEK      { return PEEK; } // also EXAM (North Star) and FETCH (Digital Group Opus)
+SPA       { return SPC; }   // from HP, same as SPC
+PEEK      { return PEEK; }  // also EXAM (North Star) and FETCH (Digital Group Opus)
 FRE       { return FRE; }
 USR       { return USR; }
 LIN       { return LIN; }
- /* aliases for SPC */
-SPA       { return SPC; } // from HP, same as above
-SPACE\$   { return SPC; } // returns a string with spaces, doesn't just output it, but we allow assignment anyway so this works
 
  /* various operators and punctuation */
 [:,;()\[\]\^=+\-*/\<\>\&]     { return yytext[0]; }
@@ -173,6 +171,7 @@ CONVERT   { return CONVERT; }
 UCASE\$   { return UCASE; }
 LCASE\$   { return LCASE; }
 STRING\$  { return STRNG; } // returns n copies of a given string
+SPACE\$   { return SPC; }   // returns n spaces as a value, which is how our SPC works anyway
 
  /* commodore-style TIME and TIME$ */
 TIME\$  { return TIME_STR; }

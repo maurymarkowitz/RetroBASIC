@@ -102,7 +102,7 @@ static void is_integer(void *key, void *value, void *user_data)
 
 /* prints out various statistics from the static code,
  or if the write_stats flag is on, writes them to a file */
-void print_statistics()
+void print_statistics(void)
 {
   int lines_total = 0, line_min = MAXLINE + 1, line_max = -1;
   double linenum_1_digit = 0.0, linenum_2_digit = 0.0, linenum_3_digit = 0.0, linenum_4_digit = 0.0, linenum_5_digit = 0.0;
