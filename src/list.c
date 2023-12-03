@@ -24,7 +24,7 @@ Boston, MA 02111-1307, USA.  */
  * Creates an empty list node. Private method.
  */
 list_t* _lst_alloc(void);
-list_t* _lst_alloc() {
+list_t* _lst_alloc(void) {
   list_t *node = (list_t *)malloc(sizeof(list_t));
   if (node == NULL)
     return NULL;

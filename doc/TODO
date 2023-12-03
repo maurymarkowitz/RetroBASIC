@@ -9,6 +9,8 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
+- add INSTR and variations thereof
+
 - need to allow multiple INPUTs on a single line, currently it requires a CR between values
 
 - test and error on incorrect nesting of FOR loops, which we currently ignore

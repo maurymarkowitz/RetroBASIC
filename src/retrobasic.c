@@ -523,7 +523,7 @@ static char* number_to_hex_string(const double d)
 }
 
 /* number of jiffies since program start (or reset) 1/60th in Commodore/Atari format */
-static int elapsed_jiffies() {
+static int elapsed_jiffies(void) {
 	struct timeval current_time, elapsed_time, reset_delta;
 	
 	// get the delta between the original start time and the reset time (likely zero)
@@ -2167,8 +2167,10 @@ static void perform_statement(list_t *statement_entry)
         if (statement->parms.generic_parameter != NULL) {
           value_t message = evaluate_expression(statement->parms.generic_parameter);
           printf("STOP: %s\n", message.string);
+        } else {
+          printf("STOPped at line: %d\n", current_line());
         }
-        exit(0);
+        exit(EXIT_SUCCESS);
       }
         break;
 				
@@ -2227,7 +2229,7 @@ static void perform_statement(list_t *statement_entry)
         
       default:
         printf("Unimplemented statement %d\n", statement->type);
-				exit(0);
+				exit(EXIT_FAILURE);
     } //end switch
   }
 }
@@ -2257,20 +2259,20 @@ static void print_symbol(void *key, void *value, void *unused)
 //  return FALSE;
 //}
 /* used for VARLIST in those versions of BASIC that support it */
-static void print_variables() {
+static void print_variables(void) {
 	lst_foreach(interpreter_state.variable_values, print_symbol, NULL);
   printf("\n\n");
 }
 /* used for CLEAR, NEW and similar instructions. */
-static void delete_variables() {
+static void delete_variables(void) {
 	lst_free_everything(interpreter_state.variable_values);
 	interpreter_state.variable_values = NULL;
 }
-static void delete_functions() {
+static void delete_functions(void) {
 	lst_free_everything(interpreter_state.functions);
 	interpreter_state.functions = NULL;
 }
-static void delete_lines() {
+static void delete_lines(void) {
   for(int i = MAXLINE - 1; i >= 0; i--) {
     if (interpreter_state.lines[i] != NULL) {
       lst_free(interpreter_state.lines[i]);
@@ -2279,7 +2281,7 @@ static void delete_lines() {
 }
 
 /* set up empty trees to store variables and user functions as we find them */
-void interpreter_setup()
+void interpreter_setup(void)
 {
 	interpreter_state.variable_values = NULL;
 	interpreter_state.functions = NULL;
