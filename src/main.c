@@ -25,7 +25,7 @@
 #include "parse.h"
 
 /* simple version info for --version command line option */
-static void print_version()
+static void print_version(void)
 {
   puts("RetroBASIC 1.8.6");
 }
