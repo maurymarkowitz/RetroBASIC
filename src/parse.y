@@ -162,6 +162,7 @@ static expression_t *make_operator(int arity, int o)
 %token LEFT MID RIGHT
 %token LEN STR VAL CHR
 %token SEG SUBSTR
+%token INSTR
 
  /* boolean operations and comparisons */
 %token AND OR NOT XOR
@@ -176,22 +177,18 @@ static expression_t *make_operator(int arity, int o)
 %token LIN // from HP, a vertical version of TAB
 
  /* type definitions added circa 1979 */
-%token DEFSTR
-%token DEFINT
-%token DEFSNG
-%token DEFDBL
+%token DEFSTR DEFINT DEFSNG DEFDBL
 
  /* Dartmouth-style string manipulation */
 %token CHANGE
  /* otherwise identical command from HP */
 %token CONVERT
  /* and some later string-related additions */
-%token UCASE
-%token LCASE
+%token UCASE LCASE
  /* string builders */
 %token STRNG
 
- /* time and date patterened on MS style */
+ /* time and date patterned on MS style */
 %token TIME
 %token TIME_STR
 
@@ -200,10 +197,9 @@ static expression_t *make_operator(int arity, int o)
 %token HEXSTR OCTSTR BINSTR
 
 /* array utilities */
-%token UBOUND
-%token LBOUND
+%token UBOUND LBOUND
 
- /* line lables, procedures, etc. */
+ /* line labels, procedures, etc. */
 %token LABEL
 
 %%
@@ -1069,6 +1065,8 @@ fn_2:
 
  /* arity-1, 2 or 3 functions */
 fn_x:
+ INSTR { $$ = INSTR; } |
+ POS { $$ = POS; } |
  MID { $$ = MID; } |
  SEG { $$ = SEG; } |
  SUBSTR { $$ = SUBSTR; } |

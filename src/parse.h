@@ -130,40 +130,41 @@
      CHR = 346,
      SEG = 347,
      SUBSTR = 348,
-     AND = 349,
-     OR = 350,
-     NOT = 351,
-     XOR = 352,
-     CMP_LE = 353,
-     CMP_GE = 354,
-     CMP_NE = 355,
-     CMP_HASH = 356,
-     FRE = 357,
-     SPC = 358,
-     TAB = 359,
-     POS = 360,
-     USR = 361,
-     LIN = 362,
-     DEFSTR = 363,
-     DEFINT = 364,
-     DEFSNG = 365,
-     DEFDBL = 366,
-     CHANGE = 367,
-     CONVERT = 368,
-     UCASE = 369,
-     LCASE = 370,
-     STRNG = 371,
-     TIME = 372,
-     TIME_STR = 373,
-     HEX = 374,
-     OCT = 375,
-     BIN = 376,
-     HEXSTR = 377,
-     OCTSTR = 378,
-     BINSTR = 379,
-     UBOUND = 380,
-     LBOUND = 381,
-     LABEL = 382
+     INSTR = 349,
+     AND = 350,
+     OR = 351,
+     NOT = 352,
+     XOR = 353,
+     CMP_LE = 354,
+     CMP_GE = 355,
+     CMP_NE = 356,
+     CMP_HASH = 357,
+     FRE = 358,
+     SPC = 359,
+     TAB = 360,
+     POS = 361,
+     USR = 362,
+     LIN = 363,
+     DEFSTR = 364,
+     DEFINT = 365,
+     DEFSNG = 366,
+     DEFDBL = 367,
+     CHANGE = 368,
+     CONVERT = 369,
+     UCASE = 370,
+     LCASE = 371,
+     STRNG = 372,
+     TIME = 373,
+     TIME_STR = 374,
+     HEX = 375,
+     OCT = 376,
+     BIN = 377,
+     HEXSTR = 378,
+     OCTSTR = 379,
+     BINSTR = 380,
+     UBOUND = 381,
+     LBOUND = 382,
+     LABEL = 383
    };
 #endif
 /* Tokens.  */
@@ -258,40 +259,41 @@
 #define CHR 346
 #define SEG 347
 #define SUBSTR 348
-#define AND 349
-#define OR 350
-#define NOT 351
-#define XOR 352
-#define CMP_LE 353
-#define CMP_GE 354
-#define CMP_NE 355
-#define CMP_HASH 356
-#define FRE 357
-#define SPC 358
-#define TAB 359
-#define POS 360
-#define USR 361
-#define LIN 362
-#define DEFSTR 363
-#define DEFINT 364
-#define DEFSNG 365
-#define DEFDBL 366
-#define CHANGE 367
-#define CONVERT 368
-#define UCASE 369
-#define LCASE 370
-#define STRNG 371
-#define TIME 372
-#define TIME_STR 373
-#define HEX 374
-#define OCT 375
-#define BIN 376
-#define HEXSTR 377
-#define OCTSTR 378
-#define BINSTR 379
-#define UBOUND 380
-#define LBOUND 381
-#define LABEL 382
+#define INSTR 349
+#define AND 350
+#define OR 351
+#define NOT 352
+#define XOR 353
+#define CMP_LE 354
+#define CMP_GE 355
+#define CMP_NE 356
+#define CMP_HASH 357
+#define FRE 358
+#define SPC 359
+#define TAB 360
+#define POS 361
+#define USR 362
+#define LIN 363
+#define DEFSTR 364
+#define DEFINT 365
+#define DEFSNG 366
+#define DEFDBL 367
+#define CHANGE 368
+#define CONVERT 369
+#define UCASE 370
+#define LCASE 371
+#define STRNG 372
+#define TIME 373
+#define TIME_STR 374
+#define HEX 375
+#define OCT 376
+#define BIN 377
+#define HEXSTR 378
+#define OCTSTR 379
+#define BINSTR 380
+#define UBOUND 381
+#define LBOUND 382
+#define LABEL 383
 
 
 
@@ -309,7 +311,7 @@ typedef union YYSTYPE
   variable_reference_t *variable;
 }
 /* Line 1529 of yacc.c.  */
-#line 313 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
+#line 315 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
