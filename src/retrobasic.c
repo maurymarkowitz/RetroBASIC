@@ -79,7 +79,7 @@ static void delete_variables(void);
 static void delete_functions(void);
 static void delete_lines(void);
 
-/* defitions of variables used by the static analyzer */
+/* definitions of variables used by the static analyzer */
 clock_t start_ticks = 0, end_ticks = 0;	// start and end ticks, for calculating CPU time
 struct timeval start_time, end_time;    // start and end clock, for total run time
 struct timeval reset_time;     					// if the user resets the time with TIME$, this replaces start_time
@@ -130,7 +130,7 @@ variable_storage_t* variable_storage(const variable_reference_t *variable)
 /* Returns an either_t containing a string or a number for the underlying
    variable, along with its type in the out-parameter 'type'. If the
    variable has not been encountered before it will be created here. */
-/* NOTE: this code also handles string slicing. it would be much preferrable
+/* NOTE: this code also handles string slicing. it would be much preferable
    to do that as a function call so it could overload the MID$-style functions
    but I could not figure out how to do that at runtime in the yacc code. */
 either_t* variable_value(const variable_reference_t *variable, int *type)
@@ -176,7 +176,7 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
 		interpreter_state.variable_values = lst_insert_with_key_sorted(interpreter_state.variable_values, storage, storage_name);
   }
   
-  // if we haven't started runnning yet, we were being called during parsing to
+  // if we haven't started running yet, we were being called during parsing to
   // populate the variable table. In that case, we don't need the value, so...
   if (interpreter_state.running_state == 0)
     return NULL;
@@ -846,6 +846,8 @@ static value_t evaluate_expression(expression_t *expression)
             result.number = 0;
             break;
           case POS:
+            // this is the arity-1 version, which is a dummy expression
+            // the arity-2 and -3 versions are aliases for INSTR
             result.number = (double)interpreter_state.cursor_column; //FIXME: should this be +1?
             break;
           case TAB:
@@ -1118,6 +1120,35 @@ static value_t evaluate_expression(expression_t *expression)
 						}
 						break;
             
+          case INSTR:
+          case POS:
+            // this is the arity-2 version, both parameters must be strings
+            result.type = NUMBER;
+            result.number = 0;
+
+            // check that this is an INSTR, not a mis-parsed POS
+            if (parameters[0].type > STRING || parameters[1].type > STRING) {
+              basic_error("INSTR/INDEX/POS called with non-string inputs");
+              break;
+            }
+
+            // the following are based on the rules for GW-BASIC, see:
+            // https://hwiegman.home.xs4all.nl/gw-man/INSTR.html
+            if (parameters[0].string == NULL || strlen(parameters[0].string) == 0)
+              result.number = 0;
+            else if (parameters[1].string == NULL || strlen(parameters[1].string) == 0)
+              result.number = 1; // if the pattern is null, it matches immediately
+            else {
+              char *src = parameters[0].string;
+              char *loc = strstr(parameters[0].string, parameters[1].string);
+              if (loc == NULL)
+                result.number = 0;
+              else
+                result.number = loc - src + 1;
+            }
+            break;
+
+            
             // 2-arity versions of UBOUND and LBOUND, which differ from the
             // 1-arity versions in that they have to traverse the list to get
             // the right axis
@@ -1170,17 +1201,64 @@ static value_t evaluate_expression(expression_t *expression)
         } //switch
       } //arity = 2
       
-      // and finally, arity=3, which is currently only the MID/SEG/SUBSTR
+      // and finally, arity=3
       else if (expression->parms.op.arity == 3)  {
-        double b = parameters[1].number;
-        double c = parameters[2].number; // yeah, these could be ints
         
         switch (expression->parms.op.opcode) {
+            
+          case INSTR: // this is the arity-3 version
+          case POS:
+            result.type = NUMBER;
+            result.number = 0;
+
+            // check for validity and parse out the parameters
+            int start;
+            char *src, *pat;
+            if (parameters[0].type > STRING) {
+              if (parameters[1].type > STRING || parameters[2].type > STRING) {
+                basic_error("INSTR/INDEX/POS called with non-string inputs");
+                break;
+              }
+              start = parameters[0].number;
+              src = parameters[1].string + start;
+              pat = parameters[2].string;
+            }
+            // and one where its at the end
+            else {
+              if (parameters[0].type > STRING || parameters[1].type > STRING) {
+                basic_error("INSTR/INDEX/POS called with non-string inputs");
+                break;
+              }
+              start = parameters[2].number;
+              src = parameters[0].string + start;
+              pat = parameters[1].string;
+            }
+              
+            // the following are based on the rules for GW-BASIC, see:
+            // https://hwiegman.home.xs4all.nl/gw-man/INSTR.html
+            if (src == NULL || strlen(src) == 0)
+              result.number = 0;
+            else if (pat == NULL || strlen(pat) == 0)
+              result.number = start; // if the pattern is null, it matches immediately, which in this case is start
+            else if (start > strlen(src))
+              result.number = 0;
+            else {
+              char *loc = strstr(src, pat);
+              if (loc == NULL)
+                result.number = 0;
+              else
+                result.number = loc - src + 1;
+            }
+            break;
+
           case MID:
 					case SEG:
 					case SUBSTR:
           {
-						result.type = STRING;
+            double b = parameters[1].number;
+            double c = parameters[2].number; // yeah, these could be ints
+
+            result.type = STRING;
             result.string = str_new(parameters[0].string);
 						
 						// SEG is based on positions, not lengths, so adjust parameter c
@@ -1190,6 +1268,7 @@ static value_t evaluate_expression(expression_t *expression)
             str_erase(result.string, b - 1, c);
           }
             break;
+                                 
           default:
             result.number = 0;
             basic_error("Unhandled arity-3 function");

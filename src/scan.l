@@ -123,6 +123,8 @@ RIGHT\$		{ return RIGHT; }
 MID\$     { return MID; }
 LEN       { return LEN; }
 STR\$     { return STR; } // also NUM$ in some dialects
+INSTR     { return INSTR; } // also INDEX and POS
+INDEX     { return INSTR; } // also FIND and other variations
  /* aliases for MID found in some versions */
 SEG\$     { return SEG; }
 SUBSTR\$  { return SUBSTR; }

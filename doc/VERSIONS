@@ -98,3 +98,7 @@ Version 1.8.5 - 16 November 2023
 Version 1.8.6 - 23 November 2023
 
 - fix problem in array initialization that was causing amazing.bas to fail
+
+Version 1.8.7 - 10 December 2023
+
+- add INSTR string function, and the INDEX alias
