@@ -9,7 +9,9 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
-- add INSTR and variations thereof
+- trunc values for single and integer during calculations depending on the variable type
+
+- add INKEY$
 
 - need to allow multiple INPUTs on a single line, currently it requires a CR between values
 
@@ -27,7 +29,7 @@ BP - DEC BASIC-PLUS
 
 - support Dartmouth/ANSI style FOR loops which skip the body if the test fails on the first loop
 
-- ELSE would be realtively easy to add, at least the single-line variety
+- ELSE would be relatively easy to add, at least the single-line variety
 
 - flesh out GET and PUT, which are just placeholders for now
 

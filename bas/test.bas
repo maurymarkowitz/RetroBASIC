@@ -131,6 +131,13 @@
 1910 PRINT "using SPACE$, should print three spaces and HELLO: ";SPACE$(3);"HELLO"
 1920 PRINT "using STRING$, should print HELLO three times: ";STRING$("HELLO",3)
 1930 PRINT "using STRING$ with ASCII value, should print three X's: ";STRING$(88,3)
+1940 PRINT "using INSTR to find ELL in HELLO, should print 2: ";INSTR("HELLO","ELL")
+1950 PRINT "using INSTR to find JEL in HELLO, should print 0: ";INSTR("HELLO","JEL")
+1960 PRINT "using INSTR to find ELL in HELLO starting at 2, should print 0: ";INSTR("HELLO","JEL",2)
+1970 PRINT "using POS to find ELL in HELLO, should print 2: ";POS("HELLO","ELL")
+1980 PRINT "using INDEX to find ELL in HELLO, should print 2: ";INDEX("HELLO","ELL")
+1985 PRINT "using POS with single parameter, should print cursor position: ";POS(0)
+1985 PRINT "using POS with no parameter, should print cursor position: ";POS(0)
 2000 REM
 2001 REM bin/oct/hex conversions
 2002 REM
