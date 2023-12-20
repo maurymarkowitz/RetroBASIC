@@ -50,8 +50,18 @@
 185 REM making a 2x2 array and then printing it out
 186 REM
 200 DIM A(2,2)
-300 A(1,1)=1:A(1,2)=2:A(2,1)=3:A(2,2)=4
-400 PRINT"Array 1 to 4: "A(1,1),A(1,2),A(2,1),A(2,2)
+210 A(1,1)=1:A(1,2)=2:A(2,1)=3:A(2,2)=4
+220 PRINT"Array 1 to 4: "A(1,1),A(1,2),A(2,1),A(2,2)
+300 REM
+305 REM test fix, int, round, etc
+310 REM
+315 PRINT "PI should return 3.14... "PI
+320 PRINT "INT(4.5) should return 4 "INT(4.5)
+325 PRINT "INT(-4.5) should return -5 "INT(-4.5)
+330 PRINT "FIX(-4.5) should return -4 "FIX(-4.5)
+335 PRINT "FRAC(-4.5) should return -0.5 "FRAC(-4.5)
+340 PRINT "ROUND(1.2345) should return 1 "ROUND(1.2345)
+345 PRINT "ROUND(1.2345,3) should return 1.235 "ROUND(1.2345,3)
 494 REM
 495 REM make a simple function that returns itself
 496 REM
@@ -182,6 +192,13 @@
 3996 REM
 3998 LET A=2
 4000 PRINT "A=2, A*10=";A*10
+4100 REM
+4110 REM testing inkey
+4120 REM
+4130 PRINT"test inkey, waiting for keypress"
+4140 I$=INKEY$
+4150 IF I$<>"" THEN PRINT "you pressed '";I$;"'"
+4160 IF I$<>"X" THEN 4140
 4400 input "an input prompt with comma, enter a number (1 to 3)",A
 4700 input "an input prompt with semi, enter a number";B
 4900 print "a is "A" b is "B
@@ -228,6 +245,12 @@
 5330 IF R=2 THEN EXIT
 5340 NEXT
 5350 PRINT "R is now: "R
+6000 REM
+6005 REM test CLEAR
+6010 REM
+6015 PRINT"testing CLEAR, R is currently "R
+6020 CLEAR
+6025 PRINT"after CLEARing, R is "R
 8000 STOP
 8100 REM
 8101 REM test label'ed gosub
