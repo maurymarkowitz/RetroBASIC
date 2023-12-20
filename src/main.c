@@ -27,7 +27,7 @@
 /* simple version info for --version command line option */
 static void print_version(void)
 {
-  puts("RetroBASIC 1.8.7");
+  puts("RetroBASIC 1.8.8");
 }
 
 /* usage short form, just a list of the switches */
@@ -191,7 +191,6 @@ int main(int argc, char *argv[])
   yydebug = 1;
 #endif
 #define YYDEBUG 1
-
 
   // parse the options and make sure we got a filename somewhere
   parse_options(argc, argv);
