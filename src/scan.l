@@ -81,38 +81,50 @@ THEN		{ return THEN; }
 TO			{ return TO; }
 
  /* extended statements found in some versions*/
-CALL        { return CALL; }    // used to call system functions in TI-99 and some other BASICs
-CLS         { return CLS; }     // clear screen, do not confuse with CLR or CLEAR
-CMD         { return CMD; }     // redirects output of PRINT to another device
-GET         { return GET; }
-PUT         { return PUT; }
-INPUT#      { return INPUT_FILE; }
-PRINT#      { return PRINT_FILE; }
-OPTION      { return OPTION; }
-BASE        { return BASE; }
-RANDOMIZE   { return RANDOMIZE; }
-SYS         { return SYS; }     // same as CALL
-USING       { return USING; }
-VARLIST     { return VARLIST; }
-PAUSE       { return PAUSE; }
-POP         { return POP; }
-EXIT        { return EXIT; }    // same as POP
+CALL      { return CALL; }    // used to call system functions in TI-99 and some other BASICs
+CLEAR     { return CLEAR; }
+CLR       { return CLEAR; }
+CLS       { return CLS; }     // clear screen, do not confuse with CLR or CLEAR
+CMD       { return CMD; }     // redirects output of PRINT to another device
+GET       { return GET; }
+PUT       { return PUT; }
+INPUT#    { return INPUT_FILE; }
+PRINT#    { return PRINT_FILE; }
+OPTION    { return OPTION; }
+BASE      { return BASE; }
+RANDOMIZE { return RANDOMIZE; }
+SYS       { return SYS; }     // same as CALL
+USING     { return USING; }
+VARLIST   { return VARLIST; }
+PAUSE     { return PAUSE; }
+POP       { return POP; }
+EXIT      { return EXIT; }    // same as POP
 
  /* math functions */
-ABS			  { return _ABS; } /* token has to have the _ because GLib has an ABS */
-ATN			  { return ATN; }
-COS			  { return COS; }
+ABS			  { return ABS; }
+ACS       { return ACS; }
+ASN       { return ASN; }
+ATN       { return ATN; }
+COS       { return COS; }
+COSH      { return COSH; }
 CLOG		  { return CLOG; } // CLG on Honeywell Series 60
+CSH       { return COSH; }
 EXP       { return EXP; }
 FIX       { return FIX; }
 FRAC      { return FRAC; }
 INT			  { return INT; }
 LOG			  { return LOG; }
-POS			  { return POS; } // COUNT in Atom
+PI        { return PI; }
 SIN			  { return SIN; }
+SINH      { return SINH; }
 SGN			  { return SGN; }
 SQR			  { return SQR; }
-RND			  { return RND; }
+SNH       { return SINH; }
+ROUND     { return ROUND; }
+RND       { return RND; }
+TAN       { return TAN; }
+TANH      { return TANH; }
+TNH       { return TANH; }
 VAL			  { return VAL; }
 
  /* string-related functions */
@@ -129,18 +141,22 @@ INDEX     { return INSTR; } // also FIND and other variations
 SEG\$     { return SEG; }
 SUBSTR\$  { return SUBSTR; }
 SUBSTRING\$  { return SUBSTR; }
+ /* aliases for MID found in some versions */
+INKEY\$   { return INKEY; }
 
  /* system functions */
+FRE       { return FRE; }
 TAB			  { return TAB; }
 SPC			  { return SPC; }
 SPA       { return SPC; }   // from HP, same as SPC
 PEEK      { return PEEK; }  // also EXAM (North Star) and FETCH (Digital Group Opus)
-FRE       { return FRE; }
+POS       { return POS; } // COUNT in Atom
 USR       { return USR; }
 LIN       { return LIN; }
 
  /* various operators and punctuation */
 [:,;()\[\]\^=+\-*/\<\>\&]     { return yytext[0]; }
+MOD       { return MOD; }
 
  /* alternate form for power */
 "**"      { return '^'; } // FIXME: we should have a separate token for this?
@@ -176,12 +192,12 @@ STRING\$  { return STRNG; } // returns n copies of a given string
 SPACE\$   { return SPC; }   // returns n spaces as a value, which is how our SPC works anyway
 
  /* commodore-style TIME and TIME$ */
-TIME\$  { return TIME_STR; }
-TIME    { return TIME; }
+TIME\$    { return TIME_STR; }
+TIME      { return TIME; }
  /* and their alternate short forms */
-TI\$    { return TIME_STR; }
-TI      { return TIME; }
-CLK\$   { return TIME_STR; } // from BASIC-PLUS, Univac System 9 has CLK(x) where x is numeric
+TI\$      { return TIME_STR; }
+TI        { return TIME; }
+CLK\$     { return TIME_STR; } // from BASIC-PLUS, Univac System 9 has CLK(x) where x is numeric
 
  /* HEX, OCT and BIN conversions */
 BIN       { return BIN; }
@@ -195,7 +211,7 @@ OCT\$     { return OCTSTR; }
 UBOUND    { return UBOUND; }
 LBOUND    { return LBOUND; }
 
- /* line lables, procedures, etc. */
+ /* line labels, procedures, etc. */
 LABEL    { return LABEL; }
 
  /* hex, oct and bin strings encoding numbers */
@@ -237,7 +253,7 @@ LABEL    { return LABEL; }
           }
 
  /* string constants */
-\"[^"]*\" {
+\"[^"^\n]*[\"\n] {
             yytext[strlen(yytext) - 1] = '\0';
             yylval.s = str_new(yytext + 1);
             return STRING;

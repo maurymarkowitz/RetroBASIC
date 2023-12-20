@@ -67,7 +67,8 @@ static expression_t *make_operator(int arity, int o)
 
  /* Bison declarations */
 
- //%define parse.error verbose
+  // %define parse.error verbose
+  // %define parse.trace true
 
 %union {
   double d;
@@ -86,13 +87,14 @@ static expression_t *make_operator(int arity, int o)
 %type <statement> statement
 %type <variable> variable user_function
 
- // make sure STRING is before the numbers, so you can test all numbers as > STRING
+ /* make sure STRING is before the numbers, so you can test all numbers as > STRING */
 %token <s> STRING
 %token <d> NUMBER DOUBLE SINGLE INTEGER
 %token <s> VARIABLE_NAME
 %token <s> FUNCTION_NAME
 %token <s> HEX_STR OCT_STR BIN_STR
 
+ /* primary statements and commands */
 %token REM
 %token QUOTEREM
 %token BANGREM
@@ -127,7 +129,7 @@ static expression_t *make_operator(int arity, int o)
 %token THEN
 %token TO
 %token USING
-%token WAIT
+%token WAIT   // Altair version here, but perhaps should be PAUSE synonym
 
  /* putting these down here for clarity, they are the PRINT# etc. */
 %token OPEN CLOSE STATUS
@@ -151,11 +153,22 @@ static expression_t *make_operator(int arity, int o)
 %token PAUSE
 
  /* common math functions */
-%token _ABS SGN
-%token ATN COS SIN TAN
+%token ABS SGN
 %token CLOG EXP LOG SQR
+%token PI     // pseudo-value/function
 %token RND
-%token INT FIX FRAC CINT CSNG CDBL // fix=SGN(x)*INT(ABS(x)), frac=A-INT(A)
+%token INT FIX FRAC // fix=SGN(x)*INT(ABS(x)), frac=A-INT(A)
+%token ROUND  // two versions, round-to-int and round-to-place
+%token CINT CSNG CDBL
+%token MOD
+
+ /* trig set */
+%token COS SIN ATN
+%token ACS ASN TAN
+%token COSH SINH TANH
+
+ /* matrix set */
+ /* %token CON DET IDN INPUT INV PRINT READ TRN ZER */
 
  /* string functions */
 %token ASC
@@ -163,6 +176,7 @@ static expression_t *make_operator(int arity, int o)
 %token LEN STR VAL CHR
 %token SEG SUBSTR
 %token INSTR
+%token INKEY
 
  /* boolean operations and comparisons */
 %token AND OR NOT XOR
@@ -174,7 +188,7 @@ static expression_t *make_operator(int arity, int o)
 %token TAB
 %token POS
 %token USR
-%token LIN // from HP, a vertical version of TAB
+%token LIN /* from HP, a vertical version of TAB */
 
  /* type definitions added circa 1979 */
 %token DEFSTR DEFINT DEFSNG DEFDBL
@@ -207,29 +221,29 @@ static expression_t *make_operator(int arity, int o)
 /* Grammar rules */
 program:
   line
-	|
-	program '\n' line
-	|
+  |
+  program '\n' line
+  |
   program error '\n'
-	;
+  ;
 
 line:
-	/* can be nothing but the CR captured above
+  /* can be nothing but the CR captured above
    FIXME: blank lines appear to cause errors at runtime */
-	{
-	}
-	|
+  {
+  }
+  |
   // keep track of the line number as we parse so we can report offending lines
-	NUMBER { errline = $1; } statements
-	{
-	  interpreter_state.lines[(int)$1] = $3;
-	}       
-	;
+  NUMBER { errline = $1; } statements
+  {
+    interpreter_state.lines[(int)$1] = $3;
+  }
+  ;
 
 statements:
-	statement
+  statement
   {
-	  $$ = lst_prepend(NULL, $1);
+    $$ = lst_prepend(NULL, $1);
   }
   |
   statement ':' statements
@@ -246,14 +260,14 @@ statements:
   {
     $$ = lst_prepend($1, NULL);
   }
-	;
+  ;
 
 statement:
-	/* can be empty, in which case we remove it */
+  /* can be empty, in which case we remove it */
   // NOTE: should we? or should we insert a placeholder?
   {
-	  $$ = NULL;
-	}
+    $$ = NULL;
+  }
   |
   REM
   {
@@ -275,12 +289,12 @@ statement:
     new->parms.rem = yylval.s;
     $$ = new;
   }
-	|
-	BYE
-	{
-	  statement_t *new = make_statement(BYE);
-	  $$ = new;
-	}
+  |
+  BYE
+  {
+    statement_t *new = make_statement(BYE);
+    $$ = new;
+  }
   |
   CALL expression
   {
@@ -301,6 +315,18 @@ statement:
     statement_t *new = make_statement(CONVERT);
     new->parms.change.var1 = $2;
     new->parms.change.var2 = $4;
+    $$ = new;
+  }
+  |
+  CLEAR
+  {
+    statement_t *new = make_statement(CLEAR);
+    $$ = new;
+  }
+  |
+  CLR
+  {
+    statement_t *new = make_statement(CLEAR);
     $$ = new;
   }
   |
@@ -371,41 +397,41 @@ statement:
     $$ = new;
   }
   |
-	END
-	{
-	  statement_t *new = make_statement(END);
-	  $$ = new;
-	}
+  END
+  {
+    statement_t *new = make_statement(END);
+    $$ = new;
+  }
   |
   EXIT
   {
     statement_t *new = make_statement(EXIT);
     $$ = new;
   }
-	|
-	FOR variable '=' expression TO expression
-	{
-	  statement_t *new = make_statement(FOR);
-	  new->parms._for.variable = $2;
-	  new->parms._for.begin = $4;
-	  new->parms._for.end = $6;
-	  new->parms._for.step = NULL;
-	  $$ = new;
+  |
+  FOR variable '=' expression TO expression
+  {
+    statement_t *new = make_statement(FOR);
+    new->parms._for.variable = $2;
+    new->parms._for.begin = $4;
+    new->parms._for.end = $6;
+    new->parms._for.step = NULL;
+    $$ = new;
     
     /* static analyser */
     for_loops_total++;
     for_loops_step_1++;
-	}
-	|
-	FOR variable '=' expression TO expression STEP expression
-	{
-	  statement_t *new = make_statement(FOR);
-	  new->parms._for.variable = $2;
-	  new->parms._for.begin = $4;
-	  new->parms._for.end = $6;
-	  new->parms._for.step = $8;
-	  $$ = new;
-	
+  }
+  |
+  FOR variable '=' expression TO expression STEP expression
+  {
+    statement_t *new = make_statement(FOR);
+    new->parms._for.variable = $2;
+    new->parms._for.begin = $4;
+    new->parms._for.end = $6;
+    new->parms._for.step = $8;
+    $$ = new;
+  
     /* static analyser - consider anything with a STEP special even if it is a 1 */
     for_loops_total++;
   }
@@ -449,9 +475,9 @@ statement:
       }
     }
   }
-	|
-	GOSUB expression OF exprlist // this is the alternative form of ON..GOSUB seen in some dialects
-	{
+  |
+  GOSUB expression OF exprlist // this is the alternative form of ON..GOSUB seen in some dialects
+  {
     statement_t *new = make_statement(OF);
     new->parms.on.type = GOSUB;
     new->parms.on.expression = $2;
@@ -481,12 +507,12 @@ statement:
       linenum_backwards++;
     }
   }
-	|
-	GOTO expression
-	{
-	  statement_t *new = make_statement(GOTO);
-	  new->parms._goto = $2;
-	  $$ = new;
+  |
+  GOTO expression
+  {
+    statement_t *new = make_statement(GOTO);
+    new->parms._goto = $2;
+    $$ = new;
       
     /* static analyzer */
     linenum_goto_totals++;
@@ -500,7 +526,7 @@ statement:
           linenum_backwards++;
       }
     }
-	}
+  }
   |
   GOTO expression OF exprlist
   {
@@ -513,15 +539,15 @@ statement:
     linenum_constants_total += lst_length($4);
     linenum_on_totals++;
   }
-	|
-	INPUT printlist
-	{
-	  statement_t *new = make_statement(INPUT);
-	  new->parms.input = $2;
-	  $$ = new;
-	}
-	|
-	IF expression THEN NUMBER
+  |
+  INPUT printlist
+  {
+    statement_t *new = make_statement(INPUT);
+    new->parms.input = $2;
+    $$ = new;
+  }
+  |
+  IF expression THEN NUMBER
   {
     statement_t *new = make_statement(IF);
     new->parms._if.condition = $2;
@@ -542,7 +568,7 @@ statement:
         linenum_backwards++;
       }
     }
-	}
+  }
   |
   IF expression GOTO NUMBER // this alternate form is seen in some BASICs like Bally and MS
   {
@@ -563,15 +589,15 @@ statement:
       linenum_backwards++;
     }
   }
-	|
-	IF expression THEN statements // yes, statement**s**, they all run or don't run as a group in MS
-	{
-	  statement_t *new = make_statement(IF);
-	  new->parms._if.condition = $2;
-	  new->parms._if.then_expression = $4;
-	  new->parms._if.then_linenumber = 0;
-	  $$ = new;
-	}
+  |
+  IF expression THEN statements // yes, statement**s**, they all run or don't run as a group in MS
+  {
+    statement_t *new = make_statement(IF);
+    new->parms._if.condition = $2;
+    new->parms._if.then_expression = $4;
+    new->parms._if.then_linenumber = 0;
+    $$ = new;
+  }
   |
   LABEL variable // labels are placeholders for their own linenumber, which we can get...
   {
@@ -580,13 +606,13 @@ statement:
     new->parms.label.linenumber = errline;
     $$ = new;
   }
-	|
-	LET variable '=' expression /* explicit LET, implicit LET is at the bottom */
-	{
-	  statement_t *new = make_statement(LET);
-	  new->parms.let.variable = $2;
-	  new->parms.let.expression = $4;
-	  $$ = new;
+  |
+  LET variable '=' expression /* explicit LET, implicit LET is at the bottom */
+  {
+    statement_t *new = make_statement(LET);
+    new->parms.let.variable = $2;
+    new->parms.let.expression = $4;
+    $$ = new;
     
     /* static analyser - see if we are setting a value to 0 or 1 */
     //NOTE: same code below in invisible LET
@@ -600,7 +626,7 @@ statement:
         assign_other++;
       }
     }
-	}
+  }
   |
   NEXT varlist // this handles one or more index variables, no need for a single-var case
   {
@@ -622,21 +648,21 @@ statement:
     new->parms.next = NULL;
     $$ = new;
   }
-	|
-	ON expression GOTO exprlist
-	{
-	  statement_t *new = make_statement(ON);
-	  new->parms.on.type = GOTO;
-	  new->parms.on.expression = $2;
-	  new->parms.on.numbers = $4;
-	  $$ = new;
+  |
+  ON expression GOTO exprlist
+  {
+    statement_t *new = make_statement(ON);
+    new->parms.on.type = GOTO;
+    new->parms.on.expression = $2;
+    new->parms.on.numbers = $4;
+    $$ = new;
       
     linenum_constants_total += lst_length($4);
     linenum_on_totals++;
-	}
-	|
-	ON expression GOSUB exprlist
-	{
+  }
+  |
+  ON expression GOSUB exprlist
+  {
     statement_t *new = make_statement(ON);
     new->parms.on.type = GOSUB;
     new->parms.on.expression = $2;
@@ -680,22 +706,22 @@ statement:
     statement_t *new = make_statement(POP);
     $$ = new;
   }
-	|
-	PRINT printlist
-	{
-	  statement_t *new = make_statement(PRINT);
-	  new->parms.print.format = NULL;
-	  new->parms.print.item_list = $2;
-	  $$ = new;
-	}
-	|
-	PRINT USING expression ';' printlist
-	{
-	  statement_t *new = make_statement(PRINT);
-	  new->parms.print.format = $3;
-	  new->parms.print.item_list = $5;
-	  $$ = new;
-	}
+  |
+  PRINT printlist
+  {
+    statement_t *new = make_statement(PRINT);
+    new->parms.print.format = NULL;
+    new->parms.print.item_list = $2;
+    $$ = new;
+  }
+  |
+  PRINT USING expression ';' printlist
+  {
+    statement_t *new = make_statement(PRINT);
+    new->parms.print.format = $3;
+    new->parms.print.item_list = $5;
+    $$ = new;
+  }
   |
   RANDOMIZE
   {
@@ -710,19 +736,19 @@ statement:
     new->parms.generic_parameter = $2;
     $$ = new;
   }
-	|
-	READ varlist
-	{
-	  statement_t *new = make_statement(READ);
-	  new->parms.read = $2;
-	  $$ = new;
-	}
-	|
-	RESTORE
-	{
-	  statement_t *new = make_statement(RESTORE);
-	  $$ = new;
-	}
+  |
+  READ varlist
+  {
+    statement_t *new = make_statement(READ);
+    new->parms.read = $2;
+    $$ = new;
+  }
+  |
+  RESTORE
+  {
+    statement_t *new = make_statement(RESTORE);
+    $$ = new;
+  }
   |
   RESTORE expression /* some basics allow a parameter here, representing a line number in some or an ordinal in others */
   {
@@ -730,18 +756,18 @@ statement:
     new->parms.generic_parameter = $2;
     $$ = new;
   }
-	|
-	RETURN
-	{
-	  statement_t *new = make_statement(RETURN);
-	  $$ = new;
-	}
-	|
-	STOP
-	{
-	  statement_t *new = make_statement(STOP);
-	  $$ = new;
-	}
+  |
+  RETURN
+  {
+    statement_t *new = make_statement(RETURN);
+    $$ = new;
+  }
+  |
+  STOP
+  {
+    statement_t *new = make_statement(STOP);
+    $$ = new;
+  }
   |
   STOP expression /* Wang BASIC allows a print-like expression here */
   {
@@ -777,25 +803,25 @@ statement:
     new->parms.generic_parameter = $4;
     $$ = new;
   }
-	|
-	VARLIST /* lists out all the variables and their values */
-	{
-	  statement_t *new = make_statement(VARLIST);
-	  $$ = new;
-	}
+  |
+  VARLIST /* lists out all the variables and their values */
+  {
+    statement_t *new = make_statement(VARLIST);
+    $$ = new;
+  }
   |
   WAIT exprlist /* watches a memory location, does nothing here so ignore the list */
   {
     statement_t *new = make_statement(WAIT);
     $$ = new;
   }
-	|
-	variable '=' expression /* invisible LET, visible LET is above */
-	{
-	  statement_t *new = make_statement(LET);
-	  new->parms.let.variable = $1;
-	  new->parms.let.expression = $3;
-	  $$ = new;
+  |
+  variable '=' expression /* invisible LET, visible LET is above */
+  {
+    statement_t *new = make_statement(LET);
+    new->parms.let.variable = $1;
+    new->parms.let.expression = $3;
+    $$ = new;
     
     /* static analyser - see if we are setting a value to 0 or 1 */
     //NOTE: same code above in LET
@@ -810,8 +836,8 @@ statement:
       }
     }
 
-	}
-	;
+  }
+  ;
 
  /* precedence in RetroBASIC is handled through this pattern tree,
     but it is not clear that is the best solution
@@ -819,16 +845,16 @@ statement:
 expression: expression0;
 
 expression0:
-	expression1
-	|
-	expression0 binary_op expression1
-	{
-	  expression_t *new = make_operator(2, $2);
-	  new->parms.op.p[0] = $1;
-	  new->parms.op.p[1] = $3;
-	  $$ = new;
-	}
-	;
+  expression1
+  |
+  expression0 binary_op expression1
+  {
+    expression_t *new = make_operator(2, $2);
+    new->parms.op.p[0] = $1;
+    new->parms.op.p[1] = $3;
+    $$ = new;
+  }
+  ;
 
 binary_op:
   AND { $$ = AND; } |
@@ -836,14 +862,14 @@ binary_op:
   ;
 
 expression1:
-	expression2
-	|
-	expression1 comparison_op expression2
-	{
-	  expression_t *new = make_operator(2, $2);
-	  new->parms.op.p[0] = $1;
-	  new->parms.op.p[1] = $3;
-	  $$ = new;
+  expression2
+  |
+  expression1 comparison_op expression2
+  {
+    expression_t *new = make_operator(2, $2);
+    new->parms.op.p[0] = $1;
+    new->parms.op.p[1] = $3;
+    $$ = new;
     
     /* static analyser - see if this is a comparison to zero or one */
     if (new->parms.op.p[1]->type == number) {
@@ -876,8 +902,8 @@ expression1:
         }
       }
     }
-	}
-	;
+  }
+  ;
 
 comparison_op:
     '=' { $$ = '='; } |
@@ -887,17 +913,17 @@ comparison_op:
     CMP_GE { $$ = CMP_GE; } |
     CMP_NE { $$ = CMP_NE; } |
     CMP_HASH { $$ = CMP_HASH; }
-	;
+  ;
 
 expression2:
-	expression3
-	|
-	expression2 e2op expression3
-	{
-	  expression_t *new = make_operator(2, $2);
-	  new->parms.op.p[0] = $1;
-	  new->parms.op.p[1] = $3;
-	  $$ = new;
+  expression3
+  |
+  expression2 e2op expression3
+  {
+    expression_t *new = make_operator(2, $2);
+    new->parms.op.p[0] = $1;
+    new->parms.op.p[1] = $3;
+    $$ = new;
     
     /* static analyser - if it's + or - 1, record it as an increment */
     if (new->parms.op.p[1]->type == number
@@ -909,8 +935,8 @@ expression2:
         decrements++;
       }
     }
-	}
-	;
+  }
+  ;
 
 e2op:   '+' { $$ = '+'; } |
         '-' { $$ = '-'; } |
@@ -918,31 +944,31 @@ e2op:   '+' { $$ = '+'; } |
         ;
 
 expression3:
-	expression4
-	|
-	expression3 term expression4
-	{
-	  expression_t *new = make_operator(2, $2);
-	  new->parms.op.p[0] = $1;
-	  new->parms.op.p[1] = $3;
-	  $$ = new;
-	}
-	;
+  expression4
+  |
+  expression3 term expression4
+  {
+    expression_t *new = make_operator(2, $2);
+    new->parms.op.p[0] = $1;
+    new->parms.op.p[1] = $3;
+    $$ = new;
+  }
+  ;
 
 term:   '*' { $$ = '*'; } |
         '/' { $$ = '/'; } |
         '^' { $$ = '^'; } ;
 
 expression4:
-	function
-	|
-	unary_op function
-	{
-	  expression_t *new = make_operator(1, $1);
-	  new->parms.op.p[0] = $2;
-	  $$ = new;
-	}
-	;
+  function
+  |
+  unary_op function
+  {
+    expression_t *new = make_operator(1, $1);
+    new->parms.op.p[0] = $2;
+    $$ = new;
+  }
+  ;
 
 unary_op:
   '-' { $$ = '-'; } |
@@ -950,7 +976,7 @@ unary_op:
   ;
 
 function:
-	factor
+  factor
   |
   /* functions with no parameters, like TIME */
   fn_0
@@ -972,21 +998,21 @@ function:
     new->parms.op.p[0] = $3;
     $$ = new;
   }
-	|
-	fn_1 '(' expression ')'
-	{
-	  expression_t *new = make_operator(1, $1);
-	  new->parms.op.p[0] = $3;
-	  $$ = new;
-	}
-	|
-	fn_2 '(' expression ',' expression ')'
-	{
-	  expression_t *new = make_operator(2, $1);
-	  new->parms.op.p[0] = $3;
-	  new->parms.op.p[1] = $5;
-	  $$ = new;
-	}
+  |
+  fn_1 '(' expression ')'
+  {
+    expression_t *new = make_operator(1, $1);
+    new->parms.op.p[0] = $3;
+    $$ = new;
+  }
+  |
+  fn_2 '(' expression ',' expression ')'
+  {
+    expression_t *new = make_operator(2, $1);
+    new->parms.op.p[0] = $3;
+    new->parms.op.p[1] = $5;
+    $$ = new;
+  }
   /* multi-arity function being called with one input... */
   |
   fn_x '(' expression ')'
@@ -1005,20 +1031,22 @@ function:
     $$ = new;
   }
   /* ...or three */
-	|
-	fn_x '(' expression ',' expression ',' expression ')'
-	{
-	  expression_t *new = make_operator(3, $1);
-	  new->parms.op.p[0] = $3;
-	  new->parms.op.p[1] = $5;
+  |
+  fn_x '(' expression ',' expression ',' expression ')'
+  {
+    expression_t *new = make_operator(3, $1);
+    new->parms.op.p[0] = $3;
+    new->parms.op.p[1] = $5;
     new->parms.op.p[2] = $7;
-	  $$ = new;
-	}
-	;
+    $$ = new;
+  }
+  ;
   
  /* optional-parameter functions */
 fn_0:
+  INKEY { $$ = INKEY; } |
   FRE { $$ = FRE; } |
+  PI { $$ = PI; } |
   RND { $$ = RND; } |
   TIME { $$ = TIME; } |
   TIME_STR { $$ = TIME_STR; }
@@ -1026,15 +1054,16 @@ fn_0:
 
  /* arity-1 functions */
 fn_1:
- _ABS { $$ = _ABS; } |
-	ATN  { $$ = ATN; } |
+  ABS { $$ =  ABS; } |
+  ATN  { $$ = ATN; } |
   BIN  { $$ = BIN; } |
   BINSTR { $$ = BINSTR; } |
-	CHR  { $$ = CHR; } |
-	CLOG { $$ = CLOG;} |
-	COS  { $$ = COS; } |
+  CHR  { $$ = CHR; } |
+  CLOG { $$ = CLOG;} |
+  COS  { $$ = COS; } |
   EXP  { $$ = EXP; } |
   FIX  { $$ = FIX; } |
+  FRAC  { $$ = FRAC; } |
   HEX  { $$ = HEX; } |
   HEXSTR { $$ = HEXSTR; } |
   INT  { $$ = INT; } |
@@ -1047,32 +1076,33 @@ fn_1:
   OCTSTR { $$ = OCTSTR; } |
   PEEK { $$ = PEEK;} |
   SGN  { $$ = SGN; } |
-	SIN  { $$ = SIN; } |
-	SPC  { $$ = SPC; } |
-	SQR  { $$ = SQR; } |
-	TAB  { $$ = TAB; } |
-	VAL  { $$ = VAL; } |
+  SIN  { $$ = SIN; } |
+  SPC  { $$ = SPC; } |
+  SQR  { $$ = SQR; } |
+  TAB  { $$ = TAB; } |
+  VAL  { $$ = VAL; } |
   UCASE  { $$ = UCASE; } |
   USR  { $$ = USR; }
   ;
-	
+  
  /* arity-2 functions */
 fn_2:
   LEFT { $$ = LEFT; } |
   RIGHT { $$ = RIGHT; } |
   STRNG { $$ = STRNG; }
-	;
+  ;
 
  /* arity-1, 2 or 3 functions */
 fn_x:
- INSTR { $$ = INSTR; } |
- POS { $$ = POS; } |
- MID { $$ = MID; } |
- SEG { $$ = SEG; } |
- SUBSTR { $$ = SUBSTR; } |
- UBOUND  { $$ = UBOUND; } |
- LBOUND  { $$ = LBOUND; }
- ;
+  INSTR { $$ = INSTR; } |
+  POS { $$ = POS; } |
+  MID { $$ = MID; } |
+  SEG { $$ = SEG; } |
+  SUBSTR { $$ = SUBSTR; } |
+  ROUND  { $$ = ROUND; } |
+  UBOUND  { $$ = UBOUND; } |
+  LBOUND  { $$ = LBOUND; }
+  ;
 
  /* ultimately all expressions end up here in factor, which is either a
     constant value, a variable value, or a parened expression. in
@@ -1080,11 +1110,11 @@ fn_x:
     language design call this level a "factor", so we'll do the same. */
 factor:
   NUMBER
-	{
+  {
     /* actual parsing code */
-	  expression_t *new = make_expression(number);
-	  new->parms.number = $1;
-	  $$ = new;
+    expression_t *new = make_expression(number);
+    new->parms.number = $1;
+    $$ = new;
     
     /* static analyzer code */
     /* numbers here are not *all* of numbers in a program, line numbers
@@ -1134,13 +1164,13 @@ factor:
     else {
         numeric_constants_float++;
     }
-	}
-	|
-	STRING
-	{
-	  expression_t *new = make_expression(string);
-	  new->parms.string = $1;
-	  $$ = new;
+  }
+  |
+  STRING
+  {
+    expression_t *new = make_expression(string);
+    new->parms.string = $1;
+    $$ = new;
       
     /* static analyzer code */
     size_t len = strlen($1);
@@ -1173,7 +1203,7 @@ factor:
   {
     $$ = $2;
   }
-	;
+  ;
 
  /* user functions MUST have at least the empty parameter list
     in Commodore BASIC, you can only have a single parameter,
@@ -1257,16 +1287,16 @@ variable:
  /* a null printlist is valid, it means "new line" */
 printlist:
   {
-	  $$ = NULL;
+    $$ = NULL;
   }
   |
-	expression
-	{
-	  printitem_t *new = malloc(sizeof(*new));
-	  new->expression = $1;
-	  new->separator = 0;
-	  $$ = lst_append(NULL, new);
-	}
+  expression
+  {
+    printitem_t *new = malloc(sizeof(*new));
+    new->expression = $1;
+    new->separator = 0;
+    $$ = lst_append(NULL, new);
+  }
   |
   // this handles MS semi-is-the-same as nothing, PRINT"I="I
   printlist expression
@@ -1287,38 +1317,38 @@ printlist:
   }
   |
   printlist printsep
-	{
-	  printitem_t *new = malloc(sizeof(*new));
-	  new->expression = NULL;
-	  new->separator = $2;
-	  $$ = lst_append($1, new);
-	}
-	;
+  {
+    printitem_t *new = malloc(sizeof(*new));
+    new->expression = NULL;
+    new->separator = $2;
+    $$ = lst_append($1, new);
+  }
+  ;
 
 printsep:
-	','
+  ','
   {
-	  $$ = ',';
-	}
+    $$ = ',';
+  }
   |
-	';'
+  ';'
   {
-	  $$ = ';';
-	}
+    $$ = ';';
+  }
   ;
-	
+  
  /* used in lots of places that take a list of expressions, functions, DATA, defn, etc. */
 exprlist:
-	expression
-	{
-	  $$ = lst_prepend(NULL, $1);
-	}
-	|
-	exprlist ',' expression
-	{
-	  $$ = lst_append($1, $3);
-	}
-	;
+  expression
+  {
+    $$ = lst_prepend(NULL, $1);
+  }
+  |
+  exprlist ',' expression
+  {
+    $$ = lst_append($1, $3);
+  }
+  ;
   
   /* ANSI-style string slicing */
   // NOTE: the ANSI docs suggest the only correct format is two-parameter, start and end
@@ -1333,31 +1363,31 @@ slicelist:
     ;
 
  /* used only in PATB style multiple-assignment LETs */
- /* not currently used 
+ /* not currently used
  assignlist:
-	variable '=' expression
-	{
-	  $$ = lst_prepend($1, $3);
-	}
-	|
-	assignlist variable '=' expression ',' 
-	{
-	  $$ = lst_append($3, $5);
-	}
-	;
-	*/
+  variable '=' expression
+  {
+    $$ = lst_prepend($1, $3);
+  }
+  |
+  assignlist variable '=' expression ','
+  {
+    $$ = lst_append($3, $5);
+  }
+  ;
+  */
 
  /* used in READ statements and DEFs */
 varlist:
-	variable
-	{
-	  $$ = lst_prepend(NULL, $1);
-	}
-	|
-	varlist ',' variable
-	{
-	  $$ = lst_append($1, $3);
-	}
-	;
+  variable
+  {
+    $$ = lst_prepend(NULL, $1);
+  }
+  |
+  varlist ',' variable
+  {
+    $$ = lst_append($1, $3);
+  }
+  ;
 
 %%
