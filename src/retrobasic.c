@@ -27,6 +27,12 @@
 #include "retrobasic.h"
 #include "parse.h"
 
+#if _WIN32
+  #include <conio.h>
+#else
+  #include <sys/termios.h>
+#endif
+
 /* here's the actual definition of the interpreter state which is extern in the header */
 interpreterstate_t interpreter_state;
 
@@ -86,9 +92,47 @@ struct timeval reset_time;     					// if the user resets the time with TIME$, t
 
 /************************************************************************/
 
+/**
+ * Error reporting routine that also prints the line number of the error.
+*/
 static void basic_error(const char *message)
 {
   fprintf(stderr, "%s at line %d\n", message, current_line());
+}
+
+/**
+ * Gets a keystroke, or null if no key is pressed. Used for INKEY$.
+ *
+ * @return the keycode, NULL if no key is pressed or an error occurred.
+ *
+ * See: https://stackoverflow.com/questions/1798511/how-to-avoid-pressing-enter-with-getchar-for-reading-a-single-character-only
+*/
+int getkey(int fd)
+{
+#if _WIN32
+    if (kbhit) {
+      return getch();
+    } else {
+      return 0;
+    }
+#else
+  int ch;
+  unsigned char buf[1];
+  struct termios oldt, newt;
+  tcgetattr(STDIN_FILENO, &oldt);
+  newt = oldt;
+  cfmakeraw(&newt);
+  newt.c_cc[VMIN] = 0;
+  newt.c_cc[VTIME] = 0;
+  newt.c_lflag &= ~(ICANON | ECHO);
+//  newt.c_cc[VMIN] = 0;
+  tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+  ch = (int)read(STDIN_FILENO, buf, 1);
+  if (ch > 0)
+      ch = buf[0];
+  tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+  return ch;
+#endif
 }
 
 /* Returns an int containing the type of the variable based on its name
@@ -707,7 +751,7 @@ static value_t evaluate_expression(expression_t *expression)
     }
       break;
       
-      // and now for the fun bit, the operators list...
+      // and now for the fun bit, the operators and function list...
     case op:
       // build a list of values for each of the parameters by recursing
       // on them until they return a value
@@ -716,12 +760,14 @@ static value_t evaluate_expression(expression_t *expression)
       
       // now calculate the results based on those values
       if (expression->parms.op.arity == 0) {
-        // so far all of these are numbers
         result.type = NUMBER;
 
         switch (expression->parms.op.opcode) {
           case FRE:
             result.number = 0; // always return zero
+            break;
+          case PI:
+            result.number = M_PI;
             break;
           case RND:
             // TODO: support alternative RNDs that return limited values
@@ -758,6 +804,25 @@ static value_t evaluate_expression(expression_t *expression)
 					}
 						break;
 
+          case INKEY:
+          {
+            // INKEY returns a string containing either nothing or the character
+            // currently being pressed. it relies on the terminal settings having
+            // buffering turned of when this code is entered.
+            char buff[2];
+            int c = getkey(STDIN_FILENO);
+            
+            if (c > 0) {
+              buff[0] = (char)c;
+              buff[1] = '\0';
+            } else {
+              buff[0] = '\0';
+            }
+            result.type = STRING;
+            result.string = str_new(buff);
+          }
+            break;
+
 					default:
 						basic_error("Unhandled arity-0 function");
         }
@@ -776,11 +841,17 @@ static value_t evaluate_expression(expression_t *expression)
           case NOT:
             result.number = ~(int)a;
             break;
-          case _ABS:
+          case ABS:
             result.number = fabs(a);
             break;
           case ATN:
             result.number = atan(a);
+            break;
+          case ACS:
+            result.number = acos(a);
+            break;
+          case ASN:
+            result.number = asin(a);
             break;
           case CHR:
           {
@@ -814,23 +885,29 @@ static value_t evaluate_expression(expression_t *expression)
           case SIN:
             result.number = sin(a);
             break;
+          case SINH:
+            result.number = sinh(a);
+            break;
           case COS:
             result.number = cos(a);
             break;
-          case INT:
-            result.number = floor(a);
+          case COSH:
+            result.number = cosh(a);
             break;
           case FIX:
             result.number = trunc(a);
             break;
+          case INT:
+            result.number = floor(a);
+            break;
 					case FRAC:
 						result.number = a - trunc(a);
 						break;
+          case ROUND:
+            result.number = round(a); // this is the 1-arity case
+            break;
          case SQR:
             result.number = sqrt(a);
-            break;
-          case VAL:
-            result.number = atof(parameters[0].string);
             break;
           case SGN:
             // early MS variants return 1 for 0, this implements the newer version where 0 returns 0
@@ -841,6 +918,16 @@ static value_t evaluate_expression(expression_t *expression)
             else
               result.number = 1;
             break;
+          case TAN:
+            result.number = tan(a);
+            break;
+          case TANH:
+            result.number = tanh(a);
+            break;
+          case VAL:
+            result.number = atof(parameters[0].string);
+            break;
+            
           case PEEK:
             // always return zero
             result.number = 0;
@@ -954,8 +1041,7 @@ static value_t evaluate_expression(expression_t *expression)
             // the 1-arity version is just a variable
             variable_reference_t *exp = expression->parms.op.p[0]->parms.variable;
 
-            // like CHANGE and CONVERT, you do not pass in the ()'s here,
-            // so the name has to be munged
+            // like CHANGE and CONVERT, you do not pass in the ()'s here, so the name has to be munged
             char *array_storage_name = str_new(exp->name);
             str_append(array_storage_name, "("); // we are assuming it is missing, don't have to check type here
             variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
@@ -988,6 +1074,7 @@ static value_t evaluate_expression(expression_t *expression)
         // cache the parameters
         double a = parameters[0].number;
         double b = parameters[1].number;
+        result.type = NUMBER;
         
         switch (expression->parms.op.opcode) {
           case '+':
@@ -1028,6 +1115,9 @@ static value_t evaluate_expression(expression_t *expression)
             break;
           case '^':
             result = double_to_value(pow(a, b));
+            break;
+          case MOD:
+            result = double_to_value((int)floor(a) % (int)floor(b));
             break;
           case '=':
             if (parameters[0].type >= NUMBER)
@@ -1071,6 +1161,17 @@ static value_t evaluate_expression(expression_t *expression)
             break;
           case OR:
             result = double_to_value((int)a | (int)b);
+            break;
+          case XOR:
+            result = double_to_value((int)a ^ (int)b);
+            break;
+          case ROUND: { // this is the 2-arity case
+            double t = a * pow(10, b);
+            t = round(t);
+            t = t / pow(10, b);
+            result.type = NUMBER;
+            result.number = t;
+          }
             break;
 
             // NOTE: the strings in BASIC start on index 1, so we have to adjust that here for C
@@ -1148,7 +1249,6 @@ static value_t evaluate_expression(expression_t *expression)
             }
             break;
 
-            
             // 2-arity versions of UBOUND and LBOUND, which differ from the
             // 1-arity versions in that they have to traverse the list to get
             // the right axis
@@ -1276,6 +1376,7 @@ static value_t evaluate_expression(expression_t *expression)
         } // switch
       } //arity = 3
       
+      // anything we didn't handle above...
       else {
         result.number = 0;
         break;
@@ -1567,7 +1668,11 @@ static void perform_statement(list_t *statement_entry)
         break;
         
       case CLS:
-        // does nothing
+#if _WIN32
+        clrscr();
+#else
+        printf("\e[2J\e[H"); // ANSI escapes, should work in most consoles
+#endif
         break;
         
       case CMD:
@@ -1862,7 +1967,16 @@ static void perform_statement(list_t *statement_entry)
         
         // it was the right type, so...
         if (type > STRING) {
-          stored_val->number = exp_val.number;
+          // it's a number, cast it to the right underlying type
+          switch (type) {
+            case INTEGER:
+              stored_val->number = floor(exp_val.number);   // MS BASIC does a floor, *not* a trunc
+              break;
+            default:
+              stored_val->number = exp_val.number;          // which it likely is already, but just in case...
+              break;
+          }
+          
         } else {
           // see if the variable being assigned to has a slice
           variable_storage_t *stored_var = variable_storage(statement->parms.let.variable);
@@ -2371,7 +2485,7 @@ void interpreter_setup(void)
   for a forward jump - which is often the purpose of a label. So now
   that the program is a single long string of statements, we check all
   of them to see if it is a label, and if so, call eval to set its
-  value. The code is essentially idential to LET. This is called from
+  value. The code is essentially identical to LET. This is called from
   post_setup, so it doesn't need to be public */
 void interpreter_eval_labels(void)
 {

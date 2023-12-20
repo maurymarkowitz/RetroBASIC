@@ -72,9 +72,7 @@ int assign_zero = 0;
 int assign_one = 0;
 int assign_other = 0;
 
-/* variables used internally only */
-double linenum_ave_digits = 0;
-
+/* methods used while list walking */
 static void is_string(void *key, void *value, void *user_data)
 {
   variable_storage_t *data = (variable_storage_t *)value;
@@ -100,13 +98,17 @@ static void is_integer(void *key, void *value, void *user_data)
   if (data->type == INTEGER) *tot += 1;
 }
 
-/* prints out various statistics from the static code,
- or if the write_stats flag is on, writes them to a file */
+/**
+ * Prints out the statistics to the console if the global print_stats
+ * is turned on, and to a file if write_stats is turned on.
+ *
+ */
 void print_statistics(void)
 {
   int lines_total = 0, line_min = MAXLINE + 1, line_max = -1;
   double linenum_1_digit = 0.0, linenum_2_digit = 0.0, linenum_3_digit = 0.0, linenum_4_digit = 0.0, linenum_5_digit = 0.0;
   double linenum_tot_digits = 0.0;
+  double linenum_ave_digits = 0;
   
   // start with line number stats
   // just look for any entry in the arra with a non-empty statement list
@@ -146,7 +148,7 @@ void print_statistics(void)
   list_t *next_line;
   list_t *start = interpreter_state.lines[interpreter_state.first_line];
   
-  for(int i = interpreter_state.first_line; i < MAXLINE - 1; i++) {
+  for (int i = interpreter_state.first_line; i < MAXLINE - 1; i++) {
     // get the next line's statements, and continue if its empty
     list_t *this_line = interpreter_state.lines[i];
     if (interpreter_state.lines[i] == NULL)
