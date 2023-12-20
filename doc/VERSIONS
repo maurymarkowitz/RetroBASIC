@@ -102,3 +102,17 @@ Version 1.8.6 - 23 November 2023
 Version 1.8.7 - 10 December 2023
 
 - add INSTR string function, and the INDEX alias
+
+Version 1.8.8 - 12 December 2023
+
+- first draft of a reference manual
+- added ACS ASN, TAN, COSH/CSH, SINH/SNH, TANH/THN functions
+- add INKEY$ function
+- added PI pseudo-function/variable
+- added MOD operator
+- added XOR operator
+- added ROUND function, 1-arity rounds to integer, 2-arity rounds to a given decimal point
+- properly implemented CLR/CLEAR to clear variables
+- implemented CLS for clear screen
+- properly cast calculated values to the underlying type, single/double/integer, on assignment
+- added case where string constant is "closed" by a newline, instead of a quote
