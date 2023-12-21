@@ -165,7 +165,7 @@ RetroBASIC is a multi-lingual version of the BASIC programming language intended
 
 - Dartmouth BASIC Version 4
 - HP Timeshared BASIC
-- DEC BASIC-PLUS, and its better-known offshoot, Microsoft BASIC
+- DEC BASIC-PLUS and its better-known offshoot: Microsoft BASIC
 
 While most BASIC dialects take their basic syntax and keywords from the original Dartmouth BASIC, they began to diverge in late 1960s into these three general families. The goal of RetroBASIC is to run any program written for these dialects and their many offshoots.
 
@@ -186,20 +186,20 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
 <!-- TOC --><a name="some-underlying-concepts"></a>
 ## Some underlying concepts
 
-Like most computer languages, BASIC has a number of **keywords** that are reserved by the language. In BASIC, the list of keywords is normally fixed, meaning that users cannot add new keywords, or modify the action of existing ones. This contrasts with programming languages like ALGOL that were based around the idea of creating new keywords in code. As new keywords cannot be created in most BASIC dialects, BASIC tends to have many more reserved keywords than other languages.
+Like most computer languages, BASIC has a number of **keywords** that are reserved by the language. In BASIC the list of keywords is normally fixed, meaning that users cannot add new keywords or modify the action of existing ones. This contrasts with programming languages like ALGOL that were based around the idea of creating new keywords in code. As new keywords cannot be created in most BASIC dialects, BASIC tends to have many more reserved keywords than other languages.
 
 Any program consists of a series of instructions. In BASIC, these are known as **statements**. A statement consists of a keyword and then zero or more **expressions**. Only certain keywords can appear at the front of a statement, others only as part of an expression. To confuse matters, the subset of keywords that can appear at the front are often referred to as "statements" as well, while other dialects refer to these special keywords simply as "keywords". In most dialects, a subset of the statement keywords can only be used in certain circumstances, and are known as **commands**. Commands *are* statements, and both are used *in* statements.
 
 To avoid confusion, this manual will use the term **statement keywords** for this subset of reserved words, and to clearly separate the concept of a statement from a keyword.
 
-The purpose of an **expression** is to provide data for the statements. There are many different types of expressions, and much of a program's complexity is found within them. The primary types of expressions are:
+The purpose of an **expression** is to provide data for the statements. There are many different types of expressions and much of a program's complexity is found within them. The primary types of expressions are classified by type:
 
-- **numbers**, like 10 or -1.75. Also known as **numeric constants**.
-- **strings**, a series of letters surrounded by quote marks, like "Hello, World!". Also known as **string constants**.
-- **variables**, which can store a value of a number or a string for future recall.
-- **arrays**, a type of variable that stores multiple values at once. Also known as a **matrix**.
-- **operators**, symbol characters, typically from mathematics, that take one or two expressions and produce a number or string.
-- **functions**, operators using names instead of symbols. Some dialects, including RetroBASIC, allow you to define new functions.
+- **number** - such as 10 or -1.75. Also known as **numeric constants**.
+- **string** - a series of characters surrounded by quote marks, like "Hello, World!". Also known as **string constants**.
+- **variable** - a symbolic name associated with a memory location which can store the value of a number or a string for future recall.
+- **array** - a type of variable that stores multiple values at once. Depending on the number of dimensions they are also known as **vector** (one-dimensional array) or **matrix** (two-dimensional array).
+- **operator** - symbol characters, typically from mathematics, that take one or two expressions and produce a number or string.
+- **function** - operators using names instead of symbols. Some dialects, including RetroBASIC, allow you to define new functions.
 
 In most dialects, variables can contain either a number value or a string value, but cannot change from one to another. This split was introduced in Dartmouth BASIC, which required the user to add a dollar sign suffix to variables that wanted to hold a string value. These are known as **string variables**, and non-string variables are sometimes, but not always, referred to as **numeric variables**.
 
