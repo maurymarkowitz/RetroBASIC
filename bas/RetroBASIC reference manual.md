@@ -117,25 +117,25 @@ This manual is primarily a listing of the operators, commands and statements in 
 
 The following abbreviations will be used in this manual:
 
-- ncon, any numeric constant
-- icon, an integer constant
-- dcon, a double constant
-- scon, a string constant
-- con, any constant
-- nvar, a numeric variable
-- svar, a string variable
-- avar, an array variable (matrix)
-- var, any of the variable types above
-- aop, arithmetic operator
-- sop, string operator
-- lop, logical operator
-- aexp, arithmetic expression
-- sexp, string expression
-- lexp, logical expression
-- exp, any of the expression types above
-- dexp, dummy expression, seen in some functions
-- statmnt - any complete statement
-- lineno - a line number
+- *ncon* - any numeric constant
+- *icon* - an integer constant
+- *dcon* - a double constant
+- *scon* - a string constant
+- *con* - any constant
+- *nvar* - a numeric variable
+- *svar* - a string variable
+- *avar* - an array variable (matrix)
+- *var* - any of the variable types above
+- *aop* - arithmetic operator
+- *sop* - string operator
+- *lop* - logical operator
+- *aexp* - arithmetic expression
+- *sexp* - string expression
+- *lexp* - logical expression
+- *exp* - any of the expression types above
+- *dexp* - dummy expression, seen in some functions
+- *statmnt* - any complete statement
+- *lineno* - a line number
 
 <!-- TOC --><a name="formatting-and-notation"></a>
 ### Formatting and notation
@@ -143,9 +143,9 @@ The following abbreviations will be used in this manual:
 This manual will use the following typographic conventions:
 
 - monospaced `CAPITAL LETTERS` will be used to indicate keywords and commands
-- *italicized *lower case words indicates an abbreviation from the list above
-- [square brackets] indicate optional items, separated by commas
-- {curly braces} indicate "one of" options, separated with the vertical bar
+- *italicized* lower case words indicate an abbreviation from the list above
+- [square brackets] indicate optional items separated by commas
+- {curly braces} indicate "one of" options separated with the vertical bar
 - <angle brackets> indicate special characters like a carriage return
 - the ellipsis... indicates "and more of same", normally in option lists
 
