@@ -324,7 +324,7 @@ To summarize, consider this program following MS conventions:
     20 A(1)=10
     30 PRINT A(0);A(1);A
 
-The output of this program is `5  10  0`.
+The output of this program is ` 5  10  0`.
 
 <!-- TOC --><a name="commands"></a>
 ## Commands
@@ -338,7 +338,7 @@ RetroBASIC is intended to be used with known-good BASIC source code, which can b
 <!-- TOC --><a name="bye"></a>
 ### `BYE`
 
-`BYE` originates with Dartmouth BASIC, where it exited the BASIC program and returned the user to the interactive shell. Its effect in other dialects was varied; in Atari BASIC, for instance, it exits to Memo Pad. In RetroBASIC, `BYE` simply exits the program, in the same fashion as `END`.
+`BYE` originates with Dartmouth BASIC where it exited the BASIC program and returned the user to the interactive shell. Its effect in other dialects was varied; in Atari BASIC for instance, it exits to Memo Pad. In RetroBASIC, `BYE` simply exits the program in the same fashion as `END`.
 
 <!-- TOC --><a name="clr-and-clear"></a>
 ### `CLR` and `CLEAR`
@@ -363,7 +363,7 @@ Clears the screen. On modern machines with scrollback buffers in the console, th
 <!-- TOC --><a name="run-aexp"></a>
 ### `RUN` [*aexp*]
     
-`RUN` begins processing of the in-memory program, if one exists. The optional *sexp* starts execution at a particular line. In RetroBASIC this occurs automatically, and `RUN` does nothing.
+`RUN` begins processing of the in-memory program, if one exists. The optional *aexp* starts execution at a particular line. In RetroBASIC this occurs automatically, and `RUN` does nothing.
 
 <!-- TOC --><a name="stop-sexp"></a>
 ### `STOP` [*sexp*]
@@ -396,7 +396,7 @@ This section explains the statements associated with loops, conditional and unco
 <!-- TOC --><a name="let-varexpr"></a>
 ### [`LET`] *var*=*expr*
 
-The most common statement found in most programs is the assignment statement, with the keyword `LET`. This calculates the value of the expression (expr) and then copies the result into the variable *var*. The *type* of variable must match the type of expression, numeric expressions cannot be assigned to string variables and vice versa, and attempts to do so will raise a runtime error.
+The most common statement found in most programs is the assignment statement, with the keyword `LET`. This calculates the value of the expression (expr) and then assignes the result to *var*. The *type* of variable must match the type of expression, numeric expressions cannot be assigned to string variables and vice versa, and attempts to do so will raise a runtime error.
 
 The keyword `LET` was made optional in later versions of Dartmouth BASIC, and most dialects followed this. Some code written for Dartmouth users after `LET` became optional continued to use it, in order to maintain backward compatibility. This keyword is otherwise rarely used in most dialects.
 
