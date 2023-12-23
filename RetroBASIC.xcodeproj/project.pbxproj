@@ -68,7 +68,6 @@
 		550EED702580071200FE6D78 /* ahl.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = ahl.bas; sourceTree = "<group>"; };
 		550EED7425800B8A00FE6D78 /* sieve.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = sieve.bas; sourceTree = "<group>"; };
 		5568AD6C240753C2001138F5 /* lunar.bas */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = lunar.bas; sourceTree = "<group>"; };
-		556A81DD2B14FBB30059522A /* RetroBASIC reference manual.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = "RetroBASIC reference manual.md"; path = "bas/RetroBASIC reference manual.md"; sourceTree = SOURCE_ROOT; };
 		55873BDA2AF2B84600005C6A /* amazing.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = amazing.bas; sourceTree = "<group>"; };
 		5599AEF8239C0A6E00490A3A /* retrobasic.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.c.h; path = retrobasic.h; sourceTree = "<group>"; tabWidth = 2; };
 		5599AEF9239C0A6F00490A3A /* retrobasic.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.c.c; path = retrobasic.c; sourceTree = "<group>"; tabWidth = 2; usesTabs = 0; };
@@ -77,6 +76,7 @@
 		55A42360287360B00070AF00 /* statistics.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.c.h; path = statistics.h; sourceTree = "<group>"; tabWidth = 2; };
 		55A42361287360B00070AF00 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; tabWidth = 2; };
 		55A42362287360B00070AF00 /* statistics.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.c.c; path = statistics.c; sourceTree = "<group>"; tabWidth = 2; };
+		55AEC9D72B37207C00E9A145 /* RetroBASIC reference manual.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "RetroBASIC reference manual.md"; sourceTree = "<group>"; };
 		55B3D40C238E051D00E6054E /* retrobasic */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = retrobasic; sourceTree = BUILT_PRODUCTS_DIR; };
 		55B3D420238E1B9900E6054E /* test.bas */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.bas; sourceTree = "<group>"; };
 		55B3D427238EB43100E6054E /* pass-fail.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "pass-fail.txt"; sourceTree = "<group>"; };
@@ -157,7 +157,7 @@
 				55B3D428238EB43100E6054E /* TODO */,
 				55B3D427238EB43100E6054E /* pass-fail.txt */,
 				55C0605728B13842002B8345 /* retrobasic.1 */,
-				556A81DD2B14FBB30059522A /* RetroBASIC reference manual.md */,
+				55AEC9D72B37207C00E9A145 /* RetroBASIC reference manual.md */,
 				55DEE88128A6A6B800270949 /* RetroBASIC design.md */,
 				55E12DB82904279A0005D17F /* RetroBASIC build notes.md */,
 			);
