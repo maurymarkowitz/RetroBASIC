@@ -256,7 +256,7 @@ RetroBASIC has the additional feature that numeric constants can be entered in h
 <!-- TOC --><a name="strings"></a>
 ### Strings
 
-Strings hold zero or more characters to form sentence-like values, stored using ASCII, or more commonly, a platform-specific 8-bit variation of ASCII like PETASCII or ATASCII. The maximum size of a string varies on different platforms. Those that originated on systems with printer terminals are often limited to 72 or 132 characters, the length of one line on the paper, while those from the video terminal and home computer era are normally 128 or 256 characters, which is easy to store in an 8-bit value. Some dialects allow strings to be limited only by system memory.
+Strings hold zero or more characters to form sentence-like values. They are stored in memory as a series of numbers using ASCII encoding, or more commonly, a platform-specific 8-bit variation of ASCII like PETASCII or ATASCII. The maximum size of a string varies on different platforms. Those that originated on systems with printer terminals are often limited to 72 or 132 characters, the length of one line on the paper, while those from the video terminal and home computer era are normally 128 or 256 characters, which is easy to store in an 8-bit value. Some dialects allow strings to be limited only by system memory.
 
  RetroBASIC strings are always variable-length can be any size up to the underlying operating system's limit, typically a 32-bit or 64-bit value. This is much more than most dialects of BASIC, which were normally limited to 8-bit or 16-bit lengths. So while it is possible that bad code would produce strings that are too long for the machine it was originally written on, causing an error, it will likely work fine in RetroBASIC. In the case that a string ends up longer than the original DIMension in those dialects that require it, like HP, an error will be printed to the console.
  
@@ -520,7 +520,7 @@ This causes the program to repeatedly add 1 to the current value of A, print the
 <!-- TOC --><a name="on-aexpr-gotogosub-linenoaexprlinenoaexpr"></a>
 ### `ON` *aexpr* {`GOTO`|`GOSUB`} [*lineno*|*aexpr*]{,[*lineno*|*aexpr*],...}
 
-The `ON` statement, also known as the **computed branch**, combines a series of `IF`...`THEN` (line) statements into a single instruction. The value of *aexpr* is calculated to produce a value that is expected to be from 1 up to the number of line numbers in the list following the `GOTO` or `GOSUB`. If there is an entry in the list for that ordinal value, like a 5th entry if aexpr returns 5, then the `GOTO` or `GOSUB` is performed to that line. `ON` is often used to respond to user input that selects among a number of options. As is the case for `GOTO` and `GOSUB`, RetroBASIC allows any valid *aexpr* in place of constants for line numbers.
+The `ON` statement, also known as the **computed branch**, combines a series of `IF...THEN` *lineno* statements into a single instruction. The value of *aexpr* is calculated to produce a value that is expected to be from 1 up to the number of line numbers in the list following the `GOTO` or `GOSUB`. If there is an entry in the list for that ordinal value, like a 5th entry if *aexpr* returns 5, then the `GOTO` or `GOSUB` is performed with that line as the target. `ON` is often used to respond to user input that selects among a number of options. As is the case for `GOTO` and `GOSUB`, RetroBASIC allows any valid *aexpr* in place of constants for line numbers in the list of targets.
 
 #### Examples:
 
@@ -535,11 +535,11 @@ This program will perform a `STOP`, `BYE` or `END` depending on the value in the
 <!-- TOC --><a name="for-avaraexpr1-to-aexpr2-step-aexpr3-statmnt-and-next-avaravar"></a>
 ### `FOR` *avar*=(aexpr1) `TO` *aexpr2* [`STEP` *aexpr3*] {:|}<CR>} [*statmnt*,{:|}<CR>}...] and `NEXT` [*avar*,[*avar*,...]]
 
-Another of the common statements found in BASIC is the FOR/NEXT loop. When this is encountered at runtime, the system calculates the value *aexpr2* and caches it on the stack. If the optional `STEP `is used, it also calculates and caches the value of *aexpr3*, if `STEP `is not used, it defaults to the value 1. It then sets the value of *avar* to the calculated value of *aexpr1*.
+Another of the common statements found in BASIC is the FOR/NEXT loop. When this is encountered at runtime, the system calculates the value *aexpr2* and caches it on the stack. If the optional `STEP` is used, it also calculates and caches the value of *aexpr3*, if `STEP `is not used, it defaults to the value 1. It then sets the value of *avar* to the calculated value of *aexpr1*.
     
-Execution then continues by performing any following statements, continuing until it encounters the `NEXT`. At that point it adds the value of *aexpr3* to *avar* and compares it to *aexpr2*; if the result in *avar* is less or equal than *aexpr2*, it returns to the first statement after the `FOR`, if it is larger than *aexpr2*, it continues with the statement after the `NEXT,` thereby terminating the loop.
+Execution then continues by performing any following statements, continuing until it encounters the `NEXT`. At that point, it adds the value of *aexpr3* to *avar* and compares it to *aexpr2*; if the result in *avar* is less or equal than *aexpr2*, it returns to the first statement after the `FOR`, if it is larger than *aexpr2*, it continues with the statement after the `NEXT`, thereby terminating the loop.
 
-Some dialects allow the variable name to be left off the `NEXT`, although this is sometimes considered bad form. Others, like later versions of Microsoft BASIC, allow multiple comma-separated variable names, so a single NEXT can close multiple loops. RetroBASIC supports all of these forms.
+Some dialects allow the variable name to be left off the `NEXT`, although this is sometimes considered bad form. Others, like later versions of Microsoft BASIC, allow multiple comma-separated variable names, so a single `NEXT` can close multiple loops. RetroBASIC supports all of these forms.
     
 #### Examples:
 
@@ -549,7 +549,7 @@ This code will produce ten lines of output, containing the numbers 1 through 10:
     20 PRINT X
     30 NEXT X
     
-This example is similar to the one above but demonstrates multiple statements in the FOR/NEXT "block", as well as leaving off the variable name from the NEXT:
+This example is similar to the one above but demonstrates multiple statements in the `FOR/NEXT` "block", as well as leaving off the variable name from the `NEXT`:
 
     10 FOR Y=10 TO 20 STEP 2
     20 A=A+Y
@@ -558,7 +558,9 @@ This example is similar to the one above but demonstrates multiple statements in
 
 #### Notes:
 
-In home computer interpreters, FOR/NEXT loops are much faster than loops constructed using `IF`/`THEN`. This is because the values of *aexpr1* and *aexpr2* are calculated only once when the loop is first encountered, instead of every time through the loop. Additionally, the starting position is saved in the same manner as a `GOSUB`, meaning the loop does not have to search for the top of the list of statements in the common case that the loop is not yet complete, which allows it to move back to the correct statement rapidly. A few dialects, notably Atari and Sinclair, do not cache the memory location of the first statement in the block but the line number instead. These dialects run much slower, as they have to search through the entire program to find the top of the loop over and over again.
+In home computer interpreters, `FOR/NEXT` loops are much faster than loops constructed using `IF/THEN`. This is because the values of *aexpr1* and *aexpr2* are calculated only once when the loop is first encountered, instead of every time through the loop. Additionally, the starting position is saved in the same manner as a `GOSUB`, meaning the loop does not have to search for the top of the list of statements in the common case that the loop is not yet complete, instead it can move back to the correct statement immediately. Even in compiled versions, which calculate the statement locations for all branches, skipping the calculations of *avar* can still result in noticeable performance improvements.
+
+Some dialects from the early microcomputer era do not have FOR/NEXT loops, the most prominent example being Tiny BASIC. Code for these interpreters will use `IF/THEN` for looping, and would normally run very slow as a result. A few dialects, notably Atari and Sinclair, do not cache the memory location of the first statement in the block but the line number instead. These dialects run much slower, as they have to search through the entire program to find the top of the loop over and over again. All of these run essentially instantaneously in RetroBASIC.
 
 Dartmouth and most other compilers, as well as the later ANSI Full BASIC, do not run the body of the loop if the index value is beyond the upper limit when it enters the loop. For instance:
 
@@ -566,7 +568,7 @@ Dartmouth and most other compilers, as well as the later ANSI Full BASIC, do not
     20 PRINT X
     30 NEXT X
 
-On most dialects, the output will be a single line, "0". On Dartmouth derived versions, there is no output, and execution resumes at the statement after the NEXT X.
+On most dialects, the output will be a single line, "0". On Dartmouth derived versions, there is no output, and execution resumes at the statement after the NEXT X. This style of execution is not currently supported in RetroBASIC.
 
 #### See also:
 
@@ -576,7 +578,7 @@ On most dialects, the output will be a single line, "0". On Dartmouth derived ve
 <!-- TOC --><a name="pop"></a>
 ### `POP`
 
-FOR..NEXT loops and `GOSUB`s store information in memory in an area called the runtime stack. This information is removed from memory when the loop completes or a `RETURN` is encountered. Under certain circumstances, this information can be left behind. If this occurs, the next loop or subroutine may not operate properly.
+`FOR/NEXT` loops and `GOSUB`s store information in memory in an area called the runtime stack. This information is removed from memory when the loop completes or a `RETURN` is encountered. Under certain circumstances, this information can be left behind. If this occurs, the next loop or subroutine may not operate properly.
 
 The most common cause of this problem is branching out of a loop or subroutine without calling the appropriate statement to complete it. For instance:
 
@@ -633,7 +635,7 @@ In this example, there are two entries on the stack during the execution of the 
 <!-- TOC --><a name="label-nvar"></a>
 ### `LABEL` *nvar*
 
-`LABEL` is an assignment statement, like `LET`, that sets the value of the *nvar* to the current line number. This is intended to be used with branches that may wish to use a variable instead of a numeric constant. If a traditional assignment is used and the target then moves or its line number is changed, the variable will no longer point to the right line of code. Using `LABEL` to set these values ensures the variable always contains the correct value, even if the program is edited.
+`LABEL` is an assignment statement, like `LET`, that sets the value of the *nvar* to the current line number. This is intended to be used with branches that may wish to use a variable instead of a numeric constant. If a traditional variable assignment is used to store a line number and the target later moves or its line number is changed, the variable will no longer point to the right line of code. Using `LABEL` to set these values ensures the variable always contains the correct value, even if the program is edited.
 
 A number of dialects included a `LABEL`-like feature, but there was no standard syntax for this concept. For example, Atom BASIC had labels that worked in this fashion but were implemented by typing a single letter after the line number on the line to be labeled. Atari BASIC allowed branches to expressions but lacked a `LABEL` concept and was thus subject to errors if the program was edited.
 
@@ -668,9 +670,9 @@ This section describes the input/output statements that are used to access and d
 
 `PRINT` is used to produce output on the user's console. It is one of the most common statements found in most BASIC programs. The statement is designed to be very flexible, able to output values from any type of expression. In the case of string expressions, the output is sent unchanged to the console. For numeric values, it is formatted to ensure very large or small numbers do not fill the screen.
 
-`PRINT` can accept any number of subsequent expressions, including zero. These expressions are separated with one of the three "print separators", the comma, the semicolon, or if the preceding expression is a string constant, nothing. `PRINT` normally outputs a newline when it completes, so it is not uncommon to see a "bare" `PRINT` statement with no expression as a way to print a newline. The newline is not output if the line ends with a separator, the semicolon or comma. In that case, any following `PRINT` will start on the same line.
+`PRINT` can accept any number of subsequent expressions, including zero. These expressions are separated with one of the three "print separators", the comma, the semicolon, or if the preceding expression is a string constant, nothing. `PRINT` normally outputs a newline when it completes, so it is not uncommon to see a "bare" `PRINT` statement with no expression as a way to print a newline. The newline is not output if the line ends with the semicolon or comma. In that case, any following `PRINT` will start on the same line.
 
-A curiosity of the BASIC language is that the question-mark may be used as an alias for the `PRINT` statement. This was intended to allow users to type in "questions" at the command line, for instance, `? 5+5`, meaning "what is 5 plus 5". The interpreter would internally expand the question-mark to `PRINT`, perform the expression, and print the result, in this case 10. As the question-mark is expanded on entry, using it in a program will expand result in `PRINT` appearing in its place when `LIST`ed.
+A curiosity of the BASIC language is that the question-mark may be used as an alias for the `PRINT` statement. This was intended to allow users to type in "questions" at the command line, for instance, `? 5+5`, meaning "what is 5 plus 5". The interpreter would internally expand the question-mark to `PRINT`, perform the expression, and print the result, in this case `10`. As the question-mark is expanded on entry, using it in a program will expand result in `PRINT` appearing in its place when `LIST`ed.
 
 There are a number of oddities and gotchas in common dialects, many of which are not mentioned in most references.
 
