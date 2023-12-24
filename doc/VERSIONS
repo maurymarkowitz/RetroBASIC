@@ -116,3 +116,7 @@ Version 1.8.8 - 12 December 2023
 - implemented CLS for clear screen
 - properly cast calculated values to the underlying type, single/double/integer, on assignment
 - added case where string constant is "closed" by a newline, instead of a quote
+
+Version 1.8.9 - 23 December 2023
+
+- added Sinclair-style slicing, A$(1 TO 5)

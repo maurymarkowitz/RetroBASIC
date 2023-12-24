@@ -1354,8 +1354,13 @@ exprlist:
   // NOTE: the ANSI docs suggest the only correct format is two-parameter, start and end
   //       this contrasts with most other systems, where one or the other can be left off
 slicelist:
-    // two parameters, start and end indexes
     expression ':' expression
+    {
+      $$ = lst_prepend(NULL, $1);
+      $$ = lst_append($$, $3);
+    }
+    |
+    expression TO expression
     {
       $$ = lst_prepend(NULL, $1);
       $$ = lst_append($$, $3);

@@ -138,9 +138,9 @@ STR\$     { return STR; } // also NUM$ in some dialects
 INSTR     { return INSTR; } // also INDEX and POS
 INDEX     { return INSTR; } // also FIND and other variations
  /* aliases for MID found in some versions */
-SEG\$     { return SEG; }
-SUBSTR\$  { return SUBSTR; }
-SUBSTRING\$  { return SUBSTR; }
+SEG\$     { return MID; }
+SUBSTR\$  { return MID; }
+SUBSTRING\$  { return MID; }
  /* aliases for MID found in some versions */
 INKEY\$   { return INKEY; }
 

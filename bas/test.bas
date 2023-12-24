@@ -106,6 +106,7 @@
 1740 PRINT A$, "len="len(A$)
 1750 PRINT "(1:5), should produce HELLO: "A$(1:5)
 1760 PRINT "(4:5), should produce LO: "A$(4:5)
+1760 PRINT "(4 TO 5), should produce LO: "A$(4 TO 5)
 1770 REM
 1771 REM assign string into a slice
 1772 REM
