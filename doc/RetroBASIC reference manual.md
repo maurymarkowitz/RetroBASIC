@@ -3,7 +3,7 @@ RetroBASIC Reference Manual
 
 **Copyright © 2023 Maury Markowitz**
 
-Version 1.8.8
+Version 1.8.9
 
 [![GPL license](http://img.shields.io/badge/license-GPL-brightgreen.svg)](https://opensource.org/licenses/gpl-license)
 
@@ -930,9 +930,9 @@ Returns the natural logarithm of the number or expression. `LOG(0)` gives an err
 Returns the value of pi, 3.1415... The (*dexp*) is optional; `A=PI` and `A=PI()` are both accepted.
 
 <!-- TOC --><a name="roundaexpaexp"></a>
-### `ROUND`(*aexp*[,*aexp])
+### `ROUND`(*aexp*[,*aexp*])
 
-Rounds the number to the nearest integer or decimal place. If only one *aexp* is provided, that number is rounded to the *zeroth decimal*, that is, a whole number. So `ROUND(1.234)` will return 1. If two *aexp*s are provided, the first is rounded to the second decimal place. So `ROUND(1.2345,3)` will return 1.235.
+Rounds the number to the nearest integer or decimal place. If only one *aexp* is provided, that number is rounded to the "zeroth decimal", that is, a whole number. `ROUND(1.234)` will return 1. If two *aexp*s are provided, the first is rounded to the second decimal place. So `ROUND(1.2345,3)` will return 1.235.
 
 <!-- TOC --><a name="rndaexp"></a>
 ### `RND`(*aexp*)
@@ -1081,12 +1081,58 @@ Returns the character as a single-character string, represented by the ASCII cod
 <!-- TOC --><a name="inkeydexp"></a>
 ### `INKEY$`(*dexp*)
 
-This function returns the ASCII value of the key currently pressed on the keyboard. If no key is pressed when it is called, it returns 0. In either case, it immediately continues without waiting for user input, unlike `INPUT` or `GET`. `INKEY$` was a later addition to BASIC and mostly found in interactive programs and games. The parameter is a dummy and can be left out, along with the parens.
+This function returns the ASCII value of the key currently pressed on the keyboard. If no key is pressed when it is called, it returns 0. In either case, it immediately continues without waiting for user input, unlike `INPUT` or `GET`. `INKEY$` was a later addition to BASIC and mostly found in interactive programs and games. The parameter is a dummy and can be left out, along with the parens, so `I$=INKEY$`, `I$=INKEY$()` and `I$=INKEY$(X)` are all valid in RetroBASIC.
+
+<!-- TOC --><a name="instr"></a>
+### `INSTR`(*sexp1*,*sexp2*[,*aexp*]), `INDEX` and `POS`
+
+`INSTR` searches the string *sexp1* for the first occurrence of *sexp2*, returning the numerical location of the match. If no match is found, `INSTR` returns 0. If the optional *aexp* is provided, searching starts at that index instead.
+
+ `INDEX` and `POS` are aliases for the same feature found in some dialects. Note that `POS` is also used as a system function (see below), RetroBASIC can determine which variation of `POS` is being used based on the parameters and supports both uses of `POS` in the same program.
+ 
+ #### Examples:
+ 
+     10 A$="Hello, World!"
+     20 PRINT "'World' is found at location: "INSTR(A$,"World")
+
+This program will produce:
+
+     'World' is found at location: 7
+     
+#### See also:
+
+* `POS`
 
 <!-- TOC --><a name="lensexp"></a>
 ### `LEN`(*sexp*)
 
 This function returns the length in bytes of the designated *sexp*. `LEN("Hello")` returns 5. String variables have a length of zero until characters have been stored in them.
+     
+<!-- TOC --><a name="lensexp"></a>
+### `LEFT$`(*sexp*,*aexp*)
+
+Returns a new string containing the left-most *aexp* characters from the string *sexp*. `LEFT$("Hello, World!",5)` returns "Hello".
+
+### `MID$`(*sexp*,*aexp1*[,*aexp2*]), `SEG$`, `SUBSTR$` and `SUBSTRING$`
+
+Returns a new string containing characters from *sexp* starting at *aexp1* and running to the end of the string. If the optional *aexp2* is provided, and it often is, it returns up to *aexp2* characters.
+
+`SEG$`, `SUBSTR$` and `SUBSTRING$` are aliases found in some dialects.
+
+#### Examples:
+
+     10 A$="Hello, World!"
+     20 PRINT "The string from 7 on is "MID$(A$,7)
+     20 PRINT "The string from 7 for 3 is "MID$(A$,7,3)
+     
+The program will produce:
+
+         The string from 7 on is World!
+         The string from 7 for 3 is is Wor
+         
+### `RIGHT$`(*sexp*,*aexp*)
+
+Returns a new string containing the right-most *aexp* characters from the string *sexp*. `RIGHT$("Hello, World!",6)` returns "World!".
 
 <!-- TOC --><a name="straexp"></a>
 ### `STR$`(*aexp*)
@@ -1097,7 +1143,6 @@ This function returns a string that represents the ASCII representation of the n
 ### `VAL`(*sexp*)
 
 This function returns a number of the same value as the number stored as a string, performing the opposite operation of the `STR$` function. For instance, if *sexp* evaluates to "25", this function will return the numerical value 25.
-
 
 <!-- TOC --><a name="ucasesexp-and-lcasesexp"></a>
 ### `UCASE$`(*sexp*) and `LCASE$`(*sexp*)
@@ -1111,6 +1156,82 @@ This function returns a number of the same value as the number stored as a strin
 Produces:
 
     HELLO WORLD         hello world
+    
+## String slicing
+
+### `*svar*{(|[}*avar*[,*avar*]{)|]}
+
+String slicing is an alternative way to produce substrings and manipulate existing strings. Although slicing instructions are not functions in the traditional sense, they produce results similar to the `MID/LEFT/RIGHT` functions. The major difference between the slicing concept and string functions is that the functions take a location and length, whereas slices use two locations. This can result in off-by-one errors when converting code from one system to another.
+
+A "slice" is a substring defined as a starting and ending location within an existing string. Syntax is generally similar to accessing a slot in an array, but the exact syntax varies. For instance, `A$(1,5)` returns a slice with the first five characters of A$, which produces the same result as `MID$(A$,1,5)` or `LEFT(A$,5)`. They also vary in the way the parameters are separated, most use a comma, but Sinclair uses the `TO` keyword, like `A$(5 TO 5)` and the (little used) Full BASIC used the colon, `A$(5:5)`.
+
+Most slicing implementations allow one or two parameters, with the second parameter optional. If only one is provided, it means "starting at", with the end point being the end of the string. This is similar to the one-parameter version of the `MID$` function, `A$(5)` and `MID$(A$,5)` produce the same results. Sinclair and Full BASIC allows either parameter to be optional, `A$( TO 5)` and `A$(:5)` mean "the portion of A$ from the start to location 5". This is less useful than the more common one-parameter syntax as the starting location is always 1, whereas allowing the computer to automatically calculate the unknown ending location is very useful.
+
+RetroBASIC is designed to run any program that does not use platform-specific features. As string arrays are relatively commonly, it supports these and has to decide whether a reference in code like `A$(5)` is a slice or an array access. In the case that the syntax is clear, like Sinclair or Full, there is no ambiguity and one can use string arrays and string slicing in the same program using syntax like `A$(5)(5 TO)`, meaning the substring from the 5th character on in the string stored in slot five of `A$`.
+
+To work with the dialects that do not have unique syntax, RetroBASIC uses the `--slicing` command-line switch. When turned on, using `--slicing=1`, all "array like" parameters applied to strings are considered slices.
+
+#### Examples:
+
+Slicing is useful for many types of manipulation that are expensive to perform using functions. For instance, slicing can be used to assign strings into character locations. Consider this code in a MS-derived dialect:
+
+    10 A$="Hello, World!"
+    20 A$=LEFT$(A$,5)+". "+RIGHT$(A$,6)
+    30 PRINT A$
+
+This code produces:
+
+        Hello. World!
+
+In a slicing dialect, the same code can be expressed much more simply:
+
+    10 A$="Hello, World!"
+    20 A$(6,6)="."
+    30 PRINT A$
+
+This may seem like a small difference, but it had a significant effect in terms of memory use. The string functions return new strings that have to be combined together in the assignment, so the A$ in line 20 is an entirely new string, and the old value is left in memory as well. This means that programs that perform string manipulation using functions often run out of memory performing even simple tasks. In contrast, using slicing means the assignment is editing the original string in memory, so there is no additional memory used up.
+
+The same syntax can be used for string concatenation. In MS, one would:
+
+    10 A$="Hello,"
+    20 A$=A$+" World!"
+    30 PRINT A$
+
+Whereas in slicing systems, this is accomplished with the assignment:
+
+    10 A$="Hello,"
+    20 A$(LEN(A$)+1)=" World!"
+    30 PRINT A$
+
+In a more practical example that better highlights these differences, consider an MS program that converts a string to upper-case:
+
+    10 A$="Hello, World!"
+    20 B$=""
+    30 FOR I=1 TO LEN(A$)
+    40 IF ASC(MID$(A$,I,1))>97 AND ASC(MID$(A$,I,1))<122 THEN B$=B$+STR$(ASC(MID$(A$,I,1))-64):GOTO 60
+    50 B$=B$+STR$(ASC(MID$(A$,I,1))-64)
+    60 NEXT I
+    70 A$=B$
+    80 PRINT A$
+
+Every time through the loop, a new version of `B$` is created, one character longer than the last. If this uses up available memory, MS BASIC runs code to reclaim unused memory, which is slow and, from the user's perspective, randomly slows down the program. In contrast:
+
+    10 A$="Hello, World!"
+    20 B$=""
+    30 FOR I=1 TO LEN(A$)
+    40 IF ASC(A$(I,I))>97 AND ASC(A$(I,I))<122 THEN A$(I,I)=STR$(ASC(A$(I,I)-64))
+    50 NEXT I
+    60 PRINT A$
+
+This is not only much easier to understand, no new strings are created at any point and memory is not fragmented.
+
+#### Notes:
+
+HP allowed either parentheses or brackets to be used to denote array slots in numeric arrays, for instance, `A(1,1)` and `A[1,1]` will both return the same value from the array. The same is true for string slices, `A$(1,1)` and `A$[1,1]` will both return the first character in the string.
+
+This is unfortunate, as it means there is no way for the interpreter to distinguish between an array slot and a slice. In HP's case this was not a concern, as it treated strings as arrays of characters, meaning `A$(1,1)` *was* an array access, albeit with the parameters having a different meaning.
+
+Had HP selected one of these two to indicate slicing, or alternately used a different definition, like Sinclair's `TO`, then BASICs could implement string arrays and slicing. For instance, `A$(1,1)[1,1]` would return the first character of the string in slot (1,1).
 
 <!-- TOC --><a name="system-functions"></a>
 ## System functions
@@ -1120,11 +1241,6 @@ Produces:
 
 This function returns the number of bytes of user RAM left. Its primary use is to check the amount of memory left before performing operations that require a large amount of memory.
 
-<!-- TOC --><a name="posaexp"></a>
-### `POS`(*aexp*)
-
-When POS is called with zero or one dummy parameter, it returns the current position of the cursor. This can be called after `PRINT` and `INPUT` statements to provide more control over output. When called with more parameters, it acts as an alias for `INSTR`, and is covered in the string functions section.
-
 <!-- TOC --><a name="peekaexp"></a>
 ### `PEEK`(*aexp*)
 
@@ -1132,12 +1248,10 @@ Returns the contents of a specified memory address location *aexp*. The address 
 
 In RetroBASIC, `PEEK` always returns zero.
 
-<!-- TOC --><a name="usraexp"></a>
-### `USR`(*aexp*)
+<!-- TOC --><a name="posaexp"></a>
+### `POS`(*aexp*)
 
-`USR` is the other common method that BASIC interpreters used to call machine language code, the other being `CALL` and `SYSTEM`. The difference between `CALL` and `USR` is that `USR` expects a return value to be left in a particular location in memory, and the function returns that value.
-
-In RetroBASIC, `USR` always returns zero.
+When POS is called with zero or one dummy parameter, it returns the current position of the cursor. This can be called after `PRINT` and `INPUT` statements to provide more control over output. When called with more parameters, it acts as an alias for `INSTR`, and is covered in the string functions section.
 
 <!-- TOC --><a name="linaexp"></a>
 ### `LIN`(*aexp*)
@@ -1168,6 +1282,13 @@ Produces:
 Produces:
 
               Hello
+              
+<!-- TOC --><a name="usraexp"></a>
+### `USR`(*aexp*)
+
+`USR` is the other common method that BASIC interpreters used to call machine language code, the other being `CALL` and `SYSTEM`. The difference between `CALL` and `USR` is that `USR` expects a return value to be left in a particular location in memory, and the function returns that value.
+
+In RetroBASIC, `USR` always returns zero.
 
 <!-- TOC --><a name="stringsexpaexpaexp"></a>
 ### `STRING$`([*sexp*|*aexp*],*aexp*)
