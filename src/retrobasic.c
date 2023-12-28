@@ -1650,9 +1650,12 @@ static void perform_statement(list_t *statement_entry)
 
 					// this one is a little easier, we can keep going until we see a zero
 					char new_string[MAXSTRING];
-					for (int i = 1; i <= POINTER_TO_INT(array_store->actual_dimensions->data) && array_store->value[i].number != 0; i++) {
+          int i;
+					for (i = 1; i <= POINTER_TO_INT(array_store->actual_dimensions->data) && array_store->value[i].number != 0; i++) {
 						new_string[i - 1] = (char)array_store->value[i].number;
 					}
+          // and then set the last char to 0
+          new_string[i] = 0;
 					
 					// delete any old value in the string and copy in the new one
 					string_store = lst_data_with_key(interpreter_state.variable_values, statement->parms.change.var2->name);
