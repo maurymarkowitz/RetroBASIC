@@ -25,6 +25,8 @@ BP - DEC BASIC-PLUS
 
 - add longer variable names
 
+- CHAIN and COMMON
+
 - DEFINT/SNG/DBL/STR does not support the "range" syntax, DEFINT A-F. only comma lists work, DEFINT A,B
 
 - needs command-line switch for ANSI, controls tab stops and many errors
