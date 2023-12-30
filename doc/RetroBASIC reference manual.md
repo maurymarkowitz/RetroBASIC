@@ -236,7 +236,7 @@ Line 60 is the `END` statement, which takes no expression and stops execution of
 
 The ultimate goal of any program is to manipulate data. Data comes in many forms in the real world, but in BASIC there are only two forms: numbers and text. Most BASIC dialects have similar concepts of what numbers can be represented as and how to manipulate them. BASICs vary much more widely in the way they store and process textual data, or *strings*. RetroBASIC attempts to support as many varieties of both numbers and strings as possible.
 
-Another key concept in most programming languages is the difference between a *constant* and a *variable*. Constants are data entered directly into the code, for instance, the number `100` or the string `"hello"`. Variables are names that are given to the location where data is stored. As the name implies, the value of a variable can be changed, whereas constants cannot. The types, capabilities and syntax of constants and variables are fairly constant across dialects, although there are a few optional features found in later versions.
+Another key concept in most programming languages is the difference between a *constant* and a *variable*. Constants are data entered directly into the code, for instance, the number `100` or the string `"hello"`. Variables are names that are given to the location in memory where data is stored. As the name implies, the value of a variable can be changed, whereas constants cannot. The types, capabilities and syntax of constants and variables are fairly constant across dialects, although there are a few optional features found in later versions.
 
 RetroBASIC attempts to support as many of these variations as possible.
 
@@ -252,6 +252,8 @@ A few dialects also added a *double* format as well, once again led by Microsoft
 As memory is no longer an issue, RetroBASIC uses the IEEE double format to store all numbers. This has no effect on the programs; the extra precision is hidden within the system. The only difference is that when a calculation is stored in a variable, if that variable is declared as an integer, the `INT` operator is applied to the result. In some dialects, like BBC BASIC, an entirely separate math library is used for this purpose, which offers higher performance. In MS versions, the existing floating point code is used and then discards the fractional leftover, which allowed them to implement these functions without adding new code to the already memory-limited machines. RetroBASIC takes this later approach and all calculations are carried out on doubles, as performance and memory footprint are no longer issues.
 
 BASIC inputs and outputs numbers in decimal format, using the same formatting rules as C's "g" format. This means that large numbers and small fractions are output in exponent format, regardless of how they are input. For instance, if the program asks the user to type in a number and they type fifteen ones, when output that value will be rendered something like `1.11111E14`. For those dialects that supported doubles, numeric constants could be set to doubles by changing the E to a D.
+
+Because the input and output are in decimal, but the internal format is in binary, there are numbers that cannot be exactly represented. This is similar to the lack of a way to exactly represent 1/3 in decimal, whereas it can be exactly represented in base-12 (or base-3). As a result, BASIC programs are subject to "round-off error" that can produce odd results, especially when dealing with fractional values. It is generally suggested that you do not rely on a variable containing a specific value when testing it; instead of `IF X=5`, you should `IF X>=5` in case the value of X rounded up to 5.000111... during a previous calculation. Some dialects, like Wang and Atari, use a different internal format known as binary coded decimal, or BCD, that avoids many of these rounding problems, but at the cost of being slower and requiring more memory. RetroBASIC's double format is not immune to round-off error, although it may be reduced in frequency by the higher-accuracy numbers being used internally.
 
 RetroBASIC has the additional feature that numeric constants can be entered in hexadecimal, octal or binary format. Hexadecimal values are indicated by placing the prefix `0x`, `0h` or `&` in front of the value, for instance, `&1F3A` will be converted internally to the value 7994. Octal is indicated by `0o`, like `0o3725`, and binary with `0b`, like `0b10110011`. These values can be used in any numeric expression in place of a decimal constant. Like any numeric value, they are converted to doubles internally.
 
@@ -340,7 +342,7 @@ RetroBASIC is intended to be used with known-good BASIC source code, which can b
 <!-- TOC --><a name="bye"></a>
 ### `BYE`
 
-`BYE` originates with Dartmouth BASIC where it exits the BASIC program and returns the user to the interactive shell. Its effect in other dialects was varied; in Atari BASIC for instance, it exits to Memo Pad. In RetroBASIC, `BYE` simply exits the program in the same fashion as `END`.
+`BYE` originates with Dartmouth BASIC where it exits the BASIC program and logs the user off of the system. Its effect in other dialects was varied; in Atari BASIC for instance, it exits to Memo Pad. In RetroBASIC, `BYE` simply exits the program in the same fashion as `END`.
 
 <!-- TOC --><a name="clr-and-clear"></a>
 ### `CLR` and `CLEAR`
@@ -365,14 +367,14 @@ Clears the screen. On modern machines with scrollback buffers in the console, th
 <!-- TOC --><a name="run-aexp"></a>
 ### `RUN` [*aexp*]
     
-`RUN` begins processing the in-memory program, if one exists. The optional *aexp* starts execution at a particular line. In RetroBASIC this occurs automatically, and `RUN` does nothing. One can also `GOTO` *aexp* to start execution at a line, the difference is that `RUN` clears the values of all variables and arrays before starting, `GOTO` does not.
+`RUN` begins processing the in-memory program, if one exists. The optional *aexp* starts execution at a particular line. One can also `GOTO` *aexp* to start execution at a line, the difference is that `RUN` clears the values of all variables and arrays before starting, `GOTO` does not. In RetroBASIC, RUNning occurs automatically, and the `RUN` command does nothing. 
 
 <!-- TOC --><a name="stop-sexp"></a>
 ### `STOP` [*sexp*]
     
 `STOP` is similar to `END` in that the program stops executing and the user is returned to the shell. It is intended to stop execution in the middle of the program and keep the data intact so the user can `CONT`inue running after it stops. It is mostly used for debugging purposes.
 
-RetroBASIC adds a feature from Wang BASIC, which allows it to output an optional string. This is useful for saying things like "Stopping for debugging". If no expression is included, it instead prints the default message "STOPped at line:" along with the line number.
+RetroBASIC adds a feature from Wang BASIC, which allows it to output an optional string. This is useful for saying things like "Stopping for debugging, you should PRINT A". If no expression is included, RetroBASIC instead prints the default message "STOPped at line:" along with the line number.
 
 <!-- TOC --><a name="unsupported"></a>
 ### Unsupported
@@ -382,7 +384,7 @@ RetroBASIC adds a feature from Wang BASIC, which allows it to output an optional
 <!-- TOC --><a name="program-statements"></a>
 ## Program statements
 
-This section explains the statements associated with loops, conditional and unconditional branches, subroutines and their retrieval, and similar basic functionality. It also explains the means of accessing data and the optional command used for defining variables. The following list is not in order; it is meant to group statements with similar functionality.
+This section explains the statements associated with loops, conditional and unconditional branches, subroutines, and similar functionality. It also explains the means of accessing data and the optional commands used for defining variables. The following list is not in order; it is meant to group statements with similar functionality.
 
 <!-- TOC --><a name="rem-scon"></a>
 ### [`REM`|`'`|`!`] [*scon*]
@@ -392,7 +394,7 @@ This section explains the statements associated with loops, conditional and unco
 #### Examples:
 
     10 REM This program will print Hello! to the user's console
-    20 PRINT "Hello";:REM "World" will not appear:PRINT "World"
+    20 PRINT "Hello";:REM "World" will not be printed:PRINT "World"
     30 PRINT "!"
 
 <!-- TOC --><a name="let-varexpr"></a>
@@ -400,7 +402,7 @@ This section explains the statements associated with loops, conditional and unco
 
 The most common statement found in most programs is the assignment statement, with the keyword `LET`. This calculates the value of the expression *expr* and then assigns the result to *var*. The *type* of variable must match the type of expression; numeric expressions cannot be assigned to string variables and vice versa, and attempts to do so will raise a runtime error.
 
-The keyword `LET` was made optional in later versions of Dartmouth BASIC, and most dialects followed this. Some code written for Dartmouth users after `LET` became optional continued to use it, in order to maintain backward compatibility. This keyword is otherwise rarely used in most dialects.
+The keyword `LET` was made optional in later versions of Dartmouth BASIC, and most dialects followed this rule. Even after it became optional, a lot of the code written for Dartmouth continued to use the `LET` in order to retain backward-compatibility. This keyword is otherwise rarely used in most dialects.
 
 #### Examples:
 
@@ -416,7 +418,7 @@ Short for "dimension", `DIM` is used to set up arrays. At least one variable nam
 
 Each dimension of an array has a lower bound of zero and an upper bound set to the supplied *nexp*. That means there are more entries in the array than would appear at first glance. For instance, `DIM A(10)` creates an array with 11 entries, while `DIM M(6,3)` creates one with 28 entries.
 
-In those dialects descending from HP, string arrays are actually arrays of single characters. In Atari BASIC, for instance, `DIM A$(100)` is not making an array of 101 strings but a single string with up to 100 characters.
+In those dialects descending from HP, string arrays are actually arrays of single characters. In Atari BASIC, for instance, `DIM A$(100)` is not making an array of 101 strings but a single string with up to 100 characters. In most such dialects, there is no way to make an array of strings, which can make some programs difficult to construct.
 
 #### Examples:
 
@@ -1240,7 +1242,7 @@ HP allowed either parentheses or brackets to be used to denote array slots in nu
 
 This is unfortunate, as it means there is no way for the interpreter to distinguish between an array slot and a slice. In HP's case this was not a concern, as it treated strings as arrays of characters, meaning `A$(1,1)` *was* an array access, albeit with the parameters having a different meaning.
 
-Had HP selected one of these two to indicate slicing, or alternately used a different definition, like Sinclair's `TO`, then BASICs could implement string arrays and slicing. For instance, `A$(1,1)[1,1]` would return the first character of the string in slot (1,1).
+Had HP selected one of these two to indicate slicing instead of both, or alternately used a different definition, like Sinclair's `A$(1 TO 10)`, then BASICs could implement string arrays and slicing. For instance, `A$(1,1)[1,1]` would return the first character of the string in slot (1,1).
 
 <!-- TOC --><a name="system-functions"></a>
 ## System functions
@@ -1258,7 +1260,7 @@ Returns the contents of a specified memory address location *aexp*. The address 
 In RetroBASIC, `PEEK` always returns zero.
 
 <!-- TOC --><a name="posaexp"></a>
-### `POS`(*aexp*)
+### `POS`(*dexp*)
 
 When POS is called with zero or one dummy parameter, it returns the current position of the cursor. This can be called after `PRINT` and `INPUT` statements to provide more control over output. When called with more parameters, it acts as an alias for `INSTR`, and is covered in the string functions section.
 
@@ -1291,7 +1293,7 @@ Produces:
 Produces:
 
               Hello
-              
+
 <!-- TOC --><a name="usraexp"></a>
 ### `USR`(*aexp*)
 
