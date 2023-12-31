@@ -140,8 +140,10 @@
 1901 REM some new string commands
 1002 REM
 1910 PRINT "using SPACE$, should print three spaces and HELLO: ";SPACE$(3);"HELLO"
-1920 PRINT "using STRING$, should print HELLO three times: ";STRING$("HELLO",3)
-1930 PRINT "using STRING$ with ASCII value, should print three X's: ";STRING$(88,3)
+1920 PRINT "using STRING$, should print HELLO three times: ";STRING$(3,"HELLO")
+1922 X$="HELLO"
+1925 PRINT "using STRING$ with variable, should print HELLO three times: ";STRING$(3,X$)
+1930 PRINT "using STRING$ with ASCII value, should print three X's: ";STRING$(3,88)
 1940 PRINT "using INSTR to find ELL in HELLO, should print 2: ";INSTR("HELLO","ELL")
 1950 PRINT "using INSTR to find JEL in HELLO, should print 0: ";INSTR("HELLO","JEL")
 1960 PRINT "using INSTR to find ELL in HELLO starting at 2, should print 0: ";INSTR("HELLO","JEL",2)

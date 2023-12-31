@@ -120,3 +120,10 @@ Version 1.8.8 - 12 December 2023
 Version 1.8.9 - 23 December 2023
 
 - added Sinclair-style slicing, A$(1 TO 5)
+
+Version 1.9.0 - 1 January 2024
+
+- switched order of parameters in STRING$, can't find any dialects with string first
+- added LN, the version of LOG seen in many UK dialects like Sinclair and BBC
+- reset the DATA pointer on CLEAR
+- reset the runtime stack on CLEAR
