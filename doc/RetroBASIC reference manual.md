@@ -84,7 +84,7 @@ Version 1.8.9
    * [`SIN`(*aexp*)](#sinaexp)
    * [`SNH`(*aexp*) and `SINH`(*aexp*)](#snhaexp-and-sinhaexp)
    * [`TAN`(*aexp*)](#tanaexp)
-   * [``TNH`(*aexp*) and TANH`(*aexp*)](#tnhaexp-and-tanhaexp)
+   * [`TNH`(*aexp*) and `TANH`(*aexp*)](#tnhaexp-and-tanhaexp)
 - [String functions](#string-functions)
    * [`ASC`(*sexp*)](#ascsexp)
    * [`CHR$`(*aexp*)](#chraexp)
@@ -1072,7 +1072,7 @@ Returns the hyperbolic sine of the expression in parentheses.
 Returns the tangent of the expression in parentheses.
 
 <!-- TOC --><a name="tnhaexp-and-tanhaexp"></a>
-### ``TNH`(*aexp*) and TANH`(*aexp*)
+### `TNH`(*aexp*) and `TANH`(*aexp*)
 
 Returns the hyperbolic tangent of the expression in parentheses.
 
