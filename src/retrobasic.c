@@ -84,6 +84,8 @@ static void print_variables(void);
 static void delete_variables(void);
 static void delete_functions(void);
 static void delete_lines(void);
+static void clear_stack(void);
+static void reset_data_pointer(int line);
 
 /* definitions of variables used by the static analyzer */
 clock_t start_ticks = 0, end_ticks = 0;	// start and end ticks, for calculating CPU time
@@ -1202,21 +1204,24 @@ static value_t evaluate_expression(expression_t *expression)
           }
             break;
 					case STRNG:
-						// makes N copies of the given string
+						// makes N copies of the given string or ASCII char
 						result.type = STRING;
 						result.string = str_new("");
-						
-						// BASIC-PLUS allows the first parameter to be either a string or ASCII number
+            
+            // the length is in the first parameter
+            int len = parameters[0].number;
+            
+            // the second parameter can be a string or an ASCII value
 						char *temp;
-						if (parameters[0].type == STRING)
-							temp = parameters[0].string;
+						if (parameters[1].type == STRING)
+							temp = parameters[1].string;
 						else {
               char asc[2] = {0};
-							asc[0] = (char)parameters[0].number;
+							asc[0] = (char)parameters[1].number;
 							temp = str_new((char *)&asc);
 						}
 						
-						for (int i = 0; i <= parameters[1].number - 1; i++) {
+						for (int i = 0; i <= len - 1; i++) {
 							str_append(result.string, temp);
 						}
 						break;
@@ -1666,8 +1671,12 @@ static void perform_statement(list_t *statement_entry)
 				break;
 
       case CLEAR:
-        // wipe out any variables and create a fresh list
+        // wipe out any variables and other program state, reset to un-run condition
+      {
         delete_variables();
+        clear_stack();
+        reset_data_pointer(interpreter_state.first_line);
+      }
         break;
         
       case CLS:
@@ -2311,17 +2320,16 @@ static void perform_statement(list_t *statement_entry)
         
       case RESTORE:
         // resets the DATA pointer
-        if (statement->parms.generic_parameter != NULL) {
-          // if there is a parameter, treat it as a line number
-          // Wang BASIC treats the parameter as an ordinal, 'reset to nth global entry', we do not support it
-          value_t linenum = evaluate_expression(statement->parms.generic_parameter);
-          interpreter_state.current_data_statement = find_line((int)linenum.number);
-          interpreter_state.current_data_element = NULL;
-        } else {
-          // if there's no parameter, reset it to the first item
-          interpreter_state.current_data_statement = find_line(interpreter_state.first_line);
-          interpreter_state.current_data_element = NULL;
-        }
+      {
+        int linenum;
+        if (statement->parms.generic_parameter != NULL)
+          linenum = (int)evaluate_expression(statement->parms.generic_parameter).number;
+        else
+          linenum = interpreter_state.first_line;
+
+        interpreter_state.current_data_statement = find_line(linenum);
+        interpreter_state.current_data_element = NULL;
+      }
         break;
         
       case RETURN:
@@ -2475,6 +2483,16 @@ static void delete_lines(void) {
     }
   }
 }
+/* clear the runtime stack on CLEAR */
+static void clear_stack(void) {
+  lst_free(interpreter_state.runtime_stack);
+}
+/* reset the DATA pointer CLEAR */
+static void reset_data_pointer(int line) {
+  list_t *first_statement = interpreter_state.lines[interpreter_state.first_line];
+  interpreter_state.current_statement = first_statement;          // the first statement
+  interpreter_state.current_data_statement = first_statement;     // the DATA can point anywhere
+}
 
 /* set up empty trees to store variables and user functions as we find them */
 void interpreter_setup(void)
@@ -2536,11 +2554,15 @@ void interpreter_post_parse(void)
   interpreter_state.first_line = first_line;
   
   // a program runs from the first line, so...
-  interpreter_state.current_statement = first_statement;          // the first statement
-  interpreter_state.current_data_statement = first_statement;     // the DATA can point anywhere
-  interpreter_state.current_data_element = NULL;                  // the element within the DATA is nothing
+  interpreter_state.current_statement = first_statement;
   
-  // and find and cache all the lables
+  // should be empty, but just in case...
+  clear_stack();
+  
+  // reset the DATA pointer
+  reset_data_pointer(first_line);
+  
+  // and find and cache all the labels
   interpreter_eval_labels();
 }
 

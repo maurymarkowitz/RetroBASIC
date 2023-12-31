@@ -113,7 +113,8 @@ EXP       { return EXP; }
 FIX       { return FIX; }
 FRAC      { return FRAC; }
 INT			  { return INT; }
-LOG			  { return LOG; }
+LN        { return LOG; }
+LOG       { return LOG; }
 PI        { return PI; }
 SIN			  { return SIN; }
 SINH      { return SINH; }

@@ -9,6 +9,8 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
+- support RETURN lineno from MSX
+
 - add parameter checking to functions, currently most of them don't check that they were passed a string/number
 
 - check string sizes against DIM in slicing dialects
@@ -64,6 +66,8 @@ BP - DEC BASIC-PLUS
 - IF..LET, another alternative format for IF
 
 Debatable:
+
+- UK BASICs generally use LN for LOG and LOG for CLOG. Add a switch for this?
 
 - cotan etc?
 
