@@ -1379,21 +1379,21 @@ This function returns the number of bytes of user RAM left. Its primary use is t
 
 #### Variations:
 
-Those dialects that allow the program to reserve space in memory for strings, typically using `CLEAR`, generally also allow that amount to be checked by passing in a dummy string variable name. In this case, `FRE()` will return the total amount of memory available, or the amount of memory available for program code, while `FRE(A$)` will return the amount of memory in the string area. In early dialects, that was often as little as 50 or 200 bytes.
+Those dialects that allow the program to reserve space in memory for strings, typically using `CLEAR`, generally also allow that amount to be checked by passing in a dummy string variable name. In this case, `FRE()` will return the total amount of memory available, or the amount of memory available for program code, while `FRE(A$)`, where `A$` in this example can be any string variable name, will return the amount of memory in the string area. In early dialects, that was often as little as 50 or 200 bytes.
 
 The TRS-80 II and Genie/Color Genie uses `MEM` for this function, while `FRE` returns string space. The Dragon 32 uses `SIZE`.
 
 <!-- TOC --><a name="peekaexp"></a>
 ### `PEEK`(*aexp*)
 
-Returns the contents of a specified memory address location *aexp*. The address specified must be an integer or an arithmetic expression that evaluates to an integer between 0 and 65535 and represents the memory address in decimal notation (not hexadecimal). The number returned will also be a decimal integer with a range from 0 to 255.
+Returns the contents of a specified memory address location *aexp*. The address specified must be an integer or an arithmetic expression that evaluates to an integer between 0 and (typically) 65535 and represents the memory address in decimal notation (not hexadecimal). The number returned will also be a decimal integer with a range from 0 to 255.
 
 In RetroBASIC, `PEEK` always returns zero.
 
 <!-- TOC --><a name="posaexp"></a>
 ### `POS`(*dexp*)
 
-When POS is called with zero or one dummy parameter, it returns the current position of the cursor. This can be called after `PRINT` and `INPUT` statements to provide more control over output. When called with more parameters, it acts as an alias for `INSTR`, and is covered in the string functions section.
+When POS is called with zero or one dummy parameter, it returns the current position of the cursor. This can be called after `PRINT` and `INPUT` statements to provide more control over output. When called with more parameters, it acts as an alias for `INSTR`, and is covered in the string functions section, above.
 
 <!-- TOC --><a name="linaexp"></a>
 ### `LIN`(*aexp*)
