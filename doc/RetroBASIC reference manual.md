@@ -145,7 +145,7 @@ This manual will use the following typographic conventions:
 - *italicized* lower case words indicate an abbreviation from the list above
 - [square brackets] indicate optional items separated by commas
 - {curly braces} indicate "one of" options separated with the vertical bar
-- <angle brackets> indicate special characters like a carriage return
+- \<angle brackets\> indicate special characters like a carriage return
 - the ellipsis... indicates "and more of same", normally in option lists
 
 For example:
