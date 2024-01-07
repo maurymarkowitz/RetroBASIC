@@ -141,7 +141,7 @@ The following abbreviations will be used in this manual:
 
 This manual will use the following typographic conventions:
 
-- monospaced `CAPITAL LETTERS` will be used to indicate keywords and commands
+- monospaced `CAPITAL LETTERS` will be used to indicate keywords
 - *italicized* lower case words indicate an abbreviation from the list above
 - [square brackets] indicate optional items separated by commas
 - {curly braces} indicate "one of" options separated with the vertical bar
