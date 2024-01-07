@@ -71,11 +71,11 @@ There are many additional keywords and features found in one dialect or another.
 
 As a result, RetroBASIC is essentially a superset of MS BASIC with the following features:
 
-1) MS-style string handling for concatenation, both + and &, and string functions like MID$
-2) Dartmouth style CHANGE A$ to A and CHANGE A TO A$, along with HP's CONVERT synonym
+1) MS-style string handling for concatenation, both + and &, and string functions like `MID$`
+2) Dartmouth style `CHANGE A$ TO A` and `CHANGE A TO A$`, along with HP's `CONVERT` synonym
 3) HP-style string slicing, including defaulting to considering [] separate from () allowing string arrays
-4) HP-style GOTO..ON and GOSUB..ON variations of MS's ON..GOTO and ON..GOSUB
-5) IF..GOTO and IF..GOSUB (no THEN) found in some dialects
+4) HP-style `GOTO..ON` and `GOSUB..ON` variations of MS's `ON..GOTO` and `ON..GOSUB`
+5) `IF..GOTO` and `IF..GOSUB` (no THEN) found in some dialects
 
 ## Random notes
 
