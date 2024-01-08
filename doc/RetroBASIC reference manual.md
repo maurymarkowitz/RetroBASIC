@@ -286,7 +286,7 @@ Variables are named references to a location in computer memory holding data. Th
 
 The 1968 version of Dartmouth BASIC introduced string variables for the first time. To indicate it held a string, the dollar-sign, \$, was added to the end of the name. Because the \$ is part of the name and most dialects only allow for two characters in the name, it is common to have the limitation that string variables can have single character names. There is also a subtlety to note here; as the \$ is part of the variable name, A and A\$ are two different variables, and both can be used independently in a program. Most subsequent versions of BASIC followed this rule. Tymshare SUPER BASIC was an exception, allowing strings or numbers to be assigned to any variable and not using the `$`.
 
-Further confusion was added by the later addition of the `DEF` statements, which allow one or more variables to be given a type without using the suffix characters. For instance, one can `DEFSTR A` to indicate that A is a string variable without needing the \$. A and A$ will still be different variables, but both will hold strings.
+Further confusion was added by the later addition of the `DEF` statements, which allow one or more variables to be given a type without using the suffix characters. For instance, one can `DEFSTR A` to indicate that A is a string variable without needing the \$. A and A\$ will still be different variables, but both will hold strings.
 
 #### Notes:
 
