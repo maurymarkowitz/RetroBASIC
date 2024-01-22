@@ -9,6 +9,8 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
+- later MS, including AppleSoft, use -ve numbers in RND as RANDOMIZE
+
 - support RETURN lineno from MSX
 
 - add parameter checking to functions, currently most of them don't check that they were passed a string/number
@@ -66,6 +68,8 @@ BP - DEC BASIC-PLUS
 - IF..LET, another alternative format for IF
 
 Debatable:
+
+- add TEN function, alias for HEX found in Apple Business BASIC?
 
 - UK BASICs generally use LN for LOG and LOG for CLOG. Add a switch for this?
 

@@ -185,11 +185,11 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
 <!-- TOC --><a name="some-underlying-concepts"></a>
 ## Some underlying concepts
 
-Programming languages, in general, use english-like words to describe a number of steps that will be carried out in order to produce a desired result. This textual description is known as the *source code*. The source code has to be converted into an internal format that the computer understands, as opposed to the programmer. RetroBASIC performs this conversion. The result of the conversion is the *machine code* or *p-code* depending on how the system works. This internal language can then be *executed*, or in BASIC lingo, *run*.
+Programming languages, in general, use english-like words to describe a number of instructions that will be carried out in order to produce a desired result. This textual description is known as the *source code*. The instructions have to be converted into an internal format that the computer understands, as opposed to the english-like source code which is understood by the programmer. RetroBASIC performs this conversion. The result of the conversion is the *machine code* or *p-code* depending on how the system works. This internal language can then be *executed*, or in BASIC lingo, *run*.
 
 Like most computer languages, BASIC has a number of **keywords** that are reserved by the language. In BASIC, the list of keywords is normally fixed, meaning that users cannot add new keywords or modify the actions of existing ones. This contrasts with programming languages like ALGOL which were based around the idea of creating new keywords in code. As new keywords cannot be created in most BASIC dialects, BASIC tends to have many more reserved keywords than other languages in order to ensure the functionality you need is present.
 
-A program consists of a series of instructions. In BASIC, these are known as **statements**. A statement consists of a keyword and then zero or more **expressions**. Only certain keywords can appear at the front of a statement, others only as part of an expression. To confuse matters, the subset of keywords that can appear at the front are often referred to as "statements" as well, while other dialects refer to these special keywords simply as "keywords". To avoid confusion, this manual will use the term **statement keywords** for this subset of reserved words and to clearly separate the concept of a statement from a keyword.
+In BASIC, the series of instructions that makes up the program are known as **statements**. A statement consists of a keyword and then zero or more **expressions**. Only certain keywords can appear at the front of a statement, others only as part of an expression. To confuse matters, the subset of keywords that can appear at the front are often referred to as "statements" as well, while other dialects refer to these special keywords simply as "keywords". To avoid confusion, this manual will use the term **statement keywords** for this subset of reserved words and to clearly separate the concept of a statement from a keyword.
 
 In most dialects, a subset of the statement keywords can only be used in certain circumstances and are known as **commands**. Commands *are* statements, and both commands and statement keywords are used *in* statements.
 
@@ -235,7 +235,7 @@ Line 60 is the `END` statement, which takes no expression and stops execution of
 <!-- TOC --><a name="data-in-basic-programs"></a>
 ## Data in BASIC programs
 
-The ultimate goal of any program is to manipulate data. In BASIC there are two forms of data: numbers and text. Most BASIC dialects have similar concepts of what numbers can be represented as and how to manipulate them. BASICs vary much more widely in the way they store and process textual data, or *strings*. RetroBASIC attempts to support as many varieties of both numbers and strings as possible.
+The ultimate goal of any program is to manipulate data. In BASIC there are two forms of data: numbers and text, the latter more widely known as *strings*. Most BASIC dialects have similar concepts of what numbers can be represented as and how to manipulate them. BASICs vary much more widely in the way they store and process textual data, or *strings*. RetroBASIC attempts to support as many varieties of both numbers and strings as possible.
 
 Another key concept in most programming languages is the difference between a *constant* and a *variable*. Constants are data entered directly into the code, for instance, the number `100` or the string `"hello"`. Variables are names that are given to the location in memory where data is stored. As the name implies, the value of a variable can be changed, whereas constants cannot.
 
@@ -284,7 +284,7 @@ One of the major goals of RetroBASIC was to support programs from any of the old
 
 Variables are named references to a location in computer memory holding data. They are a key part of any programming language. In most BASIC dialects, the name can be one or two characters, the first being A to Z and the optional second character A to Z or 0 to 9. This is the case for Microsoft-derived BASICs, and is the standard followed by RetroBASIC. Some dialects allow only one character, and some allow one character and a digit, not two letters. As RetroBASIC allows any two characters, including lower case, all such variations will run fine. Some dialects allow variable names to be any length, like Atari BASIC, but this is not currently supported in RetroBASIC.
 
-The 1968 version of Dartmouth BASIC introduced string variables for the first time. To indicate it held a string, the dollar-sign, \$, was added to the end of the name. Because the \$ is part of the name and most dialects only allow for two characters in the name, it is common to have the limitation that string variables can have single character names. There is also a subtlety to note here; as the \$ is part of the variable name, A and A\$ are two different variables, and both can be used independently in a program. Most subsequent versions of BASIC followed this rule. Tymshare SUPER BASIC was an exception, allowing strings or numbers to be assigned to any variable and not using the `$`.
+The 1968 version of Dartmouth BASIC introduced string variables for the first time. To indicate it held a string, the dollar-sign, \$, was added to the end of the name. Because the \$ is part of the name and most dialects only allow for two characters in the name, it is common to have the limitation that string variables can have single character names. There is also a subtlety to note here; as the \$ is part of the variable name, A and A\$ are two different variables, and both can be used independently in a program. Most subsequent versions of BASIC followed this rule. Tymshare SUPER BASIC was an exception, allowing strings or numbers to be assigned to any variable and not using the \$.
 
 Further confusion was added by the later addition of the `DEF` statements, which allow one or more variables to be given a type without using the suffix characters. For instance, one can `DEFSTR A` to indicate that A is a string variable without needing the \$. A and A\$ will still be different variables, but both will hold strings.
 
@@ -585,6 +585,10 @@ The `ON` statement, also known as the **computed branch**, combines a series of 
     600 END
 
 This program will perform a `STOP`, `BYE` or `END` depending on the value in the numeric variable `A`. Line 10 assigns the value 2 to A, so the program will perform `BYE`.
+
+#### Variations:
+
+Some dialects use the alternate syntax `GOTO` *aexpr* `ON` and `GOSUB` *aexpr* `ON`, reversing the normal format. RetroBASIC supports this format as well.
 
 <!-- TOC --><a name="for-avaraexpr1-to-aexpr2-step-aexpr3-statmnt-and-next-avaravar"></a>
 ### `FOR` *avar*=*aexpr1* `TO` *aexpr2* [`STEP` *aexpr3*] {:|}<CR>} [*statmnt*,{:|}<CR>}...] and `NEXT` [*avar*,[*avar*,...]]
@@ -917,7 +921,7 @@ To address this problem, most such dialects also include the `RANDOMIZE` stateme
 
 Although `RANDOMIZE` is generally used to produce random seeds, it is also extremely useful during testing and debugging, where the opposite is desired. In this case, using the optional *aexp* will cause the same series of numbers to be returned every time, which makes it much easier to track down problems without the behavior of the program changing every time. In these cases, `RANDOMIZE 0` is very common.
 
-Later dialects, those developed for home computers, often lack the `RANDOMIZE` statement. Instead, they generate random numbers by applying a simple formula to some internal hardware value, normally a timer on the video circuitry or the internal clock. This makes the random number system very simple to implement, it runs quickly, and there is no need to `RANDOMIZE` as even the shortest delays when `RUN`ning the program will be sufficient to produce completely random values.
+Later dialects, those developed for home computers, often lack the `RANDOMIZE` statement. Instead, they generate random numbers by applying a simple formula to some internal hardware value, normally a timer on the video circuitry or the internal clock. This makes the random number system very simple to implement, it runs quickly, and there is no need to `RANDOMIZE` as even the shortest delays when `RUN`ning the program will be sufficient to produce completely random values. For the debugging cases, some dialects allowed negative inputs to `RND` to produce `RANDOMIZE`-like results, see `RND` for details.
 
 #### Variations:
 
@@ -956,6 +960,8 @@ The primary difference between the three main families of BASIC is the way they 
 ### Mathematical operators (arithmetic)
 
 RetroBASIC supports the standard set of arithmetic operators: `+` for addition, `-` for subtraction, `*` for multiplication, `/` for division, and `^` for exponentiation. It also supports the alternative `**` for exponentiation, which is seen in some older dialects. The `MOD` operator returns the remainder of the integer division, so that `A = 7.5 MOD 2.5` becomes 7 MOD 2, producing 1.
+
+RetroBASIC follows MS's conventions for operator precedence, with parenthetical items and then exponents, multiplication and division, and finally addition and subtraction. 
 
 <!-- TOC --><a name="logical-operators"></a>
 ### Logical operators
@@ -1053,7 +1059,7 @@ Rounds the number to the nearest integer or decimal place. If only one *aexp* is
 
 Returns a random positive number between 0 and 0.999... In many dialects, the variable or expression in parentheses following RND is a dummy and has no effect on the numbers returned. Some dialects require an expression in the parentheses; some do not. RetroBASIC works with both.
 
-`RND` is very common in BASIC programs, especially in games. In most cases, the program actually desires an integer value, and code to the effect of `INT(RND(0)*X+0.5)` that produces an integer between 0 and X is very common. It is so common that many programs use a user-defined function to make references to this sequence of operations shorter; an example is Super Star Trek which defines a function called `FNR` near the top of the program and then calls it from many locations.
+`RND` is very common in BASIC programs, especially in games. In most cases, the program actually desires an integer value, and code to the effect of `INT(RND(0)*X+0.5)` that produces an integer between 0 and X can be found in many programs. It is so common that some programs use a user-defined function to make references to this sequence of operations shorter; an example is Super Star Trek which defines a function called `FNR` near the top of the program and then calls it from many locations.
 
 Because this series of operations takes some time to complete, a number of dialects offer a simple way to generate integer values directly. Unfortunately, there is no standard solution for this operation. Some use a separate function like `RAND` for this, while others modify `RND` instead. Among those that use `RND`, one common solution is that 0 and 1 return a floating point value as above, whereas other positive values produce a value from 1 to the provided number.
 
@@ -1073,6 +1079,10 @@ Sinclair QL BASIC allows a range to be specified, `RND(10 TO 50)`.
 ### `SGN`(*aexp*)
 
 Returns a — 1 if *aexp* evaluates to a negative number, a 0 if *aexp* evaluates to 0, or a 1 if *aexp* evaluates to a positive number.
+
+#### Variations:
+
+Early dialects, including Dartmouth, returned 1 for all positive numbers, including 0. Almost all later dialects return 0 in this case.
 
 <!-- TOC --><a name="sqraexp"></a>
 ### `SQR`(*aexp*)
@@ -1131,6 +1141,10 @@ RetroBASIC also allows binary, octal, and hexadecimal values to be typed in dire
 
     10 PRINT "Convert hex FFFE to number, should print 65534: ";HEX("FFFE")
     20 PRINT "Convert 5432 to hex, should print 1538: ";HEX$(5432)
+    
+#### Variations:
+
+Apple Business BASIC on the Apple III used the function `TEN` to convert a hex string to decimal. This is not currently supported.
 
 <!-- TOC --><a name="trigonometric-functions"></a>
 ## Trigonometric functions
@@ -1303,7 +1317,7 @@ Produces:
     
 ## String slicing
 
-### `*svar*{(|[}*avar*[,*avar*]{)|]}
+### *svar*{(|[}*avar*[{,|TO}*avar*]{)|]}
 
 String slicing is an alternative way to produce substrings and manipulate existing strings. Although slicing instructions are not functions in the traditional sense, they produce results similar to the `MID/LEFT/RIGHT` functions. The major difference between the slicing concept and string functions is that the functions take a location and length, whereas slices use two locations. This can result in off-by-one errors when converting code from one system to another.
 
