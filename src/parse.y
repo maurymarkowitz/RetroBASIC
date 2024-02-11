@@ -160,7 +160,7 @@ static expression_t *make_operator(int arity, int o)
 %token INT FIX FRAC // fix=SGN(x)*INT(ABS(x)), frac=A-INT(A)
 %token ROUND  // two versions, round-to-int and round-to-place
 %token CINT CSNG CDBL
-%token MOD
+%token MOD DIV
 
  /* trig set */
 %token COS SIN ATN

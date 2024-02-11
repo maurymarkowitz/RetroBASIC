@@ -158,6 +158,7 @@ LIN       { return LIN; }
  /* various operators and punctuation */
 [:,;()\[\]\^=+\-*/\<\>\&]     { return yytext[0]; }
 MOD       { return MOD; }
+DIV       { return DIV; }
 
  /* alternate form for power */
 "**"      { return '^'; } // FIXME: we should have a separate token for this?

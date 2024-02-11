@@ -119,61 +119,62 @@
      CSNG = 335,
      CDBL = 336,
      MOD = 337,
-     COS = 338,
-     SIN = 339,
-     ATN = 340,
-     ACS = 341,
-     ASN = 342,
-     TAN = 343,
-     COSH = 344,
-     SINH = 345,
-     TANH = 346,
-     ASC = 347,
-     LEFT = 348,
-     MID = 349,
-     RIGHT = 350,
-     LEN = 351,
-     STR = 352,
-     VAL = 353,
-     CHR = 354,
-     SEG = 355,
-     SUBSTR = 356,
-     INSTR = 357,
-     INKEY = 358,
-     AND = 359,
-     OR = 360,
-     NOT = 361,
-     XOR = 362,
-     CMP_LE = 363,
-     CMP_GE = 364,
-     CMP_NE = 365,
-     CMP_HASH = 366,
-     FRE = 367,
-     SPC = 368,
-     TAB = 369,
-     POS = 370,
-     USR = 371,
-     LIN = 372,
-     DEFSTR = 373,
-     DEFINT = 374,
-     DEFSNG = 375,
-     DEFDBL = 376,
-     CHANGE = 377,
-     CONVERT = 378,
-     UCASE = 379,
-     LCASE = 380,
-     STRNG = 381,
-     TIME = 382,
-     TIME_STR = 383,
-     HEX = 384,
-     OCT = 385,
-     BIN = 386,
-     HEXSTR = 387,
-     OCTSTR = 388,
-     BINSTR = 389,
-     UBOUND = 390,
-     LBOUND = 391,
-     LABEL = 392
+     DIV = 338,
+     COS = 339,
+     SIN = 340,
+     ATN = 341,
+     ACS = 342,
+     ASN = 343,
+     TAN = 344,
+     COSH = 345,
+     SINH = 346,
+     TANH = 347,
+     ASC = 348,
+     LEFT = 349,
+     MID = 350,
+     RIGHT = 351,
+     LEN = 352,
+     STR = 353,
+     VAL = 354,
+     CHR = 355,
+     SEG = 356,
+     SUBSTR = 357,
+     INSTR = 358,
+     INKEY = 359,
+     AND = 360,
+     OR = 361,
+     NOT = 362,
+     XOR = 363,
+     CMP_LE = 364,
+     CMP_GE = 365,
+     CMP_NE = 366,
+     CMP_HASH = 367,
+     FRE = 368,
+     SPC = 369,
+     TAB = 370,
+     POS = 371,
+     USR = 372,
+     LIN = 373,
+     DEFSTR = 374,
+     DEFINT = 375,
+     DEFSNG = 376,
+     DEFDBL = 377,
+     CHANGE = 378,
+     CONVERT = 379,
+     UCASE = 380,
+     LCASE = 381,
+     STRNG = 382,
+     TIME = 383,
+     TIME_STR = 384,
+     HEX = 385,
+     OCT = 386,
+     BIN = 387,
+     HEXSTR = 388,
+     OCTSTR = 389,
+     BINSTR = 390,
+     UBOUND = 391,
+     LBOUND = 392,
+     LABEL = 393
    };
 #endif
 /* Tokens.  */
@@ -257,61 +258,62 @@
 #define CSNG 335
 #define CDBL 336
 #define MOD 337
-#define COS 338
-#define SIN 339
-#define ATN 340
-#define ACS 341
-#define ASN 342
-#define TAN 343
-#define COSH 344
-#define SINH 345
-#define TANH 346
-#define ASC 347
-#define LEFT 348
-#define MID 349
-#define RIGHT 350
-#define LEN 351
-#define STR 352
-#define VAL 353
-#define CHR 354
-#define SEG 355
-#define SUBSTR 356
-#define INSTR 357
-#define INKEY 358
-#define AND 359
-#define OR 360
-#define NOT 361
-#define XOR 362
-#define CMP_LE 363
-#define CMP_GE 364
-#define CMP_NE 365
-#define CMP_HASH 366
-#define FRE 367
-#define SPC 368
-#define TAB 369
-#define POS 370
-#define USR 371
-#define LIN 372
-#define DEFSTR 373
-#define DEFINT 374
-#define DEFSNG 375
-#define DEFDBL 376
-#define CHANGE 377
-#define CONVERT 378
-#define UCASE 379
-#define LCASE 380
-#define STRNG 381
-#define TIME 382
-#define TIME_STR 383
-#define HEX 384
-#define OCT 385
-#define BIN 386
-#define HEXSTR 387
-#define OCTSTR 388
-#define BINSTR 389
-#define UBOUND 390
-#define LBOUND 391
-#define LABEL 392
+#define DIV 338
+#define COS 339
+#define SIN 340
+#define ATN 341
+#define ACS 342
+#define ASN 343
+#define TAN 344
+#define COSH 345
+#define SINH 346
+#define TANH 347
+#define ASC 348
+#define LEFT 349
+#define MID 350
+#define RIGHT 351
+#define LEN 352
+#define STR 353
+#define VAL 354
+#define CHR 355
+#define SEG 356
+#define SUBSTR 357
+#define INSTR 358
+#define INKEY 359
+#define AND 360
+#define OR 361
+#define NOT 362
+#define XOR 363
+#define CMP_LE 364
+#define CMP_GE 365
+#define CMP_NE 366
+#define CMP_HASH 367
+#define FRE 368
+#define SPC 369
+#define TAB 370
+#define POS 371
+#define USR 372
+#define LIN 373
+#define DEFSTR 374
+#define DEFINT 375
+#define DEFSNG 376
+#define DEFDBL 377
+#define CHANGE 378
+#define CONVERT 379
+#define UCASE 380
+#define LCASE 381
+#define STRNG 382
+#define TIME 383
+#define TIME_STR 384
+#define HEX 385
+#define OCT 386
+#define BIN 387
+#define HEXSTR 388
+#define OCTSTR 389
+#define BINSTR 390
+#define UBOUND 391
+#define LBOUND 392
+#define LABEL 393
 
 
 
@@ -329,8 +331,8 @@ typedef union YYSTYPE
   variable_reference_t *variable;
 }
 /* Line 1529 of yacc.c.  */
-#line 333 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
-    YYSTYPE;
+#line 335 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
+	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1
