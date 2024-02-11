@@ -69,6 +69,10 @@ BP - DEC BASIC-PLUS
 
 Debatable:
 
+- it would not be difficult to allow any variable to hold a string, but in most dialects that is an error
+
+- SUB$ from Apple Business BASIC substitutes one string into another. EG, SUB$("Hello!", "**", 2) produces H**lo!
+
 - add TEN function, alias for HEX found in Apple Business BASIC?
 
 - UK BASICs generally use LN for LOG and LOG for CLOG. Add a switch for this?
@@ -84,6 +88,8 @@ Debatable:
 - RANDOMIZE TIMER for GW support?
 
 Will not be done:
+
+- IP and FP, aliases for FIX and FRAC, too easily overlap with variable names.
 
 - EXAM and FETCH aliases to PEEK from North Star and Opus and similar. No point, this returns 0 anyway.
 

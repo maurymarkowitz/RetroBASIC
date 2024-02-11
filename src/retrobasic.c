@@ -1121,6 +1121,9 @@ static value_t evaluate_expression(expression_t *expression)
           case MOD:
             result = double_to_value((int)floor(a) % (int)floor(b));
             break;
+          case DIV:
+            result = double_to_value((int)floor(a) / (int)floor(b));
+            break;
           case '=':
             if (parameters[0].type >= NUMBER)
               result = double_to_value(-(a == b));
