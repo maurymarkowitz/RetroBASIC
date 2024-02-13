@@ -214,7 +214,7 @@ UBOUND    { return UBOUND; }
 LBOUND    { return LBOUND; }
 
  /* line labels, procedures, etc. */
-LABEL    { return LABEL; }
+LABEL     { return LABEL; }
 
  /* hex, oct and bin strings encoding numbers */
 \&[0-9a-fA-F]+  {
