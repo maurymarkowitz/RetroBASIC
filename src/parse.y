@@ -790,6 +790,13 @@ statement:
     $$ = new;
   }
   |
+  TAB expression /* Integer BASIC's tab statement */
+  {
+    statement_t *new = make_statement(TAB);
+    new->parms.generic_parameter = $2;
+    $$ = new;
+  }
+  |
   TIME_STR '=' expression /* this is the weird variable-set version, which operates as a statement */
   {
     statement_t *new = make_statement(TIME_STR);

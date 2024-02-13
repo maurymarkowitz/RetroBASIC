@@ -2389,6 +2389,27 @@ static void perform_statement(list_t *statement_entry)
       }
         break;
 				
+        // this is Integer BASIC's TAB, which is a statement, not a function
+      case TAB:
+      {
+        int tabs = 0;
+        if (statement->parms.generic_parameter != NULL) {
+          tabs = (int)evaluate_expression(statement->parms.generic_parameter).number;
+          if (tabs > interpreter_state.cursor_column) {
+            for (int i = interpreter_state.cursor_column; i <= tabs - 1; i++) {
+              putchar(32);
+            }
+          } else {
+            if (ansi_tab_behaviour) {
+              for (int i = 0; i <= tabs - 1; i++) {
+                putchar(32);
+              }
+            }
+          }
+        }
+      }
+        break;
+
 				// this handles the weird-syntax case of TIME$=, which looks like a variable set but
 				// is really a statement
 			case TIME_STR:
