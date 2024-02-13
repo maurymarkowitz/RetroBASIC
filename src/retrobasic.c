@@ -772,6 +772,14 @@ static value_t evaluate_expression(expression_t *expression)
             result.number = M_PI;
             break;
           case RND:
+            // if the value is negative, perform a randomize with that value
+            if (parameters[0].number != 0.0) {
+              srand(parameters[0].number);
+              // prime the RNG, see notes in main loop
+              (void)rand();
+              (void)rand();
+            }
+                        
             // TODO: support alternative RNDs that return limited values
             result.number = ((double)rand() / (double)RAND_MAX); // don't forget the cast!
             break;

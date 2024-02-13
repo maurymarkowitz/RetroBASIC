@@ -127,3 +127,8 @@ Version 1.9.0 - 1 January 2024
 - added LN, the version of LOG seen in many UK dialects like Sinclair and BBC
 - reset the DATA pointer on CLEAR
 - reset the runtime stack on CLEAR
+
+Version 1.9.1 - 13 February 2024
+
+- added DIV operator, for integer division. 7 DIV 3 returns 2
+- negative parameter values in RND() now perform a RANDOMIZE, as is the case in MS BASICs

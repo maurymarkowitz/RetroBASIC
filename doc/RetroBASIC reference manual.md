@@ -3,7 +3,7 @@ RetroBASIC Reference Manual
 
 **Copyright © 2023 Maury Markowitz**
 
-Version 1.9.0
+Version 1.9.1
 
 [![GPL license](http://img.shields.io/badge/license-GPL-brightgreen.svg)](https://opensource.org/licenses/gpl-license)
 
@@ -246,15 +246,15 @@ The types, capabilities and syntax of constants and variables are fairly constan
 
 Most BASIC interpreters of the RetroBASIC era store numbers using the equivalent of a *single* type, also known as a *float*. Unless otherwise indicated, any variable will default to this type. Thus, the name `I` found in a program would refer to a variable with the name "I" that holds a numeric value, initially zero. The internal format used to store the value was chosen to balance the need to save memory while maximizing precision. Microcomputers generally used 32-bit or 40-bit numeric formats, as larger formats would use up too much of the extremely limited memory available in these machines. Mainframe and minicomputer dialects generally used that platform's "natural" format, whatever that might be.
 
-Some dialects had a second number format, *integer*. Most notable among these are later versions of Microsoft BASIC, so this feature is widely available, though rarely used, in most versions from the home computer era. The MS version used 16-bit values for integers, potentially saving considerable amounts of memory in programs with large numbers of numeric constants. To indicate that a variable should store the value in integer format, the percent sign, `%`, was added to the end of the variable name. So, `I` would store a value in the default format, normally a 40-bit floating point, while `I%` would store the value as a 16-bit integer.
+Some dialects had a second number format, *integer*. Most notable among these are later versions of Microsoft BASIC, so this feature is widely available in home computer dialects, though rarely used. MS used 16-bit values for integers, potentially saving considerable amounts of memory in programs with large numbers of numeric constants. To indicate that a variable should store the value in integer format, the percent sign, `%`, was added to the end of the variable name. So, `I` would store a value in the default format, normally a 40-bit floating point, while `I%` would store the value as a 16-bit integer.
 
-A few dialects also added a *double* format as well, once again led by later Microsoft releases. These were indicated by adding the hash symbol, `#`, to the end of the variable name. In dialects that had doubles, it was common for the default internal format of the single to be smaller than normal and then have the programmer use doubles if more precision was required. For instance, on the Atari Microsoft BASIC, a single was 32 bits instead of the more typical 40, while the double was 64 bits. On most of these dialects, a single-precision value could be explicitly indicated by adding the `!` suffix to the variable name, although this was the default format for variables, and the hash is almost never found in real-world programs.
+A few dialects also added a *double* format as well, once again led by later Microsoft releases. These were indicated by adding the hash symbol, `#`, to the end of the variable name. In dialects that had doubles, it was common for the default internal format of the single to be smaller than normal and then have the programmer use doubles if more precision was required. For instance, on the Atari Microsoft BASIC, a single was 32 bits instead of the more typical 40, while a double was 64 bits. On most of these dialects, a single-precision value could be explicitly indicated by adding the bang,`!`, to the end of a variable name. As single was the default format for variables, the bang is almost never found in real-world programs.
 
 As memory is no longer an issue, RetroBASIC uses the 64-bit IEEE double format to store all numbers. This has no effect on the programs; the extra precision is hidden within the system. The only difference is that when a calculation is stored in a variable, if that variable is declared as an integer, the `INT` operator is applied to the result. In MS versions, the existing floating point code is used and then discards the fractional leftover, which allowed them to implement these functions without adding new code to the already memory-limited machines. In some dialects, like BBC BASIC, an entirely separate math library is used for this purpose, which offers higher performance. RetroBASIC carries out all calculations using doubles, as performance and memory footprint are no longer issues.
 
 BASIC inputs and outputs numbers in decimal format, using the same formatting rules as C's "g" format. This means that large numbers and small fractions are output in exponent format, regardless of how they are input. For instance, if the program asks the user to type in a number and they type fifteen ones, when output that value will be rendered something like `1.11111E14`. For those dialects that supported doubles, numeric constants could be set to doubles by changing the E to a D.
 
-Because the input and output are in decimal, but the internal format is in binary, there are numbers that one can type in to the source code cannot be exactly represented internally. This is similar to the lack of a way to exactly represent 1/3 in decimal, whereas it can be exactly represented in base-12 (or base-3). As a result, BASIC programs are subject to "round-off error" that can produce odd results, especially when dealing with fractional values. It is generally suggested that you do not rely on a variable containing a specific value when testing it; instead of `IF X=5`, you should `IF X>=5` in case the value of X rounded up to 5.000111... during a previous calculation. Some dialects, like Wang and Atari, use a different internal format known as binary coded decimal, or BCD, that avoids many of these rounding problems, but at the cost of being slower and requiring more memory. RetroBASIC's double format is not immune to round-off error, although it may be reduced in frequency by the higher-accuracy numbers being used internally.
+Because the input and output are in decimal, but the internal format is in binary, there are numbers that one can type in to the source code cannot be exactly represented internally. This is similar to the lack of a way to exactly represent 1/3 in decimal, whereas it can be exactly represented in base-12. As a result, BASIC programs are subject to "round-off error" that can produce odd results, especially when dealing with fractional values. It is generally suggested that you do not rely on a variable containing a specific value when testing it; instead of `IF X=5`, you should `IF X>=5` in case the value of X rounded up to 5.000111... during a previous calculation. RetroBASIC's double format is not immune to round-off error, although it may be reduced in frequency by the higher-accuracy numbers being used internally. Some dialects, like Wang and Atari, use a different internal format known as binary coded decimal, or BCD, that avoids many of these rounding problems, but at the cost of being slower and requiring slightly more memory.
 
 RetroBASIC has the additional feature that numeric constants can be entered in hexadecimal, octal or binary format. Hexadecimal values are indicated by placing the prefix `0x`, `0h` or `&` in front of the value, for instance, `&1F3A` will be converted internally to the value 7994. Octal is indicated by `0o`, like `0o3725`, and binary with `0b`, like `0b10110011`. These values can be used in any numeric expression in place of a decimal constant. Like any numeric value, they are converted to doubles internally.
 
@@ -1066,32 +1066,42 @@ Rounds the number to the nearest integer or given decimal place. If only one *ae
 <!-- TOC --><a name="rndaexp"></a>
 ### `RND`([*aexp*])
 
-Returns a random positive number between 0 and 0.999... In many dialects, the variable or expression in parentheses following RND is a dummy and has no effect on the numbers returned. Some dialects require some form expression in the parentheses even if they do not use it; some do not. RetroBASIC works with either style.
+Returns a random positive number between 0 (inclusive) and 0.999... (exclusive). Some dialects require some form expression in the parentheses even if they do not use it; some do not. RetroBASIC works with either style. In many dialects, the variable or expression in parentheses following RND is a dummy and has no effect on the numbers returned.
 
-`RND` is very common in BASIC programs, especially in games. In most cases, the program actually desires an integer value, and code to the effect of `INT(RND(0)*X+0.5)` can be found in many programs. This works by producing a number between 0 and X-*epsilon*, adds 0.5 to product a value between 0.5 and X+0.5, and then `INT`s that value, resulting in a value between 1 and X, inclusive. This bit of code is so common that some programs use a user-defined function to make references to this sequence of operations shorter; an example is *Super Star Trek*, which defines a function called `FNR` near the top of the program and then calls it from many locations.
+`RND` is very common in BASIC programs, especially in games. In most cases, the program actually desires an integer value, and code to the effect of `INT(RND(0)*X+0.5)` can be found in many programs. This works by producing a number between 0 and X-*epsilon*, adds 0.5 to produce a value between 0.5 and X+0.5, and then `INT`s that value, resulting in a value between 1 and X, inclusive. This bit of code is so common that some programs use a user-defined function to make references to this sequence of operations shorter; an example is *Super Star Trek*, which defines a function called `FNR` near the top of the program and then calls it from many locations.
 
-Because this series of operations takes some time to complete, a number of dialects offered a simple way to generate integer values directly. Unfortunately, there is no standard solution for this operation. Some use a separate function like `RAND` for this, while others modify `RND` instead. Among those that use `RND`, one common solution is that if the *aexp* produces a value between 0 and 1 it returns a floating point value as above, whereas larger positive values produce an integer value from 1 to the provided number.
+Because this series of operations takes some time to complete, a number of dialects offered ways to generate integer values directly in a single step. Unfortunately, there is no standard solution for this functionality, some use a separate function like `RAND`, while others modify `RND`. Among those that use `RND`, one common solution is that if the *aexp* produces a value between 0 and 1 it returns a floating point value as above, whereas larger positive values produce an integer value from 1 to the provided number. BBC BASIC is an example of this style.
 
-Another common variation is found in Commodore and BBC BASICs. In these dialects, the *aexp* is calculated and different numbers are returned based on the value. If the value is zero, it returns a random number based on the system's internal timer, similar to other home computer platforms. If the value is positive, it returns the next number in the sequence starting with that seed, so `X=RND(1)` works in a fashion similar to `RANDOMIZE 1:X=RND()`. If the value is negative, it performs the `RANDOMIZE` function with the absolute value of the parameter as the seed value.
+Another common variation is found in Microsoft BASICs, although these vary across implementations. Generally, a negative *aexp* is equivalent to a `RANDOMIZE` with the positive value, such that `RND(-1)` performs the same operation as `RANDOMIZE 1:RND(1)`. As almost every other dialect uses only positive values in *aexp*, this functionality is considered completely compatible, and is supported in RetroBASIC.
 
 Because there is no way to know which of these optional varieties is being used, it is suggested that you use `RND(0)` in any case where it is not clearly specified.
 
 #### Variations:
 
-Sinclair QL BASIC allows a range to be specified, `RND(10 TO 50)`.
+BBC BASIC is an example of a dialect that modifies RND to produce integer values. An *aexp* between 0 and 1 produces fractional values as above, while larger values produce integer results between 1 and that number. For instance, `RND(6)` will produce results 1..6, ideal for simulating dice. As the vast majority of programs use constants for *aexp*, and those constants are typically 0 or 1, this variation may be considered "compatible enough" for inclusion in RetroBASIC.
+
+Sinclair QL BASIC has a similar feature, but uses a more explicit syntax that allows a range to be specified, `RND(10 TO 50)`.
+
+Commodore BASIC uses `RND(0)` to produce a "randomized random value", which is accomplished not by running a typical sequence of operations, but a much simpler series that mixes the last value with the value from an internal timer. As the timer functions vary across their computer models, the outcome of this function also varies. On most machines, the timer is always running and `RND(0)` operates as if it has been seeded with `RANDOMIZE`. On the Commodore 64 the timer does not start automatically and `RND(0)` will normally always return the same value. Note that this is different than dialects like Dartmouth; those will return different values for `RND(0)` every time it is called, although the *sequence* of values will always be the same. In the C64, the value is the same every time and every run. To address this, users were told to add `RND(-TI)` near the start of their programs, using the ticks counter, `TI`, as the seed.
+
+In AppleSoft BASIC, an *aexp* of zero causes the system to return the last value. This appears to be similar to the implementation in Commodore versions, with no ability to tie in a timer.
 
 #### See also:
 
 * `RANDOMIZE`
 
+#### Availability:
+
+Support for negative values seeding the sequence was added in 1.9.1
+
 <!-- TOC --><a name="sgnaexp"></a>
 ### `SGN`(*aexp*)
 
-Returns a — 1 if *aexp* evaluates to a negative number, a 0 if *aexp* evaluates to 0, or a 1 if *aexp* evaluates to a positive number.
+Returns —1 if *aexp* evaluates to a negative number, a 0 if *aexp* evaluates to 0, or a 1 if *aexp* evaluates to a positive number.
 
 #### Variations:
 
-Early dialects, including Dartmouth, returned 1 for all positive numbers, including 0. Almost all later dialects return 0 in this case.
+Early dialects, including Dartmouth, returned 1 for all positive numbers, including 0. Almost all later dialects, including RetroBASIC, return 0 in this case.
 
 <!-- TOC --><a name="sqraexp"></a>
 ### `SQR`(*aexp*)
