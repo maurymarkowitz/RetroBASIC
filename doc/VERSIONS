@@ -132,3 +132,4 @@ Version 1.9.1 - 13 February 2024
 
 - added DIV operator, for integer division. 7 DIV 3 returns 2
 - negative parameter values in RND() now perform a RANDOMIZE, as is the case in MS BASICs
+- added Integer BASIC's variation on TAB, which is a statement not a pseudo-function

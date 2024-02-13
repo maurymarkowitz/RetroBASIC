@@ -1078,7 +1078,7 @@ Because there is no way to know which of these optional varieties is being used,
 
 #### Variations:
 
-BBC BASIC is an example of a dialect that modifies RND to produce integer values. An *aexp* between 0 and 1 produces fractional values as above, while larger values produce integer results between 1 and that number. For instance, `RND(6)` will produce results 1..6, ideal for simulating dice. As the vast majority of programs use constants for *aexp*, and those constants are typically 0 or 1, this variation may be considered "compatible enough" for inclusion in RetroBASIC.
+Apple's Integer BASIC is an example of a dialect that modifies RND to produce integer values, as is BBC BASIC An *aexp* between 0 and 1 produces fractional values as above, while larger values produce integer results between 1 and that number. For instance, `RND(6)` will produce results 1..6, ideal for simulating dice. As the vast majority of programs use constants for *aexp*, and those constants are typically 0 or 1, this variation may be considered "compatible enough" for inclusion in RetroBASIC.
 
 Sinclair QL BASIC has a similar feature, but uses a more explicit syntax that allows a range to be specified, `RND(10 TO 50)`.
 
@@ -1489,12 +1489,18 @@ Produces:
 
 #### Variations:
 
-Early instances of `STRING$`, in BASIC-PLUS for instance, only support an ASCII character value in the second parameter. The ability to use a string parameter appeared later; it was available on the TRS-80, but it is unlikely that was the first example.
+Early instances of `STRING$`, in BASIC-PLUS for instance, only support a single ASCII character value in the second parameter. The ability to use a string parameter appeared later; it was available on the TRS-80, but it is unlikely that was the first example.
 
 <!-- TOC --><a name="tabaexp"></a>
 ### `TAB`(*aexp*)
 
-`TAB` is a pseudo-function, normally used only in `PRINT` statements. In most dialects, it does not return a value; instead, it advances the cursor to the column given by *aexp*. This is used to line up output in tabular format. In RetroBASIC, `TAB` *does* return a string, one containing enough spaces to advance from the current `POS` to the indicated column.
+`TAB` is a pseudo-function, normally used only in `PRINT` statements. This is used to line up output in tabular format, by specifying the same *aexp* for values that should be aligned.
+
+In most dialects, `TAB` does not return a value; instead, it directly advances the cursor to the column given by *aexp* and returns nothing. For instance, in MS dialects, `A$=TAB(10)` will return a syntax error when run.  In RetroBASIC, `TAB` *does* return a string, one containing enough spaces to advance from the current `POS` to the indicated column.
+
+#### Variations:
+
+In Apple's Integer BASIC, `TAB` is a statement, not a function. To advance the cursor to column 10 and print "HELLO", one uses `TAB 10:PRINT "HELLO"`. By any measure, this is a more correct syntax. This is not currently supported.
 
 <!-- TOC --><a name="timedexp-and-timeaexp"></a>
 ### `TIME`{(*dexp*)} and `TIME=`*aexp*
@@ -1511,7 +1517,7 @@ Returns the real-time clock's time value in *jiffies*, which are 1/60ths of a se
 
 #### Notes:
 
-The definition of a jiffy is highly platform-dependant. For instance, on Atari machines, it was 1/30th of a second for machines using NTSC, and 1/25th on those using PAL or SECAM. On the BBC, it was 1/100th. This means that existing code that uses `TIME`, `TIME$` or `PAUSE` may work differently under RetroBASIC.
+The definition of a jiffy is platform-dependant. For instance, on Atari machines, it was 1/30th of a second for machines using NTSC, and 1/25th on those using PAL or SECAM. On the BBC, it was 1/100th. This means that existing code that uses `TIME`, `TIME$` or `PAUSE` may work differently under RetroBASIC.
 
 <!-- TOC --><a name="timedexp-and-clk"></a>
 ### `TIME$`(*dexp*) and `CLK$`
