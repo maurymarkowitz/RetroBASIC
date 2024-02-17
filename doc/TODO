@@ -9,6 +9,8 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
+- add dummy function for ADR
+
 - support RETURN lineno from MSX
 
 - add parameter checking to functions, currently most of them don't check that they were passed a string/number
