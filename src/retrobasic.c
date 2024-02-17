@@ -757,7 +757,7 @@ static value_t evaluate_expression(expression_t *expression)
     case op:
       // build a list of values for each of the parameters by recursing
       // on them until they return a value
-      for (int i = 0; i < expression->parms.op.arity; i++)
+      for (int i = 0; i <= expression->parms.op.arity; i++)
         parameters[i] = evaluate_expression(expression->parms.op.p[i]);
       
       // now calculate the results based on those values
@@ -771,17 +771,25 @@ static value_t evaluate_expression(expression_t *expression)
           case PI:
             result.number = M_PI;
             break;
+            
           case RND:
+          {
             // if the value is negative, perform a randomize with that value
-            if (parameters[0].number != 0.0) {
+            if (parameters[0].number < 0.0) {
               srand(parameters[0].number);
               // prime the RNG, see notes in main loop
               (void)rand();
               (void)rand();
             }
-                        
-            // TODO: support alternative RNDs that return limited values
+            
+            // get a value between 0..<1
             result.number = ((double)rand() / (double)RAND_MAX); // don't forget the cast!
+            
+            // and if the parameter > 1 then multiply it and floor to get 0..x
+            if (parameters[0].number >= 1.0) {
+              result.number = floor(result.number * floor(parameters[0].number));
+            }
+          }
             break;
 						
 						// TIME is the number of jiffies since the last restart, always 1/60 even on PAL.
