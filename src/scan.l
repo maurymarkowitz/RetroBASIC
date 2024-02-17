@@ -147,11 +147,11 @@ INKEY\$   { return INKEY; }
 
  /* system functions */
 FRE       { return FRE; }
-TAB			  { return TAB; }
+TAB			  { return TAB; }   // also a statement in Integer BASIC
 SPC			  { return SPC; }
 SPA       { return SPC; }   // from HP, same as SPC
 PEEK      { return PEEK; }  // also EXAM (North Star) and FETCH (Digital Group Opus)
-POS       { return POS; } // COUNT in Atom
+POS       { return POS; }   // COUNT in Atom
 USR       { return USR; }
 LIN       { return LIN; }
 
