@@ -152,7 +152,9 @@ For example:
 
 `PRINT` [*exp*{|[;|,]},...]]
 
-This indicates that the PRINT statement consists of the statement keyword followed by zero or more optional expressions separated by nothing, a semicolon, or a comma. The *exp* indicates that any expression type may be used. Note that the line number is not indicated at the front, nor are the <CR> or <Enter> at the end, as these are assumed to be in the source code.
+This indicates that the PRINT statement consists of the statement keyword `PRINT` followed by zero or more optional expressions separated by nothing, a semicolon, or a comma. The *exp* indicates that any expression type may be used, numeric or string.
+
+Note that the line number is not indicated at the front, nor are the <CR> or <Enter> at the end, as these are assumed to be in the source code.
 
 <!-- TOC --><a name="introduction"></a>
 ## Introduction
@@ -164,11 +166,11 @@ RetroBASIC is a multi-lingual version of the BASIC programming language intended
 
 - Dartmouth BASIC Version 4
 - HP Timeshared BASIC
-- DEC BASIC-PLUS and its better-known offshoot: Microsoft BASIC
+- DEC BASIC-PLUS and its better-known offshoot, Microsoft BASIC
 
-While most BASIC dialects take their basic syntax and keywords from the original Dartmouth BASIC, they began to diverge in the late 1960s into these three general families. The goal of RetroBASIC is to run any program written for these dialects and their many offshoots.
+While most BASIC dialects take their basic syntax and keywords from the original Dartmouth BASIC, they began to diverge in the late 1960s into these three general families. The goal of RetroBASIC is to run any program written for these dialects and the many offshoots.
 
-So, for instance, RetroBASIC can run the version of Super Star Trek found in *BASIC Computer Games*, a Microsoft BASIC variation that is likely one of the most widely-ported games in history. But it can also run the (non-Super) Star Trek found in the earlier *101 BASIC Games*, written for DEC BASIC. It can also run most programs from *What to do After You Hit Return*, which are written in HP's dialect. Practically any major program should run properly without conversion.
+So, for instance, RetroBASIC can run the version of Super Star Trek found in *BASIC Computer Games*, written in Microsoft BASIC and likely one of the most widely-ported games in history. But it can also run the (non-Super) Star Trek found in the earlier *101 BASIC Games*, written for DEC BASIC. It can also run most programs from *What to do After You Hit Return*, which are written in HP's dialect. Practically any major program should run properly without conversion.
 
 Programs must be provided in plain text, better known as "source code". RetroBASIC cannot read binary files from other platforms, which was the normal way to store BASIC programs on home computers. There are a variety of programs available that will read these binary files and output text, which can then be run in RetroBASIC.
 
@@ -180,18 +182,18 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
 - the language is intended to *run* programs, not *edit* them, and it thus lacks an interactive editor
 - you cannot `LIST` a program, `LOAD` or `SAVE` it
 - it does not include any platform-specific instructions like sound or graphics, as these are not portable
-- if does not (currently) have file handling features, as these vary considerably across platforms
+- it does not (currently) have file handling features, as these vary considerably across platforms
 
 <!-- TOC --><a name="some-underlying-concepts"></a>
 ## Some underlying concepts
 
-Programming languages, in general, use english-like words to describe a number of instructions that will be carried out in order to produce a desired result. This textual description is known as the *source code*. These instructions have to be converted into an internal format that the computer understands, as opposed to the english-like source code which is understood by the programmer. RetroBASIC performs this conversion. The result of the conversion is the *machine code* or *p-code* depending on how the system works. This internal language can then be *executed*, or in BASIC lingo, *run*.
+Programming languages, in general, use english-like words to describe a number of instructions that will be carried out in order to produce a desired result. This textual description is known as the *source code*. These instructions have to be converted into an internal format that the computer understands, as opposed to the english-like source code which is designed to be understood by the programmer. RetroBASIC performs this conversion. The result of the conversion is the *machine code* or *p-code* depending on how the system works. This internal language can then be *executed*, or in BASIC lingo, *run*.
 
 Like most computer languages, BASIC has a number of **keywords** that are reserved by the language. In BASIC, the list of keywords is normally fixed, meaning that users cannot add new keywords or modify the actions of existing ones. This contrasts with programming languages like ALGOL which were based around the idea of creating new keywords in code. As new keywords cannot be created in most BASIC dialects, BASIC tends to have many more reserved keywords than other languages in order to ensure the functionality you need is present.
 
 In BASIC, the series of instructions that makes up the program are known as **statements**. A statement consists of a keyword and then zero or more **expressions**. Only certain keywords can appear at the front of a statement, others only as part of an expression. To confuse matters, the subset of keywords that can appear at the front are often referred to as "statements" as well, while other dialects refer to these special keywords simply as "keywords". To avoid confusion, this manual will use the term **statement keywords** for this subset of reserved words and to clearly separate the concept of a statement from a keyword.
 
-In most dialects, a subset of the statement keywords can only be used in certain circumstances and are known as **commands**. Commands *are* statements, and both commands and statement keywords are used *in* statements.
+In most dialects, a subset of the statement keywords can only be used in certain circumstances and are known as **commands**. Commands *are* statements, and both commands and statement keywords can be used *in* statements.
 
 The purpose of an **expression** is to provide data to be acted on by the statements. There are many different types of expressions and much of a program's complexity is found within them. The primary types of expressions are classified by type:
 
@@ -354,24 +356,24 @@ Some systems allow `GOODBYE` in place of or in addition to `BYE`.
 <!-- TOC --><a name="clr-and-clear"></a>
 ### `CLEAR` and `CLR`
 
-Clears the stored values of all variables and resets the dimensions of all arrays, resets the `DATA` pointer, and clears the runtime stack, thereby resetting all `GOSUB`s and `FOR...NEXT` loops. These same actions are performed when `RUN` is invoked, but `CLEAR` can be called within a program. `CLR` is a common abbreviation, seen primarily in AppleSoft, Commodore and Atari BASIC. This was changed from earlier Microsoft dialects, like BASIC-80, which used `CLEAR`.
+Clears the stored values of all variables and resets the dimensions of all arrays, resets the `DATA` pointer, and clears the runtime stack, thereby resetting all `GOSUB`s and `FOR...NEXT` loops. These same actions are performed when `RUN` is invoked, but `CLEAR` can be called within a program without restarting execution at the top. `CLR` is a common abbreviation, seen primarily in AppleSoft, Commodore and Atari BASIC. This was changed from earlier Microsoft dialects, like BASIC-80, which used `CLEAR`.
 
 Some dialects allow a parameter to be passed to define how much memory to reserve for string storage. Examples included BASIC-80 and TRS-80 Level II. This is not supported in RetroBASIC, which has (effectively) unlimited memory.
 
 #### Variations:
 
-Wang BASIC offers a number of variations on `CLEAR`. Using `CLEAR` by itself performs a `NEW`. `CLEAR P` removes all the lines of the program but leaves the variables intact. Line numbers can follow the P, in which case only the range of lines between (and including) those numbers will be removed. `CLEAR V` clears variables, performing the same action as `CLEAR` in other dialects, and `CLEAR N` does the same but only for those variables not previously declared "common". These variations are used to allow one program to call another at runtime, a feature that most dialects that support this implement using the `CHAIN` command.
+Wang BASIC offers a number of variations on `CLEAR`. Using `CLEAR` by itself performs a `NEW`, erasing the program completely. `CLEAR P` removes all the lines of the program but leaves the variables intact. Line numbers can follow the P, in which case only the range of lines between (and including) those numbers will be removed. This usage matches what most dialects called `DELETE`. `CLEAR V` clears variables, performing the same action as `CLEAR` in other dialects, and `CLEAR N` does the same but only for those variables not previously declared "common". These variations are used to allow one program to call another at runtime, a feature that most dialects that support this implement using the `CHAIN` command.
 
 The TRS-80 allows a single numeric expression as a parameter. If present, it sets aside that amount of memory for storing strings.
 
 Amstrad CPC BASIC offers the `ERASE` variation which is a `CLEAR` that is applied to a list of variables instead of all of them.
 
-BBC BASIC also offers `OLD`, which recovers an accidentally `NEW`ed program, which occurred all too easily by pressing the system reset key. On most other dialects that had an `OLD`, like Dartmouth, it was the equivalent of `LOAD`.
+BBC BASIC also offers `OLD`, which recovers an accidentally `NEW`ed program. This was required because pressing the system reset key erased the program. On most other dialects that had an `OLD`, like Dartmouth, it was the equivalent of `LOAD`.
 
 <!-- TOC --><a name="cls"></a>
 ### `CLS`
 
-Clears the screen. On modern machines with scrollback buffers in the console, the scrolled text will likely still be there.
+Clears the screen. On modern machines with scrollback buffers in the console, the scrolled text will likely still be there, as is the case with RetroBASIC running in most console programs.
 
 <!-- TOC --><a name="end"></a>
 ### `END`
@@ -470,20 +472,22 @@ Some dialects, like Sinclair and TRS-80, allow only a single variable per `DIM`.
 Enterprise IS-BASIC allows the `TO` keyword to define the upper and lower limits of the array. For instance, `DIM A(10 TO 20)` defines an array with 11 entries, from 10 to 20 instead of 0 to 10.
 
 <!-- TOC --><a name="goto-and-go-to"></a>
-### `GOTO` *nexp* and `GO TO` *nexp*
+### `GOTO` *aexp* and `GO TO` *aexp*
 
 BASIC progresses through a program by performing statements one at a time, moving to the next statement when one is completed. In this respect, a program can be thought of as a single, long list of statements. This normally linear flow is interrupted by **branches**, statements that deliberately send the execution to another point in the program. In BASIC, branches move to a **target**, which is indicated by a line number.
 
-The simplest form of branch in BASIC is the `GOTO`, or as it was in early versions of Dartmouth BASIC, `GO TO`. `GOTO` always moves to the line number following the statement keyword and is thus also known as an **unconditional branch**. In most dialects, the expression following the keyword must be a number constant, but some allow any valid numeric expression, examples being Tiny BASIC and Atari BASIC. RetroBASIC supports both forms of the keyword and allows the use of any expression as long as it produces a valid line number.
+The simplest form of branch in BASIC is the `GOTO`, or as it was in early versions of Dartmouth BASIC, `GO TO`. `GOTO` always moves to the line number following the statement keyword and is thus also known as an **unconditional branch**. In most dialects, the expression following the keyword must be a number constant, but some allow any valid numeric expression, examples being Tiny BASIC and Atari BASIC.
+
+RetroBASIC supports both forms of the keyword and allows the use of any expression in *aexp* as long as it produces a valid line number. If the line number does not exist, RetroBASIC normally returns an error and stops execution. Some dialects do not cause an error in this case, and instead move to the next valid line. RetroBASIC supports this behavior by turning on the `--goto-next` command line switch.
 
 #### Examples:
 
-    100 PRINT 100
+    100 PRINT "Hello"
     110 GOTO 200
-    120 PRINT 120
+    120 PRINT " World!"
     200 END
     
-This program will print "100" to the user's console, as the second print statement, on line 120, will be skipped over by the branch on line 110.
+This program will print "Hello" to the user's console, as the second print statement, on line 120, will be skipped over by the branch on line 110.
 
 #### See also:
 
@@ -492,7 +496,7 @@ This program will print "100" to the user's console, as the second print stateme
 <!-- TOC --><a name="gosub-and-return"></a>
 ### `GOSUB` and `RETURN`
 
-`GOSUB` statements are unconditional branches like a `GOTO`, but differ in that they record the position in the code where they were called. They do this by writing down the location of the `GOSUB` in a special area in memory known as the "runtime stack", or simply "the stack". They then branch to the target and continue as normal until they encounter a `RETURN` statement. At that time, they removed the entry on the stack they added earlier and used the location they found to continue at the statement after the original `GOSUB`.
+`GOSUB` statements are unconditional branches like a `GOTO`, but differ in that they record the position in the code where they were called. They do this by writing down the location of the `GOSUB` in a special area in memory known as the **runtime stack**, or simply the **stack**. They then branch to the target and continue as normal until they encounter a `RETURN` statement. At that time, they removed the entry on the stack they added earlier, and used the location they found to continue at the statement after the original `GOSUB`.
 
 The name "GOSUB" is a contraction of "go to subroutine". Subroutines are small sub-programs that perform a task and then return. For instance, one might write a subroutine to calculate the value of pi and then call that code repeatedly with different input values from different locations in the code. This allows the calculation code to be isolated, often placed near the bottom of the program to separate it visually, and then called from different parts of the rest of the program.
 
@@ -514,7 +518,7 @@ Later versions of MS BASIC, notably MSX and BASIC-A, allow a line number express
 #### Notes:
 
 Many dialects of BASIC will search for a branch target, starting at the top of the program and then looking through the entire source code for the matching line. Normally, subroutines are placed at the end of the program to separate them, often using large line numbers to make this more obvious. However, this also maximizes the amount of time it takes to find the subroutine at runtime and slows performance. For this reason, programs looking to improve performance would sometimes place their subroutine code at the top of the program and then have a `GOTO` to jump past it when the program started. This led to the code being difficult to read.
-    
+
 #### See also:
 
 * `LABEL`
@@ -530,7 +534,7 @@ In early versions of Dartmouth BASIC, the only thing that could follow the `THEN
 
 This limitation was removed from later versions of Dartmouth, which allow one or more statements of any sort to follow the `THEN`. In the common case where only one statement needs to be performed, placing it after the `THEN`, instead of branching to or around it, can lead to dramatically more readable code. If there is more than one statement after the `THEN`, these are performed all-or-nothing; if the logical expression is true, all of the following statements *on the same line* are performed; if it fails, *none* of them are performed and the program moves to the first statement on the next line. A few memory-limited dialects, notably Sinclair BASIC, lacked the ability to place any statement after `THEN`, and thus followed the original Dartmouth syntax.
 
-This change also leads to the curious syntax that one can still perform the action of `THEN GOTO` a line without a `GOTO`, as the original `THEN` (line) style was retained for compatibility reasons. A more obvious syntax is to use the `THEN GOTO` (line), but this is never seen in real programs. Some dialects also allow the alternative syntax of a `GOTO` or `GOSUB` without the then, `IF X=0 GOTO 100`. RetroBASIC supports all of these options.
+This change also leads to the curious syntax that one can still perform the action of `THEN GOTO` to branch to a line without a `GOTO`. This allows the original `THEN` *lineno* style to be used, which was retained for compatibility reasons. A more obvious syntax is to use the `THEN GOTO` *lineno*, but this is never seen in real programs. Some dialects also allow the alternative syntax of a `GOTO` or `GOSUB` without the `THEN`, for instance, `IF X=0 GOTO 100`. RetroBASIC supports all of these options.
 
 Later versions of BASIC generally support an optional `ELSE` clause, which is performed if the *lexp* returns false. RetroBASIC does not (currently) support this feature.
 
@@ -552,7 +556,7 @@ Unlike the previous examples, this version performs a statement instead of a bra
     200 X=0
     300 REM do other things
 
-This ultimately performs the same statements but can be much more difficult to understand, as the logical operator is the opposite of what the code is trying to accomplish, and line 300 may be farther down the program and thus hard to find visually.
+This ultimately performs the same actions, but can be much more difficult to understand as the logical operator is the opposite of what the code is trying to accomplish, and line 300 may be farther down the program and thus hard to find visually.
 
     10 IF AA=145 AND BB=1 THEN PRINT AA,BB
     
@@ -586,11 +590,12 @@ The `ON` statement, also known as the **computed branch**, combines a series of 
 
     300 A=2
     310 ON A GOTO 400,500,600
-    400 STOP
-    500 BYE
-    600 END
+    400 PRINT "A IS 1"
+    500 PRINT "A IS 2"
+    600 PRINT "A IS 3"
+    700 END
 
-This program will perform a `STOP`, `BYE` or `END` depending on the value in the numeric variable `A`. Line 10 assigns the value 2 to A, so the program will perform `BYE`.
+This program will print a `A IS 1`, `2` or `3` depending on the value in the numeric variable `A`. Line 10 assigns the value 2 to A, so the program will perform  `A IS 2`.
 
 #### Variations:
 
@@ -599,32 +604,76 @@ Some dialects use the alternate syntax `GOTO` *aexpr* `ON` and `GOSUB` *aexpr* `
 <!-- TOC --><a name="for-avaraexpr1-to-aexpr2-step-aexpr3-statmnt-and-next-avaravar"></a>
 ### `FOR` *avar*=*aexpr1* `TO` *aexpr2* [`STEP` *aexpr3*] {:|}<CR>} [*statmnt*,{:|}<CR>}...] and `NEXT` [*avar*,[*avar*,...]]
 
-Another of the common statements found in BASIC is the FOR/NEXT loop. When this is encountered at runtime, the system calculates the value *aexpr2* and caches it on the stack. If the optional `STEP` is used, it also calculates and caches the value of *aexpr3*, if `STEP `is not used, it defaults to the value 1. It then sets the value of *avar* to the calculated value of *aexpr1*.
-    
-Execution then continues by performing any following statements, continuing until it encounters the `NEXT`. At that point, it adds the value of *aexpr3* to *avar* and compares it to *aexpr2*; if the result in *avar* is less or equal than *aexpr2*, it returns to the first statement after the `FOR`, if it is larger than *aexpr2*, it continues with the statement after the `NEXT`, thereby terminating the loop.
+Another of the common statements found in BASIC is the FOR/NEXT loop. This is intended to perform a sequence of actions a set number of times. The statements are those between the `FOR` and its corresponding `NEXT`, which is known as the *body* of the loop. The same behavior can be accomplished using IF statements, but FOR/NEXT loops are optimized to make them run much faster.
 
-Some dialects allow the variable name to be left off the `NEXT`, although this is sometimes considered bad form. Others, like later versions of Microsoft BASIC, allow multiple comma-separated variable names, so a single `NEXT` can close multiple loops. RetroBASIC supports all of these forms.
+When a `FOR` is encountered at runtime, the system calculates the values of all of the provided *aexpr*s. `STEP` is optional, and if it is missing, *aexpr3* is set to 1. *avar* is then set to the value of *aexpr1*. It then continues execution at the next statement, continuing as normal until it reaches the `NEXT`. At that point, it adds the value in *aexpr3* to *avar*. If the result in *avar* is now equal to or larger than *aexpr2*, execution continues with the statement after the `NEXT`. If the value is smaller, execution returns to the statement after the `FOR`, continuing the loop.
+
+In most cases, FOR/NEXT loops are used where a pre-determined number of executions is desired. However, it is possible to change the normal behavior, either by assigning a value into *avar* to cause it to exit at the `NEXT`, or alternately, branching out of the body using a `GOTO` or `IF`. Branching out may cause errors later in execution, and some dialects offer solutions for this, like `POP`.
+
+Many dialects allow the variable name to be left off the `NEXT`, although this is sometimes considered bad form. Others, like later versions of Microsoft BASIC, allow multiple comma-separated variable names, so a single `NEXT` can close multiple loops. RetroBASIC supports all of these forms.
     
 #### Examples:
 
-This code will produce ten lines of output, containing the numbers 1 through 10:
+This code will produce five lines of output, containing the numbers 1 through 5:
 
-    10 FOR X = 1 TO 10
+    10 FOR X = 1 TO 5
     20 PRINT X
     30 NEXT X
-    
-This example is similar to the one above but demonstrates multiple statements in the `FOR/NEXT` "block", as well as leaving off the variable name from the `NEXT`:
+
+This program will produce:
+
+     1
+     2
+     3
+     4
+     5
+
+The same output can be generated using branching:
+
+    10 X=X+1
+    20 PRINT X
+    30 IF X<5 THEN 10
+
+Using FOR/NEXT for this sort of task makes the code run faster and more clearly indicates the intentions of the programmer.
+
+This example is similar to the one above but demonstrates multiple statements in the FOR/NEXT body, as well as leaving off the variable name from the `NEXT`:
 
     10 FOR Y=10 TO 20 STEP 2
     20 A=A+Y
     30 PRINT A
     40 NEXT
 
+Loops can be *nested* inside another loop:
+
+    10 FOR X=1 TO 3
+    20 PRINT "OUTER LOOP"
+    30 Z=0
+    40 Z=Z+2
+    50 FOR Y=1 to 5 STEP Z
+    60 PRINT "     INNER LOOP"
+    70 NEXT Y
+    80 NEXT X
+
+This program will produce:
+
+    OUTER LOOP
+         INNER LOOP
+         INNER LOOP
+         INNER LOOP
+    OUTER LOOP
+         INNER LOOP
+         INNER LOOP
+         INNER LOOP
+    OUTER LOOP
+         INNER LOOP
+         INNER LOOP
+         INNER LOOP
+
 #### Notes:
 
-In home computer interpreters, `FOR/NEXT` loops are much faster than loops constructed using `IF/THEN`. This is because the values of *aexpr1* and *aexpr2* are calculated only once when the loop is first encountered, and then *cached* for future reference. Using an `IF`, the system has to re-evaluate all of the expressions every time through the loop. Additionally, the starting position of the loop is saved in the same manner as a `GOSUB`, meaning the loop does not have to search for the top of the list of statements. In the most common case that the loop is not yet complete, it can move back to the correct statement immediately. Even in compiled versions, which calculate the statement locations for all branches, skipping the calculations of the *aexpr*s can still result in noticeable performance improvements.
+In home computer interpreters, `FOR/NEXT` loops are much faster than loops constructed using `IF/THEN`. This is because the values of the *aexpr*s are calculated only once when the loop is first encountered, and then cached on the runtime stack for future reference. Using an `IF`, the system has to re-evaluate the expressions every time through the loop. Additionally, the starting position of the loop is saved in the same manner as a `GOSUB`, meaning the loop does not have to search through the list of statements to find the top of the loop. If the loop is not yet complete, which is typically the majority of times, it can move back to the correct statement immediately. Even in compiled versions, which calculate the statement locations for all branches and thus makes branching much faster, skipping the repeated calculations of the *aexpr*s can still result in noticeable performance improvements.
 
-Some dialects from the early microcomputer era do not have FOR/NEXT loops, the most prominent example being Tiny BASIC. Code for these interpreters will use `IF/THEN` for looping, and would normally run very slow as a result. A few dialects, notably Atari and Sinclair, do not cache the memory location of the first statement in the block, but cache the line number instead. These dialects run much slower, as they have to search through the entire program to find the top of the loop over and over again. This led to various dialect-specific tricks intended to improve performance. All of these run essentially instantaneously in RetroBASIC.
+Some dialects from the early microcomputer era do not have FOR/NEXT loops, the most prominent example being Tiny BASIC. Code for these interpreters will use `IF/THEN` for looping, and would normally run very slow as a result. A few dialects, notably Atari and Sinclair, do not cache the memory location of the first statement in the block, but the line number instead. These dialects run much slower, as they have to search through the entire program to find the top of the loop over and over again. This led to various platform-specific tricks intended to improve performance. All of these run essentially instantaneously in RetroBASIC.
 
 Dartmouth and most other compilers, as well as the later ANSI Full BASIC, do not run the body of the loop if the index value is beyond the upper limit when it enters the loop. For instance:
 
@@ -691,6 +740,7 @@ In this example, there are two entries on the stack during the execution of the 
 ### `PAUSE` *aexp*
     
 `PAUSE` stops execution of the program for *aexp* *jiffies*. In RetroBASIC, a jiffy is a 60th of a second.
+
 #### Notes:
 
 The definition of a jiffy varies widely across platforms. See details in `TIME`.
@@ -701,16 +751,16 @@ The definition of a jiffy varies widely across platforms. See details in `TIME`.
 
 #### Availability:
 
-1.8.4
+`PAUSE` was added in 1.8.4.
 
 <!-- TOC --><a name="label-nvar"></a>
 ### `LABEL` *nvar*
 
-`LABEL` is an assignment statement, like `LET`, that sets the value of the *nvar* to the current line number. This is intended to be used with branches that may wish to use a variable instead of a numeric constant. If a traditional variable assignment is used to store a line number and the target later moves or its line number is changed, the variable will no longer point to the right line of code. Using `LABEL` to set these values ensures the variable always contains the correct value, even if the program is edited.
+`LABEL` is an assignment statement, like `LET`, that sets the value of the *nvar* to the current line number. This is intended to be used with branches that may wish to use a variable instead of a numeric constant. If a traditional variable assignment is used to store a line number and the target code moves or its line number is changed, the variable will no longer point to the right line of code. Using `LABEL` to set these values ensures the variable always contains the correct value, even if the program is edited.
 
 A number of dialects included a `LABEL`-like feature, but there was no standard syntax for this concept. For example, Acorn Atom BASIC had labels that were implemented by typing a single lower-case letter after the line number on the line to be labeled. Atari and Tiny BASIC allowed branches to expressions, but lacked a `LABEL` concept and was thus subject to errors if the program was edited.
 
-`LABEL` should be considered a RetroBASIC-only feature, useful for converting code from those platforms that support a similar feature.
+`LABEL` should be considered a RetroBASIC-only feature, useful for converting code from those platforms that support a similar feature. For instance, an Atom program that has a `s` label on a line can be converted to RetroBASIC by adding the statement `LABEL s` to the start of the line.
 
 #### Examples:
 
@@ -720,7 +770,7 @@ A number of dialects included a `LABEL`-like feature, but there was no standard 
 
 #### Availability:
 
-1.8.3
+`LABEL` was added in 1.8.3.
 
 <!-- TOC --><a name="call-system-and-sys"></a>
 ### `CALL` *aexp*[,*aexp*...], `SYSTEM` and `SYS`
@@ -733,7 +783,7 @@ In some dialects, `CALL` is also used to run user-written subroutines in BASIC. 
 
 Most platforms used `CALL`, the notable exception being Commodore BASIC which used `SYS`, which they took from BASIC-PLUS on the DEC-10. Sperry Univac System/9 also used `SYS`. The Dragon-32 used `EXEC`.
 
-The Color Genie required the address to be passed in hex format. All number constants in RetroBASIC can be entered in hex format, and this will work "naturally" if the 0h or 0x prefix is placed on the constant.
+The Color Genie required the address to be passed in hex format. All number constants in RetroBASIC can be entered in hex format, so this will work properly if the 0h or 0x prefix is placed on the constant.
 
 Some dialects allowed parameters to be passed in after the address. Amstrad CPC allowed a single parameter, BBC BASIC allowed a list.
 
@@ -747,7 +797,7 @@ Later IBM PC dialects used `SYSTEM` as an alias for `BYE`, exiting to the DOS sh
 
 `OPTION BASE` was introduced in Dartmouth BASIC version 4. It allows you to select whether arrays start at index 0, or 1. Earlier versions used base 1, and when base 0 was introduced later that meant that all arrays ended up with additional unused elements. For those programs that used a base index of 1, which is many of them, using `OPTION BASE 1` before using `DIM` statements would eliminate this wasted memory.
 
-RetroBASIC supports this function, but it has no real effect. Memory constraints are no longer an issue so there is no reason not to include a 0th item. The only effect is a minor one, the function `LBOUND` will return 0 or 1 depending on this setting.
+RetroBASIC supports this function, but it has no real effect. Memory constraints are no longer an issue, so there is no reason not to include a 0th item. The only effect is a minor one, the function `LBOUND` will return 0 or 1 depending on this setting.
 
 #### Variations:
 
@@ -763,11 +813,13 @@ This section describes the input/output statements that are used to access and d
 <!-- TOC --><a name="print-exp"></a>
 ### `PRINT` [*exp*{|[;|,]},...]]
 
-`PRINT` is used to produce output on the user's console. It is one of the most common statements found in most BASIC programs. The statement is designed to be very flexible, able to output values from any type of expression. In the case of string expressions, the output is sent unchanged to the console. For numeric values, it is formatted to ensure very large or small numbers do not fill the screen.
+`PRINT` is used to produce output on the user's console. It is one of the most common statements found in most BASIC programs. The statement is designed to be very flexible, able to output values from any type of expression. In the case of string expressions, the output is sent unchanged to the console. For numeric values, the values are formatted to ensure very large or small numbers do not fill the screen.
 
-`PRINT` can accept any number of subsequent expressions, including zero. These expressions are separated with one of the three "print separators", the comma, the semicolon, or if the preceding expression is a string constant, nothing. `PRINT` normally outputs a newline when it completes, so it is not uncommon to see a "bare" `PRINT` statement with no expression as a way to print a newline. The newline is not output if the line ends with the semicolon or comma. In that case, any following `PRINT` will start on the same line.
+`PRINT` can accept any number of subsequent expressions, including zero. These expressions are separated with one of the three "print separators", the comma, the semicolon, or if the preceding expression is a string constant, nothing. The comma, the only separator in early versions of Dartmouth, adds a variable number of spaces between items so that they line up vertically. This made it easy to print tables. The semicolon, added later, leaves no space between values.
 
-A curiosity of the BASIC language is that the question-mark may be used as an alias for the `PRINT` statement. This was intended to allow users to type in "questions" at the command line, for instance, `? 5+5`, meaning "what is 5 plus 5". The interpreter would internally expand the question-mark to `PRINT`, perform the expression, and print the result, `10`. As the question-mark is expanded on entry, using it in a program will expand result in `PRINT` appearing in its place when `LIST`ed.
+`PRINT` normally outputs a newline after the last expression. It is not uncommon to see a "bare" `PRINT` statement with no expressions as a way to print a newline and leave blank vertical space. The newline is not output if the line ends with the semicolon or comma. In that case, any following `PRINT` will start on the same line.
+
+A curiosity of the BASIC language is that the question-mark may be used as an alias for the `PRINT` statement. This was intended to allow users to type in "questions" at the command line, for instance, `? 5+5`, meaning "what is 5 plus 5?" The interpreter would internally expand the question-mark to `PRINT`, perform the expression, and print the result, `10`. As the question-mark is expanded on entry, using it in a program will expand result in `PRINT` appearing in its place when `LIST`ed.
 
 There are a number of oddities and gotchas in common dialects, many of which are not mentioned in most references.
 
@@ -1073,7 +1125,7 @@ BASICs originating in the UK, including BBC and Sinclair, among others like the 
 
 #### Availability:
 
-* `LN` was added in 1.9.0
+`LN` was added in 1.9.0.
 
 <!-- TOC --><a name="pidexp"></a>
 ### `PI`[(*dexp*)]
@@ -1122,8 +1174,8 @@ BBC BASIC supports the integer value syntax for *aexp* larger than zero, and thi
 
 #### Availability:
 
-Support for negative values seeding the sequence was added in 1.9.1
-Support for integer values for *aexp* > 1 was added in 1.9.1
+Support for negative values seeding the sequence was added in 1.9.1.
+Support for integer values for *aexp* > 1 was added in 1.9.1.
 
 <!-- TOC --><a name="sgnaexp"></a>
 ### `SGN`(*aexp*)
@@ -1385,15 +1437,17 @@ Produces:
 
 ### *svar*{(|[}*aexp*[{,|:|TO}*aexp*]{)|]}
 
-String slicing is an alternative way to produce substrings and manipulate existing strings. Although slicing instructions are not functions in the traditional sense, they produce results similar to the `MID/LEFT/RIGHT` functions. The major difference between the slicing concept and string functions is that the functions take a location and length, whereas slices use two locations. This can result in off-by-one errors when converting code from one system to another.
+String slicing is an alternative way to manipulate string and produce substrings. A "slice" is a substring defined as a starting and ending location within an existing string. Although slicing instructions are not functions in the traditional sense, they produce results similar to the `MID/LEFT/RIGHT` functions. The major difference between the slicing concept and string functions is that the functions take a location and length, not start and end locations. This can result in off-by-one errors when converting code from one system to another.
 
-A "slice" is a substring defined as a starting and ending location within an existing string. Syntax is generally similar to accessing a slot in an array, but the exact syntax varies. For instance, `A$(1,5)` returns a slice with the first five characters of A$, which produces the same result as `MID$(A$,1,5)` or `LEFT(A$,5)`. They also vary in the way the parameters are separated, most use a comma, but Sinclair uses the `TO` keyword, like `A$(5 TO 5)` and the (little used) Full BASIC used the colon, `A$(5:5)`.
+Slicing syntax is generally similar to accessing a slot in an array, but the exact syntax varies. For instance, in most dialects `A$(1,5)` returns a slice with the first five characters of A$, which produces the same result as `MID$(A$,1,5)` or `LEFT(A$,5)`. They also vary in the way the parameters are separated, most use a comma, but Sinclair uses the `TO` keyword, like `A$(5 TO 5)` and the (little used) Full BASIC used the colon, `A$(5:5)`.
 
-Most slicing implementations allow one or two parameters, with the second parameter optional. If only one is provided, it means "starting at", with the end point being the end of the string. This is similar to the one-parameter version of the `MID$` function, `A$(5)` and `MID$(A$,5)` produce the same results. Sinclair and Full BASIC allows either parameter to be optional, `A$( TO 5)` and `A$(:5)` mean "the portion of A$ from the start to location 5". This is less useful than the more common one-parameter syntax as the starting location is always 1, whereas allowing the computer to automatically calculate the unknown ending location is very useful.
+Most slicing implementations allow one or two parameters, with the second parameter optional. Generally, if there is only one parameter it indicates a single character at that location, thus `A$(5)` is the fifth character in the string. To access the portion of the string after a given location, most dialects allowed the second parameter to be empty, `A$(5,)` means "character 5 to the end of the string". This is very useful, as it means you don't have to know the length of the string for common manipulations.
 
-RetroBASIC is designed to run any program that does not use platform-specific features. As string arrays are relatively commonly, it supports these and has to decide whether a reference in code like `A$(5)` is a slice or an array access. In the case that the syntax is clear, like Sinclair or Full, there is no ambiguity and one can use string arrays and string slicing in the same program using syntax like `A$(5)(5 TO)`, meaning the substring from the 5th character on in the string stored in slot five of `A$`.
+Sinclair and Full BASIC allow either parameter to be optional, `A$( TO 5)` and `A$(:5)` (respectively) mean "the portion of A$ from the start to location 5". This is less useful than the more common one-parameter syntax as the starting location is always 1, whereas allowing the computer to automatically calculate the unknown ending location is very useful.
 
-To work with the dialects that do not have unique syntax, RetroBASIC uses the `--slicing` command-line switch. When turned on, using `--slicing=1`, all "array like" parameters applied to strings are considered slices.
+RetroBASIC is designed to run any program that does not use platform-specific features. As string arrays are relatively commonly, it has to support these and thus has to decide whether a reference in code like `A$(5)` is a slice or an array access. In the case that the syntax is clear, like Sinclair or Full, there is no ambiguity and one can use string arrays and string slicing in the same program using syntax like `A$(5)(5 TO)`, meaning the substring from the 5th character on in the string stored in slot five of `A$`.
+
+To work with the dialects that do not have unique syntax, like Atari BASIC, RetroBASIC uses the `--slicing` command-line switch. When turned on, using `--slicing=1`, all "array like" parameters applied to strings are considered slices.
 
 #### Examples:
 
@@ -1413,7 +1467,7 @@ In a slicing dialect, the same code can be expressed much more simply:
     20 A$(6,6)="."
     30 PRINT A$
 
-This may seem like a small difference, but it had a significant effect in terms of memory use. The string functions return new strings that have to be combined together in the assignment, so the A$ in line 20 is an entirely new string, and the old value is left in memory as well. This means that programs that perform string manipulation using functions often run out of memory performing even simple tasks. In contrast, using slicing means the assignment is editing the original string in memory, so there is no additional memory used up.
+This may seem like a small difference, but it had a significant effect in terms of memory use. The string functions return new strings that have to be combined together in the assignment, so the A$ in line 20 is an entirely new string, and the old value is left in memory as well. Programs that perform string manipulation using functions often run out of memory performing even simple tasks. In contrast, using slicing means the assignment is editing the original string in memory, so there is no additional memory used up.
 
 The same syntax can be used for string concatenation. In MS, one would:
 
@@ -1438,7 +1492,7 @@ In a more practical example that better highlights these differences, consider a
     70 A$=B$
     80 PRINT A$
 
-Every time through the loop, a new version of `B$` is created, one character longer than the last. If this uses up available memory, MS BASIC runs code to reclaim unused memory, which is slow and, from the user's perspective, randomly slows down the program. In contrast:
+Every time through the loop, a new version of `B$` is created, one character longer than the last. If this uses up available memory, MS BASIC runs code to reclaim unused memory, which is slow, buggy, and from the user's perspective, randomly stops the program. In contrast:
 
     10 A$="Hello, World!"
     20 B$=""
@@ -1447,17 +1501,27 @@ Every time through the loop, a new version of `B$` is created, one character lon
     50 NEXT I
     60 PRINT A$
 
-This is not only much easier to understand, no new strings are created at any point and memory is not fragmented.
-
-* Sinclair `TO` support was added in 1.9.0
+This much easier to understand, no new strings are created at any point, and memory is not fragmented.
 
 #### Notes:
 
 HP allowed either parentheses or brackets to be used to denote array slots in numeric arrays, for instance, `A(1,1)` and `A[1,1]` will both return the same value from the array. The same is true for string slices, `A$(1,1)` and `A$[1,1]` will both return the first character in the string.
 
-This is unfortunate, as it means there is no way for the interpreter to distinguish between an array slot and a slice. In HP's case this was not a concern, as it treated strings as arrays of characters, meaning `A$(1,1)` *was* an array access, albeit with the parameters having a different meaning.
+This is unfortunate, as it means there is no way for the interpreter to distinguish between an array slot and a slice. In HP's case this was not a concern, as they did not support arrays of strings. It treated each string as an array of characters, meaning `A$(1,1)` *was* an array access, albeit with the parameters having a different meaning.
 
-Had HP selected one of these two to indicate slicing instead of both, or alternately used a different definition, like Sinclair's `A$(1 TO 10)`, then BASICs could implement string arrays and slicing. For instance, `A$(1,1)[1,1]` would return the first character of the string in slot (1,1).
+Had HP selected one of these two to indicate slicing instead of both, or alternately used a different definition, like Sinclair's `A$(1 TO 10)`, then BASICs could implement string arrays and slicing. For instance, `A$(2,3)[1,1]` would return the first character of the string in slot (2,3).
+
+#### Variations:
+
+String slicing was common in early microcomputer BASICs, which were often written by programmers that were familiar with HP BASIC. Some worked exactly like HP, Atari and Apple Integer BASIC for instance.
+
+One dialect that did support arrays *and* slicing was SCELBAL, which indicated a slice with a leading colon. Thus `A$(1)` refers to the entire string in slot one in a string array, while `A$(1:5:5)` is the fifth character in that string. To slice a string that was not in an array, the slot was simply left off: `A$(:1:5)` returns the first five characters in A$.
+
+Another that supported arrays and slicing was ANSI Full BASIC, which used a separate colon-separated parameter. So `A$(1)(1:1)` is the first character in the first slot of the A$ array.
+
+#### Availability:
+
+Sinclair `TO` support was added in 1.9.0.
 
 <!-- TOC --><a name="system-functions"></a>
 ## System functions
@@ -1466,6 +1530,8 @@ Had HP selected one of these two to indicate slicing instead of both, or alterna
 ### `FRE`(*dexp*)
 
 This function returns the number of bytes of user RAM left. Its primary use is to check the amount of memory left before performing operations that require a large amount of memory.
+
+In RetroBASIC, `FRE` always returns zero.
 
 #### Variations:
 
@@ -1488,7 +1554,7 @@ When POS is called with zero or one dummy parameter, it returns the current posi
 <!-- TOC --><a name="linaexp"></a>
 ### `LIN`(*aexp*)
 
-`LIN` produces *aexp* newlines in the output. The exact nature of `LIN` varies across platforms. On HP systems it is a standalone statement, whereas others treat it as a pseudo-function like `TAB`. RetroBASIC treats it as a true function that returns a string, means it has to be placed in `PRINT` statements to produce output.
+`LIN` produces *aexp* newlines in the output. The exact nature of `LIN` varies across platforms. On HP systems it is a standalone statement, whereas others treat it as a pseudo-function like `TAB`. RetroBASIC treats it as a true function that returns a string, meaning it has to be placed in `PRINT` statements to produce output.
 
 #### Examples:
 
@@ -1562,7 +1628,7 @@ Produces:
      
 #### Availability:
 
-Support for Integer BASIC style TAB statements was added in 1.9.1
+Support for Integer BASIC style TAB statements was added in 1.9.1.
 
 <!-- TOC --><a name="timedexp-and-timeaexp"></a>
 ### `TIME`{(*dexp*)} and `TIME=`*aexp*
