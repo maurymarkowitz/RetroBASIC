@@ -757,7 +757,7 @@ static value_t evaluate_expression(expression_t *expression)
     case op:
       // build a list of values for each of the parameters by recursing
       // on them until they return a value
-      for (int i = 0; i <= expression->parms.op.arity; i++)
+      for (int i = 0; i < expression->parms.op.arity; i++)
         parameters[i] = evaluate_expression(expression->parms.op.p[i]);
       
       // now calculate the results based on those values
