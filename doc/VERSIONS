@@ -132,4 +132,12 @@ Version 1.9.1 - 13 February 2024
 
 - added DIV operator, for integer division. 7 DIV 3 returns 2
 - negative parameter values in RND() now perform a RANDOMIZE, as is the case in MS BASICs
-- added Integer BASIC's variation on TAB, which is a statement not a pseudo-function
+- added Integer BASIC's variation on TAB, which is a statement, not a pseudo-function
+
+Version 2.0.0 -
+
+- added dummy version of ADR, returns 0
+- added EQV and IMP logical operators, seen in IBM and some other versions
+- added RETURN with a line number, seen in MSX. equivalent to a POP and GOTO
+- fixed MOD and DIV operators, added MOD and DIV functions
+- added ASCII, DEC's version of ASC
