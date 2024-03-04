@@ -383,7 +383,8 @@ void insert_typed_variable(const variable_reference_t *variable, int type)
 }
 
 /* Returns true if the variable is a string and the ref has a slice applied. If true
- it returns the start and end points for the slice, otherwise -1. */
+ it returns the start and end points for the slice, otherwise -1.
+ */
 bool slice_limits(const variable_reference_t *variable, const variable_storage_t *storage, int* start, int* end)
 {
   // the slice could be in the slice list or the subscripts lists
@@ -447,7 +448,6 @@ bool slice_limits(const variable_reference_t *variable, const variable_storage_t
   // if we got here, there was no slice on the reference, so...
   return false;
 }
-
 
 /* Similar to variable_value in concept, this code looks through the list of
  user-defined functions to find a matching name and/or inserts it if it's new.
@@ -513,7 +513,7 @@ static value_t double_to_value(const double v)
  in all cases, add a leading space for 0 or +ve values, - for -ve
  
  Item (3) means that 9,999,999,999 is printed as 1E+10, which is precisely the G format in C.
- So the code below it needlessly complex as anything other than 0 uses G. However, we'll leave
+ So the code below is needlessly complex as anything other than 0 uses G. However, we'll leave
  in the IFs so that if we find new versions in the future that follow other rules its easy to
  add them.
  */
@@ -551,8 +551,7 @@ static char* number_to_bin_string(const double d)
   return str;
 }
 
-/* for oct and hex, we can just use the formatters
- */
+/* for oct and hex, we can just use the formatters */
 static char* number_to_oct_string(const double d)
 {
   static char str[33];
@@ -568,7 +567,7 @@ static char* number_to_hex_string(const double d)
   return str;
 }
 
-/* number of jiffies since program start (or reset) 1/60th in Commodore/Atari format */
+/* number of jiffies since program start (or reset), with 1 jiffy = 1/60th of a second */
 static int elapsed_jiffies(void) {
 	struct timeval current_time, elapsed_time, reset_delta;
 	
@@ -762,6 +761,7 @@ static value_t evaluate_expression(expression_t *expression)
       
       // now calculate the results based on those values
       if (expression->parms.op.arity == 0) {
+        // assume number, it's the most common
         result.type = NUMBER;
 
         switch (expression->parms.op.opcode) {
@@ -774,14 +774,6 @@ static value_t evaluate_expression(expression_t *expression)
             
           case RND:
           {
-            // if the value is negative, perform a randomize with that value
-            if (parameters[0].number < 0.0) {
-              srand(parameters[0].number);
-              // prime the RNG, see notes in main loop
-              (void)rand();
-              (void)rand();
-            }
-            
             // get a value between 0..<1
             result.number = ((double)rand() / (double)RAND_MAX); // don't forget the cast!
             
@@ -799,7 +791,6 @@ static value_t evaluate_expression(expression_t *expression)
 						// and modify the value if it's not zero
 					case TIME:
 					{
-						result.type = NUMBER;
 						result.number = elapsed_jiffies();
 					}
 						break;
@@ -844,9 +835,8 @@ static value_t evaluate_expression(expression_t *expression)
 					default:
 						basic_error("Unhandled arity-0 function");
         }
-      }
+      } // arity 0
       else if (expression->parms.op.arity == 1) {
-        // most of the following functions return numbers, so default to that
         result.type = NUMBER;
         
         // get the first parameter, in this case, the only one
@@ -861,6 +851,9 @@ static value_t evaluate_expression(expression_t *expression)
             break;
           case ABS:
             result.number = fabs(a);
+            break;
+          case ADR:
+            result.number = 0.0;
             break;
           case ATN:
             result.number = atan(a);
@@ -921,6 +914,28 @@ static value_t evaluate_expression(expression_t *expression)
 					case FRAC:
 						result.number = a - trunc(a);
 						break;
+            
+            // this is the more common version of RND, with one parameter, possibly a dummy
+          case RND:
+          {
+            // if the value is negative, perform a randomize with that value
+            if (parameters[0].number < 0.0) {
+              srand(parameters[0].number);
+              // prime the RNG, see notes in main loop
+              (void)rand();
+              (void)rand();
+            }
+            
+            // get a value between 0..<1
+            result.number = ((double)rand() / (double)RAND_MAX); // don't forget the cast!
+            
+            // and if the parameter > 1 then multiply it and floor to get 0..x
+            if (parameters[0].number >= 1.0) {
+              result.number = floor(result.number * floor(parameters[0].number));
+            }
+          }
+            break;
+
           case ROUND:
             result.number = round(a); // this is the 1-arity case
             break;
@@ -1089,10 +1104,11 @@ static value_t evaluate_expression(expression_t *expression)
       
       // now the functions that take two parameters
       else if (expression->parms.op.arity == 2) {
+        result.type = NUMBER;
+        
         // cache the parameters
         double a = parameters[0].number;
         double b = parameters[1].number;
-        result.type = NUMBER;
         
         switch (expression->parms.op.opcode) {
           case '+':
@@ -1135,9 +1151,14 @@ static value_t evaluate_expression(expression_t *expression)
             result = double_to_value(pow(a, b));
             break;
           case MOD:
-            result = double_to_value((int)floor(a) % (int)floor(b));
+            if (b == 0)
+              basic_error("Division by zero");
+            // can't use C's mod operator, %, it only works on ints
+            result = double_to_value(a - (b * (int)(a / b)));
             break;
           case DIV:
+            if (b == 0)
+              basic_error("Division by zero");
             result = double_to_value((int)floor(a) / (int)floor(b));
             break;
           case '=':
@@ -1186,6 +1207,23 @@ static value_t evaluate_expression(expression_t *expression)
           case XOR:
             result = double_to_value((int)a ^ (int)b);
             break;
+          case EQV:
+            // true if both true or both false, false otherwise
+            if ((int)a != 0 && (int)b != 0)
+              result = double_to_value(-1);
+            else if ((int)a == 0 && (int)b == 0)
+              result = double_to_value(-1);
+            else
+              result = double_to_value(0);
+            break;
+          case IMP:
+            // true if first is true and second false, false otherwise
+            if ((int)a != 0 && (int)b == 0)
+              result = double_to_value(-1);
+            else
+              result = double_to_value(0);
+            break;
+
           case ROUND: { // this is the 2-arity case
             double t = a * pow(10, b);
             t = round(t);
@@ -1327,9 +1365,10 @@ static value_t evaluate_expression(expression_t *expression)
       
       // and finally, arity=3
       else if (expression->parms.op.arity == 3)  {
+        // do NOT assume number here, these are mixed
         
         switch (expression->parms.op.opcode) {
-            
+          
           case INSTR: // this is the arity-3 version
           case POS:
             result.type = NUMBER;
@@ -2105,7 +2144,7 @@ static void perform_statement(list_t *statement_entry)
         delete_functions();
         delete_lines();
 				interpreter_state.next_statement = NULL; // stop execution, there's nothing left
-      }
+      } // new
         break;
         
       case ON:
@@ -2160,7 +2199,7 @@ static void perform_statement(list_t *statement_entry)
           interpreter_state.runtime_stack = lst_append(interpreter_state.runtime_stack, new_sub);
           interpreter_state.next_statement = find_line(linenum);
         }
-      }
+      } // on
         break;
         
         // two different things here, if there are no paramters it pauses until
@@ -2177,7 +2216,7 @@ static void perform_statement(list_t *statement_entry)
           value_t sleep_value = evaluate_expression(statement->parms.generic_parameter);
           sleep(sleep_value.number / 60.0);
         }
-      }
+      } // pause
         break;
         
       case POKE:
@@ -2202,7 +2241,7 @@ static void perform_statement(list_t *statement_entry)
         if (stack_node != NULL) {
           lst_remove_node_with_data(interpreter_state.runtime_stack, stack_node);
         }
-      }
+      } // pop
         break;
         
       case PRINT:
@@ -2254,7 +2293,7 @@ static void perform_statement(list_t *statement_entry)
           printf("\n");
           interpreter_state.cursor_column = 0; // and reset this!
         }
-      }
+      } //print
         break;
         
       case RANDOMIZE:
@@ -2329,7 +2368,7 @@ static void perform_statement(list_t *statement_entry)
           variable_list = lst_next(variable_list);
           interpreter_state.current_data_element = lst_next(interpreter_state.current_data_element);
         }
-      }
+      } // read
         break;
         
       case REM:
@@ -2374,6 +2413,21 @@ static void perform_statement(list_t *statement_entry)
         // if that emptied the stack...
         if (stack_node == NULL) {
           basic_error("RETURN without GOSUB");
+          break;
+        }
+        
+        // see if we have a parameter, which happens in the MSX variation which takes a line number
+        if (statement->parms.generic_parameter != NULL) {
+          // if so, get the value
+          value_t line = evaluate_expression(statement->parms.generic_parameter);
+          
+          // pop the entry off the stack
+          interpreter_state.runtime_stack = lst_remove_node_with_data(interpreter_state.runtime_stack, stack_node->data);
+
+          // and perform a goto to that line number
+          interpreter_state.next_statement = find_line(line.number);
+          
+          // and exit
           break;
         }
 

@@ -167,9 +167,6 @@ static expression_t *make_operator(int arity, int o)
 %token ACS ASN TAN
 %token COSH SINH TANH
 
- /* matrix set */
- /* %token CON DET IDN INPUT INV PRINT READ TRN ZER */
-
  /* string functions */
 %token ASC
 %token LEFT MID RIGHT
@@ -179,10 +176,11 @@ static expression_t *make_operator(int arity, int o)
 %token INKEY
 
  /* boolean operations and comparisons */
-%token AND OR NOT XOR
+%token AND OR NOT XOR EQV IMP
 %token CMP_LE CMP_GE CMP_NE CMP_HASH /* we keep hash separate for LISTing purposes */
 
  /* system functions */
+%token ADR
 %token FRE
 %token SPC
 %token TAB
@@ -215,6 +213,20 @@ static expression_t *make_operator(int arity, int o)
 
  /* line labels, procedures, etc. */
 %token LABEL
+
+/* matrix set */
+%token MAT
+%token MATPRINT
+%token MATINPUT
+%token MATREAD
+%token MATGET /* GET and PUT not currently supported */
+%token MATPUT
+%token MATZER
+%token MATCON
+%token MATIDN
+%token MATTRN
+%token MATINV
+%token MATDET
 
 %%
 
@@ -628,6 +640,38 @@ statement:
     }
   }
   |
+  MAT PRINT printlist
+  {
+    statement_t *new = make_statement(MATPRINT);
+    new->parms.print.format = NULL;
+    new->parms.print.item_list = $3;
+    $$ = new;
+  }
+  |
+  MAT INPUT printlist
+  {
+    statement_t *new = make_statement(MATINPUT);
+    new->parms.print.format = NULL;
+    new->parms.print.item_list = $3;
+    $$ = new;
+  }
+  |
+  MAT READ varlist
+  {
+    statement_t *new = make_statement(MATREAD);
+    new->parms.print.format = NULL;
+    new->parms.print.item_list = $3;
+    $$ = new;
+  }
+  |
+  MAT variable '=' expression
+  {
+    statement_t *new = make_statement(MAT);
+    new->parms.let.variable = $2;
+    new->parms.let.expression = $4;
+    $$ = new;
+  }
+  |
   NEXT varlist // this handles one or more index variables, no need for a single-var case
   {
     statement_t *new = make_statement(NEXT);
@@ -763,6 +807,13 @@ statement:
     $$ = new;
   }
   |
+  RETURN expression /* version seen in MSX that allows a line number */
+  {
+    statement_t *new = make_statement(RETURN);
+    new->parms.generic_parameter = $2;
+    $$ = new;
+  }
+  |
   STOP
   {
     statement_t *new = make_statement(STOP);
@@ -822,8 +873,9 @@ statement:
     statement_t *new = make_statement(WAIT);
     $$ = new;
   }
+  /* invisible LET, visible LET is above */
   |
-  variable '=' expression /* invisible LET, visible LET is above */
+  variable '=' expression
   {
     statement_t *new = make_statement(LET);
     new->parms.let.variable = $1;
@@ -964,6 +1016,8 @@ expression3:
 
 term:   '*' { $$ = '*'; } |
         '/' { $$ = '/'; } |
+        MOD { $$ = MOD; } |
+        DIV { $$ = DIV; } |
         '^' { $$ = '^'; } ;
 
 expression4:
@@ -1020,7 +1074,14 @@ function:
     new->parms.op.p[1] = $5;
     $$ = new;
   }
-  /* multi-arity function being called with one input... */
+  /* multi-arity function being called with zero inputs... */
+  |
+  fn_x
+  {
+    expression_t *new = make_operator(0, $1);
+    $$ = new;
+  }
+  /* ...or one ...*/
   |
   fn_x '(' expression ')'
   {
@@ -1062,6 +1123,7 @@ fn_0:
  /* arity-1 functions */
 fn_1:
   ABS { $$ =  ABS; } |
+  ADR  { $$ = ADR; } |
   ATN  { $$ = ATN; } |
   BIN  { $$ = BIN; } |
   BINSTR { $$ = BINSTR; } |
@@ -1077,7 +1139,6 @@ fn_1:
   LCASE  { $$ = LCASE; } |
   LEN  { $$ = LEN; } |
   LIN  { $$ = LIN; } |
-  STR  { $$ = STR; } |
   LOG  { $$ = LOG; } |
   OCT  { $$ = OCT; } |
   OCTSTR { $$ = OCTSTR; } |
@@ -1086,6 +1147,7 @@ fn_1:
   SIN  { $$ = SIN; } |
   SPC  { $$ = SPC; } |
   SQR  { $$ = SQR; } |
+  STR  { $$ = STR; } |
   TAB  { $$ = TAB; } |
   VAL  { $$ = VAL; } |
   UCASE  { $$ = UCASE; } |
@@ -1094,12 +1156,14 @@ fn_1:
   
  /* arity-2 functions */
 fn_2:
+  DIV  { $$ = DIV; } |
+  MOD  { $$ = MOD; } |
   LEFT { $$ = LEFT; } |
   RIGHT { $$ = RIGHT; } |
   STRNG { $$ = STRNG; }
   ;
 
- /* arity-1, 2 or 3 functions */
+ /* arity-0, 1, 2 or 3 functions */
 fn_x:
   INSTR { $$ = INSTR; } |
   POS { $$ = POS; } |
@@ -1108,7 +1172,13 @@ fn_x:
   SUBSTR { $$ = SUBSTR; } |
   ROUND  { $$ = ROUND; } |
   UBOUND  { $$ = UBOUND; } |
-  LBOUND  { $$ = LBOUND; }
+  LBOUND  { $$ = LBOUND; } |
+  MATCON  { $$ = MATCON; } |
+  MATDET  { $$ = MATDET; } |
+  MATIDN  { $$ = MATIDN; } |
+  MATINV  { $$ = MATINV; } |
+  MATTRN  { $$ = MATTRN; } |
+  MATZER  { $$ = MATZER; }
   ;
 
  /* ultimately all expressions end up here in factor, which is either a

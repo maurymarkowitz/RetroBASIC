@@ -68,6 +68,7 @@
 		550EED702580071200FE6D78 /* ahl.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = ahl.bas; sourceTree = "<group>"; };
 		550EED7425800B8A00FE6D78 /* sieve.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = sieve.bas; sourceTree = "<group>"; };
 		5568AD6C240753C2001138F5 /* lunar.bas */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = lunar.bas; sourceTree = "<group>"; };
+		55845E982B935BBF00244EC2 /* parse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = parse.h; sourceTree = "<group>"; };
 		55873BDA2AF2B84600005C6A /* amazing.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = amazing.bas; sourceTree = "<group>"; };
 		5599AEF8239C0A6E00490A3A /* retrobasic.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.c.h; path = retrobasic.h; sourceTree = "<group>"; tabWidth = 2; };
 		5599AEF9239C0A6F00490A3A /* retrobasic.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.c.c; path = retrobasic.c; sourceTree = "<group>"; tabWidth = 2; usesTabs = 0; };
@@ -87,7 +88,6 @@
 		55B9698B252F44E70021CD8B /* parse.y */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.yacc; path = parse.y; sourceTree = "<group>"; tabWidth = 2; };
 		55B96990252F4FCA0021CD8B /* makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = makefile; sourceTree = "<group>"; };
 		55B96993252F5AB80021CD8B /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
-		55BBD11F2B27D80200EA1137 /* parse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = parse.h; sourceTree = "<group>"; };
 		55C0605728B13842002B8345 /* retrobasic.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = retrobasic.1; sourceTree = "<group>"; };
 		55CFD0BD2A23CC7700DC9896 /* letter.hpb */ = {isa = PBXFileReference; lastKnownFileType = text; path = letter.hpb; sourceTree = "<group>"; };
 		55DEE88128A6A6B800270949 /* RetroBASIC design.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "RetroBASIC design.md"; sourceTree = "<group>"; };
@@ -139,8 +139,8 @@
 				550D54A4289BF9670062DF12 /* list.h */,
 				550D54A5289BF9670062DF12 /* list.c */,
 				5599AEFC239C0ABF00490A3A /* scan.l */,
-				55BBD11F2B27D80200EA1137 /* parse.h */,
 				55B9698B252F44E70021CD8B /* parse.y */,
+				55845E982B935BBF00244EC2 /* parse.h */,
 				5599AEF8239C0A6E00490A3A /* retrobasic.h */,
 				5599AEF9239C0A6F00490A3A /* retrobasic.c */,
 				55A42360287360B00070AF00 /* statistics.h */,

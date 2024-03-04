@@ -62,6 +62,11 @@
 335 PRINT "FRAC(-4.5) should return -0.5 "FRAC(-4.5)
 340 PRINT "ROUND(1.2345) should return 1 "ROUND(1.2345)
 345 PRINT "ROUND(1.2345,3) should return 1.235 "ROUND(1.2345,3)
+350 PRINT "7.5 MOD 2.5 should return 0 ";7.5 MOD 2.5
+355 PRINT "7.5 MOD 3.5 should return 0.5 ";7.5 MOD 3.5
+360 PRINT "MOD(7.5,3.5) should return 0.5 ";MOD(7.5,3.5)
+365 PRINT "7 DIV 2 should return 3 ";7 DIV 2
+370 PRINT "DIV(7,2) should return 3 ";DIV(7,2)
 494 REM
 495 REM make a simple function that returns itself
 496 REM

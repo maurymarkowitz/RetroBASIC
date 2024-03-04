@@ -145,36 +145,51 @@
      OR = 361,
      NOT = 362,
      XOR = 363,
-     CMP_LE = 364,
-     CMP_GE = 365,
-     CMP_NE = 366,
-     CMP_HASH = 367,
-     FRE = 368,
-     SPC = 369,
-     TAB = 370,
-     POS = 371,
-     USR = 372,
-     LIN = 373,
-     DEFSTR = 374,
-     DEFINT = 375,
-     DEFSNG = 376,
-     DEFDBL = 377,
-     CHANGE = 378,
-     CONVERT = 379,
-     UCASE = 380,
-     LCASE = 381,
-     STRNG = 382,
-     TIME = 383,
-     TIME_STR = 384,
-     HEX = 385,
-     OCT = 386,
-     BIN = 387,
-     HEXSTR = 388,
-     OCTSTR = 389,
-     BINSTR = 390,
-     UBOUND = 391,
-     LBOUND = 392,
-     LABEL = 393
+     EQV = 364,
+     IMP = 365,
+     CMP_LE = 366,
+     CMP_GE = 367,
+     CMP_NE = 368,
+     CMP_HASH = 369,
+     ADR = 370,
+     FRE = 371,
+     SPC = 372,
+     TAB = 373,
+     POS = 374,
+     USR = 375,
+     LIN = 376,
+     DEFSTR = 377,
+     DEFINT = 378,
+     DEFSNG = 379,
+     DEFDBL = 380,
+     CHANGE = 381,
+     CONVERT = 382,
+     UCASE = 383,
+     LCASE = 384,
+     STRNG = 385,
+     TIME = 386,
+     TIME_STR = 387,
+     HEX = 388,
+     OCT = 389,
+     BIN = 390,
+     HEXSTR = 391,
+     OCTSTR = 392,
+     BINSTR = 393,
+     UBOUND = 394,
+     LBOUND = 395,
+     LABEL = 396,
+     MAT = 397,
+     MATPRINT = 398,
+     MATINPUT = 399,
+     MATREAD = 400,
+     MATGET = 401,
+     MATPUT = 402,
+     MATZER = 403,
+     MATCON = 404,
+     MATIDN = 405,
+     MATTRN = 406,
+     MATINV = 407,
+     MATDET = 408
    };
 #endif
 /* Tokens.  */
@@ -284,36 +299,51 @@
 #define OR 361
 #define NOT 362
 #define XOR 363
-#define CMP_LE 364
-#define CMP_GE 365
-#define CMP_NE 366
-#define CMP_HASH 367
-#define FRE 368
-#define SPC 369
-#define TAB 370
-#define POS 371
-#define USR 372
-#define LIN 373
-#define DEFSTR 374
-#define DEFINT 375
-#define DEFSNG 376
-#define DEFDBL 377
-#define CHANGE 378
-#define CONVERT 379
-#define UCASE 380
-#define LCASE 381
-#define STRNG 382
-#define TIME 383
-#define TIME_STR 384
-#define HEX 385
-#define OCT 386
-#define BIN 387
-#define HEXSTR 388
-#define OCTSTR 389
-#define BINSTR 390
-#define UBOUND 391
-#define LBOUND 392
-#define LABEL 393
+#define EQV 364
+#define IMP 365
+#define CMP_LE 366
+#define CMP_GE 367
+#define CMP_NE 368
+#define CMP_HASH 369
+#define ADR 370
+#define FRE 371
+#define SPC 372
+#define TAB 373
+#define POS 374
+#define USR 375
+#define LIN 376
+#define DEFSTR 377
+#define DEFINT 378
+#define DEFSNG 379
+#define DEFDBL 380
+#define CHANGE 381
+#define CONVERT 382
+#define UCASE 383
+#define LCASE 384
+#define STRNG 385
+#define TIME 386
+#define TIME_STR 387
+#define HEX 388
+#define OCT 389
+#define BIN 390
+#define HEXSTR 391
+#define OCTSTR 392
+#define BINSTR 393
+#define UBOUND 394
+#define LBOUND 395
+#define LABEL 396
+#define MAT 397
+#define MATPRINT 398
+#define MATINPUT 399
+#define MATREAD 400
+#define MATGET 401
+#define MATPUT 402
+#define MATZER 403
+#define MATCON 404
+#define MATIDN 405
+#define MATTRN 406
+#define MATINV 407
+#define MATDET 408
 
 
 
@@ -331,7 +361,7 @@ typedef union YYSTYPE
   variable_reference_t *variable;
 }
 /* Line 1529 of yacc.c.  */
-#line 335 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
+#line 365 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
