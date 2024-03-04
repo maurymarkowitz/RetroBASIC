@@ -129,7 +129,8 @@ TNH       { return TANH; }
 VAL			  { return VAL; }
 
  /* string-related functions */
-ASC       { return ASC; } // CODE on Sinclair due to being non-ASCII, CH on Atom (no parens), ASCII on DEC?
+ASC       { return ASC; } // CODE on Sinclair due to being non-ASCII, CH on Atom (no parens)
+ASCII     { return ASC; } // DEC version of ASC
 CHR\$     { return CHR; } // CHR (SOL and SWTP), CHAR (MAX-BASIC), CHAR$ (Micropolis)
 LEFT\$		{ return LEFT; }
 RIGHT\$		{ return RIGHT; }
@@ -146,6 +147,7 @@ SUBSTRING\$  { return MID; }
 INKEY\$   { return INKEY; }
 
  /* system functions */
+ADR       { return ADR; }
 FRE       { return FRE; }
 TAB			  { return TAB; }   // also a statement in Integer BASIC
 SPC			  { return SPC; }
@@ -168,6 +170,8 @@ AND       { return AND; }
 OR        { return OR; }
 NOT       { return NOT; }
 XOR       { return XOR; }
+XOR       { return EQV; }
+XOR       { return IMP; }
 
  /* comparison operators */
 \<=       { return CMP_LE; }
@@ -215,6 +219,15 @@ LBOUND    { return LBOUND; }
 
  /* line labels, procedures, etc. */
 LABEL     { return LABEL; }
+
+ /* matrix commands and functions */
+MAT       { return MAT; }
+CON       { return MATCON; }
+DET       { return MATDET; }
+IDN       { return MATIDN; }
+INV       { return MATINV; }
+TRN       { return MATTRN; }
+ZER       { return MATZER; }
 
  /* hex, oct and bin strings encoding numbers */
 \&[0-9a-fA-F]+  {

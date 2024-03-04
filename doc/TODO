@@ -9,9 +9,7 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
-- add dummy function for ADR
-
-- support RETURN lineno from MSX
+- errors should be made into ints instead of strings all over the place
 
 - add parameter checking to functions, currently most of them don't check that they were passed a string/number
 
@@ -79,13 +77,15 @@ Debatable:
 
 - cotan etc?
 
-- CODE from Sinclair and CH from Atom, basically the same as ASC
+- CODE from Sinclair and CH from Atom, basically the same as ASC.
 
 - backslash for statement separators seen in Multics and BASIC-PLUS. The later requires spaces on either side. Easy to convert to colons, although the formatting in BASIC-PLUS documentation is nice.
 
 - option for INT to be trunc instead of floor? it's this way in early Dartmouth and a few later versions like Benton Harbour, but very rare.
 
 - RANDOMIZE TIMER for GW support?
+
+- add Wang style AND function, AND(string, hex mask), masks string and returns it.
 
 Will not be done:
 
@@ -95,8 +95,8 @@ Will not be done:
 
 - WB allows RESTORE to use an ordinal position in the list, as opposed to a line number. There appears to be no easy way to distinguish this.
 
-- WB uses CONVERT for ASC, which steps on HPs CONVERT
+- WB uses CONVERT for ASC, which steps on HPs CONVERT.
 
-- INPUT LINE is not needed (for now) as all INPUTs are treated as LINE
+- INPUT LINE is not needed (for now) as all INPUTs are treated as LINE.
 
-- NUM, which is Digital Group's version of VAL, or NUM$ which is the same as STR$
+- NUM, which is Digital Group's version of VAL, or NUM$ which is the same as STR$.
