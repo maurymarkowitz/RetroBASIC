@@ -28,7 +28,7 @@ Boston, MA 02111-1307, USA.  */
 #include <stdbool.h>
 #include <string.h>
 
-#include <ctype.h>  // toupper and tolower
+#include <ctype.h>  // toupper and tolower FIXME: implement internally
 #include <errno.h>  // used only while opening the program file, could be removed?
 #include <math.h>   // fmax, fabs, etc.
 #include <limits.h> // gives INT_MAX
