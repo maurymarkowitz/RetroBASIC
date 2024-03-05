@@ -1990,7 +1990,7 @@ static void perform_statement(list_t *statement_entry)
             if (upper_case) {
               char *c = line;
               while (*c) {
-                *c = toupper((unsigned char) *c);
+                c = str_toupper(c);
                 c++;
               }
             }
