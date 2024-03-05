@@ -28,12 +28,6 @@ Boston, MA 02111-1307, USA.  */
 #include <stdbool.h>
 #include <string.h>
 
-#ifndef HAVE_STRCASECMP
-#ifdef HAVE_STRICMP
-#define strcasecmp(A,B) stricmp((A),(B))
-#endif
-#endif
-
 #include <ctype.h>  // toupper and tolower
 #include <errno.h>  // used only while opening the program file, could be removed?
 #include <math.h>   // fmax, fabs, etc.
