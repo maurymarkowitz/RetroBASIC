@@ -366,13 +366,11 @@ Some dialects allow a parameter to be passed to define how much memory to reserv
 
 #### Variations:
 
-Wang BASIC offers a number of variations on `CLEAR`. Using `CLEAR` by itself performs a `NEW`, erasing the program completely. `CLEAR P` removes all the lines of the program but leaves the variables intact. Line numbers can follow the P, in which case only the range of lines between (and including) those numbers will be removed. This usage matches what most dialects called `DELETE`. `CLEAR V` clears variables, performing the same action as `CLEAR` in other dialects, and `CLEAR N` does the same but only for those variables not previously declared "common". These variations are used to allow one program to call another at runtime, a feature that most dialects that support this implement using the `CHAIN` command.
+Wang BASIC offers a number of variations on `CLEAR`. Using `CLEAR` by itself performs a `NEW`, erasing the program completely. `CLEAR P` removes all the lines of the program but leaves the variables intact. Line number parameters can follow the P, in which case only the range of lines between (and including) those numbers will be removed. This usage matches what most dialects called `DELETE`. `CLEAR V` clears variables, performing the same action as `CLEAR` in other dialects, and `CLEAR N` does the same but only for those variables not previously declared `COMMON`. These variations are used to allow one program to call another at runtime, a feature that most dialects that support this implement using the `CHAIN` command.
 
 The TRS-80 allows a single numeric expression as a parameter. If present, it sets aside that amount of memory for storing strings.
 
 Amstrad CPC BASIC offers the `ERASE` variation which is a `CLEAR` that is applied to a list of variables instead of all of them.
-
-BBC BASIC also offers `OLD`, which recovers an accidentally `NEW`ed program. This was required because pressing the system reset key erased the program. On most other dialects that had an `OLD`, like Dartmouth, it was the equivalent of `LOAD`.
 
 <!-- TOC --><a name="cls"></a>
 ### `CLS`
@@ -382,7 +380,7 @@ Clears the screen. On modern machines with scrollback buffers in the console, th
 <!-- TOC --><a name="end"></a>
 ### `END`
 
-`END` stops the execution of the program and exits RetroBASIC, returning you to the console shell. `END` is optional in most dialects, but adding an `END` was considered good form. `END` does not have to be at the end of the source code, it was often found higher in the code with subroutines below it, preventing them from running unless explicitly called.
+`END` stops the execution of the program and exits RetroBASIC, returning you to the console shell. `END` is optional in most dialects, but adding an `END` was considered good form. `END` does not have to be at the end of the source code, it was often found higher in the code with subroutines below it, preventing them from running unless explicitly called. It can also be called anywhere in the code to exit the program based on user input.
     
 <!-- TOC --><a name="new-erase-and-scratch"></a>
 ### `NEW`, `ERASE` and `SCRATCH`
@@ -392,6 +390,8 @@ Clears the screen. On modern machines with scrollback buffers in the console, th
 #### Variations:
 
 Wang BASIC uses `CLEAR` for this purpose. See notes in that entry.
+
+BBC BASIC also offers `OLD`, which recovers an accidentally `NEW`ed program. This was required because pressing the system reset key erased the program. On most other dialects that had an `OLD`, like Dartmouth, it was the equivalent of `LOAD`.
 
 Sinclair BASIC on the ZX80 allowed a numeric parameter which reserved that amount of memory for BASIC. This allows the program to set aside a portion of memory for storing machine language routines.
 
@@ -1749,12 +1749,12 @@ In RetroBASIC, `USR` always returns zero.
 
 Dartmouth BASIC introduced a series of commands and functions that operate on entire arrays with a single operation. These operations can also be implemented using FOR/NEXT loops, but making them a single instruction leads to clearer code and higher performance. The performance issue is especially true in interpreted versions of BASIC, as the code that performs the actions will be a single block of machine code instead of many separate interpreted statements. The downside is that only a few dialects supported these commands, mostly on mainframes, so using them led to portability issues.
 
-One curiosity of the matrix system is that the items in the zero indexes are ignored. So in a vector, the first slot is ignored, while in a matrix the entire zero column and row is ignored. This may lead to "interesting" results if data is inserted in these slots using other statements and then manipulated with the matrix commands, which will cause that data to be cleared out. It is also important to note that these functions do not care about the original `DIM`med dimensions, only the total number of elements in the matrix, so if one does a `DIM A(10,20)`, it is acceptable to access items in `A(15,10)`, as long as the resulting index is still within the total number of slots.
+One curiosity of the matrix system is that the items in the zero indexes are ignored. So in a vector, the first slot is ignored, while in a matrix the entire zero column and row is ignored. This may lead to unexpected results if data is inserted in these slots using other statements and then manipulated with the matrix commands, which will cause that data to be cleared out. It is also important to note that these functions do not care about the original `DIM`med dimensions, only the total number of elements in the matrix, so if one does a `DIM A(10,20)`, it is acceptable to access items in `A(15,10)`, as long as the resulting index is still within the total number of slots.
 
 #### Notes:
 
-Functions and operators in BASIC return new values. For instance, `A=INT(A)` reads the value of the variable A onto the *evaluation stack*. The `INT` operation reads its input from the stack and removes that entry, and then produces a result which it puts back on the stack. When that is complete, that value is copied off the stack and put into the storage for variable A. So, for a brief period of time at least, the output from the function results in a new value in memory.
+Functions and operators in BASIC return new values. For instance, `A=INT(A)` first reads the value of the variable A onto the *evaluation stack*, the `INT` operation reads its input from the stack and then produces a result which it puts back on the stack. When that is complete, that value is copied off the stack and put into the storage for variable A. So, for a brief period of time at least, the output from the function results in a new value in memory.
 
-This is not the case for the matrix functions and operations. These do not produce new values, but instead directly modify the original values. For instance, `MAT A=IDN` does not first produce an identity matrix and then copies it to A, it directly modifies the original values in A. This is because machines of the era did not have enough memory to keep matrix results on the stack, no matter how briefly. As a result, the matrix syntax appears slightly different than other parts of BASIC, generally lacking parameters as the input object is known. If the syntax was similar to the rest of BASIC, one might expect to be able to `MAT A=INV(B)`.
+This is not the case for the matrix functions and operations. These do not produce new values, but instead directly modify the original values. For instance, `MAT A=IDN` directly modifies the original values in A and no new storage is used. This is because machines of the era did not have enough memory to keep matrix results on the stack, no matter how briefly. As a result, the matrix syntax appears slightly different than other parts of BASIC, generally lacking parameters. If the syntax was similar to the rest of BASIC, one might expect to be able to `MAT A=INV(B)`, but all such operations are always performed on the original parameter on the left side of the assignment.
 
 There is an exception of course; the transpose function, `TRN`, takes a parameter indicating a source matrix and returns a new matrix that is copied into the output, `A=TRN(B)`.
