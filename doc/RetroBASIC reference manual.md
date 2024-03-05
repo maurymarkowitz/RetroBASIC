@@ -1023,7 +1023,7 @@ Because `RANDOMIZE` is so useful for debugging and many programs do not include 
 * `RND`
 
 <!-- TOC --><a name="change-avarsvar-to-svaravar-convert-avarsvar-to-svaravar"></a>
-### `CHANGE` {*avar*|*svar*} TO {*svar*|*avar*} and `CONVERT` {*avar*|*svar*} TO {*svar*|*avar*}
+### `CHANGE` {*avar*|*svar*} `TO` {*svar*|*avar*} and `CONVERT` {*avar*|*svar*} `TO` {*svar*|*avar*}
 
 The primary difference between the three main families of BASIC is the way they manipulate strings. In Dartmouth versions, this is accomplished with the `CHANGE` command, which takes a string and converts it a series of ASCII values in a numeric array, or takes a numeric array and converts it to a string. The length of the string is stored in the array's zero slot. `CONVERT` is the identical operation found in HP dialects.
 
@@ -1750,7 +1750,6 @@ In RetroBASIC, `USR` always returns zero.
 Dartmouth BASIC introduced a series of commands and functions that operate on entire arrays with a single operation. These operations can also be implemented using FOR/NEXT loops, but making them a single instruction leads to clearer code and higher performance. The performance issue is especially true in interpreted versions of BASIC, as the code that performs the actions will be a single block of machine code instead of many separate interpreted statements. The downside is that only a few dialects supported these commands, mostly on mainframes, so using them led to portability issues.
 
 One curiosity of the matrix system is that the items in the zero indexes are ignored. So in a vector, the first slot is ignored, while in a matrix the entire zero column and row is ignored. This may lead to "interesting" results if data is inserted in these slots using other statements and then manipulated with the matrix commands, which will cause that data to be cleared out. It is also important to note that these functions do not care about the original `DIM`med dimensions, only the total number of elements in the matrix, so if one does a `DIM A(10,20)`, it is acceptable to access items in `A(15,10)`, as long as the resulting index is still within the total number of slots.
-
 
 #### Notes:
 
