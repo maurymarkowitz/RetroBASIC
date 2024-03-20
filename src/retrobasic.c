@@ -754,6 +754,13 @@ static value_t evaluate_expression(expression_t *expression)
       
       // and now for the fun bit, the operators and function list...
     case op:
+      // clear out any values from previous calls
+      for (int i = 0; i < 3; i++) {
+        parameters[i].type = NUMBER;
+        parameters[i].number = 0;
+        parameters[i].string = NULL;
+      }
+
       // build a list of values for each of the parameters by recursing
       // on them until they return a value
       for (int i = 0; i < expression->parms.op.arity; i++)
