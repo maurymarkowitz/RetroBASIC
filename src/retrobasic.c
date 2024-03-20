@@ -754,13 +754,6 @@ static value_t evaluate_expression(expression_t *expression)
       
       // and now for the fun bit, the operators and function list...
     case op:
-      // clear out any values from previous calls
-      for (int i = 0; i < 3; i++) {
-        parameters[i].type = NUMBER;
-        parameters[i].number = 0;
-        parameters[i].string = NULL;
-      }
-
       // build a list of values for each of the parameters by recursing
       // on them until they return a value
       for (int i = 0; i < expression->parms.op.arity; i++)
@@ -781,13 +774,8 @@ static value_t evaluate_expression(expression_t *expression)
             
           case RND:
           {
-            // get a value between 0..<1
+            // get a value between 0..<1 - no parameters means simple case
             result.number = ((double)rand() / (double)RAND_MAX); // don't forget the cast!
-            
-            // and if the parameter > 1 then multiply it and floor to get 0..x
-            if (parameters[0].number >= 1.0) {
-              result.number = floor(result.number * floor(parameters[0].number));
-            }
           }
             break;
 						
