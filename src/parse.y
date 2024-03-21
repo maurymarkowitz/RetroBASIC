@@ -151,6 +151,7 @@ static expression_t *make_operator(int arity, int o)
 %token SYS
 %token VARLIST
 %token PAUSE
+%token SLEEP /* BASIC-PLUS variation */
 
  /* common math functions */
 %token ABS SGN
@@ -160,7 +161,7 @@ static expression_t *make_operator(int arity, int o)
 %token INT FIX FRAC // fix=SGN(x)*INT(ABS(x)), frac=A-INT(A)
 %token ROUND  // two versions, round-to-int and round-to-place
 %token CINT CSNG CDBL
-%token MOD DIV
+%token MOD MOD_INT DIV
 
  /* trig set */
 %token COS SIN ATN

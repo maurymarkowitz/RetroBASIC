@@ -17,9 +17,9 @@ BP - DEC BASIC-PLUS
 
 - need to allow multiple INPUTs on a single line, currently it requires a CR between values
 
-- MAX and MIN, for strings as well, and arrays
-
 - LINPUT/LINE INPUT
+
+- MAX and MIN, for strings as well, and arrays
 
 - WHILE...WEND, LOOP...UNTIL, but so many variations...
 
@@ -67,6 +67,8 @@ BP - DEC BASIC-PLUS
 
 Debatable:
 
+- BASIC-PLUS uses WAIT to limit the amount of time INPUT will wait, other dialects have similar variations
+
 - it would not be difficult to allow any variable to hold a string, but in most dialects that is an error
 
 - SUB$ from Apple Business BASIC substitutes one string into another. EG, SUB$("Hello!", "**", 2) produces H**lo!
@@ -100,3 +102,5 @@ Will not be done:
 - INPUT LINE is not needed (for now) as all INPUTs are treated as LINE.
 
 - NUM, which is Digital Group's version of VAL, or NUM$ which is the same as STR$.
+
+- NODATA statement from BASIC-PLUS. This is simply an ON ERROR that traps the no-more-data error.
