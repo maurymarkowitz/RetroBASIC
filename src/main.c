@@ -39,7 +39,7 @@ static void print_usage(char *argv[])
 /* full usage notes, both for the user and for documenting the code below */
 static void print_help(char *argv[])
 {
-  printf("Usage: retrobasic [-hvsngu] [-a number] [-t spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] FILE\n");
+  printf("Usage: retrobasic [-hvsngut] [-a number] [-tabs spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] FILE\n");
   puts("\nOptions:");
   puts("  -h, --help: print this description");
   puts("  -v, --version: print version info");
@@ -48,7 +48,8 @@ static void print_help(char *argv[])
   puts("  -s, --slicing: turn on string slicing (turning off string arrays)");
   puts("  -n, --no-run: don't run the program after parsing");
   puts("  -g, --goto-next: if a branch target doesn't exist, go to the next line");
-  puts("  -t, --tabs: set the number of spaces for comma-separated items");
+  puts("  -t, --trace: turn on line number tracing");
+  puts("  --tabs: set the number of spaces for comma-separated items");
   puts("  -r, --random: seed the random number generator");
   puts("  -p, --print-stats: when the program exits, print statistics");
   puts("  -w, --write-stats: on exit, write statistics to a file");
@@ -62,7 +63,8 @@ static struct option program_options[] =
   {"version", no_argument, NULL, 'v'},
   {"upper-case", no_argument, NULL, 'u'},
   {"array-base", required_argument, NULL, 'a'},
-  {"tabs", required_argument, NULL, 't'},
+  {"trace", no_argument, NULL, 't'},
+  {"tabs", required_argument, NULL, 500},
   {"random", optional_argument, NULL, 'r'},
   {"slicing", no_argument, NULL, 's'},
   {"goto-next", no_argument, NULL, 'g'},
@@ -91,7 +93,7 @@ void parse_options(int argc, char *argv[])
   
   while (1) {
     // eat an option and exit if we're done
-    int c = getopt_long(argc, argv, "hvua:t:r:i:o:w:spn", program_options, &option_index); // should match the items above, but with flag-setters excluded
+    int c = getopt_long(argc, argv, "hvuta:r:i:o:w:spn", program_options, &option_index); // should match the items above, but with flag-setters excluded
     if (c == -1) break;
     
     switch (c) {
@@ -114,6 +116,10 @@ void parse_options(int argc, char *argv[])
         upper_case = true;
         break;
         
+      case 't':
+        trace_lines = true;
+        break;
+        
       case 'g':
         goto_next_highest = true;
         break;
@@ -134,7 +140,7 @@ void parse_options(int argc, char *argv[])
         array_base = (int)strtol(optarg, 0, 10);
         break;
         
-      case 't':
+      case 500:
         tab_columns = (int)strtol(optarg, 0, 10);
         break;
         

@@ -36,7 +36,8 @@ Command-line options include:
 `--version`, `-v`: print version info  
 `--upper-case`, `-u`: force input to upper-case, basically like using caps lock  
 `--array-base`, `-a`: set base index for arrays, normally 1 but some dialects use 0  
-`--tabs`, `-t`: set the number of spaces for comma-separated items, defaults to 10  
+`--trace`, `-t`: turn on line number tracing  
+`--tabs`: set the number of spaces for comma-separated items, defaults to 10  
 `--goto-next`, `-g`: if a branch is to a non-existant line, should it go to the next line or return an error?  
 `--random`, `-r`: seed the random number generator  
 `--slicing`, `-s`: enable string slicing like HP, Integer, Atari, etc.  

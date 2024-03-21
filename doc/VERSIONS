@@ -137,6 +137,7 @@ Version 1.9.1 - 13 February 2024
 
 Version 2.0.0 -
 
+- added -t/--trace option to turn on line tracing
 - added dummy version of ADR, returns 0
 - added EQV and IMP logical operators, seen in IBM and some other versions
 - added RETURN with a line number, seen in MSX. equivalent to a POP and GOTO
