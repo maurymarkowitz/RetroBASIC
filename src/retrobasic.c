@@ -75,7 +75,7 @@ typedef struct {
 /* forward declares */
 static bool slice_limits(const variable_reference_t *variable, const variable_storage_t *value, int *start, int* end);
 
-static value_t evaluate_expression(expression_t *e);
+static value_t evaluate_expression(const expression_t *e);
 
 static int line_for_statement(const list_t *s);
 static int current_line(void);
@@ -317,7 +317,7 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
 				// NOTE: should check against array_base, not 0, but this doesn't work in Dartmouth. see notes
         if ((this_index.number < 0) || (original_dimension < this_index.number)) {
           basic_error("Array subscript out of bounds");
-					this_index.number = 0;//array_base; // the first entry in the C array, so it continues
+					this_index.number = 0; // the first entry in the C array, so it continues
         }
 				
 				// now check to see if there are dimed_dimensions, and check against them
@@ -493,12 +493,27 @@ expression_t *function_expression(const variable_reference_t *function, expressi
   return storage->formula;
 }
 
+/* builds a value from an either */
+static value_t either_to_value(either_t e, int type)
+{
+  value_t v;
+  v.type = type;
+  
+  if (type == STRING)
+    v.string = e.string;
+  else
+    v.number = e.number;
+    
+  return v;
+}
+
 /* converts a number to a new value_t */
 static value_t double_to_value(const double v)
 {
   value_t r;
   r.type = NUMBER;
   r.number = v;
+  r.string = NULL;
   return r;
 }
 
@@ -594,7 +609,7 @@ static int elapsed_jiffies(void) {
 }
 
 /* recursively evaluates an expression and returns a value_t with the result */
-static value_t evaluate_expression(expression_t *expression)
+static value_t evaluate_expression(const expression_t *expression)
 {
   value_t result;
   value_t parameters[3];
@@ -1446,11 +1461,8 @@ static value_t evaluate_expression(expression_t *expression)
 }
 
 /* handles the PRINT and PRINT USING statements, which can get complex */
-static void print_expression(expression_t *e, const char *format)
+static void print_value(value_t v, const char *format)
 {
-  // get the value of the expression for this item
-  value_t v = evaluate_expression(e);
-	
 	// if the format string is empty, NULL it
 	if (format != NULL && strlen(format) == 0)
 		format = NULL;
@@ -1509,6 +1521,14 @@ static void print_expression(expression_t *e, const char *format)
         break;
     }
   }
+}
+
+// FIXME: cover method, should be removed
+static void print_expression(expression_t *e, const char *format)
+{
+  // get the value of the expression for this item
+  value_t v = evaluate_expression(e);
+  print_value(v, format);
 }
 
 /* given a statement, this returns the line number it's part of */
@@ -2077,121 +2097,63 @@ static void perform_statement(list_t *statement_entry)
             break;
           }
           
+          // like CHANGE/CONVERT, the variable does not have parens so we have to add them here
+          char *array_storage_name = str_new(pp->expression->parms.variable->name);
+          str_append(array_storage_name, "("); // we are assuming it is missing
+          variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
+          free(array_storage_name);
+
           // get the number of dimensions
-          variable_storage_t *storage = variable_storage(pp->expression->parms.variable);
-          int dims = lst_length(storage->actual_dimensions);
-          list_t *act_dimensions = lst_first_node(storage->actual_dimensions);
-          int index = 0;
+          int dims = lst_length(array_store->actual_dimensions);
+          list_t *act_dimensions = lst_first_node(array_store->actual_dimensions);
           
-        }
+          // handle each case separately for clarity
+          if (dims == 0) {
+            basic_error("MAT PRINT with scalar variable");
+            break;
+          }
+          else if (dims == 1) {
+            // vector case
+            int len = POINTER_TO_INT(act_dimensions->data);
+            
+            // remember to skip zero
+            for (int i = 1; i <= len; i++) {
+              // get the value from the correct slot in storage
+              value_t val = either_to_value(array_store->value[i], array_store->type);
+              print_value(val, NULL);
+            }
+          }
+          else if (dims == 2) {
+            int rows = POINTER_TO_INT(act_dimensions->data);
+            int cols = POINTER_TO_INT(act_dimensions->next->data);
+            value_t val;
+            int index;
+
+            for (int r = 1; r <= rows; r++) {
+              for (int c = 1; c <= cols; c++) {
+                index = r * cols + c;
+                val = either_to_value(array_store->value[index], array_store->type);
+                print_value(val, NULL);
+                // and advance the cursor based on the separator, which defaults to comma for arrays, not semi
+                if (pp->separator != ';')
+                  //FIXME: this should wrap at 80 columns
+                  while (interpreter_state.cursor_column % tab_columns != 0) {
+                    printf(" ");
+                    interpreter_state.cursor_column++;
+                  }
+                
+              }
+              puts("\n");
+            }
+          }
+          else {
+            basic_error("MAT PRINT with too many dimensions");
+            break;
+          }
+        } // mat print
+        break;
           
-//          
-//          
-//            
-//            // first off, test whether this array has been set up yet, which is in act_
-//            if (!act_dimensions) {
-//              // we have not been set up. two possibilities here:
-//              //
-//              // if there is a DIM statement for this variable, then the first time
-//              // we enter this code it's almost certainly as part of the DIM. In that
-//              // case, the values in dim_dimensions should have already been set and
-//              // we can make the array that large.
-//              //
-//              // if there is no DIM statement, then when we get here it's likely that
-//              // they are using the default 0..10 dimensions. In that case, dim_ should
-//              // be empty so we can tell the difference.
-//              
-//              // now calculate how large to make the array
-//              value_t v;
-//              int slots = 1;
-//              int actual = 1;
-//              if (dim_dimensions) {
-//                // if there are DIMmed dimensions, always use that size
-//                for (list_t *L = dim_dimensions; L != NULL; L = lst_next(L)) {
-//                  // dimmed dimensions are stored as integer values, no need to eval
-//                  actual = POINTER_TO_INT(L->data);
-//                  
-//                  // copy that value into actual
-//                  storage->actual_dimensions = lst_append(storage->actual_dimensions, INT_TO_POINTER(actual));
 //
-//                  // and add 1 slot for item 0
-//                  slots *= actual + 1; // +1 for the 0th entry
-//                }
-//              }
-//              else {
-//                // if there was no DIM previously encountered, use the values
-//                // in this reference, but make them a minimum of 11
-//                for (list_t *L = variable->subscripts; L != NULL; L = lst_next(L)) {
-//                  v = evaluate_expression(L->data);
-//                  actual = (int)v.number + 1;       // we need to add one more slot for index 0
-//
-//                  // in this case we don't have a DIM, so it's always a minimum of 11 slots
-//                  if (actual < 11)
-//                    actual = 11;
-//                  
-//                  slots *= actual;
-//                  
-//                  // save the result to act_
-//                  storage->actual_dimensions = lst_append(storage->actual_dimensions, INT_TO_POINTER(actual));
-//                }
-//              }
-//              
-//              // and now calloc it
-//              // FIXME: we should free the single slot original set up above
-//              storage->value = calloc(slots, sizeof(storage->value[0]));
-//              
-//              // and since we have now set up the actual_dimensions, re-cache this
-//              act_dimensions = lst_first_node(storage->actual_dimensions);
-//            } // setting up new array
-//            
-//            // the array is now set up, now calculate which slot is being accessed, if any
-//            
-//            // the *number* of dimensions has to match, you can't DIM A(1,1) and then LET B=A(1)
-//            if (lst_length(act_dimensions) != lst_length(variable_indexes))
-//              basic_error("Array dimension of variable does not match storage");
-//            else
-//              while (act_dimensions && variable_indexes) {
-//                // evaluate the variable reference's index for a given dimension
-//                value_t this_index = evaluate_expression(variable_indexes->data);
-//                
-//                // have to clamp that value
-//                this_index.number = floor(this_index.number);
-//                
-//                // and get the originally defined size for that same dimension
-//                // NOTE: this may or may not be the same as the DIM, see notes above
-//                int original_dimension = POINTER_TO_INT(act_dimensions->data);
-//
-//                // make sure the index is within the originally DIMed bounds
-//                // NOTE: should check against array_base, not 0, but this doesn't work in Dartmouth. see notes
-//                if ((this_index.number < 0) || (original_dimension < this_index.number)) {
-//                  basic_error("Array subscript out of bounds");
-//                  this_index.number = 0;//array_base; // the first entry in the C array, so it continues
-//                }
-//                
-//                // now check to see if there are dimed_dimensions, and check against them
-//                if (dim_dimensions != NULL) {
-//                  int def_dimension = POINTER_TO_INT(dim_dimensions->data);
-//                  if ((this_index.number < 0) || (def_dimension < this_index.number)) {
-//                    basic_error("Array subscript out of DIMmed bounds");
-//                    this_index.number = 0;
-//                  }
-//                }
-//                
-//                // C arrays start at 0, BASIC arrays start at array_base
-//                index = (index * original_dimension) + this_index.number; // - array_base;
-//                
-//                // then move on to the next index in the list
-//                dim_dimensions = lst_next(dim_dimensions);
-//                act_dimensions = lst_next(act_dimensions);
-//                variable_indexes = lst_next(variable_indexes);
-//              }
-//          }
-//          
-//          
-//          // print each element of the vector/matrix, skipping zeros
-//
-//          
-//          
 //          // if this is a printsep, there will only be the separator and no expression
 //          // but the separator itself will be handled below, so for now we just need
 //          // to see if there is an expression to print
