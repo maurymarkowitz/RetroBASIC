@@ -11,6 +11,7 @@
 		550D54A6289BF9670062DF12 /* list.c in Sources */ = {isa = PBXBuildFile; fileRef = 550D54A5289BF9670062DF12 /* list.c */; };
 		550EED72258007FD00FE6D78 /* ahl.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 550EED702580071200FE6D78 /* ahl.bas */; };
 		550EED7525800B9E00FE6D78 /* sieve.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 550EED7425800B8A00FE6D78 /* sieve.bas */; };
+		55456E2E2BAB5D9000CDE7AC /* matrix.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 55456E2D2BAB5C7500CDE7AC /* matrix.bas */; };
 		5568AD6D240753E6001138F5 /* lunar.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5568AD6C240753C2001138F5 /* lunar.bas */; };
 		55873BDB2AF2B8C600005C6A /* amazing.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 55873BDA2AF2B84600005C6A /* amazing.bas */; };
 		5599AEFA239C0A6F00490A3A /* retrobasic.c in Sources */ = {isa = PBXBuildFile; fileRef = 5599AEF9239C0A6F00490A3A /* retrobasic.c */; };
@@ -47,6 +48,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 16;
 			files = (
+				55456E2E2BAB5D9000CDE7AC /* matrix.bas in CopyFiles */,
 				55873BDB2AF2B8C600005C6A /* amazing.bas in CopyFiles */,
 				55CFD0BE2A23CCB200DC9896 /* letter.hpb in CopyFiles */,
 				550EED7525800B9E00FE6D78 /* sieve.bas in CopyFiles */,
@@ -67,6 +69,7 @@
 		550EED6E257AC4F300FE6D78 /* VERSIONS */ = {isa = PBXFileReference; lastKnownFileType = text; path = VERSIONS; sourceTree = "<group>"; };
 		550EED702580071200FE6D78 /* ahl.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = ahl.bas; sourceTree = "<group>"; };
 		550EED7425800B8A00FE6D78 /* sieve.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = sieve.bas; sourceTree = "<group>"; };
+		55456E2D2BAB5C7500CDE7AC /* matrix.bas */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = matrix.bas; sourceTree = "<group>"; };
 		5568AD6C240753C2001138F5 /* lunar.bas */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = lunar.bas; sourceTree = "<group>"; };
 		55845E982B935BBF00244EC2 /* parse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = parse.h; sourceTree = "<group>"; };
 		55873BDA2AF2B84600005C6A /* amazing.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = amazing.bas; sourceTree = "<group>"; };
@@ -168,6 +171,7 @@
 			isa = PBXGroup;
 			children = (
 				55B3D420238E1B9900E6054E /* test.bas */,
+				55456E2D2BAB5C7500CDE7AC /* matrix.bas */,
 				5568AD6C240753C2001138F5 /* lunar.bas */,
 				55B3D42B23942C7200E6054E /* superstartrek.bas */,
 				550EED702580071200FE6D78 /* ahl.bas */,
