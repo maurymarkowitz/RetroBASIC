@@ -3,7 +3,7 @@ RetroBASIC Reference Manual
 
 **Copyright © 2023 Maury Markowitz**
 
-Version 1.9.2
+Version 1.9.1
 
 [![GPL license](http://img.shields.io/badge/license-GPL-brightgreen.svg)](https://opensource.org/licenses/gpl-license)
 
@@ -317,7 +317,7 @@ Most BASIC dialects include the concept of an **array**. An array is a group of 
 
 This program sets aside eleven locations in memory that can hold numeric values. It then assigns the values 5 and 10 to the first two slots. The rest have not been set, and those slots will contain zeros.
 
-The exact handling of arrays depends on the dialect. Some allow a single dimension, while most allow two, and a small number allow three or more. In those dialects that allow two or more dimensions, single-dimension arrays, like the example above, are sometimes referred to as *vectors*, while those with two are sometimes known as *matrixes*.
+The exact handling of arrays depends on the dialect. Some allow a single dimension, while most allow two, and a small number allow three or more. In those dialects that allow two or more dimensions, single-dimension arrays, like the example above, are sometimes referred to as **vectors**, while those with two are sometimes known as **matrixes**. It is also common to refer to non-array numerical values as **scalars**.
 
 RetroBASIC allows any number of dimensions and should properly run code from any of these dialects.
 
@@ -441,7 +441,7 @@ This section explains the statements associated with loops, conditional and unco
     30 PRINT "!"
 
 <!-- TOC --><a name="let-varexpr"></a>
-### [`LET`] *var*=*expr*
+### [`LET`] *var*`=`*expr*
 
 The most common statement found in most programs is the assignment statement, with the keyword `LET`. This calculates the value of the expression *expr* and then assigns the result to *var*. The *type* of variable must match the type of expression; numeric expressions cannot be assigned to string variables and vice versa, and attempts to do so will raise a runtime error.
 
@@ -1186,13 +1186,15 @@ BASICs originating in the UK, including BBC and Sinclair, among others like the 
 
 Returns the value of *pi*, 3.1415... The (*dexp*) is optional; `A=PI`, `A=PI()` and `A=PI(0)` are all accepted.
 
-### `MOD`(*aexp1*,*aexp2*)
+### `MOD`(*aexp1*,*aexp2*) and `MOD%`(*aexp1*,*aexp2*)
 
-Returns the modulus, or remainder, of the division of *aexp1*/*aexp2*. `MOD(7,3)` returns 1. The function performs the equivalent of `INT(X - Y*INT(X/Y))`, which in this example would be performed as INT(7 - 3\*INT(7/3)) = INT(7 - 3\*2) = INT(7 - 6) = 1. This functionality is also available as an operator, where this same call would be written `7 MOD 3`.
+Returns the modulus, or remainder, of the division of *aexp1*/*aexp2*. `MOD(7,3)` returns 1. The function performs the equivalent of `INT(X - Y*INT(X/Y))`, which in this example would be performed in order as as INT(7 - 3\*INT(7/3)) = INT(7 - 3\*2) = INT(7 - 6) = 1. This functionality is also available as an operator, where this same call would be written `7 MOD 3`.
+
+`MOD%` performs the same operations but then applies a final `INT` operation on the result.
 
 #### Variations:
 
-This "functional" style of `MOD` was used in Harris BASIC-V, and has been included for compatibility reasons.
+This "functional" style of `MOD` was used in Harris BASIC-V and DEC BASIC-PLUS. BASIC-PLUS also added `MOD%.
 
 #### See also:
 
@@ -1200,7 +1202,7 @@ This "functional" style of `MOD` was used in Harris BASIC-V, and has been includ
 
 #### Availability:
 
-`MOD` as a function was added in 2.0.0.
+`MOD` as a function and `MOD%` were added in 2.0.0.
 
 <!-- TOC --><a name="roundaexpaexp"></a>
 ### `ROUND`(*aexp*[,*aexp*])
@@ -1745,16 +1747,58 @@ Produces:
 
 In RetroBASIC, `USR` always returns zero.
 
+#### Variations:
+
+DEC's BASIC-PLUS, on TOPS at least, used `USR$` to return a listing of the files in the user's directory.
+
 ## Matrix commands, operators and functions
 
-Dartmouth BASIC introduced a series of commands and functions that operate on entire arrays with a single operation. These operations can also be implemented using FOR/NEXT loops, but making them a single instruction leads to clearer code and higher performance. The performance issue is especially true in interpreted versions of BASIC, as the code that performs the actions will be a single block of machine code instead of many separate interpreted statements. The downside is that only a few dialects supported these commands, mostly on mainframes, so using them led to portability issues.
+Dartmouth BASIC introduced a series of matrix related commands and functions that operate on entire arrays with a single operation. These operations can also be implemented using FOR/NEXT loops, but making them a single instruction leads to clearer code and higher performance. The downside is that only a few dialects supported these commands, mostly on mainframes, so using them leads to portability issues.
 
-One curiosity of the matrix system is that the items in the zero indexes are ignored. So in a vector, the first slot is ignored, while in a matrix the entire zero column and row is ignored. This may lead to unexpected results if data is inserted in these slots using other statements and then manipulated with the matrix commands, which will cause that data to be cleared out. It is also important to note that these functions do not care about the original `DIM`med dimensions, only the total number of elements in the matrix, so if one does a `DIM A(10,20)`, it is acceptable to access items in `A(15,10)`, as long as the resulting index is still within the total number of slots.
+The basic idea is that a number of common statements like `PRINT` and `READ` now have matrix-related versions, `MAT PRINT` and `MAT READ` for instance. When called, these versions loop over the array and perform the statement on all of the elements within it. So, for instance, `MAT PRINT A` will print out the entire array will out instead of having to loop over the array and print each slot separately. A second set of new statements and functions allows the matrix to be manipulated, for instance, one can `MAT A=ZER` to set all the slots in a matrix to 0. All of these instructions begin with the statement keyword `MAT`.
 
-#### Notes:
+One "gotchas" to be aware of is that the items in the zero indexes are ignored. So in a vector, the first slot is ignored, while in a matrix, the entire zero column and row is ignored. This may lead to unexpected results if data has been inserted in these slots using other statements and then manipulated with the matrix commands, which will cause that data to be cleared out.
 
-Functions and operators in BASIC return new values. For instance, `A=INT(A)` first reads the value of the variable A onto the *evaluation stack*, the `INT` operation reads its input from the stack and then produces a result which it puts back on the stack. When that is complete, that value is copied off the stack and put into the storage for variable A. So, for a brief period of time at least, the output from the function results in a new value in memory.
+The system allows the dimensions of the array to be specified to limit the slots that a function will operate on. For instance, if a program starts with `DIM A(10,10)`, then `MAT A=ZER` will assign 0 to all of the slots in A, whereas `A=ZER(5,5)` will change the values only in the first five rows and columns, leaving the other values unchanged. This works as long as the largest slot number, m times n, is less than the total number of slots original dimensioned. For instance, it is acceptable to call `MAT A=DET(15,1)`, despite A being DIMmed (10,10). This is very much at odds with normal BASIC behavior, where a reference to `A(15,1)` would cause a runtime error, `?BAD SUBSCRIPT` in Commodore BASIC for instance.
 
-This is not the case for the matrix functions and operations. These do not produce new values, but instead directly modify the original values. For instance, `MAT A=IDN` directly modifies the original values in A and no new storage is used. This is because machines of the era did not have enough memory to keep matrix results on the stack, no matter how briefly. As a result, the matrix syntax appears slightly different than other parts of BASIC, generally lacking parameters. If the syntax was similar to the rest of BASIC, one might expect to be able to `MAT A=INV(B)`, but all such operations are always performed on the original parameter on the left side of the assignment.
+### Matrix operators
 
-There is an exception of course; the transpose function, `TRN`, takes a parameter indicating a source matrix and returns a new matrix that is copied into the output, `A=TRN(B)`.
+The matrix system includes mathematical operators that mirror those that apply to scalar values, but perform the operation on every element. Dartmouth has assignment, plus, minus and multiply. RetroBASIC adds division as well. Generally these instructions require the variables to be of the same type and dimensions, normally matrixes but also vectors. Dartmouth also added the ability to multiply all of the elements by a scalar value, which uses a separate format that demands the expression be in parentheses and be the left-hand side. For reasons unclear, only multiplication is supported. RetroBASIC extends this format for all of the mathematical operators.
+
+#### Examples:
+
+    MAT A=B
+
+Assigns the values in B to the corresponding slot in A, making a copy of B. A must be dimensioned large enough to hold all of the elements in B. If B has fewer elements than A, the leftover space is unused, and in RetroBASIC will be filled with 0.
+
+    MAT A=B+C
+
+Adds the value in slot (m,n) in B with the value in slot (m,n) in C, and places the result in slot (m,n) in A. This is only valid if B and C have the same dimensions, if they differ, a runtime error will occur.
+
+    MAT A=B*C
+
+As above, but multiplies the values in B and C.
+
+    MAT A=(5)*B
+
+Scalar multiplication; calculates the value of the expression on the left, in this case the constant 5, and then multiplies all the values in B by that value and places the results in A. RetroBASIC supports all of the mathematical operations in this statement, not just multiplication.
+
+### `MAT` *avar*`=ZER`
+
+Changes all of the slots in *avar* to 0. Works for both 1-d vectors and 2-d matrixes. This statement was widely used in Dartmouth programs in order to quickly reset an array, even in programs that did not make use of other matrix features.
+
+### `MAT` *avar*`=CON`
+
+Changes all of the slots in *avar1* to 1. Works for both 1-d vectors and 2-d matrixes.
+
+### `MAT` *avar*`=IDN`
+
+Places 1's in the diagonal of a 2-d matrix, creating an *identity matrix`.
+
+### `MAT` *avar1*`=INV(`*avar2*`)`
+
+Inverts *avar2*, if possible, and places the results in *avar1*. 
+
+### `MAT` *avar1*`=TRN(`*avar2*`)`
+
+Transposes *avar2*, rotating it so columns become rows and rows columns, and places the result in *avar1*.

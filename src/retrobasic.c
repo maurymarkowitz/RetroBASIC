@@ -772,11 +772,8 @@ static value_t evaluate_expression(expression_t *expression)
             result.number = M_PI;
             break;
             
-          case RND:
-          {
-            // get a value between 0..<1 - no parameters means simple case
+          case RND:  // get a value between 0..<1
             result.number = ((double)rand() / (double)RAND_MAX); // don't forget the cast!
-          }
             break;
 						
 						// TIME is the number of jiffies since the last restart, always 1/60 even on PAL.
@@ -913,7 +910,7 @@ static value_t evaluate_expression(expression_t *expression)
             // this is the more common version of RND, with one parameter, possibly a dummy
           case RND:
           {
-            // if the value is negative, perform a randomize with that value
+            // if the parameter is negative, perform a randomize with that value
             if (parameters[0].number < 0.0) {
               srand(parameters[0].number);
               // prime the RNG, see notes in main loop
@@ -924,7 +921,7 @@ static value_t evaluate_expression(expression_t *expression)
             // get a value between 0..<1
             result.number = ((double)rand() / (double)RAND_MAX); // don't forget the cast!
             
-            // and if the parameter > 1 then multiply it and floor to get 0..x
+            // and if the parameter > 1, multiply it and floor to get 0..x
             if (parameters[0].number >= 1.0) {
               result.number = floor(result.number * floor(parameters[0].number));
             }
@@ -1150,6 +1147,11 @@ static value_t evaluate_expression(expression_t *expression)
               basic_error("Division by zero");
             // can't use C's mod operator, %, it only works on ints
             result = double_to_value(a - (b * (int)(a / b)));
+            break;
+          case MOD_INT:
+            if (b == 0)
+              basic_error("Division by zero");
+            result = double_to_value((int)(a - (b * (int)(a / b))));
             break;
           case DIV:
             if (b == 0)
@@ -2061,6 +2063,171 @@ static void perform_statement(list_t *statement_entry)
       } //let
         break;
         
+      case MATPRINT:
+      {
+        printitem_t *pp;
+                
+        // loop over the items in the print list
+        for (list_t *I = statement->parms.print.item_list; I != NULL; I = lst_next(I)) {
+          pp = I->data;
+          
+          // check that the type is appropriate
+          if (variable_type(pp->expression->parms.variable) == STRING) {
+            basic_error("MAT PRINT with string variable");
+            break;
+          }
+          
+          // get the number of dimensions
+          variable_storage_t *storage = variable_storage(pp->expression->parms.variable);
+          int dims = lst_length(storage->actual_dimensions);
+          list_t *act_dimensions = lst_first_node(storage->actual_dimensions);
+          int index = 0;
+          
+        }
+          
+//          
+//          
+//            
+//            // first off, test whether this array has been set up yet, which is in act_
+//            if (!act_dimensions) {
+//              // we have not been set up. two possibilities here:
+//              //
+//              // if there is a DIM statement for this variable, then the first time
+//              // we enter this code it's almost certainly as part of the DIM. In that
+//              // case, the values in dim_dimensions should have already been set and
+//              // we can make the array that large.
+//              //
+//              // if there is no DIM statement, then when we get here it's likely that
+//              // they are using the default 0..10 dimensions. In that case, dim_ should
+//              // be empty so we can tell the difference.
+//              
+//              // now calculate how large to make the array
+//              value_t v;
+//              int slots = 1;
+//              int actual = 1;
+//              if (dim_dimensions) {
+//                // if there are DIMmed dimensions, always use that size
+//                for (list_t *L = dim_dimensions; L != NULL; L = lst_next(L)) {
+//                  // dimmed dimensions are stored as integer values, no need to eval
+//                  actual = POINTER_TO_INT(L->data);
+//                  
+//                  // copy that value into actual
+//                  storage->actual_dimensions = lst_append(storage->actual_dimensions, INT_TO_POINTER(actual));
+//
+//                  // and add 1 slot for item 0
+//                  slots *= actual + 1; // +1 for the 0th entry
+//                }
+//              }
+//              else {
+//                // if there was no DIM previously encountered, use the values
+//                // in this reference, but make them a minimum of 11
+//                for (list_t *L = variable->subscripts; L != NULL; L = lst_next(L)) {
+//                  v = evaluate_expression(L->data);
+//                  actual = (int)v.number + 1;       // we need to add one more slot for index 0
+//
+//                  // in this case we don't have a DIM, so it's always a minimum of 11 slots
+//                  if (actual < 11)
+//                    actual = 11;
+//                  
+//                  slots *= actual;
+//                  
+//                  // save the result to act_
+//                  storage->actual_dimensions = lst_append(storage->actual_dimensions, INT_TO_POINTER(actual));
+//                }
+//              }
+//              
+//              // and now calloc it
+//              // FIXME: we should free the single slot original set up above
+//              storage->value = calloc(slots, sizeof(storage->value[0]));
+//              
+//              // and since we have now set up the actual_dimensions, re-cache this
+//              act_dimensions = lst_first_node(storage->actual_dimensions);
+//            } // setting up new array
+//            
+//            // the array is now set up, now calculate which slot is being accessed, if any
+//            
+//            // the *number* of dimensions has to match, you can't DIM A(1,1) and then LET B=A(1)
+//            if (lst_length(act_dimensions) != lst_length(variable_indexes))
+//              basic_error("Array dimension of variable does not match storage");
+//            else
+//              while (act_dimensions && variable_indexes) {
+//                // evaluate the variable reference's index for a given dimension
+//                value_t this_index = evaluate_expression(variable_indexes->data);
+//                
+//                // have to clamp that value
+//                this_index.number = floor(this_index.number);
+//                
+//                // and get the originally defined size for that same dimension
+//                // NOTE: this may or may not be the same as the DIM, see notes above
+//                int original_dimension = POINTER_TO_INT(act_dimensions->data);
+//
+//                // make sure the index is within the originally DIMed bounds
+//                // NOTE: should check against array_base, not 0, but this doesn't work in Dartmouth. see notes
+//                if ((this_index.number < 0) || (original_dimension < this_index.number)) {
+//                  basic_error("Array subscript out of bounds");
+//                  this_index.number = 0;//array_base; // the first entry in the C array, so it continues
+//                }
+//                
+//                // now check to see if there are dimed_dimensions, and check against them
+//                if (dim_dimensions != NULL) {
+//                  int def_dimension = POINTER_TO_INT(dim_dimensions->data);
+//                  if ((this_index.number < 0) || (def_dimension < this_index.number)) {
+//                    basic_error("Array subscript out of DIMmed bounds");
+//                    this_index.number = 0;
+//                  }
+//                }
+//                
+//                // C arrays start at 0, BASIC arrays start at array_base
+//                index = (index * original_dimension) + this_index.number; // - array_base;
+//                
+//                // then move on to the next index in the list
+//                dim_dimensions = lst_next(dim_dimensions);
+//                act_dimensions = lst_next(act_dimensions);
+//                variable_indexes = lst_next(variable_indexes);
+//              }
+//          }
+//          
+//          
+//          // print each element of the vector/matrix, skipping zeros
+//
+//          
+//          
+//          // if this is a printsep, there will only be the separator and no expression
+//          // but the separator itself will be handled below, so for now we just need
+//          // to see if there is an expression to print
+//          if (pp->expression != NULL) {
+//            print_expression(pp->expression, NULL);
+//          }
+//          
+//          // for each item in the list, look at the separator, if there is one
+//          // and it's a comma, advance the cursor to the next tab column
+//          if (pp->separator == ',')
+//            //FIXME: this should wrap at 80 columns
+//            while (interpreter_state.cursor_column % tab_columns != 0) {
+//              printf(" ");
+//              interpreter_state.cursor_column++;
+//            }
+//        }
+//        
+//        // now get the last item in the list so we can see if it's a ; or ,
+//        if (lst_last_node(statement->parms.print.item_list))
+//          pp = (printitem_t *)(lst_last_node(statement->parms.print.item_list)->data);
+//        else
+//          pp = NULL;
+//        
+//        // if the last item is SPC or TAB, fake a trailing semi, which is the way PET does it
+//        if (pp != NULL && pp->expression != NULL && pp->expression->type == op)
+//          if (pp->expression->parms.op.opcode == SPC || pp->expression->parms.op.opcode == TAB)
+//            pp->separator = ';';
+//        
+//        // if there are no more items, or it's NOT a separator, do a CR
+//        if (pp == NULL || pp->separator == 0) {
+//          printf("\n");
+//          interpreter_state.cursor_column = 0; // and reset this!
+//        }
+      } //print
+        break;
+        
       case NEXT:
       {
         list_t *stack_node, *previous_node;
@@ -2434,6 +2601,14 @@ static void perform_statement(list_t *statement_entry)
       }
         break;
         
+        // same as PAUSE but with seconds
+      case SLEEP:
+      {
+          value_t sleep_value = evaluate_expression(statement->parms.generic_parameter);
+          sleep(sleep_value.number);
+      } // sleep
+        break;
+
       case STOP:
       {
         if (statement->parms.generic_parameter != NULL) {
