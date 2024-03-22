@@ -2085,20 +2085,30 @@ static void perform_statement(list_t *statement_entry)
         
       case MATPRINT:
       {
-        printitem_t *pp;
-                
+        printitem_t *print_item;
+        char sep = ',';
+
         // loop over the items in the print list
         for (list_t *I = statement->parms.print.item_list; I != NULL; I = lst_next(I)) {
-          pp = I->data;
+          print_item = I->data;
+          
+          // if the expression is empty, it's a separator by itself, and we don't need those because
+          // unlike a normal PRINT, we never leave the cursor at the end of a line
+          if (print_item->expression == NULL)
+            continue;
           
           // check that the type is appropriate
-          if (variable_type(pp->expression->parms.variable) == STRING) {
+          if (variable_type(print_item->expression->parms.variable) == STRING) {
             basic_error("MAT PRINT with string variable");
             break;
           }
           
+          // see if there is another item following, and if that item is a separator
+          if (I->next != NULL && ((printitem_t *)(I->next->data))->separator != 0)
+            sep = ((printitem_t *)(I->next->data))->separator;
+          
           // like CHANGE/CONVERT, the variable does not have parens so we have to add them here
-          char *array_storage_name = str_new(pp->expression->parms.variable->name);
+          char *array_storage_name = str_new(print_item->expression->parms.variable->name);
           str_append(array_storage_name, "("); // we are assuming it is missing
           variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
           free(array_storage_name);
@@ -2121,28 +2131,34 @@ static void perform_statement(list_t *statement_entry)
               // get the value from the correct slot in storage
               value_t val = either_to_value(array_store->value[i], array_store->type);
               print_value(val, NULL);
+              if (sep != ';')
+                while (interpreter_state.cursor_column % tab_columns != 0) {
+                  printf(" ");
+                  interpreter_state.cursor_column++;
+                }
             }
+            // and mat print always closes the line
+            interpreter_state.cursor_column = 0;
+            puts("\n");
           }
           else if (dims == 2) {
             int rows = POINTER_TO_INT(act_dimensions->data);
             int cols = POINTER_TO_INT(act_dimensions->next->data);
-            value_t val;
-            int index;
 
             for (int r = 1; r <= rows; r++) {
               for (int c = 1; c <= cols; c++) {
-                index = r * cols + c;
-                val = either_to_value(array_store->value[index], array_store->type);
+                int index = r * cols + c;
+                value_t val = either_to_value(array_store->value[index], array_store->type);
                 print_value(val, NULL);
                 // and advance the cursor based on the separator, which defaults to comma for arrays, not semi
-                if (pp->separator != ';')
+                if (sep != ';')
                   //FIXME: this should wrap at 80 columns
                   while (interpreter_state.cursor_column % tab_columns != 0) {
                     printf(" ");
                     interpreter_state.cursor_column++;
                   }
-                
               }
+              interpreter_state.cursor_column = 0;
               puts("\n");
             }
           }
@@ -2150,44 +2166,8 @@ static void perform_statement(list_t *statement_entry)
             basic_error("MAT PRINT with too many dimensions");
             break;
           }
-        } // mat print
-        break;
-          
-//
-//          // if this is a printsep, there will only be the separator and no expression
-//          // but the separator itself will be handled below, so for now we just need
-//          // to see if there is an expression to print
-//          if (pp->expression != NULL) {
-//            print_expression(pp->expression, NULL);
-//          }
-//          
-//          // for each item in the list, look at the separator, if there is one
-//          // and it's a comma, advance the cursor to the next tab column
-//          if (pp->separator == ',')
-//            //FIXME: this should wrap at 80 columns
-//            while (interpreter_state.cursor_column % tab_columns != 0) {
-//              printf(" ");
-//              interpreter_state.cursor_column++;
-//            }
-//        }
-//        
-//        // now get the last item in the list so we can see if it's a ; or ,
-//        if (lst_last_node(statement->parms.print.item_list))
-//          pp = (printitem_t *)(lst_last_node(statement->parms.print.item_list)->data);
-//        else
-//          pp = NULL;
-//        
-//        // if the last item is SPC or TAB, fake a trailing semi, which is the way PET does it
-//        if (pp != NULL && pp->expression != NULL && pp->expression->type == op)
-//          if (pp->expression->parms.op.opcode == SPC || pp->expression->parms.op.opcode == TAB)
-//            pp->separator = ';';
-//        
-//        // if there are no more items, or it's NOT a separator, do a CR
-//        if (pp == NULL || pp->separator == 0) {
-//          printf("\n");
-//          interpreter_state.cursor_column = 0; // and reset this!
-//        }
-      } //print
+        } //item list
+      } //mat print
         break;
         
       case NEXT:
