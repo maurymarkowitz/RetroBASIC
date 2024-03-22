@@ -2083,6 +2083,72 @@ static void perform_statement(list_t *statement_entry)
       } //let
         break;
         
+      case MATINPUT:
+      {
+        char line[80];
+
+        // loop over the items in the variable/prompt list
+        for (list_t *I = statement->parms.input; I != NULL; I = lst_next(I)) {
+          
+          printitem_t *input_item = I->data;
+          if (input_item->expression == NULL)
+            continue;
+
+          // like CHANGE/CONVERT, the variable does not have parens so we have to add them here
+          char *array_storage_name = str_new(input_item->expression->parms.variable->name);
+          str_append(array_storage_name, "("); // we are assuming it is missing
+          variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
+          free(array_storage_name);
+          
+          // get the number of dimensions
+          int dims = lst_length(array_store->actual_dimensions);
+          list_t *act_dimensions = lst_first_node(array_store->actual_dimensions);
+          
+          // handle each case separately for clarity
+          if (dims == 0) {
+            basic_error("MAT INPUT with scalar variable");
+            break;
+          }
+          else if (dims == 1) {
+            // vector, loop over elements and input each one
+            int len = POINTER_TO_INT(act_dimensions->data);
+            
+            // remember to skip zero
+            for (int i = 1; i <= len; i++) {
+              fflush(stdout);
+              if (fgets(line, sizeof(line), stdin) != line)
+                exit(EXIT_FAILURE);
+              
+              // we got something, so null-terminate the string
+              line[strlen(line) - 1] = '\0';
+
+              // and turn it into a double
+              sscanf(line, "%lg", &array_store->value[i].number);
+            }
+          }
+          else if (dims == 2) {
+            int rows = POINTER_TO_INT(act_dimensions->data);
+            int cols = POINTER_TO_INT(act_dimensions->next->data);
+            
+            for (int r = 1; r <= rows; r++) {
+              for (int c = 1; c <= cols; c++) {
+                int index = r * cols + c;
+                fflush(stdout);
+                if (fgets(line, sizeof(line), stdin) != line)
+                  exit(EXIT_FAILURE);
+                line[strlen(line) - 1] = '\0';
+                sscanf(line, "%lg", &array_store->value[index].number);
+              }
+            }
+          }
+          else {
+            basic_error("MAT INPUT with too many dimensions");
+            break;
+          } // number of dims
+        } // input items
+      } //mat input
+        break;
+        
       case MATPRINT:
       {
         printitem_t *print_item;
