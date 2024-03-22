@@ -644,7 +644,6 @@ statement:
   MAT PRINT printlist
   {
     statement_t *new = make_statement(MATPRINT);
-    new->parms.print.format = NULL;
     new->parms.print.item_list = $3;
     $$ = new;
   }
@@ -652,16 +651,14 @@ statement:
   MAT INPUT printlist
   {
     statement_t *new = make_statement(MATINPUT);
-    new->parms.print.format = NULL;
-    new->parms.print.item_list = $3;
+    new->parms.input = $3;
     $$ = new;
   }
   |
   MAT READ varlist
   {
     statement_t *new = make_statement(MATREAD);
-    new->parms.print.format = NULL;
-    new->parms.print.item_list = $3;
+    new->parms.read = $3;
     $$ = new;
   }
   |
