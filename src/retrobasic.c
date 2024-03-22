@@ -2139,7 +2139,7 @@ static void perform_statement(list_t *statement_entry)
             }
             // and mat print always closes the line
             interpreter_state.cursor_column = 0;
-            puts("\n");
+            putchar('\n');
           }
           else if (dims == 2) {
             int rows = POINTER_TO_INT(act_dimensions->data);
@@ -2159,7 +2159,7 @@ static void perform_statement(list_t *statement_entry)
                   }
               }
               interpreter_state.cursor_column = 0;
-              puts("\n");
+              putchar('\n');
             }
           }
           else {
