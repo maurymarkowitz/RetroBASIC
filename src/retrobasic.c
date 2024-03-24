@@ -517,15 +517,48 @@ static value_t double_to_value(const double v)
   return r;
 }
 
+static value_t read_next_data_value()
+{
+  value_t data_value;
+
+  if (interpreter_state.current_data_statement == NULL) {
+    basic_error("No more DATA for READ");
+    data_value.type = 0; // use this as an error indicator
+    return data_value;
+  }
+  
+  // look for the next valid DATA item
+  if (interpreter_state.current_data_element == NULL) {
+    interpreter_state.current_data_statement = lst_next(interpreter_state.current_data_statement);
+    while (interpreter_state.current_data_statement != NULL) {
+      if ((interpreter_state.current_data_statement->data != NULL) &&
+          (((statement_t *)(interpreter_state.current_data_statement->data))->type == DATA))
+        break;
+      interpreter_state.current_data_statement = lst_next(interpreter_state.current_data_statement);
+    }
+    interpreter_state.current_data_element = lst_first_node(((statement_t *)(interpreter_state.current_data_statement->data))->parms.data);
+  }
+  
+  // eval the element, which is what we'll ultimately return
+  data_value = evaluate_expression(interpreter_state.current_data_element->data);
+  
+  // and update the pointer to the next entry (if there is one)
+  interpreter_state.current_data_element = lst_next(interpreter_state.current_data_element);
+
+  // all done
+  return data_value;
+}
+
 /* converts a number to a string */
 /* this system follows the rules found in MS BASICs like the PET
  that is, generally:
- 1) if the number is zero, return 0
+ 1) if the number is zero
  2) otherwise, move the decimal until the mantissa is 1e8 <= FAC < 1e9
  3) **round** the resulting 9-digit value
  4) if the number of decimal places moved is -10 < TMPEXP > 1 then just print the result with the decimal moved back
  5) otherwise, use E format
- in all cases, add a leading space for 0 or +ve values, - for -ve
+ 
+ In all cases above, add a leading space for 0 or +ve values, - for -ve
  
  Item (3) means that 9,999,999,999 is printed as 1E+10, which is precisely the G format in C.
  So the code below is needlessly complex as anything other than 0 uses G. However, we'll leave
@@ -558,7 +591,7 @@ static char* number_to_bin_string(const double d)
   // floor the value, assuming BASICs would INT() it
   int i = floor(d);
   
-  // type prunning because signed shift is implementation-defined
+  // type pruning because signed shift is implementation-defined
   unsigned u = *(unsigned *)&i;
   for (int bit = 32; bit > 0; bit >>= 1)
     strcat(str, ((u & bit) == bit) ? "1" : "0");
@@ -2236,6 +2269,93 @@ static void perform_statement(list_t *statement_entry)
       } //mat print
         break;
         
+      case MATREAD:
+      {
+        variable_reference_t *read_item;
+
+        // loop over the items in the variable list
+        for (list_t *I = statement->parms.read; I != NULL; I = lst_next(I)) {
+          read_item = I->data;
+          
+          // like CHANGE/CONVERT, the variable does not have parens so we have to add them here
+          char *array_storage_name = str_new(read_item->name);
+          str_append(array_storage_name, "("); // we are assuming it is missing
+          variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
+          int array_type = variable_type(read_item);
+          free(array_storage_name);
+
+          // get the number of dimensions
+          int dims = lst_length(array_store->actual_dimensions);
+          list_t *act_dimensions = lst_first_node(array_store->actual_dimensions);
+          
+          // handle each case separately for clarity
+          if (dims == 0) {
+            basic_error("MAT READ with scalar variable");
+            break;
+          }
+          else if (dims == 1) {
+            // vector case
+            int len = POINTER_TO_INT(act_dimensions->data);
+            
+            // remember to skip zero
+            for (int index = 1; index <= len; index++) {
+              // get the next data value, and fail out if we didn't get one
+              value_t data_value = read_next_data_value();
+              if (data_value.type == 0)
+                break;
+              
+              // test the type, if the variable and data are the same type assign it, otherwise return an error
+              if (data_value.type == array_type) {
+                if (array_type == STRING)
+                  array_store->value[index].string = data_value.string;
+                else
+                  array_store->value[index].number = data_value.number;
+              } else {
+                char buffer[80];
+                sprintf(buffer, "Type mismatch in MAT READ, reading a %s but got a %s",
+                        (array_type == STRING) ? "string" : "number",
+                        (array_type >= NUMBER) ? "number" : "string" );
+                basic_error(buffer);
+              }
+            }
+          } // dim=1
+          else if (dims == 2) {
+            int rows = POINTER_TO_INT(act_dimensions->data);
+            int cols = POINTER_TO_INT(act_dimensions->next->data);
+            
+            for (int r = 1; r <= rows; r++) {
+              for (int c = 1; c <= cols; c++) {
+                int index = r * cols + c;
+                
+                // get the next data value, and fail out if we didn't get one
+                value_t data_value = read_next_data_value();
+                if (data_value.type == 0)
+                  break;
+                
+                // test the type, if the variable and data are the same type assign it, otherwise return an error
+                if (data_value.type == array_type) {
+                  if (array_type == STRING)
+                    array_store->value[index].string = data_value.string;
+                  else
+                    array_store->value[index].number = data_value.number;
+                } else {
+                  char buffer[80];
+                  sprintf(buffer, "Type mismatch in MAT READ, reading a %s but got a %s",
+                          (array_type == STRING) ? "string" : "number",
+                          (array_type >= NUMBER) ? "number" : "string" );
+                  basic_error(buffer);
+                }
+              }
+            }
+          } // dim=2
+          else {
+            basic_error("MAT PRINT with too many dimensions");
+            break;
+          } // dims
+        } //item list
+      } //mat print
+        break;
+        
       case NEXT:
       {
         list_t *stack_node, *previous_node;
@@ -2490,32 +2610,15 @@ static void perform_statement(list_t *statement_entry)
 
       case READ:
       {
-        list_t *variable_list;
-        
-        if (interpreter_state.current_data_statement == NULL) {
-          basic_error("No more DATA for READ");
-        }
-        
-        variable_list = statement->parms.read;
+        list_t *variable_list = statement->parms.read;
         while (variable_list) {
           either_t *variable_definition;
           int type = 0;
-          value_t data_value;
           
-          // look for the next valid DATA item
-          if (interpreter_state.current_data_element == NULL) {
-            interpreter_state.current_data_statement = lst_next(interpreter_state.current_data_statement);
-            while (interpreter_state.current_data_statement != NULL) {
-              if ((interpreter_state.current_data_statement->data != NULL) &&
-                  (((statement_t *)(interpreter_state.current_data_statement->data))->type == DATA))
-                break;
-              interpreter_state.current_data_statement = lst_next(interpreter_state.current_data_statement);
-            }
-            interpreter_state.current_data_element = lst_first_node(((statement_t *)(interpreter_state.current_data_statement->data))->parms.data);
-          }
-          
-          // eval the DATA element, which is what we'll ultimately return
-          data_value = evaluate_expression(interpreter_state.current_data_element->data);
+          // get the next data value, and fail out if we didn't get one
+          value_t data_value = read_next_data_value();
+          if (data_value.type == 0)
+            break;
           
           // retrieve the variable from storage
           variable_definition = variable_value(variable_list->data, &type);
@@ -2536,7 +2639,6 @@ static void perform_statement(list_t *statement_entry)
           
           // move to the next variable from the READ and the next item in the DATA
           variable_list = lst_next(variable_list);
-          interpreter_state.current_data_element = lst_next(interpreter_state.current_data_element);
         }
       } // read
         break;
@@ -2655,7 +2757,7 @@ static void perform_statement(list_t *statement_entry)
 			case TIME_STR:
 			{
 				if (statement->parms.generic_parameter != NULL) {
-					// value is in HMS format, so make sure we got a strong
+					// value is in HMS format, so make sure we got a string
 					value_t hms = evaluate_expression(statement->parms.generic_parameter);
 					if (hms.type != STRING) {
 						basic_error("TIME$ being set with non-string value");
