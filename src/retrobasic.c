@@ -2116,14 +2116,70 @@ static void perform_statement(list_t *statement_entry)
       } //let
         break;
         
+      case MAT:
+      {
+//        variable_storage_t *stored_val;
+//        int type = 0;
+//        value_t exp_val;
+//
+//        // get/make the storage entry for this variable
+//        stored_val = variable_storage(statement->parms.let.variable);
+//        type = variable_type(statement->parms.let.variable);
+//
+//        // evaluate the expression
+//        exp_val = evaluate_expression(statement->parms.let.expression);
+//
+//        // make sure we got the right type, and assign it if we did
+//        if (exp_val.type != type) {
+//          basic_error("Type mismatch in MAT assignment");
+//          break;
+//        }
+//
+//        // check
+//
+//        // it was the right type, so...
+//        if (type > STRING) {
+//          // it's a number, cast it to the right underlying type
+//          switch (type) {
+//            case INTEGER:
+//              stored_val->number = floor(exp_val.number);   // MS BASIC does a floor, *not* a trunc
+//              break;
+//            default:
+//              stored_val->number = exp_val.number;          // which it likely is already, but just in case...
+//              break;
+//          }
+//
+//        } else {
+//          // see if the variable being assigned to has a slice
+//          variable_storage_t *stored_var = variable_storage(statement->parms.let.variable);
+//          int slice_start, slice_end;
+//          if (slice_limits(statement->parms.let.variable, stored_var, &slice_start, &slice_end)) {
+//            // limit the length of the replacement to the shorter of the slice or the inserted string
+//            if (slice_end - slice_start < strlen(exp_val.string) - 1)
+//              slice_end = (int)strlen(exp_val.string) - slice_start;
+//
+//            // copy everything over, except the trailing null
+//            for (int i = 0; i <= slice_end - slice_start; i++)
+//              stored_var->value->string[i + slice_start] = exp_val.string[i];
+//          } else {
+//            stored_val->string = exp_val.string;
+//          }
+//        }
+
+
+      } // mat let
+        break;
+
       case MATINPUT:
       {
+        printitem_t *input_item;
         char line[80];
 
         // loop over the items in the variable/prompt list
         for (list_t *I = statement->parms.input; I != NULL; I = lst_next(I)) {
+          input_item = I->data;
           
-          printitem_t *input_item = I->data;
+          // if it's a separator entry, move on
           if (input_item->expression == NULL)
             continue;
 
@@ -2352,8 +2408,160 @@ static void perform_statement(list_t *statement_entry)
             basic_error("MAT PRINT with too many dimensions");
             break;
           } // dims
-        } //item list
-      } //mat print
+        } // item list
+      } // mat read
+        break;
+        
+      case MATCON:
+      {
+        // find the storage
+        variable_reference_t *mat_item = statement->parms.let.variable;
+        char *array_storage_name = str_new(mat_item->name);
+        str_append(array_storage_name, "("); // we are assuming it is missing
+        variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
+        int array_type = variable_type(mat_item);
+        free(array_storage_name);
+        
+        // has to be a number
+        if (array_type == STRING) {
+          basic_error("MAT CON with string variable");
+          break;
+        }
+        
+        // get the number of dimensions
+        int dims = lst_length(array_store->actual_dimensions);
+        list_t *act_dimensions = lst_first_node(array_store->actual_dimensions);
+        
+        if (dims == 0) {
+          basic_error("MAT CON with scalar variable");
+          break;
+        }
+        else if (dims == 1) {
+          // vector case
+          int len = POINTER_TO_INT(act_dimensions->data);
+          
+          // remember to skip zero
+          for (int index = 1; index <= len; index++)
+              array_store->value[index].number = 1;
+        } // dim=1
+        else if (dims == 2) {
+          int rows = POINTER_TO_INT(act_dimensions->data);
+          int cols = POINTER_TO_INT(act_dimensions->next->data);
+          
+          for (int r = 1; r <= rows; r++)
+            for (int c = 1; c <= cols; c++) {
+              int index = r * cols + c;
+              array_store->value[index].number = 1;
+            }
+        } // dim=2
+        else {
+          basic_error("MAT CON with too many dimensions");
+          break;
+        } // dims
+      }  //mat con
+        break;
+        
+      case MATIDN:
+      {
+        // find the storage
+        variable_reference_t *mat_item = statement->parms.let.variable;
+        char *array_storage_name = str_new(mat_item->name);
+        str_append(array_storage_name, "("); // we are assuming it is missing
+        variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
+        int array_type = variable_type(mat_item);
+        free(array_storage_name);
+        
+        // has to be a number
+        if (array_type == STRING) {
+          basic_error("MAT IDN with string variable");
+          break;
+        }
+
+        // get the number of dimensions
+        int dims = lst_length(array_store->actual_dimensions);
+        list_t *act_dimensions = lst_first_node(array_store->actual_dimensions);
+        if (dims != 2) {
+          basic_error("MAT IDN with non-2D array");
+          break;
+        }
+        
+        // has to be square
+        int rows = POINTER_TO_INT(act_dimensions->data);
+        int cols = POINTER_TO_INT(act_dimensions->next->data);
+        if (rows != cols) {
+          basic_error("MAT IDN with non-square array");
+          break;
+        }
+        
+        // should be good now...
+        for (int r = 1; r <= rows; r++)
+          for (int c = 1; c <= cols; c++) {
+            int index = r * cols + c;
+            if (r == c)
+              array_store->value[index].number = 1;
+            else
+              array_store->value[index].number = 0;
+          }
+      } // mat idn
+        break;
+        
+      case MATZER:
+      {
+        // NOTE: BASIC-PLUS uses NUL& for the equivalent of setting a string array to zero,
+        //       but the Dartmouth manual doesn't say anything either way. so we'll allow it
+        
+        // find the storage
+        variable_reference_t *mat_item = statement->parms.let.variable;
+        char *array_storage_name = str_new(mat_item->name);
+        str_append(array_storage_name, "("); // we are assuming it is missing
+        variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
+        int array_type = variable_type(mat_item);
+        free(array_storage_name);
+
+        // get the number of dimensions
+        int dims = lst_length(array_store->actual_dimensions);
+        list_t *act_dimensions = lst_first_node(array_store->actual_dimensions);
+        
+        if (dims == 0) {
+          basic_error("MAT ZER with scalar variable");
+          break;
+        }
+        else if (dims == 1) {
+          // vector case
+          int len = POINTER_TO_INT(act_dimensions->data);
+          
+          // remember to skip zero
+          for (int index = 1; index <= len; index++) {
+            // test the type, if the variable and data are the same type assign it, otherwise return an error
+            if (array_type == STRING) {
+              free(array_store->value[index].string);
+              array_store->value[index].string = "\0";
+            } else
+              array_store->value[index].number = 0;
+          }
+        } // dim=1
+        else if (dims == 2) {
+          int rows = POINTER_TO_INT(act_dimensions->data);
+          int cols = POINTER_TO_INT(act_dimensions->next->data);
+          
+          for (int r = 1; r <= rows; r++) {
+            for (int c = 1; c <= cols; c++) {
+              int index = r * cols + c;
+              
+              // test the type, if the variable and data are the same type assign it, otherwise return an error
+              if (array_type == STRING) {
+                free(array_store->value[index].string);
+                array_store->value[index].string = "\0";
+              } else
+                array_store->value[index].number = 0;
+            }
+          }
+        } // dim=2
+        else {
+          basic_error("MAT ZER with too many dimensions");
+          break;
+        } // dims
+      } //mat zer
         break;
         
       case NEXT:
