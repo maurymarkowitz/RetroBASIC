@@ -641,6 +641,14 @@ statement:
     }
   }
   |
+  MAT variable '=' expression
+  {
+    statement_t *new = make_statement(MAT);
+    new->parms.let.variable = $2;
+    new->parms.let.expression = $4;
+    $$ = new;
+  }
+ |
   MAT PRINT printlist
   {
     statement_t *new = make_statement(MATPRINT);
@@ -662,11 +670,38 @@ statement:
     $$ = new;
   }
   |
-  MAT variable '=' expression
+  MAT variable '=' MATCON
   {
-    statement_t *new = make_statement(MAT);
+    statement_t *new = make_statement(MATCON);
     new->parms.let.variable = $2;
-    new->parms.let.expression = $4;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATDET
+  {
+    statement_t *new = make_statement(MATDET);
+    new->parms.let.variable = $2;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATZER
+  {
+    statement_t *new = make_statement(MATZER);
+    new->parms.let.variable = $2;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATIDN
+  {
+    statement_t *new = make_statement(MATIDN);
+    new->parms.let.variable = $2;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATINV
+  {
+    statement_t *new = make_statement(MATINV);
+    new->parms.let.variable = $2;
     $$ = new;
   }
   |
