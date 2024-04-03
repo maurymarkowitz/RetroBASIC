@@ -2728,6 +2728,10 @@ static void perform_statement(list_t *statement_entry)
           }
         } else {
           value_t sleep_value = evaluate_expression(statement->parms.generic_parameter);
+          if (sleep_value.type == STRING) {
+            report_error(ern_TYPE_MISMATCH, "PAUSE being called with string value");
+            break;
+          }
           sleep(sleep_value.number / 60.0);
         }
       } // pause
@@ -2823,6 +2827,10 @@ static void perform_statement(list_t *statement_entry)
           srand((unsigned int)time(NULL));
         else {
           value_t seed_value = evaluate_expression(statement->parms.generic_parameter);
+          if (seed_value.type == STRING) {
+            report_error(ern_TYPE_MISMATCH, "RANDOMIZE being called with string value");
+            break;
+          }
           srand(seed_value.number);
         }
 				
@@ -2876,11 +2884,16 @@ static void perform_statement(list_t *statement_entry)
         // resets the DATA pointer
       {
         int linenum;
-        if (statement->parms.generic_parameter != NULL)
+        if (statement->parms.generic_parameter != NULL) {
+          value_t line = evaluate_expression(statement->parms.generic_parameter);
+          if (line.type == STRING) {
+            report_error(ern_TYPE_MISMATCH, "RESTORE being called with string value");
+            break;
+          }
           linenum = (int)evaluate_expression(statement->parms.generic_parameter).number;
-        else
+        } else
           linenum = interpreter_state.first_line;
-
+        
         interpreter_state.current_data_statement = find_line(linenum);
         interpreter_state.current_data_element = NULL;
       }
@@ -2916,6 +2929,10 @@ static void perform_statement(list_t *statement_entry)
         if (statement->parms.generic_parameter != NULL) {
           // if so, get the value
           value_t line = evaluate_expression(statement->parms.generic_parameter);
+          if (line.type == STRING) {
+            report_error(ern_TYPE_MISMATCH, "RETURN being called with string value");
+            break;
+          }
           
           // pop the entry off the stack
           interpreter_state.runtime_stack = lst_remove_node_with_data(interpreter_state.runtime_stack, stack_node->data);
@@ -2938,8 +2955,12 @@ static void perform_statement(list_t *statement_entry)
         // same as PAUSE but with seconds
       case SLEEP:
       {
-          value_t sleep_value = evaluate_expression(statement->parms.generic_parameter);
-          sleep(sleep_value.number);
+        value_t sleep_value = evaluate_expression(statement->parms.generic_parameter);
+        if (sleep_value.type == STRING) {
+          report_error(ern_TYPE_MISMATCH, "SLEEP called with a string parameter");
+          break;
+        }
+        sleep(sleep_value.number);
       } // sleep
         break;
 
@@ -2960,7 +2981,12 @@ static void perform_statement(list_t *statement_entry)
       {
         int tabs = 0;
         if (statement->parms.generic_parameter != NULL) {
-          tabs = (int)evaluate_expression(statement->parms.generic_parameter).number;
+          value_t tab_value = evaluate_expression(statement->parms.generic_parameter);
+          if (tab_value.type == STRING) {
+            report_error(ern_TYPE_MISMATCH, "TAB being called with string value");
+            break;
+          }
+          tabs = (int)tab_value.number;
           if (tabs > interpreter_state.cursor_column) {
             for (int i = interpreter_state.cursor_column; i <= tabs - 1; i++) {
               putchar(32);
@@ -2984,7 +3010,7 @@ static void perform_statement(list_t *statement_entry)
 					// value is in HMS format, so make sure we got a string
 					value_t hms = evaluate_expression(statement->parms.generic_parameter);
 					if (hms.type != STRING) {
-						report_error(ern_TYPE_MISMATCH, "TIME$ being set with non-string value");
+						report_error(ern_TYPE_MISMATCH, "TIME$ being set with numeric value");
 						break;
 					}
 					// and that it's exactly six digits long
