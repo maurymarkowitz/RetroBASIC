@@ -1,4 +1,4 @@
-/* string (header) for RetroBASIC
+/* strng (header) for RetroBASIC
    Copyright (C) 2020 Maury Markowitz
     
 This file is part of RetroBASIC.

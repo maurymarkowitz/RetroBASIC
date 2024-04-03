@@ -648,7 +648,7 @@ statement:
     new->parms.let.expression = $4;
     $$ = new;
   }
- |
+  |
   MAT PRINT printlist
   {
     statement_t *new = make_statement(MATPRINT);
