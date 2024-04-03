@@ -2683,18 +2683,13 @@ static void perform_statement(list_t *statement_entry)
         if (n < 0)
           report_error(ern_ILLEGAL_VALUE, "Index value for ON less than 1");
         
-        // ... or if we're beyond the end of the list
-        if (n > lst_length(numslist) && ansi_on_boundaries)
-          report_error(ern_ILLEGAL_VALUE, "Index value for ON greater than list of line numbers");
-
-        // otherwise, try to get the nth item
+        // try to get the nth item
+        // an IF statement simply runs the next statement if the condition fails,
+        // likewise, if the ON value points to an item that is not in the number
+        // list, if simply falls off to the next statement
         expression_t *item = lst_data_at(numslist, n);
-        if (item == NULL) {
-            // an IF statement simply runs the next statement if the condition fails,
-            // likewise, if the ON value points to an item that is not in the number
-            // list, if simply falls off to the next statement
-            break;
-        }
+        if (item == NULL)
+          break;
         
         // we found the nth entry, so evaluate it
         value_t lineval;
