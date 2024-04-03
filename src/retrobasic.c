@@ -2656,7 +2656,7 @@ static void perform_statement(list_t *statement_entry)
         delete_variables();
         delete_functions();
         delete_lines();
-        // FIXME: we should also clear the stack
+        clear_stack();
 				interpreter_state.next_statement = NULL; // stop execution, there's nothing left
       } // new
         break;
@@ -2664,8 +2664,7 @@ static void perform_statement(list_t *statement_entry)
       case ON:
 			case OF:
       {
-        list_t *numslist;
-        numslist = statement->parms.on.numbers;
+        list_t *numslist = statement->parms.on.numbers;
 
         // eval, returning a double...
         value_t val = evaluate_expression(statement->parms.on.expression);
@@ -2681,22 +2680,21 @@ static void perform_statement(list_t *statement_entry)
         
         // in ANSI (and MS as it turns out), if the index is <1 or >the number of items, an error is returned
         if (n < 0)
-          report_error(ern_ILLEGAL_VALUE, "Index value for ON less than 1");
+          report_error(ern_OVERFLOW, "Index value for ON less than 1");
         
         // try to get the nth item
         // an IF statement simply runs the next statement if the condition fails,
         // likewise, if the ON value points to an item that is not in the number
-        // list, if simply falls off to the next statement
+        // list, if simply falls off to the next statement - NOT THE NEXT LINE!
         expression_t *item = lst_data_at(numslist, n);
         if (item == NULL)
           break;
         
         // we found the nth entry, so evaluate it
-        value_t lineval;
-        lineval = evaluate_expression(item);
+        value_t line_val = evaluate_expression(item);
         
         // turn it into a line number
-        int linenum = (int)floor(lineval.number);
+        int linenum = (int)floor(line_val.number);
         
         // and then it's either GOTO or GOSUB...
         if (statement->parms.on.type == GOTO) {
