@@ -70,6 +70,7 @@
 		550EED702580071200FE6D78 /* ahl.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = ahl.bas; sourceTree = "<group>"; };
 		550EED7425800B8A00FE6D78 /* sieve.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = sieve.bas; sourceTree = "<group>"; };
 		55456E2D2BAB5C7500CDE7AC /* matrix.bas */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = matrix.bas; sourceTree = "<group>"; };
+		55456E2F2BBAFAD000CDE7AC /* retroerrors.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = retroerrors.h; sourceTree = "<group>"; };
 		5568AD6C240753C2001138F5 /* lunar.bas */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = lunar.bas; sourceTree = "<group>"; };
 		55845E982B935BBF00244EC2 /* parse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = parse.h; sourceTree = "<group>"; };
 		55873BDA2AF2B84600005C6A /* amazing.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = amazing.bas; sourceTree = "<group>"; };
@@ -145,6 +146,7 @@
 				55B9698B252F44E70021CD8B /* parse.y */,
 				55845E982B935BBF00244EC2 /* parse.h */,
 				5599AEF8239C0A6E00490A3A /* retrobasic.h */,
+				55456E2F2BBAFAD000CDE7AC /* retroerrors.h */,
 				5599AEF9239C0A6F00490A3A /* retrobasic.c */,
 				55A42360287360B00070AF00 /* statistics.h */,
 				55A42362287360B00070AF00 /* statistics.c */,

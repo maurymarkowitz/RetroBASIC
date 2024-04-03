@@ -21,6 +21,13 @@ You should have received a copy of the GNU General Public License
 along with RetroBASIC; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
+  
+/**
+ * @file scan.l
+ * @author Maury Markowitz
+ * @brief lex/flex scanner
+ *
+ */
 
 #include "retrobasic.h"
 #include "strng.h"

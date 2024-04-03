@@ -9,7 +9,7 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
-- errors should be made into ints instead of strings all over the place
+- add errno and ON ERROR
 
 - add parameter checking to functions, currently most of them don't check that they were passed a string/number
 
@@ -22,6 +22,8 @@ BP - DEC BASIC-PLUS
 - MAX and MIN, for strings as well, and arrays
 
 - WHILE...WEND, LOOP...UNTIL, but so many variations...
+
+- IMAGE (etc) for PRINT USING
 
 - test and error on incorrect nesting of FOR loops, which we currently ignore
 
