@@ -1,6 +1,7 @@
 RetroBASIC TODO/BUGS/ERRATA list
 
 MS = MS BASIC, 6502 40-bit version
+CB = Commodore's MS BASIC
 HP = HP Time-Shared BASIC
 AB = Atari BASIC
 IB = Integer BASIC (aka Apple BASIC)
@@ -9,7 +10,9 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
-- add errno and ON ERROR
+- add TRAP, used in AB and CB
+
+- add errno and ON ERROR, CB used EL for error line, ER for error number, and ERR$ for the string
 
 - add parameter checking to functions, currently most of them don't check that they were passed a string/number
 

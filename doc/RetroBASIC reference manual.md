@@ -258,7 +258,7 @@ RetroBASIC has the additional feature that numeric constants can be entered in h
 
 Because the input and output are in decimal, but the internal format is in binary, there are numbers that one can type into the source code cannot be exactly represented internally. This is similar to the lack of a way to exactly represent 1/3 in decimal, which we represent as 0.333... . This number can be exactly represented in base-12, for instance. Generally, different number formats will always have some numbers that cannot be exactly represented.
 
-As a result of the differences between binary and decimal, BASIC programs are subject to "round-off error" that can produce odd results, especially when dealing with fractional values. It is widely suggested that you do not rely on a variable containing a specific value when testing it; instead of `IF X=5`, you should `IF X>=5` in case the value of X rounded up to 5.000111... during a previous calculation. RetroBASIC's double format is not immune to round-off error, although it may be reduced in frequency by the higher-accuracy numbers being used internally. As such, this sort of error is unlikely to be seen.
+As a result of the differences between binary and decimal, BASIC programs are subject to "round-off error" that can produce odd results, especially when dealing with fractional values. It is widely suggested that you do not rely on a variable containing a specific value when testing it; instead of `IF X=5 THEN A=1`, you should `IF X<>5 THEN A=A:A-1` in case the value of X rounded up to 5.000111... during a previous calculation. This leads to messy and confusing code. RetroBASIC's double format is not immune to round-off error, although it may be reduced in frequency by the higher-accuracy numbers being used internally. As such, this sort of error is unlikely to be seen.
 
 To avoid round-off errors, some dialects used a different format known as binary coded decimal, or BCD, which stores decimal numbers directly. This means that any number one can represent in the source code can be exactly represented in memory. This does not eliminate round-off, one can still perform `A=1/3` to produce it, but the cases where this occurs are more obvious to the user. The downside to BCD is that the numbers take up slightly more memory and are generally slower to perform math with. This was a small price in some settings, and those machines intended for business roles like the Wang 2200, used BCD, as do most handheld calculators. Although not unheard of in general-purpose dialects, only Atari BASIC and TI-99 BASIC used this format in widespread use. It was also used in the later MSX dialect. The added precision of the IEEE format used in RetroBASIC makes the use of BCD largely superfluous for its intended uses, most of the cases where round-off would occur in earlier dialects will not result in round-off in RetroBASIC.
 
@@ -721,6 +721,14 @@ In this example, the first `GOSUB` on line 10 puts an item on the stack saying t
     2010 IF A=5 THEN POP:GOTO 1020
 
 The `POP` will remove the last entry on the stack, the dangling subroutine call, and then GOTO to code on 1020 and return to the correct location.
+
+#### Variations:
+
+Commodore BASIC 3.5 and later added `DISPOSE` which works exactly like POP.
+
+#### Availability:
+
+`DISPOSE` was added in 2.0.0.
 
 #### See also:
 
