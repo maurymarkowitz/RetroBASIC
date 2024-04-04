@@ -105,7 +105,8 @@ USING     { return USING; }
 VARLIST   { return VARLIST; }
 PAUSE     { return PAUSE; }
 POP       { return POP; }
-EXIT      { return EXIT; }    // same as POP
+DISPOSE   { return POP; }     // same as POP
+EXIT      { return EXIT; }    // slightly different than pop
 
  /* math functions */
 ABS			  { return ABS; }
