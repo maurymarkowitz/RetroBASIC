@@ -34,7 +34,7 @@
  * like STRING TO LONG, are included but should never occur.
  */
 
-#define ern_NO_ERROR          0     // no error
+#define ern_NO_ERROR         0      // no error
 
 #define ern_FILE_OPEN        2      // attempt to OPEN a file that's already OPEN
 #define ern_FILE_NOT_OPEN    3      // attempt to use a file that's not OPEN
@@ -65,7 +65,7 @@
 #define ern_FORMULA_TOO_LONG 35     // unused in RetroBASIC
 #define ern_DEF_UNKNOWN      37     // call to user-defined function that doesn't exist
 #define ern_OUT_OF_STACK     40     // unused in RetroBASIC
-#define ern_CANT_CONTINUE    41     // unused in RetroBASIC
+#define ern_CANT_CONTINUE    41     // RetroBASIC does not support CONTinue
 
 #define ers_FILE_OPEN        "FILE OPEN"
 #define ers_FILE_NOT_OPEN    "FILE NOT OPEN"
@@ -96,6 +96,5 @@
 #define ers_DEF_UNKNOWN      "UNDEFINED FUNCTION"
 #define ers_OUT_OF_STACK     "OUT OF STACK"
 #define ers_CANT_CONTINUE    "UNABLE TO RESUME"
-
 
 #endif /* errors_h */
