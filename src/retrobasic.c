@@ -50,6 +50,9 @@ bool goto_next_highest = false;				// if a branch targets an non-existant line, 
 bool ansi_on_boundaries = false;			// if the value for an ON statement <1 or >num entries, should it continue or error?
 bool ansi_tab_behaviour = false;			// if a TAB < current column, ANSI inserts a CR, MS does not
 
+int error_line = -1;                  // line number where an error occured, -1 for none
+int trap_line = -1;                   // line to TRAP or ON ERROR to, -1 for none
+
 char *source_file = "";
 char *input_file = "";
 char *print_file = "";
@@ -103,7 +106,7 @@ static void report_error(const int errnum, const char *message)
 }
 
 /**
- * Gets a keystroke, or null if no key is pressed. Used for INKEY$.
+ * Gets a single keystroke, or null if no key is pressed. Used for INKEY$.
  *
  * @return the keycode, NULL if no key is pressed or an error occurred.
  *
@@ -137,9 +140,14 @@ int getkey(int fd)
 #endif
 }
 
-/* Returns an int containing the type of the variable based on its name
-	 or an initial type being passed in. Note that this only works on variable
-	 *references*, not the stored versions, as those have mangled names. */
+/** Returns an int containing the type of the variable based on its name
+ * or an initial type being passed in. Note that this only works on variable
+ * *references*, it is used for type checking and similar roles.
+ *
+ * @param variable A variable_reference_t with the variable name
+ * @return An int with a yytokentype of STRING/NUMBER/DOUBLE/SINGLE/INTEGER
+ *  or NULL if the variable does not exist
+ */
 int variable_type(const variable_reference_t *variable)
 {
 	int type;
@@ -159,67 +167,84 @@ int variable_type(const variable_reference_t *variable)
 	return type;
 }
 
-/* Returns the storage record for a given variable. */
-// NOTE: this should be refactored so we don't duplicate the code below
+/** Returns the storage record for a given variable.
+ *
+ * @param variable A variable_reference_t with the variable name
+ * @return A variable_storage_t or NULL if the variable does not exist
+ */
 variable_storage_t* variable_storage(const variable_reference_t *variable)
 {
-  variable_storage_t *storage;
-  char *storage_name = str_new(variable->name);
-  if ((!string_slicing || variable_type(variable) != STRING) && variable->subscripts != NULL)
-    str_append(storage_name, "(");
-
-  // see if we can find the entry in the symbol list
-  storage = lst_data_with_key(interpreter_state.variable_values, storage_name);
-  return storage;
+  return lst_data_with_key(interpreter_state.variable_values, variable->name);
 }
 
-/* Returns an either_t containing a string or a number for the underlying
-   variable, along with its type in the out-parameter 'type'. If the
-   variable has not been encountered before it will be created here. */
-/* NOTE: this code also handles string slicing. it would be much preferable
-   to do that as a function call so it could overload the MID$-style functions
-   but I could not figure out how to do that at runtime in the yacc code. */
+/**
+ * Finds the variable in storage and returns an either_t containing the string
+ * or numeric value, and the type in the in/out. If the variable name is not found,
+ * this code will insert it and empty the contents.
+ *
+ * In MS basic, A() and A are two different variables. This is handled in this
+ * code by having both a .value and .array. If a variable reference is found in
+ * the BASIC code and it has no parens following it, the .value will be returned.
+ * If there are parens, it looks up the value from the proper slot in .array.
+ *
+ * Arrays have the additional oddity that Dartmouth, and MS, always allow up
+ * to 11 slots, 0..10, even if they are not explicitly DIMmed. This is recorded
+ * in the actual_dimensions list, which may be larger than the dimed_dimensions.
+ * Dartmouth MAT functions also change the dimed_dimensions on the fly, as long
+ * as the total number of slots is less than the actual_dimensions.
+ *
+ * Also note that some statements and pseudo-functions in Dartmouth BASIC
+ * refer to the array even though they lack parens following the variable name.
+ * These include CHANGE and CONVERT, and most of the MAT functionality. To access
+ * the array values, those functions use the variable_storage function and then
+ * process the .array locally, as opposed to using this code to access individual
+ * items in the array.
+ *
+ * String slicing is also handled here. If the code determines that the paren
+ * values following the name in the source code are a string slice instead of
+ * an array access, it will make a slice from the string in .value and return
+ * that. It would be better to put this in its own code so that both the slice
+ * and string functions like MID$ would use the same work functions, but it was
+ * not obvious how to do this in the yacc code.
+*
+ * @param variable A variable_reference_t with the name and array/slice info
+ * @param type An in/out variable with the type enum, typically NUMBER or STRING
+ * @return An either_t with the value.
+ */
 either_t* variable_value(const variable_reference_t *variable, int *type)
 {
   variable_storage_t *storage;
-  char *storage_name;
   bool isArray = false;
 	int index;
   
-  // In MS basic, A() and A are two different variables, so here
-  // we mangle the name to include a "(" if it's an array. This is also5
-	// true in the original Dartmouth BASIC, according to the DTSS emulator.
-	// Also see notes in CHANGE/CONVERT.
-	//
-	// If we are in a dialect where () is a string slice, not an array access,
-	// like HP and Atari, then references to A$() are actually to A$ and we
-	// do *not* munge the name.
-  storage_name = str_new(variable->name);
-  if ((!string_slicing || variable_type(variable) != STRING) && variable->subscripts != NULL) {
-    str_append(storage_name, "(");
+  // is this an array access? only if it's not a slice
+  if ((!string_slicing || variable_type(variable) != STRING) && variable->subscripts != NULL)
     isArray = true;
-  }
 
 	// see if we can find the entry in the symbol list
-	storage = lst_data_with_key(interpreter_state.variable_values, storage_name);
-  
+  storage = lst_data_with_key(interpreter_state.variable_values, variable->name);
+
   // if not, make a new variable slot in values and set it up
   if (storage == NULL) {
-    // calloc a single slot, if it's an array we'll use this as the template
+    // calloc the object for insertion into the variable list
     storage = calloc(1, sizeof(*storage));
     
 		// the type is normally set as part of the variable name, like $
 		// however, there is an exception to this in later MS dialects,
 		// they include the DEFSTR/SNG/DBL/INT, in which case the variable
 		// names do not have the trailer. To handle this case, we pass in
-		// the type when encountering those statements.
+		// the type when encountering those statements
 		storage->type = variable_type(variable);
+    
+    // setting these to NULL indicates they have not been DIMmed
     storage->actual_dimensions = NULL;
     storage->dimed_dimensions = NULL;
     
-    // now calloc the result and insert it into the values tree
+    // now calloc the storage for the value itself
     storage->value = calloc(1, sizeof(storage->value[0]));
-		interpreter_state.variable_values = lst_insert_with_key_sorted(interpreter_state.variable_values, storage, storage_name);
+    
+    // and insert it into the values tree
+		interpreter_state.variable_values = lst_insert_with_key_sorted(interpreter_state.variable_values, storage, variable->name);
   }
   
   // if we haven't started running yet, we were being called during parsing to
@@ -228,6 +253,10 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
     return NULL;
   
   // at this point we have either found or created the variable, so...
+  
+  // is this reference an array access, perhaps part of a DIM?
+  if ((!string_slicing || variable_type(variable) != STRING) && variable->subscripts != NULL)
+    isArray = true;
   
   // compute array index, or leave it at zero if there is none
   index = 0;
@@ -240,7 +269,7 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
 		dim_dimensions = lst_first_node(storage->dimed_dimensions);
     variable_indexes = lst_first_node(variable->subscripts);
     
-    // first off, test whether this array has been set up yet, which is in act_
+    // first off, test whether this array has been set up yet, which is in act
     if (!act_dimensions) {
       // we have not been set up. two possibilities here:
       //
@@ -272,10 +301,11 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
       }
       else {
         // if there was no DIM previously encountered, use the values
-        // in this reference, but make them a minimum of 11
+        // in this reference, but make them a minimum of 11. that way if
+        // the reference is to item 25 it will still work
         for (list_t *L = variable->subscripts; L != NULL; L = lst_next(L)) {
           v = evaluate_expression(L->data);
-          actual = (int)v.number + 1;       // we need to add one more slot for index 0
+          actual = (int)floor(v.number) + 1;  // we need to add one more slot for index 0
 
           // in this case we don't have a DIM, so it's always a minimum of 11 slots
           if (actual < 11)
@@ -288,9 +318,8 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
         }
       }
       
-      // and now calloc it
-      // FIXME: we should free the single slot original set up above
-      storage->value = calloc(slots, sizeof(storage->value[0]));
+      // and now calloc it using the original .value as a template
+      storage->array = calloc(slots, sizeof(storage->value[0]));
       
       // and since we have now set up the actual_dimensions, re-cache this
       act_dimensions = lst_first_node(storage->actual_dimensions);
@@ -300,7 +329,7 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
     
     // the *number* of dimensions has to match, you can't DIM A(1,1) and then LET B=A(1)
     if (lst_length(act_dimensions) != lst_length(variable_indexes))
-      report_error(ern_BAD_SUBSCRIPT, "Array dimension of variable does not match storage");
+      report_error(ern_BAD_SUBSCRIPT, "Array dimensions of variable does not match storage");
     else
       while (act_dimensions && variable_indexes) {
         // evaluate the variable reference's index for a given dimension
@@ -339,11 +368,8 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
       }
   } // isArray
   
-  // done with this temp name
-  free(storage_name);
-  
   // returning the type
-	// NOTE: if this is part of a DIM, it's been correctly set above
+	// NOTE: if this is part of a DIM, it's been correctly set during the function call
   *type = storage->type;
   
   // if we are using string slicing OR there is a ANSI-style slice, return that part of the string
@@ -364,7 +390,10 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
   } // looking for slicing
 
   // all done, return the value at that index
-  return &storage->value[index];
+  if (isArray)
+    return &storage->array[index];
+  else
+    return &storage->value[0];
 }
 
 /* cover method for variable_value, allows it to be exported to the parser
@@ -382,8 +411,28 @@ void insert_typed_variable(const variable_reference_t *variable, int type)
   variable_value(variable, &type);
 }
 
-/* Returns true if the variable is a string and the ref has a slice applied. If true
- it returns the start and end points for the slice, otherwise -1.
+/**
+ * Returns the true if a string slice definition is valid, that is:
+ *
+ * - the variable is a string
+ * - there is a slice applied to it
+ * - the slice is valid within the limits of the string
+ *
+ * The main purpose of this function is to modify @p start and @p end
+ * so they lie within the actual string boundaries. So, for instance,
+ * if the BASIC code calls for A$(1,10) and the string is only 5 chars
+ * long, start will be left at 1 and end will be changed to 5.
+ *
+ * ANSI BASIC demands two parameters in all slices, in contrast to most
+ * dialects. If ANSI slicing is turned on (when the slicing flag is OFF)
+ * and there is only one parameter, an error is returned and the function
+ * returns false.
+ *
+ * @param variable A variable_reference_t to a string variable
+ * @param storage The variable_storage_t for that variable
+ * @param start The (possibly) adjusted start position within the string
+ * @param end The (possibly) adjusted end position within the string
+ * @return True if the variable
  */
 bool slice_limits(const variable_reference_t *variable, const variable_storage_t *storage, int* start, int* end)
 {
@@ -433,6 +482,12 @@ bool slice_limits(const variable_reference_t *variable, const variable_storage_t
       *start = (int)fmax(*start, 1);
       *end = (int)fmin(*end, strlen(storage->value->string));
     } else {
+      // check it first against the DIMed bounds
+      int dim_len = POINTER_TO_INT(storage->value->string);
+      if (*start > dim_len || *end  > dim_len)
+        report_error(ern_ILLEGAL_VALUE, "String slice out of DIMmed bounds");
+      
+      // and against the string itself
       if (*start < 1 || *end < 1 || *end > strlen(storage->value->string)) // no -1, we adjust that next line
         report_error(ern_ILLEGAL_VALUE, "String slice out of bounds");
     }
@@ -449,9 +504,15 @@ bool slice_limits(const variable_reference_t *variable, const variable_storage_t
   return false;
 }
 
-/* Similar to variable_value in concept, this code looks through the list of
- user-defined functions to find a matching name and/or inserts it if it's new.
- the difference is that this returns an expression which we then evaluate.
+/**
+ * Returns the expression_t for a user-defined function, or inserts it if its new.
+ *
+ * Similar to variable_value in concept, the difference is that this returns an
+ * expression which we then evaluate.
+ *
+ * @param function A variable_reference_t from the BASIC source with the function name
+ * @param expression The function definition to be stored if it's a DEF
+ * @return An expression_t with the function stored previously
  */
 expression_t *function_expression(const variable_reference_t *function, expression_t *expression)
 {
@@ -493,7 +554,13 @@ expression_t *function_expression(const variable_reference_t *function, expressi
   return storage->formula;
 }
 
-/* builds a value from an either */
+/**
+ * Converts an either_t to a to a value_t by adding the type.
+ *
+ * @param e An either_t
+ * @param type An int with a yytokentype of STRING/NUMBER/DOUBLE/SINGLE/INTEGER
+ * @return A value_t with the value and its type.
+ */
 static value_t either_to_value(either_t e, int type)
 {
   value_t v;
@@ -507,6 +574,12 @@ static value_t either_to_value(either_t e, int type)
   return v;
 }
 
+/**
+ * Converts a double to a to a value_t.
+ *
+ * @param v A double.
+ * @return A value_t with the value and its type.
+ */
 /* converts a number to a new value_t */
 static value_t double_to_value(const double v)
 {
@@ -517,6 +590,12 @@ static value_t double_to_value(const double v)
   return r;
 }
 
+/**
+ * Reads the next item from DATA statements and returns it as a value_t,
+ * then updates the pointer to the next item.
+ *
+ * @return A value_t with the value and its type.
+ */
 static value_t read_next_data_value()
 {
   value_t data_value;
@@ -549,22 +628,27 @@ static value_t read_next_data_value()
   return data_value;
 }
 
-/* converts a number to a string */
-/* this system follows the rules found in MS BASICs like the PET
- that is, generally:
- 1) if the number is zero
- 2) otherwise, move the decimal until the mantissa is 1e8 <= FAC < 1e9
- 3) **round** the resulting 9-digit value
- 4) if the number of decimal places moved is -10 < TMPEXP > 1 then just print the result with the decimal moved back
- 5) otherwise, use E format
- 
- In all cases above, add a leading space for 0 or +ve values, - for -ve
- 
- Item (3) means that 9,999,999,999 is printed as 1E+10, which is precisely the G format in C.
- So the code below is needlessly complex as anything other than 0 uses G. However, we'll leave
- in the IFs so that if we find new versions in the future that follow other rules its easy to
- add them.
- */
+/**
+ * Converts a number to a string.  The system follows the rules found in MS BASICs
+ * like the PET that is, generally:
+ *
+ *  1) if the number is zero, return "0"
+ *  2) otherwise, move the decimal until the mantissa is 1e8 <= FAC < 1e9
+ *  3) **round** the resulting 9-digit value
+ *  4) if the number of decimal places moved is -10 < TMPEXP > 1 then just
+ *     print the result with the decimal moved back
+ *  5) otherwise, use E format
+ *
+ * In all cases above, add a leading space for 0 or +ve values, and a "-" for -ve values
+ *
+ * Item (3) means that 9,999,999,999 is printed as 1E+10, which is precisely the G format in C.
+ * So the code below is needlessly complex as anything other than 0 uses G. However, we'll leave
+ * in the IFs so that if we find new versions in the future that follow other rules its easy to
+ * add them.
+ *
+ * @param d A double.
+ * @return A char* with the value.
+*/
 static char *number_to_string(const double d)
 {
   static char str[40]; // use static so we know it won't be collected between calls
@@ -580,8 +664,14 @@ static char *number_to_string(const double d)
   return str;
 }
 
-/* C does not include formatters to convert to binary, only hex and oct, so from:
+/**
+ * Converts a number to a string of binary digits.
+ *
+ * C does not include formatters to convert to binary, only hex and oct, so this is from:
  * https://stackoverflow.com/questions/111928/is-there-a-printf-converter-to-print-in-binary-format
+ *
+ * @param d A double.
+ * @return A char* with d in binary format.
  */
 static char* number_to_bin_string(const double d)
 {
@@ -599,7 +689,12 @@ static char* number_to_bin_string(const double d)
   return str;
 }
 
-/* for oct and hex, we can just use the formatters */
+/**
+ * Converts a number to a string of octal digits.
+ *
+ * @param d A double.
+ * @return A char* with d in octal format.
+ */
 static char* number_to_oct_string(const double d)
 {
   static char str[33];
@@ -607,6 +702,13 @@ static char* number_to_oct_string(const double d)
   sprintf(str, "%o", i);
   return str;
 }
+
+/**
+ * Converts a number to a string of hex digits.
+ *
+ * @param d A double.
+ * @return A char* with d in hexidecimal format.
+ */
 static char* number_to_hex_string(const double d)
 {
   static char str[33];
@@ -615,7 +717,9 @@ static char* number_to_hex_string(const double d)
   return str;
 }
 
-/* number of jiffies since program start (or reset), with 1 jiffy = 1/60th of a second */
+/**
+ * Number of jiffies since program start (or reset), with 1 jiffy = 1/60th of a second
+ */
 static int elapsed_jiffies(void) {
 	struct timeval current_time, elapsed_time, reset_delta;
 	
@@ -641,7 +745,100 @@ static int elapsed_jiffies(void) {
 	return (int)jiffies;
 }
 
-/* recursively evaluates an expression and returns a value_t with the result */
+/**
+ * Checks that the array in destination_ref is large enough to hold the data
+ * from source_var or any subscripts on source_ref. If it is, destination_ref
+ * is resized to the size of the source or the subscripts and it returns true.
+ * If the destination is not large enough, or there are any other error, it returns
+ * false.
+ *
+ * The inputs were designed to allow a destination to be resized to a source,
+ * which is used in assignments. In the case of PRINT, INPUT and the various
+ * pseudo-functions like INV, any subscripts will be copied to the destination_ref
+ * during parsing. In these cases, pass in destination_ref as source_ref as well,
+ * and the subscripts will be picked up.
+ *
+ * FIXME: this does not currently handle the case where the destination and source
+ *   have a different number of dimensions. It's possible that one might INV(4,4) on
+ *   a variable that was DIMed (30), and in theory that should be allowed.
+ */
+static bool redim_matrix(variable_reference_t *destination_ref, variable_reference_t *source_ref)
+{
+  // get the storage entry for the destination
+  variable_storage_t *destination_store = lst_data_with_key(interpreter_state.variable_values, destination_ref->name);
+  
+  // and the source
+  variable_storage_t *source_store = lst_data_with_key(interpreter_state.variable_values, source_ref->name);
+  
+  // calculate the total size available in the destination
+  list_t *destination_act_dimensions = lst_first_node(destination_store->actual_dimensions);
+  int destination_slots = 1;
+  while (destination_act_dimensions != NULL) {
+    destination_slots = destination_slots * POINTER_TO_INT(destination_act_dimensions->data);
+    destination_act_dimensions = lst_next(destination_act_dimensions);
+  }
+
+  // see if we are resizing to the source, or the subscripts
+  list_t *source_act_dimensions = lst_first_node(source_store->actual_dimensions);
+  list_t *subs = lst_first_node(source_ref->subscripts);
+
+  if (subs != NULL) {
+    int sub_slots = 1;
+    while (subs != NULL) {
+      value_t v = evaluate_expression(subs->data);
+      sub_slots = sub_slots * v.number;
+      subs = lst_next(subs);
+    }
+    if (destination_slots < sub_slots) {
+      report_error(ern_BAD_SUBSCRIPT, "MAT destination is too small to hold source.");
+      return false;
+    }
+  }
+  else {
+    int source_slots = 1;
+    while (destination_act_dimensions != NULL) {
+      destination_slots = destination_slots * POINTER_TO_INT(destination_act_dimensions->data);
+      destination_act_dimensions = lst_next(destination_act_dimensions);
+    }
+    if (destination_slots < source_slots) {
+      report_error(ern_BAD_SUBSCRIPT, "MAT destination is too small to hold source.");
+      return false;
+    }
+  }
+  
+  // rewind the lists
+  destination_act_dimensions = lst_first_node(destination_store->actual_dimensions);
+  source_act_dimensions = lst_first_node(source_store->actual_dimensions);
+  subs = lst_first_node(source_ref->subscripts);
+  
+  // if we got this far, the destination is large enough so redim it
+  if (subs != NULL) {
+    subs = lst_first_node(source_ref->subscripts); // rewind the list
+    while (subs != NULL) {
+      value_t v = evaluate_expression(subs->data);
+      destination_act_dimensions->data = INT_TO_POINTER((int)v.number);
+      destination_act_dimensions = lst_next(destination_act_dimensions);
+      subs = lst_next(subs);
+    }
+  }
+  else {
+    destination_act_dimensions = lst_first_node(destination_store->actual_dimensions);
+    source_act_dimensions = lst_first_node(source_store->actual_dimensions);
+    if (destination_ref->subscripts == NULL)
+      while (source_act_dimensions != NULL) {
+        destination_act_dimensions->data = source_act_dimensions->data;
+        destination_act_dimensions = lst_next(destination_act_dimensions);
+        source_act_dimensions = lst_next(source_act_dimensions);
+      }
+  }
+  
+  // all done
+  return true;
+}
+
+/**
+ * Recursively evaluates an expression and returns a value_t with the result
+ */
 static value_t evaluate_expression(const expression_t *expression)
 {
   value_t result;
@@ -694,6 +891,7 @@ static value_t evaluate_expression(const expression_t *expression)
       // assume this is numeric for the moment
       result.type = NUMBER;
       result.number = 0;
+      
       // get the original definition or error out if we can't find it
       char *func_name = expression->parms.variable->name;
 			function_storage_t *original_definition;
@@ -1115,12 +1313,7 @@ static value_t evaluate_expression(const expression_t *expression)
 
             // the 1-arity version is just a variable
             variable_reference_t *exp = expression->parms.op.p[0]->parms.variable;
-
-            // like CHANGE and CONVERT, you do not pass in the ()'s here, so the name has to be munged
-            char *array_storage_name = str_new(exp->name);
-            str_append(array_storage_name, "("); // we are assuming it is missing, don't have to check type here
-            variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
-            free(array_storage_name);
+            variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, exp->name);
 
             // and if it does, get the first value
             if (lst_length(array_store->actual_dimensions) > 0)
@@ -1157,9 +1350,7 @@ static value_t evaluate_expression(const expression_t *expression)
             if (parameters[0].type == STRING && parameters[1].type == STRING) {
               result.type = STRING;
               result.string = str_new(parameters[0].string);
-              result.string = strcat(result.string, parameters[1].string);
-
-              //result.string = str_new(str_append(parameters[0].string, parameters[1].string));
+              result.string = strcat(result.string, parameters[1].string);              
             }
             else if (parameters[0].type >= NUMBER && parameters[1].type >= NUMBER)
               result = double_to_value(a + b);
@@ -1369,10 +1560,7 @@ static value_t evaluate_expression(const expression_t *expression)
             int axis = parameters[1].number;
             
             // munge the name
-            char *array_storage_name = str_new(exp->name);
-            str_append(array_storage_name, "(");
-            variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
-            free(array_storage_name);
+            variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, exp->name);
             
             // so first, let's just check the bounds now, to simplify the following
             // remember: basic is 1-based!
@@ -1493,7 +1681,7 @@ static value_t evaluate_expression(const expression_t *expression)
       }
   }
   return result;
-}
+} //evaluate_expression
 
 /* handles the PRINT and PRINT USING statements, which can get complex */
 static void print_value(value_t v, const char *format)
@@ -1556,7 +1744,7 @@ static void print_value(value_t v, const char *format)
         break;
     }
   }
-}
+} //print_value
 
 // FIXME: cover method, should be removed
 static void print_expression(expression_t *e, const char *format)
@@ -1598,7 +1786,7 @@ static int line_for_statement(const list_t *statement)
   }
   // didn't find it
   return -1;
-}
+} //line_for_statement
 
 /* curries line_for_statement to return the current line */
 static int current_line(void)
@@ -1718,17 +1906,15 @@ static void perform_statement(list_t *statement_entry)
 				first_val = variable_value(statement->parms.change.var1, &type1);
 				variable_value(statement->parms.change.var2, &type2); // we only need the type here, the value is not used
 				
-				// make sure one is a string and the other is snumeric
+				// make sure one is a string and the other is numeric
 				if (type1 == STRING && type2 != NUMBER)
 					report_error(ern_TYPE_MISMATCH, "Type mismatch in CHANGE, string to ?");
 				else if (type1 == NUMBER && type2 != STRING)
 					report_error(ern_TYPE_MISMATCH, "Type mismatch in CHANGE, number to ?");
 				
 				// get the storage for the numeric value by adding the (
-				char *array_storage_name = str_new((type1 == NUMBER) ? statement->parms.change.var1->name : statement->parms.change.var2->name);
-				str_append(array_storage_name, "("); // we are assuming it is missing, don't have to check type here
-				array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
-				free(array_storage_name);
+        char *array_name = (type1 == NUMBER) ? statement->parms.change.var1->name : statement->parms.change.var2->name;
+				array_store = lst_data_with_key(interpreter_state.variable_values, array_name);
 
 				// whichever one is a number has to be an array
 				if (lst_length(array_store->actual_dimensions) == 0)
@@ -1835,17 +2021,10 @@ static void perform_statement(list_t *statement_entry)
 					for (list_t *variable = lst_first_node(statement->parms.dim); variable != NULL; variable = lst_next(variable)) {
 						// get the name of this variable and munge it to an array if appropriate
 						variable_reference_t *var = variable->data;
-						
-						// if this is a DIM on a string, and we're using slicing, then this is DIMming
-						// the string's length, not making an array. In that case we want the original
-						// variable name, not the munged version
-						char *storage_name = str_new(var->name);
-						if ((!string_slicing || variable_type(var) != STRING) && var->subscripts != NULL)
-							str_append(storage_name, "(");
-						
+												
 						// look up the storage, error if it's not found (should never happen)
 						variable_storage_t *storage;
-						storage = lst_data_with_key(interpreter_state.variable_values, storage_name);
+						storage = lst_data_with_key(interpreter_state.variable_values, var->name);
 						if (storage == NULL) {
 							report_error(ern_REDIM_ARRAY, "DIM on unknown variable.");
 							break;
@@ -1864,9 +2043,6 @@ static void perform_statement(list_t *statement_entry)
 							v = evaluate_expression(L->data);
 							storage->dimed_dimensions = lst_append(storage->dimed_dimensions, INT_TO_POINTER(v.number));
 						}
-            
-            // and all done with this
-            free(storage_name);
             
             // and now call value again so that the dimensions are set up in storage
             int ignore = 0;
@@ -2121,14 +2297,11 @@ static void perform_statement(list_t *statement_entry)
       case MAT:
       {
         // get the reference from the LHS
-        variable_reference_t *destination_var = statement->parms.let.variable;
+        variable_reference_t *destination_ref = statement->parms.let.variable;
 
         // get/make the storage entry for this variable
-        char *destination_var_name = str_new(destination_var->name);
-        str_append(destination_var_name, "("); // we are assuming it is missing
-        variable_storage_t *destination_store = lst_data_with_key(interpreter_state.variable_values, destination_var_name);
-        int destination_type = variable_type(destination_var);
-        free(destination_var_name);
+        variable_storage_t *destination_store = lst_data_with_key(interpreter_state.variable_values, destination_ref->name);
+        int destination_type = variable_type(destination_ref);
         
         // ensure the item on the RHS is a variable
         expression_t *expression = statement->parms.let.expression;
@@ -2138,50 +2311,55 @@ static void perform_statement(list_t *statement_entry)
         }
 
         // now find the variable on the RHS and do the same lookup
-        variable_reference_t *source_var = expression->parms.variable;
-        char *source_var_name = str_new(source_var->name);
-        str_append(source_var_name, "("); // we are assuming it is missing
-        variable_storage_t *source_store = lst_data_with_key(interpreter_state.variable_values, source_var_name);
-        int source_type = variable_type(source_var);
-        free(source_var_name);
+        variable_reference_t *source_ref = expression->parms.variable;
+        variable_storage_t *source_store = lst_data_with_key(interpreter_state.variable_values, source_ref->name);
+        int source_type = variable_type(source_ref);
         
         // check that they are both the same type
         if (source_type != destination_type) {
-          report_error(ern_TYPE_MISMATCH, "MAT assignment with different types, number and string.");
+          report_error(ern_TYPE_MISMATCH, "MAT assign with different types, number and string.");
           break;
         }
         
-        // and that the destination is large enough to hold the source
-        // NOTE: this isn't really needed, we could do a REDIM, but this is the
-        //       way it works in Dartmouth, so...
-        list_t *destination_act_dimensions = lst_first_node(destination_store->actual_dimensions);
-        int destination_slots = 0;
-        while (destination_act_dimensions != NULL) {
-          destination_slots = destination_slots + POINTER_TO_INT(destination_act_dimensions->data);
-          destination_act_dimensions = lst_next(destination_act_dimensions);
-        }
+        // check that the destination is big enough to hold the data
+        // and redim the destination as needed
+        if (!redim_matrix(destination_ref, source_ref))
+          break; // the error has already been printed
 
-        list_t *source_act_dimensions = lst_first_node(source_store->actual_dimensions);
-        int source_slots = 0;
-        while (source_act_dimensions != NULL) {
-          source_slots = source_slots + POINTER_TO_INT(source_act_dimensions->data);
-          source_act_dimensions = lst_next(source_act_dimensions);
-        }
+        // now we can copy them over. the destination has been redimed
+        // to the source size, so we need to recalculate the limits
+        int dims = lst_length(destination_store->actual_dimensions);
+        list_t *act_dimensions = lst_first_node(destination_store->actual_dimensions);
         
-        if (destination_slots < source_slots) {
-          report_error(ern_BAD_SUBSCRIPT, "MAT assignment destination is too small to hold source.");
+        // handle each case separately for clarity
+        if (dims == 0) {
+          report_error(ern_TYPE_MISMATCH, "MAT assign with scalar variable");
           break;
         }
-
-        // copy them over
-        for (int i = 0; i < source_slots; i++) {
+        else if (dims == 1) {
+          // vector, loop over elements and input each one
+          int len = POINTER_TO_INT(act_dimensions->data);
           
+          // remember to skip zero
+          for (int i = 1; i <= len; i++)
+            destination_store->array[i] = source_store->array[i];
         }
+        else if (dims == 2) {
+          int rows = POINTER_TO_INT(act_dimensions->data);
+          int cols = POINTER_TO_INT(act_dimensions->next->data);
+          int index;
           
-
-        
-
-
+          for (int r = 1; r <= rows; r++) {
+            for (int c = 1; c <= cols; c++) {
+              index = r * cols + c;
+              destination_store->array[index] = source_store->array[index];
+            }
+          }
+        }
+        else {
+          report_error(ern_TYPE_MISMATCH, "MAT assign with too many dimensions");
+          break;
+        } // number of dims
       } // mat let
         break;
 
@@ -2197,14 +2375,22 @@ static void perform_statement(list_t *statement_entry)
           // if it's a separator entry, move on
           if (input_item->expression == NULL)
             continue;
-
-          // like CHANGE/CONVERT, the variable does not have parens so we have to add them here
-          char *array_storage_name = str_new(input_item->expression->parms.variable->name);
-          str_append(array_storage_name, "("); // we are assuming it is missing
-          variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
-          free(array_storage_name);
           
-          // get the number of dimensions
+          // all of the items must be a variable?
+          // FIXME: is that true?
+          if (input_item->expression->type != variable) {
+            report_error(ern_TYPE_MISMATCH, "MAT INPUT with non-variable item");
+            continue;
+          }
+
+          // find the storage for this matrix
+          variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, input_item->expression->parms.variable->name);
+          
+          // redim if needed
+          if (!redim_matrix(input_item->expression->parms.variable, input_item->expression->parms.variable))
+            break;
+          
+          // get the resulting number of dimensions
           int dims = lst_length(array_store->actual_dimensions);
           list_t *act_dimensions = lst_first_node(array_store->actual_dimensions);
           
@@ -2227,7 +2413,7 @@ static void perform_statement(list_t *statement_entry)
               line[strlen(line) - 1] = '\0';
 
               // and turn it into a double
-              sscanf(line, "%lg", &array_store->value[i].number);
+              sscanf(line, "%lg", &array_store->array[i].number);
             }
           }
           else if (dims == 2) {
@@ -2241,7 +2427,7 @@ static void perform_statement(list_t *statement_entry)
                 if (fgets(line, sizeof(line), stdin) != line)
                   exit(EXIT_FAILURE);
                 line[strlen(line) - 1] = '\0';
-                sscanf(line, "%lg", &array_store->value[index].number);
+                sscanf(line, "%lg", &array_store->array[index].number);
               }
             }
           }
@@ -2255,6 +2441,7 @@ static void perform_statement(list_t *statement_entry)
         
       case MATPRINT:
       {
+        // FIXME: this does not handle the "column vector" output, see Dartmouth V4 page 57
         printitem_t *print_item;
         char sep = ',';
 
@@ -2267,23 +2454,25 @@ static void perform_statement(list_t *statement_entry)
           if (print_item->expression == NULL)
             continue;
           
-          // check that the type is appropriate
-          if (variable_type(print_item->expression->parms.variable) == STRING) {
-            report_error(ern_TYPE_MISMATCH, "MAT PRINT with string variable");
-            break;
+          // all of the items must be a variable?
+          // FIXME: is that true?
+          if (print_item->expression->type != variable) {
+            report_error(ern_TYPE_MISMATCH, "MAT PRINT with non-variable item");
+            continue;
           }
-          
+
           // see if there is another item following, and if that item is a separator
           if (I->next != NULL && ((printitem_t *)(I->next->data))->separator != 0)
             sep = ((printitem_t *)(I->next->data))->separator;
           
-          // like CHANGE/CONVERT, the variable does not have parens so we have to add them here
-          char *array_storage_name = str_new(print_item->expression->parms.variable->name);
-          str_append(array_storage_name, "("); // we are assuming it is missing
-          variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
-          free(array_storage_name);
+          // get the array
+          variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, print_item->expression->parms.variable->name);
 
-          // get the number of dimensions
+          // redim if needed
+          if (!redim_matrix(print_item->expression->parms.variable, print_item->expression->parms.variable))
+            break;
+
+          // get the resulting number of dimensions
           int dims = lst_length(array_store->actual_dimensions);
           list_t *act_dimensions = lst_first_node(array_store->actual_dimensions);
           
@@ -2299,7 +2488,7 @@ static void perform_statement(list_t *statement_entry)
             // remember to skip zero
             for (int i = 1; i <= len; i++) {
               // get the value from the correct slot in storage
-              value_t val = either_to_value(array_store->value[i], array_store->type);
+              value_t val = either_to_value(array_store->array[i], array_store->type);
               print_value(val, NULL);
               if (sep != ';')
                 while (interpreter_state.cursor_column % tab_columns != 0) {
@@ -2318,7 +2507,7 @@ static void perform_statement(list_t *statement_entry)
             for (int r = 1; r <= rows; r++) {
               for (int c = 1; c <= cols; c++) {
                 int index = r * cols + c;
-                value_t val = either_to_value(array_store->value[index], array_store->type);
+                value_t val = either_to_value(array_store->array[index], array_store->type);
                 print_value(val, NULL);
                 // and advance the cursor based on the separator, which defaults to comma for arrays, not semi
                 if (sep != ';')
@@ -2348,21 +2537,21 @@ static void perform_statement(list_t *statement_entry)
         for (list_t *I = statement->parms.read; I != NULL; I = lst_next(I)) {
           read_item = I->data;
           
-          // like CHANGE/CONVERT, the variable does not have parens so we have to add them here
-          char *array_storage_name = str_new(read_item->name);
-          str_append(array_storage_name, "("); // we are assuming it is missing
-          variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
+          // get the array
+          variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, read_item->name);
           int array_type = variable_type(read_item);
-          free(array_storage_name);
+          
+          // redim if needed
+          if (!redim_matrix(read_item, read_item))
+            break;
 
-          // get the number of dimensions
+          // get the resulting number of dimensions
           int dims = lst_length(array_store->actual_dimensions);
           list_t *act_dimensions = lst_first_node(array_store->actual_dimensions);
           
           // handle each case separately for clarity
           if (dims == 0) {
             report_error(ern_TYPE_MISMATCH, "MAT READ with scalar variable");
-            break;
           }
           else if (dims == 1) {
             // vector case
@@ -2378,15 +2567,16 @@ static void perform_statement(list_t *statement_entry)
               // test the type, if the variable and data are the same type assign it, otherwise return an error
               if (data_value.type == array_type) {
                 if (array_type == STRING)
-                  array_store->value[index].string = data_value.string;
+                  array_store->array[index].string = data_value.string;
                 else
-                  array_store->value[index].number = data_value.number;
+                  array_store->array[index].number = data_value.number;
               } else {
                 char buffer[80];
                 sprintf(buffer, "Type mismatch in MAT READ, reading a %s but got a %s",
                         (array_type == STRING) ? "string" : "number",
                         (array_type >= NUMBER) ? "number" : "string" );
                 report_error(ern_TYPE_MISMATCH, buffer);
+                break;
               }
             }
           } // dim=1
@@ -2406,22 +2596,22 @@ static void perform_statement(list_t *statement_entry)
                 // test the type, if the variable and data are the same type assign it, otherwise return an error
                 if (data_value.type == array_type) {
                   if (array_type == STRING)
-                    array_store->value[index].string = data_value.string;
+                    array_store->array[index].string = data_value.string;
                   else
-                    array_store->value[index].number = data_value.number;
+                    array_store->array[index].number = data_value.number;
                 } else {
                   char buffer[80];
                   sprintf(buffer, "Type mismatch in MAT READ, reading a %s but got a %s",
                           (array_type == STRING) ? "string" : "number",
                           (array_type >= NUMBER) ? "number" : "string" );
                   report_error(ern_TYPE_MISMATCH, buffer);
+                  break;
                 }
               }
             }
           } // dim=2
           else {
             report_error(ern_TYPE_MISMATCH, "MAT PRINT with too many dimensions");
-            break;
           } // dims
         } // item list
       } // mat read
@@ -2431,11 +2621,8 @@ static void perform_statement(list_t *statement_entry)
       {
         // find the storage
         variable_reference_t *mat_item = statement->parms.let.variable;
-        char *array_storage_name = str_new(mat_item->name);
-        str_append(array_storage_name, "("); // we are assuming it is missing
-        variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
+        variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, mat_item->name);
         int array_type = variable_type(mat_item);
-        free(array_storage_name);
         
         // has to be a number
         if (array_type == STRING) {
@@ -2443,13 +2630,16 @@ static void perform_statement(list_t *statement_entry)
           break;
         }
         
-        // get the number of dimensions
+        // redim if needed
+        if (!redim_matrix(mat_item, mat_item))
+          break;
+        
+        // get the resulting number of dimensions
         int dims = lst_length(array_store->actual_dimensions);
         list_t *act_dimensions = lst_first_node(array_store->actual_dimensions);
         
         if (dims == 0) {
           report_error(ern_TYPE_MISMATCH, "MAT CON with scalar variable");
-          break;
         }
         else if (dims == 1) {
           // vector case
@@ -2457,7 +2647,7 @@ static void perform_statement(list_t *statement_entry)
           
           // remember to skip zero
           for (int index = 1; index <= len; index++)
-              array_store->value[index].number = 1;
+              array_store->array[index].number = 1;
         } // dim=1
         else if (dims == 2) {
           int rows = POINTER_TO_INT(act_dimensions->data);
@@ -2466,12 +2656,11 @@ static void perform_statement(list_t *statement_entry)
           for (int r = 1; r <= rows; r++)
             for (int c = 1; c <= cols; c++) {
               int index = r * cols + c;
-              array_store->value[index].number = 1;
+              array_store->array[index].number = 1;
             }
         } // dim=2
         else {
           report_error(ern_TYPE_MISMATCH, "MAT CON with too many dimensions");
-          break;
         } // dims
       }  //mat con
         break;
@@ -2480,17 +2669,18 @@ static void perform_statement(list_t *statement_entry)
       {
         // find the storage
         variable_reference_t *mat_item = statement->parms.let.variable;
-        char *array_storage_name = str_new(mat_item->name);
-        str_append(array_storage_name, "("); // we are assuming it is missing
-        variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
+        variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, mat_item->name);
         int array_type = variable_type(mat_item);
-        free(array_storage_name);
         
         // has to be a number
         if (array_type == STRING) {
           report_error(ern_TYPE_MISMATCH, "MAT IDN with string variable");
           break;
         }
+
+        // redim if needed
+        if (!redim_matrix(mat_item, mat_item))
+          break;
 
         // get the number of dimensions
         int dims = lst_length(array_store->actual_dimensions);
@@ -2513,9 +2703,9 @@ static void perform_statement(list_t *statement_entry)
           for (int c = 1; c <= cols; c++) {
             int index = r * cols + c;
             if (r == c)
-              array_store->value[index].number = 1;
+              array_store->array[index].number = 1;
             else
-              array_store->value[index].number = 0;
+              array_store->array[index].number = 0;
           }
       } // mat idn
         break;
@@ -2527,11 +2717,12 @@ static void perform_statement(list_t *statement_entry)
         
         // find the storage
         variable_reference_t *mat_item = statement->parms.let.variable;
-        char *array_storage_name = str_new(mat_item->name);
-        str_append(array_storage_name, "("); // we are assuming it is missing
-        variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, array_storage_name);
+        variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, mat_item->name);
         int array_type = variable_type(mat_item);
-        free(array_storage_name);
+
+        // redim if needed
+        if (!redim_matrix(mat_item, mat_item))
+          break;
 
         // get the number of dimensions
         int dims = lst_length(array_store->actual_dimensions);
@@ -2549,10 +2740,10 @@ static void perform_statement(list_t *statement_entry)
           for (int index = 1; index <= len; index++) {
             // test the type, if the variable and data are the same type assign it, otherwise return an error
             if (array_type == STRING) {
-              free(array_store->value[index].string);
-              array_store->value[index].string = "\0";
+              free(array_store->array[index].string);
+              array_store->array[index].string = "\0";
             } else
-              array_store->value[index].number = 0;
+              array_store->array[index].number = 0;
           }
         } // dim=1
         else if (dims == 2) {
@@ -2565,10 +2756,10 @@ static void perform_statement(list_t *statement_entry)
               
               // test the type, if the variable and data are the same type assign it, otherwise return an error
               if (array_type == STRING) {
-                free(array_store->value[index].string);
-                array_store->value[index].string = "\0";
+                free(array_store->array[index].string);
+                array_store->array[index].string = "\0";
               } else
-                array_store->value[index].number = 0;
+                array_store->array[index].number = 0;
             }
           }
         } // dim=2
@@ -2579,6 +2770,96 @@ static void perform_statement(list_t *statement_entry)
       } //mat zer
         break;
         
+//      case MATINV:
+//      {
+//        // find the array storage
+//        variable_reference_t *mat_item = statement->parms.let.variable;
+//        variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, mat_item->name);
+//        int array_type = variable_type(mat_item);
+//
+//        // has to be a number
+//        if (array_type == STRING) {
+//          report_error(ern_TYPE_MISMATCH, "MAT INV with string variable");
+//          break;
+//        }
+//
+//        // redim if needed
+//        if (!redim_matrix(mat_item, mat_item))
+//          break;
+//
+//        // get the resulting number of dimensions
+//        int dims = lst_length(array_store->actual_dimensions);
+//        list_t *act_dimensions = lst_first_node(array_store->actual_dimensions);
+//
+//        if (dims == 0) {
+//          report_error(ern_TYPE_MISMATCH, "MAT INV with scalar variable");
+//        }
+//        else if (dims == 1) {
+//          report_error(ern_TYPE_MISMATCH, "MAT INV with vector variable");
+//        } // dim=1
+//        else if (dims == 2) {
+//          int rows = POINTER_TO_INT(act_dimensions->data);
+//          int cols = POINTER_TO_INT(act_dimensions->next->data);
+//
+//          for (int r = 1; r <= rows; r++)
+//            for (int c = 1; c <= cols; c++) {
+//              int index = r * cols + c;
+//              array_store->array[index].number = 1;
+//            }
+//        } // dim=2
+//        else {
+//          report_error(ern_TYPE_MISMATCH, "MAT INV with too many dimensions");
+//        } // dims
+//      }  //mat inv
+//        break;
+        
+//      case MATMUL:
+//      {
+//        // find the destination array storage
+//        variable_reference_t *mat_item = statement->parms.let.variable;
+//        variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, mat_item->name);
+//        int array_type = variable_type(mat_item);
+//
+//        // has to be a number
+//        if (array_type == STRING) {
+//          report_error(ern_TYPE_MISMATCH, "MAT multiply with string variable");
+//          break;
+//        }
+//
+//        // redim if needed
+//        if (!redim_matrix(mat_item, mat_item))
+//          break;
+//
+//        // get the resulting number of dimensions
+//        int dims = lst_length(array_store->actual_dimensions);
+//        list_t *act_dimensions = lst_first_node(array_store->actual_dimensions);
+//
+//        if (dims == 0) {
+//          report_error(ern_TYPE_MISMATCH, "MAT multiply with scalar variable");
+//        }
+//        else if (dims == 1) {
+//          int len = POINTER_TO_INT(act_dimensions->data);
+//          for (int i = 1; i < len; i++)
+//            array_store->array[i].number = array_store->array[i].number * con;
+//
+//        } // dim=1
+//        else if (dims == 2) {
+//          int rows = POINTER_TO_INT(act_dimensions->data);
+//          int cols = POINTER_TO_INT(act_dimensions->next->data);
+//
+//          for (int r = 1; r <= rows; r++)
+//            for (int c = 1; c <= cols; c++) {
+//              int index = r * cols + c;
+//              array_store->array[index].number = 1;
+//            }
+//        } // dim=2
+//        else {
+//          report_error(ern_TYPE_MISMATCH, "MAT multiply with too many dimensions");
+//        } // dims
+//      }  //mat mul
+//        break;
+//
+//
       case NEXT:
       {
         list_t *stack_node, *previous_node;
@@ -2683,9 +2964,9 @@ static void perform_statement(list_t *statement_entry)
           report_error(ern_OVERFLOW, "Index value for ON less than 1");
         
         // try to get the nth item
-        // an IF statement simply runs the next statement if the condition fails,
-        // likewise, if the ON value points to an item that is not in the number
-        // list, if simply falls off to the next statement - NOT THE NEXT LINE!
+        // an IF statement moves to the next line if the condition fails,
+        // but if the ON value points to an item that is not in the number
+        // list, it falls off to the next statement - NOT THE NEXT LINE!
         expression_t *item = lst_data_at(numslist, n);
         if (item == NULL)
           break;

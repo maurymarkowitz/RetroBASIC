@@ -641,70 +641,6 @@ statement:
     }
   }
   |
-  MAT variable '=' expression
-  {
-    statement_t *new = make_statement(MAT);
-    new->parms.let.variable = $2;
-    new->parms.let.expression = $4;
-    $$ = new;
-  }
-  |
-  MAT PRINT printlist
-  {
-    statement_t *new = make_statement(MATPRINT);
-    new->parms.print.item_list = $3;
-    $$ = new;
-  }
-  |
-  MAT INPUT printlist
-  {
-    statement_t *new = make_statement(MATINPUT);
-    new->parms.input = $3;
-    $$ = new;
-  }
-  |
-  MAT READ varlist
-  {
-    statement_t *new = make_statement(MATREAD);
-    new->parms.read = $3;
-    $$ = new;
-  }
-  |
-  MAT variable '=' MATCON
-  {
-    statement_t *new = make_statement(MATCON);
-    new->parms.let.variable = $2;
-    $$ = new;
-  }
-  |
-  MAT variable '=' MATDET
-  {
-    statement_t *new = make_statement(MATDET);
-    new->parms.let.variable = $2;
-    $$ = new;
-  }
-  |
-  MAT variable '=' MATZER
-  {
-    statement_t *new = make_statement(MATZER);
-    new->parms.let.variable = $2;
-    $$ = new;
-  }
-  |
-  MAT variable '=' MATIDN
-  {
-    statement_t *new = make_statement(MATIDN);
-    new->parms.let.variable = $2;
-    $$ = new;
-  }
-  |
-  MAT variable '=' MATINV
-  {
-    statement_t *new = make_statement(MATINV);
-    new->parms.let.variable = $2;
-    $$ = new;
-  }
-  |
   NEXT varlist // this handles one or more index variables, no need for a single-var case
   {
     statement_t *new = make_statement(NEXT);
@@ -919,7 +855,7 @@ statement:
     //NOTE: same code above in LET
     if (new->parms.let.expression->type == number) {
       if ((int)new->parms.let.expression->parms.number == 0) {
-          assign_zero++;
+        assign_zero++;
       } else if ((int)new->parms.let.expression->parms.number == 1
                  && (int)new->parms.let.expression->parms.number == new->parms.let.expression->parms.number) {
         assign_one++;
@@ -927,8 +863,140 @@ statement:
         assign_other++;
       }
     }
-
   }
+  /* all the matrix stuff follows */
+  |
+  MAT variable '=' expression
+  {
+    statement_t *new = make_statement(MAT);
+    new->parms.let.variable = $2;
+    new->parms.let.expression = $4;
+    $$ = new;
+  }
+  |
+  MAT variable '=' '(' expression ')' '*' variable
+  {
+    statement_t *new = make_statement(MATIDN);
+    new->parms.let.variable = $2;
+    new->parms.let.expression = $5;
+    $$ = new;
+  }
+  |
+  MAT variable '=' '(' expression ')' '*' variable  '(' exprlist ')'
+  {
+    statement_t *new = make_statement(MATIDN);
+    new->parms.let.variable = $2;
+    $$ = new;
+  }
+
+  |
+  MAT variable '=' MATIDN '(' exprlist ')'
+  {
+    statement_t *new = make_statement(MATIDN);
+    new->parms.let.variable = $2;
+    new->parms.let.variable->subscripts = $6;
+    $$ = new;
+  }
+
+  |
+  MAT PRINT printlist
+  {
+    statement_t *new = make_statement(MATPRINT);
+    new->parms.print.item_list = $3;
+    $$ = new;
+  }
+  |
+  MAT INPUT printlist
+  {
+    statement_t *new = make_statement(MATINPUT);
+    new->parms.input = $3;
+    $$ = new;
+  }
+  |
+  MAT READ varlist
+  {
+    statement_t *new = make_statement(MATREAD);
+    new->parms.read = $3;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATCON
+  {
+    statement_t *new = make_statement(MATCON);
+    new->parms.let.variable = $2;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATCON '(' exprlist ')'
+  {
+    statement_t *new = make_statement(MATCON);
+    new->parms.let.variable = $2;
+    new->parms.let.variable->subscripts = $6;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATDET
+  {
+    statement_t *new = make_statement(MATDET);
+    new->parms.let.variable = $2;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATDET '(' exprlist ')'
+  {
+    statement_t *new = make_statement(MATDET);
+    new->parms.let.variable = $2;
+    new->parms.let.variable->subscripts = $6;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATZER
+  {
+    statement_t *new = make_statement(MATZER);
+    new->parms.let.variable = $2;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATZER '(' exprlist ')'
+  {
+    statement_t *new = make_statement(MATZER);
+    new->parms.let.variable = $2;
+    new->parms.let.variable->subscripts = $6;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATIDN
+  {
+    statement_t *new = make_statement(MATIDN);
+    new->parms.let.variable = $2;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATIDN '(' exprlist ')'
+  {
+    statement_t *new = make_statement(MATIDN);
+    new->parms.let.variable = $2;
+    new->parms.let.variable->subscripts = $6;
+    $$ = new;
+  }
+  /*
+  |
+  MAT variable '=' MATINV '(' expression ')'
+  {
+    statement_t *new = make_statement(MATINV);
+    new->parms.let.variable = $2;
+    new->parms.let.variable->subscripts = $6;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATTRN '(' expression ')'
+  {
+    statement_t *new = make_statement(MATTRN);
+    new->parms.let.variable = $2;
+    new->parms.let.variable->subscripts = $6;
+    $$ = new;
+  }
+   */
   ;
 
  /* precedence in RetroBASIC is handled through this pattern tree,

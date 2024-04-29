@@ -229,13 +229,13 @@ LBOUND    { return LBOUND; }
 LABEL     { return LABEL; }
 
  /* matrix commands and functions */
-MAT       { return MAT; }
-CON       { return MATCON; }
-DET       { return MATDET; }
-IDN       { return MATIDN; }
-INV       { return MATINV; }
-TRN       { return MATTRN; }
-ZER       { return MATZER; }
+MAT       { return MAT; }     // assignments
+ZER       { return MATZER; }  // zero matrix
+CON       { return MATCON; }  // all-1 matrix
+IDN       { return MATIDN; }  // identity matrix
+DET       { return MATDET; }  // determinant function
+INV       { return MATINV; }  // invert
+TRN       { return MATTRN; }  // transpose
 
  /* hex, oct and bin strings encoding numbers */
 \&[0-9a-fA-F]+  {

@@ -13,16 +13,15 @@ BP - DEC BASIC-PLUS
 - add TRAP, used in AB and CB
 
 - add errno and ON ERROR, CB used EL for error line, ER for error number, and ERR$ for the string
+ - ONERR on Apple II
 
 - add parameter checking to functions, currently most of them don't check that they were passed a string/number
 
-- check string sizes against DIM in slicing dialects
-
 - need to allow multiple INPUTs on a single line, currently it requires a CR between values
 
-- LINPUT/LINE INPUT
+- LINPUT/LINE INPUT/INPUT LINE
 
-- MAX and MIN, for strings as well, and arrays
+- MAX and MIN
 
 - WHILE...WEND, LOOP...UNTIL, but so many variations...
 
@@ -70,6 +69,8 @@ BP - DEC BASIC-PLUS
 
 - IF..LET, another alternative format for IF
 
+- ERASE, clears variables (IBM Advanced BASIC)
+
 Debatable:
 
 - BASIC-PLUS uses WAIT to limit the amount of time INPUT will wait, other dialects have similar variations
@@ -96,6 +97,8 @@ Debatable:
 
 Will not be done:
 
+- RESTORE* and RESTORE$ from Dartmouth, which reset the numeric vs. string DATA pointers.
+
 - IP and FP, aliases for FIX and FRAC, too easily overlap with variable names.
 
 - EXAM and FETCH aliases to PEEK from North Star and Opus and similar. No point, this returns 0 anyway.
@@ -103,8 +106,6 @@ Will not be done:
 - WB allows RESTORE to use an ordinal position in the list, as opposed to a line number. There appears to be no easy way to distinguish this.
 
 - WB uses CONVERT for ASC, which steps on HPs CONVERT.
-
-- INPUT LINE is not needed (for now) as all INPUTs are treated as LINE.
 
 - NUM, which is Digital Group's version of VAL, or NUM$ which is the same as STR$.
 

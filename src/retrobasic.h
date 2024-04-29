@@ -25,7 +25,7 @@
 #define __RETROBASIC_H__
 
 #include "stdhdr.h"
-#include "retroerrors.h"
+#include "errors.h"
 
 /**
  * @file retrobasic.h
@@ -84,6 +84,7 @@ typedef struct {
   list_t *actual_dimensions;    // actual dimensions, even if auto-DIMmed
   list_t *dimed_dimensions;     // subscript definitions, if any (from a DIM)
   either_t *value;              // actual value(s), malloced
+  either_t *array;              // actual value(s), malloced
 } variable_storage_t;
 
 /* expressions */
