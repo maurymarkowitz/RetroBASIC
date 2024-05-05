@@ -259,17 +259,18 @@ void print_statistics(void)
   if (write_stats) {
     //check that the file name is reasonable, and then try to open it
     FILE* fp = fopen(stats_file, "w+");
-    if (!fp) return;
+    if (!fp)
+      return;
     
     double tu = (double)(end_time.tv_usec - start_time.tv_usec);
     double ts = (double)(end_time.tv_sec - start_time.tv_sec);
-    fprintf(fp, "RUN TIME: %g\n", tu / 1000000 + ts);
+    fprintf(fp, "RUN TIME,%g\n", tu / 1000000 + ts);
     fprintf(fp, "CPU TIME,%g\n", ((double) (end_ticks - start_ticks)) / CLOCKS_PER_SEC);
     
     fprintf(fp, "LINE NUMBERS,total,%i\n", lines_total);
     fprintf(fp, "LINE NUMBERS,first,%i\n", line_min);
     fprintf(fp, "LINE NUMBERS,last,%i\n", line_max);
-    fprintf(fp, "LINE NUMBERS,average digits: %2.2f\n", linenum_ave_digits);
+    fprintf(fp, "LINE NUMBERS,average digits,%2.2f\n", linenum_ave_digits);
 
     fprintf(fp, "STATEMENTS,total,%i\n", lst_length(interpreter_state.lines[line_min]));
     fprintf(fp, "STATEMENTS,average,%g\n", (double)lst_length(interpreter_state.lines[line_min])/(double)lines_total);
@@ -312,19 +313,19 @@ void print_statistics(void)
     fprintf(fp, "BRANCHES,same line,%i\n",linenum_same_line);
     fprintf(fp, "BRANCHES,ons,%i\n",linenum_on_totals);
 
-    fprintf(fp, "OTHER,ASSIGN 0: %i\n",assign_zero);
-    fprintf(fp, "OTHER,ASSIGN 1: %i\n",assign_one);
-    fprintf(fp, "OTHER,ASSIGN OTHER: %i\n",assign_other);
-    fprintf(fp, "OTHER,FORs: %i\n",for_loops_total);
-    fprintf(fp, "OTHER,FORs step 1: %i\n",for_loops_step_1);
-    fprintf(fp, "OTHER,incs: %i\n",increments);
-    fprintf(fp, "OTHER,decs: %i\n",decrements);
-    fprintf(fp, "OTHER,logical=0: %i\n",compare_equals_zero);
-    fprintf(fp, "OTHER,logical!=0: %i\n",compare_not_equals_zero);
-    fprintf(fp, "OTHER,logical=1: %i\n",compare_equals_one);
-    fprintf(fp, "OTHER,logical!=1: %i\n",compare_not_equals_one);
-    fprintf(fp, "OTHER,logical=x: %i\n",compare_equals_other);
-    fprintf(fp, "OTHER,logical!=x: %i\n",compare_not_equals_other);
+    fprintf(fp, "OTHER,assign 0,%i\n",assign_zero);
+    fprintf(fp, "OTHER,assign 1,%i\n",assign_one);
+    fprintf(fp, "OTHER,assign other,%i\n",assign_other);
+    fprintf(fp, "OTHER,FORs,%i\n",for_loops_total);
+    fprintf(fp, "OTHER,FORs step 1,%i\n",for_loops_step_1);
+    fprintf(fp, "OTHER,incs,%i\n",increments);
+    fprintf(fp, "OTHER,decs,%i\n",decrements);
+    fprintf(fp, "OTHER,logical=0,%i\n",compare_equals_zero);
+    fprintf(fp, "OTHER,logical!=0,%i\n",compare_not_equals_zero);
+    fprintf(fp, "OTHER,logical=1,%i\n",compare_equals_one);
+    fprintf(fp, "OTHER,logical!=1,%i\n",compare_not_equals_one);
+    fprintf(fp, "OTHER,logical=x,%i\n",compare_equals_other);
+    fprintf(fp, "OTHER,logical!=x,%i\n",compare_not_equals_other);
     
     fclose(fp);
   }
