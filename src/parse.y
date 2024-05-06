@@ -121,7 +121,6 @@ static expression_t *make_operator(int arity, int o)
 %token PRINT
 %token PUT
 %token READ
-%token RESTORE
 %token RETURN
 %token RUN
 %token STEP
@@ -152,6 +151,7 @@ static expression_t *make_operator(int arity, int o)
 %token VARLIST
 %token PAUSE
 %token SLEEP /* BASIC-PLUS variation */
+%token RESTORE
 
  /* common math functions */
 %token ABS SGN
@@ -188,6 +188,9 @@ static expression_t *make_operator(int arity, int o)
 %token POS
 %token USR
 %token LIN /* from HP, a vertical version of TAB */
+%token TRAP /* error handling, used both as a command and as a type of ON statement (see below) */
+%token RESUME /* jumps back to the error line */
+%token ERROR /* used in ON ERROR */
 
  /* type definitions added circa 1979 */
 %token DEFSTR DEFINT DEFSNG DEFDBL
@@ -686,6 +689,17 @@ statement:
     linenum_on_totals++;
   }
   |
+  ON ERROR GOTO exprlist
+  {
+    statement_t *new = make_statement(ON);
+    new->parms.on.type = TRAP;
+    new->parms.on.numbers = $4;
+    $$ = new;
+    
+    linenum_constants_total += lst_length($4);
+    linenum_on_totals++;
+  }
+  |
   OPTION BASE expression
   {
     statement_t *new = make_statement(OPTION);
@@ -770,6 +784,28 @@ statement:
     $$ = new;
   }
   |
+  RESUME NEXT /* return from an error */
+  {
+    statement_t *new = make_statement(RESUME);
+    expression_t *exp = make_expression(number);
+    exp->parms.number = -1;
+    new->parms.generic_parameter = exp;
+    $$ = new;
+  }
+  |
+  RESUME expression /* return from an error */
+  {
+    statement_t *new = make_statement(RESUME);
+    new->parms.generic_parameter = $2;
+    $$ = new;
+  }
+  |
+  RESUME
+  {
+    statement_t *new = make_statement(RESUME);
+    $$ = new;
+  }
+  |
   RETURN
   {
     statement_t *new = make_statement(RETURN);
@@ -828,6 +864,20 @@ statement:
   {
     statement_t *new = make_statement(TIME_STR);
     new->parms.generic_parameter = $4;
+    $$ = new;
+  }
+  |
+  TRAP expression /* error handling */
+  {
+    statement_t *new = make_statement(TRAP);
+    new->parms.generic_parameter = $2;
+    $$ = new;
+  }
+  |
+  TRAP /* turn off error handling */
+  {
+    statement_t *new = make_statement(TRAP);
+    new->parms.generic_parameter = NULL;
     $$ = new;
   }
   |

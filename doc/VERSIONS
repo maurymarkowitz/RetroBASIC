@@ -137,9 +137,10 @@ Version 1.9.1 - 13 February 2024
 
 Version 2.0.0 -
 
-- major update to add MAT commands from Dartmouth BASIC V4
+- refactored error handling to return Commodore-like error numbers, see errors.h
+- added error handling in the form of TRAP, ON ERROR and RESUME statements, see reference manual
+- add MAT commands from Dartmouth BASIC V4
 - reimplemented array handling to aid MAT commands
-- refactored error handling to return Commodore-like error numbers (see errors.h)
 - added -t/--trace option to turn on line tracing, which means -t is no longer short for --tabs
 - added dummy version of ADR, returns 0
 - added DISPOSE, the Commodore version of POP (from late model machines)

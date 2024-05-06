@@ -3,7 +3,7 @@ RetroBASIC Reference Manual
 
 **Copyright © 2023 Maury Markowitz**
 
-Version 1.9.1
+Version 2.0.0
 
 [![GPL license](http://img.shields.io/badge/license-GPL-brightgreen.svg)](https://opensource.org/licenses/gpl-license)
 
@@ -591,7 +591,7 @@ This causes the program to repeatedly add 1 to the current value of A, print the
 <!-- TOC --><a name="on-aexpr-gotogosub-linenoaexprlinenoaexpr"></a>
 ### `ON` *aexpr* {`GOTO`|`GOSUB`} [*lineno*|*aexpr*]{,[*lineno*|*aexpr*],...}
 
-The `ON` statement, also known as the **computed branch**, combines a series of `IF...THEN` *lineno* statements into a single instruction. The value of *aexpr* is calculated to produce a value that is expected to be from 1 up to the number of line numbers in the list following the `GOTO` or `GOSUB`. If there is an entry in the list for that ordinal value, like a 5th entry if *aexpr* returns 5, then the `GOTO` or `GOSUB` is performed with that line as the target. `ON` is often used to respond to user input that selects among a number of options. As is the case for `GOTO` and `GOSUB`, RetroBASIC allows any valid *aexpr* in place of constants for line numbers in the list of targets.
+The `ON` statement, also known as the **computed branch**, combines a series of `IF...THEN` statements into a single instruction. The value of *aexpr* is calculated to produce an integer number that is expected to be from 1 up to the number of line numbers in the list following the `GOTO` or `GOSUB`. If there is an entry in the list for that ordinal value, like a 5th entry if *aexpr* returns 5, then the `GOTO` or `GOSUB` is performed with that line as the target. `ON` is often used to respond to user input that selects among a number of options. As is the case for `GOTO` and `GOSUB`, RetroBASIC allows any valid *aexpr* in place of constants for line numbers in the list of targets.
 
 #### Examples:
 
@@ -607,6 +607,10 @@ This program will print a `A IS 1`, `2` or `3` depending on the value in the num
 #### Variations:
 
 Some dialects use the alternate syntax `GOTO` *aexpr* `ON` and `GOSUB` *aexpr* `ON`, reversing the normal format. RetroBASIC supports this format as well.
+
+#### See also:
+
+* `ON ERROR`
 
 <!-- TOC --><a name="for-avaraexpr1-to-aexpr2-step-aexpr3-statmnt-and-next-avaravar"></a>
 ### `FOR` *avar*=*aexpr1* `TO` *aexpr2* [`STEP` *aexpr3*] {:|}<CR>} [*statmnt*,{:|}<CR>}...] and `NEXT` [*avar*,[*avar*,...]]
@@ -1758,25 +1762,27 @@ DEC's BASIC-PLUS, on TOPS at least, used `USR$` to return a listing of the files
 
 ## Matrix commands, operators and functions
 
-Dartmouth BASIC introduced a series of matrix related commands and functions that operate on entire arrays with a single operation. These operations can also be implemented using FOR/NEXT loops, but using a single instruction leads to clearer code and higher performance. The downside is that only a few dialects supported these commands, mostly on mainframes, so using them leads to portability issues.
+Dartmouth BASIC introduced a series of matrix related commands and functions that operate on entire arrays with a single operation. These operations can also be implemented using FOR/NEXT loops, but using a single instruction leads to higher performance and more clearly indicates the actual intent of the author. The downside is that only a few dialects supported these commands, mostly on mainframes, so using them leads to portability issues.
 
-The basic idea is that the common statements `PRINT`, `INPUT` and `READ` now have matrix-related versions, `MAT PRINT`, `MAT INPUT` and `MAT READ`. When called, these versions loop over the array and perform the statement on all of the elements within it. So, for instance, `MAT PRINT A` will print out the entire array will out instead of having to loop over the array and print each slot separately. In addition to these statements, there are also a number of matrix operators and functions. For instance, one can use the assignment statement `MAT A=ZER` to set all the slots in a matrix to 0. All of these instructions begin with the statement keyword `MAT`.
+The basic idea is that the common statements `PRINT`, `INPUT` and `READ` now have matrix-related versions, `MAT PRINT`, `MAT INPUT` and `MAT READ`. When called, these versions loop over the array and perform the statement on all of the elements within it. So, for instance, `MAT PRINT A` will print out the entire array instead of having to loop over the array and print each slot separately. In addition to these statements, there are also a number of matrix operators and functions. For instance, one can use the assignment statement `MAT A=ZER` to set all the slots in a matrix to 0. All of these instructions begin with the statement keyword `MAT`.
 
 The system allows the dimensions of the array to be specified to limit the slots that a function will operate on. In the following documentation, we will refer to this as a *subarray*. For instance, if a program starts with `DIM A(10,10)`, then `MAT A=ZER` will assign 0 to all of the slots in A, 10 by 10, whereas `A=ZER(5,5)` will change the values only in the subarray of 1..5 in the rows and columns, leaving the other values, in 6..10, unchanged. This works as long as the largest slot number, M times N, is less than the total number of slots original dimensioned. For instance, it is acceptable to call `MAT A=DET(15,1)`, despite A being DIMmed (10,10). This is very much at odds with normal BASIC behavior, where a reference to `A(15,1)` would cause a runtime error, `?BAD SUBSCRIPT` in Commodore BASIC for instance.
 
-One "gotcha" to be aware of is that the items in the zero indexes are ignored. So in a vector, the first slot is ignored, while in a matrix, all of the slots in the zero column and row are ignored. This may lead to unexpected results if data has been inserted in these slots using other statements and then manipulated with the matrix commands, which will cause that data to be cleared out.
+One "gotcha" to be aware of is that the items in the zero indexes are ignored. So in a vector, the first slot is ignored, while in a matrix, all of the slots in the zero column and row are ignored. This may lead to unexpected results if data has been inserted in these slots using other statements and then manipulated with the matrix commands, which may cause that data to be cleared out.
 
 ### Matrix statements
 
-There are only four matrix statements, assignment (`LET`), `PRINT`, `INPUT` and `READ`. All of these loop over the list of variables and then perform their normal actions on all of the elements in the array or the selected subarray. For instance, if you `MAT INPUT A,B`, the system will prompt you to input a value for all of the slots in A and then all of the slots in B.
+There are only four matrix statements, assignment with the optional `LET`, `PRINT`, `INPUT` and `READ`. All of these loop over the list of variables and then perform their normal actions on all of the elements in the array or the selected subarray. For instance, if you `MAT INPUT A,B`, the system will prompt you to input a value for all of the slots in A and then all of the slots in B.
 
-The only oddity is `MAT PRINT`, whose output differs depending on the type of array. If the array is 1-d, a vector, it will be considered a column and normally printed with each value on a separate line. In contrast, a matrix will be printed in a 2-d fashion, rows and columns. In both cases the layout can be changed by adding a comma or semicolon, which operate in a fashion similar to the normal `PRINT` statement, adjusting the width between the numbers; when applied to a vector, this also causes it to print out in a single row. 
+One oddity is `MAT PRINT`, whose output differs depending on the type of array. If the array is 1-d, a vector, it will be considered a column and normally printed with each value on a separate line. In contrast, a matrix will be printed in a 2-d fashion, rows and columns. In both cases the layout can be changed by adding a comma or semicolon, which operate in a fashion similar to the normal `PRINT` statement, adjusting the width between the numbers; when applied to a vector, this also causes it to print out in a single row. 
 
 ### Matrix operators
 
-The matrix system includes mathematical operators that mirror those that apply to scalar values. Dartmouth has assignment, plus, minus and multiply. Generally, these instructions require the variables to be of the same type and dimensions, you can add a matrix to a matrix or vector to vector, but you cannot add a vector to a matrix. Dartmouth also added the ability to multiply all of the elements by a scalar value, which uses a separate format that demands the expression be in parentheses and be the left-hand-side of the operator. For reasons unclear, only multiplication was supported. RetroBASIC extends this format for all of the mathematical operators.
+The matrix system includes mathematical operators that mirror those that apply to scalar values. Dartmouth has assignment, plus, minus and multiply. Generally, these instructions require the variables to be of the same type and dimensions, you can add a matrix to a matrix or vector to vector, but you cannot add a vector to a matrix.
 
-Note that division is not supported. This is because dividing a matrix requires it to first be inverted, which is not always possible given the values it contains. While this could have been included and simply report and error in this situation, the two-step operation would have required too much working memory to be supported on machines of the era.
+Dartmouth also added the ability to multiply all of the elements by a scalar value, which uses a separate format that demands the scalar expression be in parentheses and be the left-hand-side of the operator. For reasons unclear, only multiplication was supported. RetroBASIC extends this format for all of the mathematical operators. In the case of division, this leads to odd syntax as the divisor is on the left.
+
+Note that matrix-by-matrix division is not supported. This is because dividing a matrix requires it to first be inverted, which is not always possible given the values it contains. While this could have been included and simply report and error in this situation, the two-step operation would have required too much working memory to be supported on machines of the era.
 
 #### Examples:
 
@@ -1822,3 +1828,20 @@ Transposes *avar2*, rotating it so columns become rows and rows columns, and pla
 
 ## Error handling
 
+Some versions of BASIC provide rudimentary error handling using the `TRAP` or `ON ERROR` statements. These will be referred to as traps. When a trap is turned on and an error occurs, or is *raised*, instead of printing the error message and stopping the program, execution continues at the indicated line. The code at this line is known as an *error handler*. A handler allows the program to examine the error and decide how to continue. Most dialects also allow the error number to be examined, as well as the line number where the error occurred. The dialects differ significantly on the details of how these features are turned on and off, and how the error can be examined and recovered.
+
+The simple trap concept used in BASIC is subject to many problems. Among these is that if an error occurs *in* the handler then it can trap back into itself and cause an infinite loop. Additionally, few dialects allow only certain errors to be trapped, it's normally all or nothing.
+
+### [`TRAP`,`ON ERROR`,`ONERR`] {*aexp*}
+
+When any of these statements is encountered in a program, the *aexp* is evaluated, converted to a line number, and then stored for future reference. If an error occurs any time after the statement is encountered, execution will jump to the line number in *aexp*. If that line number does not exist, an error will be printed and execution will stop.
+
+The method of turning the trap off differs across dialects. In Commodore BASIC, one uses `TRAP` with no parameter, in Atari BASIC any number above 32,676 does the same, and in Applesoft one has to `POKE 216,0`. In RetroBASIC, traps are turned off with an empty parameter or any expression that evaluates to zero or a negative value.
+
+### `RESUME` {`NEXT`|*aexp*|}
+
+When a handler is complete, `RESUME` is used to return to the code. If there are no parameters, it will return to the line where the error occurred. Using `NEXT` modifies this to return to the statement after the error, in the case that there is more than one statement on the line. If *aexp* is provided, it performs the equivalent of a `GOTO`.
+
+### `ERR$(`*aexp*`)`
+
+Returns a string with the error message for a given error number.
