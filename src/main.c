@@ -27,13 +27,13 @@
 /* simple version info for --version command line option */
 static void print_version(void)
 {
-  puts("RetroBASIC 1.9.2");
+  puts("RetroBASIC 2.0.0");
 }
 
 /* usage short form, just a list of the switches */
 static void print_usage(char *argv[])
 {
-  printf("Usage: %s [-hvsngu] [-a number] [-t spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] FILE\n", argv[0]);
+  printf("Usage: %s [-hvsngut] [-a number] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] FILE\n", argv[0]);
 }
 
 /* full usage notes, both for the user and for documenting the code below */
