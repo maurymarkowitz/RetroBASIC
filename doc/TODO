@@ -10,10 +10,9 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
-- add TRAP, used in AB and CB
+- test column MAT PRINT?
 
-- add errno and ON ERROR, CB used EL for error line, ER for error number, and ERR$ for the string
- - ONERR on Apple II
+- add errno, CB used EL for error line, ER for error number, and ERR$ for the string
 
 - add parameter checking to functions, currently most of them don't check that they were passed a string/number
 
@@ -43,7 +42,7 @@ BP - DEC BASIC-PLUS
 
 - flesh out GET and PUT, which are just placeholders for now
 
-- support AB's DEG and RAD modes? WB also had gradians; SELECT G
+- support AB's DEG and RAD modes? WB also had gradians; SELECT G, Commodore 3.5 has similar?
 
 - PA allows multiple assignments in a LET, separated by commas, see assignlist.
 
@@ -96,6 +95,8 @@ Debatable:
 - add Wang style AND function, AND(string, hex mask), masks string and returns it.
 
 Will not be done:
+
+- STORE and RECALL from Applesoft, which writes and reads all the values in an array to cassette
 
 - RESTORE* and RESTORE$ from Dartmouth, which reset the numeric vs. string DATA pointers.
 

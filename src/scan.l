@@ -56,36 +56,36 @@ Boston, MA 02111-1307, USA.  */
     a separate token, this is the simplest solution. See:
     https://stackoverflow.com/questions/59117309/rest-of-line-in-bison/59122569#59122569
   */
-REM.*   { yylval.s = str_new(str_copy(yytext + 3, yyleng - 3)); return REM; }
-'.*     { yylval.s = str_new(str_copy(yytext + 1, yyleng - 1)); return QUOTEREM; } // short form in MS
-!.*     { yylval.s = str_new(str_copy(yytext + 1, yyleng - 1)); return BANGREM; }  // later MS allow bang as well
-BYE     { return BYE; } // also SYSTEM and GOODBYE
-CLEAR   { return CLEAR; }
-CLR     { return CLEAR; } /* synonyms */
-DEF     { return DEF; }
-DATA    { return DATA; }
-DIM     { return DIM; }
-END     { return END; }
-FOR     { return FOR; }
-GOSUB		{ return GOSUB; }
-GOTO		{ return GOTO; }
-IF      { return IF; }
-INPUT   { return INPUT; }
-LET	    { return LET; }
-NEXT	  { return NEXT; }
-NEW			{ return NEW; } // also CLEAR (sometimes with options), ERASE and SCRATCH
-OF      { return OF; }
-ON      { return ON; }
-POKE    { return POKE; }
-PRINT   { return PRINT; }
-READ		{ return READ; }
-RESTORE	{ return RESTORE; }
-RETURN	{ return RETURN; }
-RUN			{ return RUN; }
-STEP		{ return STEP; }
-STOP    { return STOP; }
-THEN		{ return THEN; }
-TO			{ return TO; }
+REM.*     { yylval.s = str_new(str_copy(yytext + 3, yyleng - 3)); return REM; }
+'.*       { yylval.s = str_new(str_copy(yytext + 1, yyleng - 1)); return QUOTEREM; } // short form in MS
+!.*       { yylval.s = str_new(str_copy(yytext + 1, yyleng - 1)); return BANGREM; }  // later MS allow bang as well
+BYE       { return BYE; }   // also SYSTEM and GOODBYE
+CLEAR     { return CLEAR; }
+CLR       { return CLEAR; } // synonyms
+DEF       { return DEF; }
+DATA      { return DATA; }
+DIM       { return DIM; }
+END       { return END; }
+FOR       { return FOR; }
+GOSUB		  { return GOSUB; }
+GOTO		  { return GOTO; }
+IF        { return IF; }
+INPUT     { return INPUT; }
+LET	      { return LET; }
+NEXT	    { return NEXT; }
+NEW			  { return NEW; }   // also CLEAR (sometimes with options), ERASE and SCRATCH
+OF        { return OF; }
+ON        { return ON; }
+POKE      { return POKE; }
+PRINT     { return PRINT; }
+READ		  { return READ; }
+RESTORE	  { return RESTORE; }
+RETURN    { return RETURN; }
+RUN			  { return RUN; }
+STEP		  { return STEP; }
+STOP      { return STOP; }
+THEN		  { return THEN; }
+TO			  { return TO; }
 
  /* extended statements found in some versions*/
 CALL      { return CALL; }    // used to call system functions in TI-99 and some other BASICs
@@ -107,6 +107,10 @@ PAUSE     { return PAUSE; }
 POP       { return POP; }
 DISPOSE   { return POP; }     // same as POP
 EXIT      { return EXIT; }    // slightly different than pop
+RESUME    { return RESUME; }
+TRAP      { return TRAP; }
+ERROR     { return ERROR; }
+ERR       { return ERROR; }
 
  /* math functions */
 ABS			  { return ABS; }

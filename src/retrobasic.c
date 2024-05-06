@@ -26,6 +26,7 @@
 
 #include "retrobasic.h"
 #include "parse.h"
+#include "errors.h"
 
 #if _WIN32
   #include <conio.h>
@@ -50,7 +51,9 @@ bool goto_next_highest = false;				// if a branch targets an non-existant line, 
 bool ansi_on_boundaries = false;			// if the value for an ON statement <1 or >num entries, should it continue or error?
 bool ansi_tab_behaviour = false;			// if a TAB < current column, ANSI inserts a CR, MS does not
 
-int error_line = -1;                  // line number where an error occured, -1 for none
+int error_num = 0;                    // the last error, 0 if no error or reset
+int error_line = -1;                  // line number where an error occurred, -1 for none
+list_t *error_statement = NULL;       // statement where the error occurred, so RESUME can continue properly
 int trap_line = -1;                   // line to TRAP or ON ERROR to, -1 for none
 
 char *source_file = "";
@@ -80,6 +83,7 @@ static bool slice_limits(const variable_reference_t *variable, const variable_st
 
 static value_t evaluate_expression(const expression_t *e);
 
+static list_t *find_line(int linenumber);
 static int line_for_statement(const list_t *s);
 static int current_line(void);
 
@@ -98,11 +102,41 @@ struct timeval reset_time;     					// if the user resets the time with TIME$, t
 /************************************************************************/
 
 /**
- * Error reporting routine that also prints the line number of the error.
-*/
-static void report_error(const int errnum, const char *message)
+ * Handles runtime errors.
+ *
+ * If trap_line is set to a -ve value, there is no error handling turned
+ * on, in which case it simply calls report_error. If trap_line is +ve,
+ * it does not report the error and instead moves to the trap.
+ *
+ * If there is no trap and the error is going to be reported, it will
+ * always report the error string and the line where it occurred. If
+ * @p message is not empty, it will be printed in parens at the end.
+ */
+static void handle_error(const int errnum, const char *message)
 {
-  fprintf(stderr, "%s at line %d\n", message, current_line());
+  // save the error data
+  error_num = errnum;
+  error_line = current_line();
+  error_statement = interpreter_state.current_statement;
+  
+  // if there is a trap, find that line and go there
+  //
+  // NOTE: if the line number is invalid, that causes an error that we have to
+  //       handle here since find_line will return an error and cause a loop,
+  //       we cheat here and just see if the line exists and don't bother
+  //       trying to find the next highest
+  if (trap_line > 0) {
+    if (interpreter_state.lines[trap_line] == NULL) {
+      fprintf(stderr, "%s at line %d (%s)\n", error_messages[ern_NO_SUCH_LINE], trap_line, "TRAP/ON ERROR set to non-existent line");
+    }
+    interpreter_state.next_statement = find_line(trap_line);
+  }
+  
+  // if we got this far there is no trapping, so report it
+  if (strlen(message) > 0)
+    fprintf(stderr, "%s at line %d (%s)\n", error_messages[error_num], error_line, message);
+  else
+    fprintf(stderr, "%s at line %d\n", error_messages[error_num], error_line);
 }
 
 /**
@@ -329,7 +363,7 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
     
     // the *number* of dimensions has to match, you can't DIM A(1,1) and then LET B=A(1)
     if (lst_length(act_dimensions) != lst_length(variable_indexes))
-      report_error(ern_BAD_SUBSCRIPT, "Array dimensions of variable does not match storage");
+      handle_error(ern_BAD_SUBSCRIPT, "Array dimensions of variable does not match storage");
     else
       while (act_dimensions && variable_indexes) {
         // evaluate the variable reference's index for a given dimension
@@ -345,7 +379,7 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
 				// make sure the index is within the originally DIMed bounds
 				// NOTE: should check against array_base, not 0, but this doesn't work in Dartmouth. see notes
         if ((this_index.number < 0) || (original_dimension < this_index.number)) {
-          report_error(ern_BAD_SUBSCRIPT, "Array subscript out of bounds");
+          handle_error(ern_BAD_SUBSCRIPT, "Array subscript out of bounds");
 					this_index.number = 0; // the first entry in the C array, so it continues
         }
 				
@@ -353,7 +387,7 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
 				if (dim_dimensions != NULL) {
 					int def_dimension = POINTER_TO_INT(dim_dimensions->data);
 					if ((this_index.number < 0) || (def_dimension < this_index.number)) {
-						report_error(ern_BAD_SUBSCRIPT, "Array subscript out of DIMmed bounds");
+            handle_error(ern_BAD_SUBSCRIPT, "Array subscript out of DIMmed bounds");
 						this_index.number = 0;
 					}
 				}
@@ -451,7 +485,7 @@ bool slice_limits(const variable_reference_t *variable, const variable_storage_t
   if (lst_length(variable->slicing)) {
     // ANSI slices will always have two parameters in the slicing list
     if (lst_length(variable->slicing) != 2)
-      report_error(ern_ILLEGAL_VALUE, "Wrong number of parameters in string slice");
+      handle_error(ern_ILLEGAL_VALUE, "Wrong number of parameters in string slice");
     
     slice_param = variable->slicing;
   }
@@ -462,7 +496,7 @@ bool slice_limits(const variable_reference_t *variable, const variable_storage_t
   if (string_slicing && lst_length(variable->subscripts) > 0) {
     // HP style slices will have one or two parameters
     if (string_slicing && (lst_length(variable->subscripts) != 1 && lst_length(variable->subscripts) != 2))
-      report_error(ern_ILLEGAL_VALUE, "Wrong number of parameters in string slice");
+      handle_error(ern_ILLEGAL_VALUE, "Wrong number of parameters in string slice");
     
     slice_param = variable->subscripts;
   }
@@ -485,11 +519,11 @@ bool slice_limits(const variable_reference_t *variable, const variable_storage_t
       // check it first against the DIMed bounds
       int dim_len = POINTER_TO_INT(storage->value->string);
       if (*start > dim_len || *end  > dim_len)
-        report_error(ern_ILLEGAL_VALUE, "String slice out of DIMmed bounds");
+        handle_error(ern_ILLEGAL_VALUE, "String slice out of DIMmed bounds");
       
       // and against the string itself
       if (*start < 1 || *end < 1 || *end > strlen(storage->value->string)) // no -1, we adjust that next line
-        report_error(ern_ILLEGAL_VALUE, "String slice out of bounds");
+        handle_error(ern_ILLEGAL_VALUE, "String slice out of bounds");
     }
     
     // the numbers above are 1-indexed from BASIC, so we need to...
@@ -601,7 +635,7 @@ static value_t read_next_data_value()
   value_t data_value;
 
   if (interpreter_state.current_data_statement == NULL) {
-    report_error(ern_OUT_OF_DATA, "No more DATA for READ");
+    handle_error(ern_OUT_OF_DATA, "No more DATA for READ");
     data_value.type = 0; // use this as an error indicator
     return data_value;
   }
@@ -790,7 +824,7 @@ static bool redim_matrix(variable_reference_t *destination_ref, variable_referen
       subs = lst_next(subs);
     }
     if (destination_slots < sub_slots) {
-      report_error(ern_BAD_SUBSCRIPT, "MAT destination is too small to hold source.");
+      handle_error(ern_BAD_SUBSCRIPT, "MAT destination is too small to hold source.");
       return false;
     }
   }
@@ -801,7 +835,7 @@ static bool redim_matrix(variable_reference_t *destination_ref, variable_referen
       destination_act_dimensions = lst_next(destination_act_dimensions);
     }
     if (destination_slots < source_slots) {
-      report_error(ern_BAD_SUBSCRIPT, "MAT destination is too small to hold source.");
+      handle_error(ern_BAD_SUBSCRIPT, "MAT destination is too small to hold source.");
       return false;
     }
   }
@@ -899,7 +933,7 @@ static value_t evaluate_expression(const expression_t *expression)
       if (original_definition == NULL) {
         char buffer[80];
         sprintf(buffer, "User-defined function '%s' is being called but has not been defined", func_name);
-        report_error(ern_DEF_UNKNOWN, buffer);
+        handle_error(ern_DEF_UNKNOWN, buffer);
         result.type = NUMBER;
         result.number = 0;
         break;
@@ -908,7 +942,7 @@ static value_t evaluate_expression(const expression_t *expression)
       if (lst_length(original_definition->parameters) != lst_length(expression->parms.variable->subscripts)) {
         char buffer[80];
         sprintf(buffer, "User-defined function '%s' is being called with the wrong number of parameters", func_name);
-        report_error(ern_DEF_UNKNOWN, buffer);
+        handle_error(ern_DEF_UNKNOWN, buffer);
         break;
       }
 
@@ -953,7 +987,7 @@ static value_t evaluate_expression(const expression_t *expression)
             stored_val->number = updated_val.number;
         } else {
           // if the type we stored last time is different than this time...
-          report_error(ern_TYPE_MISMATCH, "Type mismatch in user-defined function call");
+          handle_error(ern_TYPE_MISMATCH, "Type mismatch in user-defined function call");
           break;
         }
         
@@ -968,7 +1002,7 @@ static value_t evaluate_expression(const expression_t *expression)
       if (p == NULL) {
         char buffer[80];
         sprintf(buffer, "User-defined function '%s' is being called but has not been defined", expression->parms.variable->name);
-        report_error(ern_DEF_UNKNOWN, buffer);
+        handle_error(ern_DEF_UNKNOWN, buffer);
       } else {
         result = evaluate_expression(p);
       }
@@ -1073,7 +1107,7 @@ static value_t evaluate_expression(const expression_t *expression)
             break;
 
 					default:
-						report_error(ern_DEF_UNKNOWN, "Unhandled arity-0 function");
+						handle_error(ern_DEF_UNKNOWN, "Unhandled arity-0 function");
         }
       } // arity 0
       else if (expression->parms.op.arity == 1) {
@@ -1321,7 +1355,7 @@ static value_t evaluate_expression(const expression_t *expression)
             else if (lst_length(array_store->dimed_dimensions) > 0)
               result.number = (double)POINTER_TO_INT(array_store->dimed_dimensions->data);
             else {
-              report_error(ern_TYPE_MISMATCH, "UBOUND called on non-array variable");
+              handle_error(ern_TYPE_MISMATCH, "UBOUND called on non-array variable");
               result.number = 0;
             }
           }
@@ -1333,7 +1367,7 @@ static value_t evaluate_expression(const expression_t *expression)
             break;
 												
           default:
-            report_error(ern_DEF_UNKNOWN, "Unhandled arity-1 function");
+            handle_error(ern_DEF_UNKNOWN, "Unhandled arity-1 function");
         } //switch
       } //arity = 1
       
@@ -1356,7 +1390,7 @@ static value_t evaluate_expression(const expression_t *expression)
               result = double_to_value(a + b);
             else {
               result.number = 0;
-              report_error(ern_TYPE_MISMATCH, "Type mismatch, string and number in addition");
+              handle_error(ern_TYPE_MISMATCH, "Type mismatch, string and number in addition");
             }
             break;
           case '-':
@@ -1369,7 +1403,7 @@ static value_t evaluate_expression(const expression_t *expression)
               result.string = str_append(result.string, parameters[1].string);
             } else {
               result.string = str_new("");
-              report_error(ern_TYPE_MISMATCH, "Type mismatch, non-string values in concatenation");
+              handle_error(ern_TYPE_MISMATCH, "Type mismatch, non-string values in concatenation");
             }
             break;
           case '*':
@@ -1377,7 +1411,7 @@ static value_t evaluate_expression(const expression_t *expression)
             break;
           case '/':
             if (b == 0)
-              report_error(ern_DIV_BY_ZERO, "Division by zero");
+              handle_error(ern_DIV_BY_ZERO, "Division by zero");
             result = double_to_value(a / b);
             break;
           case '^':
@@ -1385,18 +1419,18 @@ static value_t evaluate_expression(const expression_t *expression)
             break;
           case MOD:
             if (b == 0)
-              report_error(ern_DIV_BY_ZERO, "Division by zero");
+              handle_error(ern_DIV_BY_ZERO, "Division by zero");
             // can't use C's mod operator, %, it only works on ints
             result = double_to_value(a - (b * (int)(a / b)));
             break;
           case MOD_INT:
             if (b == 0)
-              report_error(ern_DIV_BY_ZERO, "Division by zero");
+              handle_error(ern_DIV_BY_ZERO, "Division by zero");
             result = double_to_value((int)(a - (b * (int)(a / b))));
             break;
           case DIV:
             if (b == 0)
-              report_error(ern_DIV_BY_ZERO, "Division by zero");
+              handle_error(ern_DIV_BY_ZERO, "Division by zero");
             result = double_to_value((int)floor(a) / (int)floor(b));
             break;
           case '=':
@@ -1529,7 +1563,7 @@ static value_t evaluate_expression(const expression_t *expression)
 
             // check that this is an INSTR, not a mis-parsed POS
             if (parameters[0].type > STRING || parameters[1].type > STRING) {
-              report_error(ern_TYPE_MISMATCH, "INSTR/INDEX/POS called with non-string inputs");
+              handle_error(ern_TYPE_MISMATCH, "INSTR/INDEX/POS called with non-string inputs");
               break;
             }
 
@@ -1565,7 +1599,7 @@ static value_t evaluate_expression(const expression_t *expression)
             // so first, let's just check the bounds now, to simplify the following
             // remember: basic is 1-based!
             if (lst_length(array_store->actual_dimensions) < axis - 1 && lst_length(array_store->dimed_dimensions) < axis - 1) {
-              report_error(ern_ILLEGAL_VALUE, "UBOUND called with index greater than variable dimensions");
+              handle_error(ern_ILLEGAL_VALUE, "UBOUND called with index greater than variable dimensions");
               result.number = 0.0;
               break;
             }
@@ -1593,7 +1627,7 @@ static value_t evaluate_expression(const expression_t *expression)
 
           default:
             result.number = 0;
-            report_error(ern_DEF_UNKNOWN, "Unhandled arity-2 function");
+            handle_error(ern_DEF_UNKNOWN, "Unhandled arity-2 function");
             break;
         } //switch
       } //arity = 2
@@ -1614,7 +1648,7 @@ static value_t evaluate_expression(const expression_t *expression)
             char *src, *pat;
             if (parameters[0].type > STRING) {
               if (parameters[1].type > STRING || parameters[2].type > STRING) {
-                report_error(ern_TYPE_MISMATCH, "INSTR/INDEX/POS called with non-string inputs");
+                handle_error(ern_TYPE_MISMATCH, "INSTR/INDEX/POS called with non-string inputs");
                 break;
               }
               start = parameters[0].number;
@@ -1624,7 +1658,7 @@ static value_t evaluate_expression(const expression_t *expression)
             // and one where its at the end
             else {
               if (parameters[0].type > STRING || parameters[1].type > STRING) {
-                report_error(ern_TYPE_MISMATCH, "INSTR/INDEX/POS called with non-string inputs");
+                handle_error(ern_TYPE_MISMATCH, "INSTR/INDEX/POS called with non-string inputs");
                 break;
               }
               start = parameters[2].number;
@@ -1669,7 +1703,7 @@ static value_t evaluate_expression(const expression_t *expression)
                                  
           default:
             result.number = 0;
-            report_error(ern_DEF_UNKNOWN, "Unhandled arity-3 function");
+            handle_error(ern_DEF_UNKNOWN, "Unhandled arity-3 function");
             break;
         } // switch
       } //arity = 3
@@ -1802,11 +1836,11 @@ static list_t *find_line(int linenumber)
   // negative numbers are not allowed
   if (linenumber < 0) {
     sprintf(buffer, "Negative target line %i in branch", linenumber);
-    report_error(ern_NO_SUCH_LINE, buffer);
+    handle_error(ern_NO_SUCH_LINE, buffer);
     return NULL;
   }
   
-  // apparently some BASICs allow you to branch to a non-existant line and it will
+  // apparently some BASICs allow you to branch to a non-existent line and it will
   // go to the next-highest. this is definitely not what MS does, nor ANSI apparently,
   // but if this does come up we can use this flag on the command line
   if (goto_next_highest) {
@@ -1815,21 +1849,21 @@ static list_t *find_line(int linenumber)
     
     // if we fell off the end, report an error
     if (linenumber == MAXLINE) {
-      report_error(ern_NO_SUCH_LINE, "Undefined line in branch, beyond highest line number");
+      handle_error(ern_NO_SUCH_LINE, "Undefined line in branch, beyond highest line number");
       return NULL;
     }
   } else {
     // in MS-like BASICs, any null target line returns an error
     if (interpreter_state.lines[linenumber] == NULL) {
       sprintf(buffer, "Undefined target line %i in branch", linenumber);
-      report_error(ern_NO_SUCH_LINE, buffer);
+      handle_error(ern_NO_SUCH_LINE, buffer);
       return NULL;
     }
   }
   
   // otherwise we did find a line, so return it
   return interpreter_state.lines[linenumber];
-}
+} // find_line
 
 /* returns the number of (non-empty) lines between two lines.
  used in the statistics to calculate how far a jump is */
@@ -1865,10 +1899,10 @@ static void perform_statement(list_t *statement_entry)
 					else {
 						char buffer[80];
 						sprintf(buffer, "OPTION BASE with invalid parameter %g", baseval.number);
-						report_error(ern_ILLEGAL_VALUE, buffer);
+						handle_error(ern_ILLEGAL_VALUE, buffer);
 					}
 				} else {
-					report_error(ern_ILLEGAL_VALUE, "OPTION BASE with no parameter");
+					handle_error(ern_ILLEGAL_VALUE, "OPTION BASE with no parameter");
 				}
 				break;
 
@@ -1908,9 +1942,9 @@ static void perform_statement(list_t *statement_entry)
 				
 				// make sure one is a string and the other is numeric
 				if (type1 == STRING && type2 != NUMBER)
-					report_error(ern_TYPE_MISMATCH, "Type mismatch in CHANGE, string to ?");
+					handle_error(ern_TYPE_MISMATCH, "Type mismatch in CHANGE, string to ?");
 				else if (type1 == NUMBER && type2 != STRING)
-					report_error(ern_TYPE_MISMATCH, "Type mismatch in CHANGE, number to ?");
+					handle_error(ern_TYPE_MISMATCH, "Type mismatch in CHANGE, number to ?");
 				
 				// get the storage for the numeric value by adding the (
         char *array_name = (type1 == NUMBER) ? statement->parms.change.var1->name : statement->parms.change.var2->name;
@@ -1918,11 +1952,11 @@ static void perform_statement(list_t *statement_entry)
 
 				// whichever one is a number has to be an array
 				if (lst_length(array_store->actual_dimensions) == 0)
-					report_error(ern_TYPE_MISMATCH, "Type mismatch in CHANGE, numeric variable is not an array");
+					handle_error(ern_TYPE_MISMATCH, "Type mismatch in CHANGE, numeric variable is not an array");
 				
 				// and that array has to be one-dimensional
 				if (lst_length(array_store->actual_dimensions) > 1)
-					report_error(ern_TYPE_MISMATCH, "Type mismatch in CHANGE, numeric variable has multiple dimensions");
+					handle_error(ern_TYPE_MISMATCH, "Type mismatch in CHANGE, numeric variable has multiple dimensions");
 											
 				// we are good to go...
 				if (type1 == STRING) {
@@ -1931,7 +1965,7 @@ static void perform_statement(list_t *statement_entry)
 					// make sure the array is long enough for the string
 					int string_length = (int)strlen(first_val->string);
 					if (POINTER_TO_INT(array_store->actual_dimensions->data) < string_length)
-						report_error(ern_BAD_SUBSCRIPT, "Out of memory in CHANGE, numeric variable is too small to hold the string");
+						handle_error(ern_BAD_SUBSCRIPT, "Out of memory in CHANGE, numeric variable is too small to hold the string");
 					
 					// put the length in the first slot
 					array_store->value[0].number = string_length;
@@ -2026,13 +2060,13 @@ static void perform_statement(list_t *statement_entry)
 						variable_storage_t *storage;
 						storage = lst_data_with_key(interpreter_state.variable_values, var->name);
 						if (storage == NULL) {
-							report_error(ern_REDIM_ARRAY, "DIM on unknown variable.");
+							handle_error(ern_REDIM_ARRAY, "DIM on unknown variable.");
 							break;
 						}
 						
 						// see if there already are dimensions, if so report a redim
             if (storage->dimed_dimensions != NULL) {
-              report_error(ern_REDIM_ARRAY, "DIM of already DIMmed variable.");
+              handle_error(ern_REDIM_ARRAY, "DIM of already DIMmed variable.");
               break;
             }
 						
@@ -2065,7 +2099,7 @@ static void perform_statement(list_t *statement_entry)
         
         // error if there is nothing there
         if (interpreter_state.runtime_stack  == NULL || lst_length(interpreter_state.runtime_stack) == 0) {
-          report_error(ern_NEXT_NO_FOR, "EXIT without FOR or GOSUB");
+          handle_error(ern_NEXT_NO_FOR, "EXIT without FOR or GOSUB");
           break;
         }
         
@@ -2259,7 +2293,7 @@ static void perform_statement(list_t *statement_entry)
         
         // make sure we got the right type, and assign it if we did
         if (exp_val.type != type) {
-          report_error(ern_TYPE_MISMATCH, "Type mismatch in assignment");
+          handle_error(ern_TYPE_MISMATCH, "Type mismatch in assignment");
           break;
         }
         
@@ -2306,7 +2340,7 @@ static void perform_statement(list_t *statement_entry)
         // ensure the item on the RHS is a variable
         expression_t *expression = statement->parms.let.expression;
         if (expression->type != variable) {
-          report_error(ern_SYNTAX_ERROR, "MAT assignment without variable on right hand side.");
+          handle_error(ern_SYNTAX_ERROR, "MAT assignment without variable on right hand side.");
           break;
         }
 
@@ -2317,7 +2351,7 @@ static void perform_statement(list_t *statement_entry)
         
         // check that they are both the same type
         if (source_type != destination_type) {
-          report_error(ern_TYPE_MISMATCH, "MAT assign with different types, number and string.");
+          handle_error(ern_TYPE_MISMATCH, "MAT assign with different types, number and string.");
           break;
         }
         
@@ -2333,7 +2367,7 @@ static void perform_statement(list_t *statement_entry)
         
         // handle each case separately for clarity
         if (dims == 0) {
-          report_error(ern_TYPE_MISMATCH, "MAT assign with scalar variable");
+          handle_error(ern_TYPE_MISMATCH, "MAT assign with scalar variable");
           break;
         }
         else if (dims == 1) {
@@ -2357,7 +2391,7 @@ static void perform_statement(list_t *statement_entry)
           }
         }
         else {
-          report_error(ern_TYPE_MISMATCH, "MAT assign with too many dimensions");
+          handle_error(ern_TYPE_MISMATCH, "MAT assign with too many dimensions");
           break;
         } // number of dims
       } // mat let
@@ -2379,10 +2413,10 @@ static void perform_statement(list_t *statement_entry)
           // all of the items must be a variable?
           // FIXME: is that true?
           if (input_item->expression->type != variable) {
-            report_error(ern_TYPE_MISMATCH, "MAT INPUT with non-variable item");
+            handle_error(ern_TYPE_MISMATCH, "MAT INPUT with non-variable item");
             continue;
           }
-
+          
           // find the storage for this matrix
           variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, input_item->expression->parms.variable->name);
           
@@ -2396,7 +2430,7 @@ static void perform_statement(list_t *statement_entry)
           
           // handle each case separately for clarity
           if (dims == 0) {
-            report_error(ern_TYPE_MISMATCH, "MAT INPUT with scalar variable");
+            handle_error(ern_TYPE_MISMATCH, "MAT INPUT with scalar variable");
             break;
           }
           else if (dims == 1) {
@@ -2432,7 +2466,7 @@ static void perform_statement(list_t *statement_entry)
             }
           }
           else {
-            report_error(ern_TYPE_MISMATCH, "MAT INPUT with too many dimensions");
+            handle_error(ern_TYPE_MISMATCH, "MAT INPUT with too many dimensions");
             break;
           } // number of dims
         } // input items
@@ -2457,7 +2491,7 @@ static void perform_statement(list_t *statement_entry)
           // all of the items must be a variable?
           // FIXME: is that true?
           if (print_item->expression->type != variable) {
-            report_error(ern_TYPE_MISMATCH, "MAT PRINT with non-variable item");
+            handle_error(ern_TYPE_MISMATCH, "MAT PRINT with non-variable item");
             continue;
           }
 
@@ -2478,7 +2512,7 @@ static void perform_statement(list_t *statement_entry)
           
           // handle each case separately for clarity
           if (dims == 0) {
-            report_error(ern_TYPE_MISMATCH, "MAT PRINT with scalar variable");
+            handle_error(ern_TYPE_MISMATCH, "MAT PRINT with scalar variable");
             break;
           }
           else if (dims == 1) {
@@ -2522,7 +2556,7 @@ static void perform_statement(list_t *statement_entry)
             }
           }
           else {
-            report_error(ern_TYPE_MISMATCH, "MAT PRINT with too many dimensions");
+            handle_error(ern_TYPE_MISMATCH, "MAT PRINT with too many dimensions");
             break;
           }
         } //item list
@@ -2551,7 +2585,7 @@ static void perform_statement(list_t *statement_entry)
           
           // handle each case separately for clarity
           if (dims == 0) {
-            report_error(ern_TYPE_MISMATCH, "MAT READ with scalar variable");
+            handle_error(ern_TYPE_MISMATCH, "MAT READ with scalar variable");
           }
           else if (dims == 1) {
             // vector case
@@ -2575,7 +2609,7 @@ static void perform_statement(list_t *statement_entry)
                 sprintf(buffer, "Type mismatch in MAT READ, reading a %s but got a %s",
                         (array_type == STRING) ? "string" : "number",
                         (array_type >= NUMBER) ? "number" : "string" );
-                report_error(ern_TYPE_MISMATCH, buffer);
+                handle_error(ern_TYPE_MISMATCH, buffer);
                 break;
               }
             }
@@ -2604,14 +2638,14 @@ static void perform_statement(list_t *statement_entry)
                   sprintf(buffer, "Type mismatch in MAT READ, reading a %s but got a %s",
                           (array_type == STRING) ? "string" : "number",
                           (array_type >= NUMBER) ? "number" : "string" );
-                  report_error(ern_TYPE_MISMATCH, buffer);
+                  handle_error(ern_TYPE_MISMATCH, buffer);
                   break;
                 }
               }
             }
           } // dim=2
           else {
-            report_error(ern_TYPE_MISMATCH, "MAT PRINT with too many dimensions");
+            handle_error(ern_TYPE_MISMATCH, "MAT PRINT with too many dimensions");
           } // dims
         } // item list
       } // mat read
@@ -2626,7 +2660,7 @@ static void perform_statement(list_t *statement_entry)
         
         // has to be a number
         if (array_type == STRING) {
-          report_error(ern_TYPE_MISMATCH, "MAT CON with string variable");
+          handle_error(ern_TYPE_MISMATCH, "MAT CON with string variable");
           break;
         }
         
@@ -2639,7 +2673,7 @@ static void perform_statement(list_t *statement_entry)
         list_t *act_dimensions = lst_first_node(array_store->actual_dimensions);
         
         if (dims == 0) {
-          report_error(ern_TYPE_MISMATCH, "MAT CON with scalar variable");
+          handle_error(ern_TYPE_MISMATCH, "MAT CON with scalar variable");
         }
         else if (dims == 1) {
           // vector case
@@ -2660,7 +2694,7 @@ static void perform_statement(list_t *statement_entry)
             }
         } // dim=2
         else {
-          report_error(ern_TYPE_MISMATCH, "MAT CON with too many dimensions");
+          handle_error(ern_TYPE_MISMATCH, "MAT CON with too many dimensions");
         } // dims
       }  //mat con
         break;
@@ -2674,7 +2708,7 @@ static void perform_statement(list_t *statement_entry)
         
         // has to be a number
         if (array_type == STRING) {
-          report_error(ern_TYPE_MISMATCH, "MAT IDN with string variable");
+          handle_error(ern_TYPE_MISMATCH, "MAT IDN with string variable");
           break;
         }
 
@@ -2686,7 +2720,7 @@ static void perform_statement(list_t *statement_entry)
         int dims = lst_length(array_store->actual_dimensions);
         list_t *act_dimensions = lst_first_node(array_store->actual_dimensions);
         if (dims != 2) {
-          report_error(ern_TYPE_MISMATCH, "MAT IDN with non-2D array");
+          handle_error(ern_TYPE_MISMATCH, "MAT IDN with non-2D array");
           break;
         }
         
@@ -2694,7 +2728,7 @@ static void perform_statement(list_t *statement_entry)
         int rows = POINTER_TO_INT(act_dimensions->data);
         int cols = POINTER_TO_INT(act_dimensions->next->data);
         if (rows != cols) {
-          report_error(ern_TYPE_MISMATCH, "MAT IDN with non-square array");
+          handle_error(ern_TYPE_MISMATCH, "MAT IDN with non-square array");
           break;
         }
         
@@ -2729,7 +2763,7 @@ static void perform_statement(list_t *statement_entry)
         list_t *act_dimensions = lst_first_node(array_store->actual_dimensions);
         
         if (dims == 0) {
-          report_error(ern_TYPE_MISMATCH, "MAT ZER with scalar variable");
+          handle_error(ern_TYPE_MISMATCH, "MAT ZER with scalar variable");
           break;
         }
         else if (dims == 1) {
@@ -2764,7 +2798,7 @@ static void perform_statement(list_t *statement_entry)
           }
         } // dim=2
         else {
-          report_error(ern_TYPE_MISMATCH, "MAT ZER with too many dimensions");
+          handle_error(ern_TYPE_MISMATCH, "MAT ZER with too many dimensions");
           break;
         } // dims
       } //mat zer
@@ -2779,7 +2813,7 @@ static void perform_statement(list_t *statement_entry)
 //
 //        // has to be a number
 //        if (array_type == STRING) {
-//          report_error(ern_TYPE_MISMATCH, "MAT INV with string variable");
+//          handle_error(ern_TYPE_MISMATCH, "MAT INV with string variable");
 //          break;
 //        }
 //
@@ -2792,10 +2826,10 @@ static void perform_statement(list_t *statement_entry)
 //        list_t *act_dimensions = lst_first_node(array_store->actual_dimensions);
 //
 //        if (dims == 0) {
-//          report_error(ern_TYPE_MISMATCH, "MAT INV with scalar variable");
+//          handle_error(ern_TYPE_MISMATCH, "MAT INV with scalar variable");
 //        }
 //        else if (dims == 1) {
-//          report_error(ern_TYPE_MISMATCH, "MAT INV with vector variable");
+//          handle_error(ern_TYPE_MISMATCH, "MAT INV with vector variable");
 //        } // dim=1
 //        else if (dims == 2) {
 //          int rows = POINTER_TO_INT(act_dimensions->data);
@@ -2808,7 +2842,7 @@ static void perform_statement(list_t *statement_entry)
 //            }
 //        } // dim=2
 //        else {
-//          report_error(ern_TYPE_MISMATCH, "MAT INV with too many dimensions");
+//          handle_error(ern_TYPE_MISMATCH, "MAT INV with too many dimensions");
 //        } // dims
 //      }  //mat inv
 //        break;
@@ -2822,7 +2856,7 @@ static void perform_statement(list_t *statement_entry)
 //
 //        // has to be a number
 //        if (array_type == STRING) {
-//          report_error(ern_TYPE_MISMATCH, "MAT multiply with string variable");
+//          handle_error(ern_TYPE_MISMATCH, "MAT multiply with string variable");
 //          break;
 //        }
 //
@@ -2835,7 +2869,7 @@ static void perform_statement(list_t *statement_entry)
 //        list_t *act_dimensions = lst_first_node(array_store->actual_dimensions);
 //
 //        if (dims == 0) {
-//          report_error(ern_TYPE_MISMATCH, "MAT multiply with scalar variable");
+//          handle_error(ern_TYPE_MISMATCH, "MAT multiply with scalar variable");
 //        }
 //        else if (dims == 1) {
 //          int len = POINTER_TO_INT(act_dimensions->data);
@@ -2854,7 +2888,7 @@ static void perform_statement(list_t *statement_entry)
 //            }
 //        } // dim=2
 //        else {
-//          report_error(ern_TYPE_MISMATCH, "MAT multiply with too many dimensions");
+//          handle_error(ern_TYPE_MISMATCH, "MAT multiply with too many dimensions");
 //        } // dims
 //      }  //mat mul
 //        break;
@@ -2867,7 +2901,7 @@ static void perform_statement(list_t *statement_entry)
         
         // make sure there is a stack
         if (interpreter_state.runtime_stack  == NULL || lst_length(interpreter_state.runtime_stack) == 0) {
-          report_error(ern_NEXT_NO_FOR, "NEXT without FOR");
+          handle_error(ern_NEXT_NO_FOR, "NEXT without FOR");
           break;
         }
 
@@ -2886,7 +2920,7 @@ static void perform_statement(list_t *statement_entry)
         
         // if that emptied the stack...
         if (stack_node == NULL) {
-          report_error(ern_NEXT_NO_FOR, "NEXT without FOR");
+          handle_error(ern_NEXT_NO_FOR, "NEXT without FOR");
           break;
         }
         
@@ -2907,7 +2941,7 @@ static void perform_statement(list_t *statement_entry)
 						}
 					}
 					if (!foundIt) {
-						report_error(ern_NEXT_NO_FOR, "NEXT with mismatched FOR");
+						handle_error(ern_NEXT_NO_FOR, "NEXT with mismatched FOR");
 						break;
 					}
 				}
@@ -2946,13 +2980,34 @@ static void perform_statement(list_t *statement_entry)
 			case OF:
       {
         list_t *numslist = statement->parms.on.numbers;
+        
+        // first, see if this is an ON ERROR, in which case we...
+        if (statement->parms.on.type == TRAP) {
+          // get the first item, it's the only one in the list in this case
+          expression_t *item = lst_data_at(numslist, 1);
 
-        // eval, returning a double...
+          // eval it
+          value_t line_val = evaluate_expression(item);
+          
+          // turn it into a line number
+          int linenum = (int)floor(line_val.number);
+          
+          // if the line number is negative or zero, set the trap_line to -1 to turn it off
+          if (linenum <= 0)
+            trap_line = -1;
+          else
+            trap_line = linenum;
+          
+          // all done, exit this CASE
+          break;
+        }
+
+        // otherwise it's a real ON, so eval the index returning a double...
         value_t val = evaluate_expression(statement->parms.on.expression);
         
         // if the value is not a number...
         if (val.type == STRING)
-          report_error(ern_TYPE_MISMATCH, "Index value for ON is a string");
+          handle_error(ern_TYPE_MISMATCH, "Index value for ON is a string");
 
         // ON does an INT, and since a valid index is +ve, INT always rounds down...
         int n = (int)floor(val.number);
@@ -2961,7 +3016,7 @@ static void perform_statement(list_t *statement_entry)
         
         // in ANSI (and MS as it turns out), if the index is <1 or >the number of items, an error is returned
         if (n < 0)
-          report_error(ern_OVERFLOW, "Index value for ON less than 1");
+          handle_error(ern_OVERFLOW, "Index value for ON less than 1");
         
         // try to get the nth item
         // an IF statement moves to the next line if the condition fails,
@@ -3003,7 +3058,7 @@ static void perform_statement(list_t *statement_entry)
         } else {
           value_t sleep_value = evaluate_expression(statement->parms.generic_parameter);
           if (sleep_value.type == STRING) {
-            report_error(ern_TYPE_MISMATCH, "PAUSE being called with string value");
+            handle_error(ern_TYPE_MISMATCH, "PAUSE being called with string value");
             break;
           }
           sleep(sleep_value.number / 60.0);
@@ -3022,7 +3077,7 @@ static void perform_statement(list_t *statement_entry)
         
         // error if there is nothing there
         if (interpreter_state.runtime_stack  == NULL || lst_length(interpreter_state.runtime_stack) == 0) {
-          report_error(ern_NEXT_NO_FOR, "POP without FOR or GOSUB");
+          handle_error(ern_NEXT_NO_FOR, "POP without FOR or GOSUB");
           break;
         }
         
@@ -3102,7 +3157,7 @@ static void perform_statement(list_t *statement_entry)
         else {
           value_t seed_value = evaluate_expression(statement->parms.generic_parameter);
           if (seed_value.type == STRING) {
-            report_error(ern_TYPE_MISMATCH, "RANDOMIZE being called with string value");
+            handle_error(ern_TYPE_MISMATCH, "RANDOMIZE being called with string value");
             break;
           }
           srand(seed_value.number);
@@ -3140,7 +3195,7 @@ static void perform_statement(list_t *statement_entry)
             sprintf(buffer, "Type mismatch in READ, reading a %s but got a %s",
                     (type == STRING) ? "string" : "number",
                     (type >= NUMBER) ? "number" : "string" );
-            report_error(ern_TYPE_MISMATCH, buffer);
+            handle_error(ern_TYPE_MISMATCH, buffer);
           }
           
           // move to the next variable from the READ and the next item in the DATA
@@ -3161,10 +3216,10 @@ static void perform_statement(list_t *statement_entry)
         if (statement->parms.generic_parameter != NULL) {
           value_t line = evaluate_expression(statement->parms.generic_parameter);
           if (line.type == STRING) {
-            report_error(ern_TYPE_MISMATCH, "RESTORE being called with string value");
+            handle_error(ern_TYPE_MISMATCH, "RESTORE being called with string value");
             break;
           }
-          linenum = (int)evaluate_expression(statement->parms.generic_parameter).number;
+          linenum = (int)floor(evaluate_expression(statement->parms.generic_parameter).number);
         } else
           linenum = interpreter_state.first_line;
         
@@ -3173,13 +3228,37 @@ static void perform_statement(list_t *statement_entry)
       }
         break;
         
+      case RESUME:
+      {
+        expression_t *ret = statement->parms.generic_parameter;
+        
+        // if there is no parameter, we resume at the last error line
+        if (ret == NULL)
+          interpreter_state.next_statement = find_line(error_line);
+        
+        // there is a value, so...
+        else {
+          // get the number
+          value_t line_val = evaluate_expression(statement->parms.generic_parameter);
+          int linenum = (int)floor(line_val.number);
+
+          // if the line is -ve, that's because it was NEXT in the source
+          // and we want to go to the next statement, not a line
+          if (linenum < 0)
+            interpreter_state.next_statement = error_statement->next;
+          else
+            interpreter_state.next_statement = find_line(linenum);
+        }
+      }
+        break;
+
       case RETURN:
       {
         list_t *stack_node, *previous_node;
         
         // check that we have something
 				if (interpreter_state.runtime_stack == NULL || lst_length(interpreter_state.runtime_stack) == 0) {
-					report_error(ern_RET_NO_GOSUB, "RETURN without GOSUB");
+					handle_error(ern_RET_NO_GOSUB, "RETURN without GOSUB");
 					break;
 				}
         
@@ -3195,7 +3274,7 @@ static void perform_statement(list_t *statement_entry)
         
         // if that emptied the stack...
         if (stack_node == NULL) {
-          report_error(ern_RET_NO_GOSUB, "RETURN without GOSUB");
+          handle_error(ern_RET_NO_GOSUB, "RETURN without GOSUB");
           break;
         }
         
@@ -3204,7 +3283,7 @@ static void perform_statement(list_t *statement_entry)
           // if so, get the value
           value_t line = evaluate_expression(statement->parms.generic_parameter);
           if (line.type == STRING) {
-            report_error(ern_TYPE_MISMATCH, "RETURN being called with string value");
+            handle_error(ern_TYPE_MISMATCH, "RETURN being called with string value");
             break;
           }
           
@@ -3231,7 +3310,7 @@ static void perform_statement(list_t *statement_entry)
       {
         value_t sleep_value = evaluate_expression(statement->parms.generic_parameter);
         if (sleep_value.type == STRING) {
-          report_error(ern_TYPE_MISMATCH, "SLEEP called with a string parameter");
+          handle_error(ern_TYPE_MISMATCH, "SLEEP called with a string parameter");
           break;
         }
         sleep(sleep_value.number);
@@ -3257,7 +3336,7 @@ static void perform_statement(list_t *statement_entry)
         if (statement->parms.generic_parameter != NULL) {
           value_t tab_value = evaluate_expression(statement->parms.generic_parameter);
           if (tab_value.type == STRING) {
-            report_error(ern_TYPE_MISMATCH, "TAB being called with string value");
+            handle_error(ern_TYPE_MISMATCH, "TAB being called with string value");
             break;
           }
           tabs = (int)tab_value.number;
@@ -3284,12 +3363,12 @@ static void perform_statement(list_t *statement_entry)
 					// value is in HMS format, so make sure we got a string
 					value_t hms = evaluate_expression(statement->parms.generic_parameter);
 					if (hms.type != STRING) {
-						report_error(ern_TYPE_MISMATCH, "TIME$ being set with numeric value");
+						handle_error(ern_TYPE_MISMATCH, "TIME$ being set with numeric value");
 						break;
 					}
 					// and that it's exactly six digits long
 					if (strlen(hms.string) != 6) {
-						report_error(ern_TYPE_MISMATCH, "TIME$ being set with string of the wrong length");
+						handle_error(ern_TYPE_MISMATCH, "TIME$ being set with string of the wrong length");
 						break;
 					}
 					// pull it apart into ints
@@ -3324,6 +3403,27 @@ static void perform_statement(list_t *statement_entry)
 				}
 			}
 				break;
+        
+      case TRAP:
+      {
+        // see if there is a parameter, if not, turn it off and exit
+        if (statement->parms.generic_parameter == NULL) {
+          trap_line = -1;
+          break;
+        }
+          
+        // get the target line and floor it
+        value_t line_val = evaluate_expression(statement->parms.generic_parameter);
+        int linenum = (int)floor(line_val.number);
+        
+        // in Commodore BASIC, a null target turns off TRAP, in other BASICs,
+        // it's generally a -ve value
+        if (linenum <= 0)
+          trap_line = -1;
+        else
+          trap_line = linenum;
+      }
+        break;
 
       case VARLIST:
         print_variables();
