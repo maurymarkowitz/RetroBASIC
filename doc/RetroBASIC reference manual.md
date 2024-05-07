@@ -1856,9 +1856,9 @@ Causes an error to be raised with the error number *aexp*. Generally used for te
 
 Returns the line number where the last error occurred. `RESUME` resets this to 0.
 
-### `EN`{`()`}
+### `ER`{`()`}
 
-Returns the error number for the last error. `EN` is often used as the input to `ERR$`. `RESUME` resets this to 0.
+Returns the error number for the last error. `ER` is often used as the input to `ERR$`. `RESUME` resets this to -1.
 
 ### `ERR$(`*aexp*`)`
 

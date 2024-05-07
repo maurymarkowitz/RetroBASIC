@@ -109,6 +109,10 @@ struct timeval reset_time;     					// if the user resets the time with TIME$, t
  */
 static void handle_error(const int errnum, const char *message)
 {
+  // if the number is 0 or -1 then that means no error, that should not happen, but...
+  if (errnum <= 0)
+    return;
+  
   // save the error data
   interpreter_state.error_num = errnum;
   interpreter_state.error_line = current_line();
@@ -3271,7 +3275,7 @@ static void perform_statement(list_t *statement_entry)
         
         // in both cases, reset the error line and code
         interpreter_state.error_line = 0;
-        interpreter_state.error_num = 0;
+        interpreter_state.error_num = -1;
       }
         break;
 
@@ -3520,7 +3524,7 @@ void interpreter_setup(void)
 {
 	interpreter_state.variable_values = NULL;
 	interpreter_state.functions = NULL;
-  interpreter_state.error_num = 0;
+  interpreter_state.error_num = -1;
   interpreter_state.error_line = 0;
   interpreter_state.trap_line = -1;
 }
@@ -3597,9 +3601,9 @@ void interpreter_run(void)
   interpreter_state.cursor_column = 0;
   
   // reset any errors
-  interpreter_state.error_num = 0;
+  interpreter_state.error_num = -1;
   interpreter_state.error_line = 0;
-  interpreter_state.trap_line = 0;
+  interpreter_state.trap_line = -1;
 
   // start the clocks
   start_ticks = clock();
