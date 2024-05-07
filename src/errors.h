@@ -36,6 +36,7 @@
 
 #define ern_NO_ERROR          0      // no error
 
+#define ern_TOO_MANY_FILES    1      // attempt to OPEN a file with many already OPEN
 #define ern_FILE_OPEN         2      // attempt to OPEN a file that's already OPEN
 #define ern_FILE_NOT_OPEN     3      // attempt to use a file that's not OPEN
 #define ern_FILE_NOT_FOUND    4      // attempt to OPEN a non-existent file
@@ -43,6 +44,7 @@
 #define ern_FILE_NOT_INPUT    6      // attempt to INPUT/GET from a file opened for writing
 #define ern_FILE_NOT_OUTPUT   7      // attempt to PRINT/PUT to a file opened for reading
 #define ern_FILENAME_MISSING  8      // attempt to OPEN a file with no filename
+#define ern_BAD_DEVICE_NUM    9      // attempt to OPEN a device that is invalid
 
 #define ern_READY             12     // no error but paused in ready state
 #define ern_BREAK             14     // the user has pressed the BREAK key
@@ -68,6 +70,7 @@
 #define ern_CANT_CONTINUE     41     // RetroBASIC does not support CONTinue
 #define ern_RES_NO_TRAP       42     // a RESUME was encountered with no corresponding TRAP
 
+#define ers_TOO_MANY_FILES    "TOO MANY FILES"
 #define ers_FILE_OPEN         "FILE OPEN"
 #define ers_FILE_NOT_OPEN     "FILE NOT OPEN"
 #define ers_FILE_NOT_FOUND    "FILE NOT FOUND"
@@ -75,6 +78,7 @@
 #define ers_FILE_NOT_INPUT    "NOT INPUT FILE"
 #define ers_FILE_NOT_OUTPUT   "NOT OUTPUT FILE"
 #define ers_FILENAME_MISSING  "MISSING FILENAME"
+#define ers_BAD_DEVICE_NUM    "ILLEGAL DEVICE NUMBER"
 #define ers_READY             "READY"
 #define ers_BREAK             "BREAK"
 #define ers_INPUT_EXTRA       "EXTRA IGNORED"
@@ -99,7 +103,7 @@
 #define ers_CANT_CONTINUE     "UNABLE TO RESUME"
 #define ers_RES_NO_TRAP       "RESUME WITHOUT TRAP"
 
-const char *error_messages[] = {
+char *error_messages[] = {
   [ern_FILE_OPEN] = ers_FILE_OPEN,
   [ern_FILE_NOT_OPEN] = ers_FILE_NOT_OPEN,
   [ern_FILE_NOT_FOUND] = ers_FILE_NOT_FOUND,

@@ -1534,7 +1534,7 @@ Most slicing implementations allow one or two parameters, with the second parame
 
 Sinclair and Full BASIC allow either parameter to be optional, `A$( TO 5)` and `A$(:5)` (respectively) mean "the portion of A$ from the start to location 5". This is less useful than the more common one-parameter syntax as the starting location is always 1, whereas allowing the computer to automatically calculate the unknown ending location is very useful.
 
-RetroBASIC is designed to run any program that does not use platform-specific features. As string arrays are relatively commonly, it has to support these and thus has to decide whether a reference in code like `A$(5)` is a slice or an array access. In the case that the syntax is clear, like Sinclair or Full, there is no ambiguity and one can use string arrays and string slicing in the same program using syntax like `A$(5)(5 TO)`, meaning the substring from the 5th character on in the string stored in slot five of `A$`.
+RetroBASIC is designed to run any program that does not use platform-specific features. As string arrays are relatively commonly, it has to support them. This leads to it having to decide whether a reference in code like `A$(5)` is a slice or an array access. In the case that the syntax is clear, like Sinclair or Full, there is no ambiguity and one can use string arrays and string slicing in the same program using syntax like `A$(5)(5 TO)`, meaning the substring from the 5th character on in the string stored in slot five of `A$`.
 
 To work with the dialects that do not have unique syntax, like Atari BASIC, RetroBASIC uses the `--slicing` command-line switch. When turned on, using `--slicing=1`, all "array like" parameters applied to strings are considered slices.
 
@@ -1720,7 +1720,7 @@ Produces:
 Support for Integer BASIC style TAB statements was added in 1.9.1.
 
 <!-- TOC --><a name="timedexp-and-timeaexp"></a>
-### `TIME`{(*dexp*)} and `TIME=`*aexp*
+### `TIME`[(*dexp*)] and `TIME=`*aexp*
 
 Returns the real-time clock's time value in *jiffies*, which are 1/60ths of a second in RetroBASIC. `TIME` is a pseudo-variable that allows the clock to be set by assigning a value to it. This allows, for instance, portions of a program to be timed by setting `TIME=0` and then `PRINT TIME` later in the code, as `TIME` will now hold the elapsed time. As `TIME` is treated as a variable, only the first two letters of the name are actually read, meaning `PRINT TIME` and `PRINT TI` are identical internally.
 
@@ -1806,15 +1806,15 @@ As above, but multiplies the values in B and C.
 
 Scalar multiplication; calculates the value of the expression on the left, in this case the constant 5, and then multiplies all the values in B by that value and places the results in A. RetroBASIC supports all of the mathematical operations in this statement, not just multiplication.
 
-### `MAT` *avar*`=ZER`{(*aexp*,...)}
+### `MAT` *avar*`=ZER`[(*aexp*,...)]
 
 Changes all of the slots in *avar* to 0, or if the optional *aexp*s are provided, only that subarray. Works for both 1-d vectors and 2-d matrixes. This statement was widely used in Dartmouth programs in order to quickly reset or resize an array, even in programs that did not make use of other matrix features.
 
-### `MAT` *avar*`=CON`{(*aexp*,...)}
+### `MAT` *avar*`=CON`[(*aexp*,...)]
 
 Changes all of the slots in *avar* to 1, or the slots in the subarray. Works for both 1-d vectors and 2-d matrixes.
 
-### `MAT` *avar*`=IDN`{(*aexp*,...)}
+### `MAT` *avar*`=IDN`[(*aexp*,...)]
 
 Places 1's in the diagonal of a 2-d matrix, creating an *identity matrix*. A runtime error will occur if *avar* is a vector or scalar.
 
@@ -1828,20 +1828,52 @@ Transposes *avar2*, rotating it so columns become rows and rows columns, and pla
 
 ## Error handling
 
-Some versions of BASIC provide rudimentary error handling using the `TRAP` or `ON ERROR` statements. These will be referred to as traps. When a trap is turned on and an error occurs, or is *raised*, instead of printing the error message and stopping the program, execution continues at the indicated line. The code at this line is known as an *error handler*. A handler allows the program to examine the error and decide how to continue. Most dialects also allow the error number to be examined, as well as the line number where the error occurred. The dialects differ significantly on the details of how these features are turned on and off, and how the error can be examined and recovered.
+Some versions of BASIC provide rudimentary error handling using the `TRAP` or `ON ERROR` statements. These will both be referred to here as *traps*. When a trap is turned on and an error occurs, or is *raised*, instead of printing the error message and stopping the program, execution continues at the indicated line.
 
-The simple trap concept used in BASIC is subject to many problems. Among these is that if an error occurs *in* the handler then it can trap back into itself and cause an infinite loop. Additionally, few dialects allow only certain errors to be trapped, it's normally all or nothing.
+The code at this line is known as an *error handler*. A handler allows the program to examine the error and decide how to continue. Most dialects also allow the error number to be examined, as well as the line number where the error occurred. The dialects differ significantly on the details of how these features are turned on and off, and how the error can be examined and recovered.
 
-### [`TRAP`,`ON ERROR`,`ONERR`] {*aexp*}
+The simple trap concept used in BASIC is subject to a number of problems. Among these is that if an error occurs *in* the handler, then it can trap back into itself and cause an infinite loop. Additionally, few dialects allow only certain errors to be trapped, it's normally all or nothing, which means the handler has to be very generic.
+
+The error numbers in RetroBASIC default to those from Commodore BASIC as it is likely the most common dialect of the era based on units sold. Thus, a syntax error is number 21, and the table of numbers from any Commodore reference manual will be useful. The only notable difference is that file-related errors 
+
+Commodore BASIC 3.5 and later uses two variables, `EL` and `EN`, for "error line" and "error number", respectively. These can be used in the handlers to examine or print out information about the error. Unfortunately, using these variables means programs from any other dialect, including the vast majority of Commodore programs, will have problems if they use these otherwise normal variable names. RetroBASIC implements these as functions rather than variables, which will cause a syntax error if you attempt to set their values, better indicating a problem in the code.
+
+### {`TRAP`|`ON ERROR`|`ONERR`} [*aexp*]
 
 When any of these statements is encountered in a program, the *aexp* is evaluated, converted to a line number, and then stored for future reference. If an error occurs any time after the statement is encountered, execution will jump to the line number in *aexp*. If that line number does not exist, an error will be printed and execution will stop.
 
-The method of turning the trap off differs across dialects. In Commodore BASIC, one uses `TRAP` with no parameter, in Atari BASIC any number above 32,676 does the same, and in Applesoft one has to `POKE 216,0`. In RetroBASIC, traps are turned off with an empty parameter or any expression that evaluates to zero or a negative value.
+The method of turning the trap off differs across dialects. In Commodore BASIC, one uses `TRAP` with no parameter, in Atari BASIC any number above 32,767 does the same, and in Applesoft one has to `POKE 216,0`. In RetroBASIC, traps are turned off with an empty parameter or any expression that evaluates to zero or a negative value.
 
-### `RESUME` {`NEXT`|*aexp*|}
+### `RESUME` [`NEXT`, *aexp*, ]
 
 When a handler is complete, `RESUME` is used to return to the code. If there are no parameters, it will return to the line where the error occurred. Using `NEXT` modifies this to return to the statement after the error, in the case that there is more than one statement on the line. If *aexp* is provided, it performs the equivalent of a `GOTO`.
+
+### `RAISE` *aexp*
+
+Causes an error to be raised with the error number *aexp*. Generally used for testing purposes.
+
+### `EL`{`()`}
+
+Returns the line number where the last error occurred. `RESUME` resets this to 0.
+
+### `EN`{`()`}
+
+Returns the error number for the last error. `EN` is often used as the input to `ERR$`. `RESUME` resets this to 0.
 
 ### `ERR$(`*aexp*`)`
 
 Returns a string with the error message for a given error number.
+
+### Example:
+
+The following code illustrates a typical handler system using all of the functionality above:
+
+    100 TRAP 2000
+    105 PAUSE 120
+    110 RAISE 21:PRINT " ... CONTINUED"
+    120 END
+    2000 REM TRAP CATCH-UP ROUTINE
+    2010 PRINT ER(); ERR$(ER()) " ERROR IN LINE" EL() "!"
+    2020 RESUME NEXT
+
+This program starts by setting a trap, pausing for two seconds, and then raising a syntax error, error 21. That causes it to jump into the handler at line 2000, which prints the error number, string and line, and then pick up execution where it left off.

@@ -111,6 +111,7 @@ RESUME    { return RESUME; }
 TRAP      { return TRAP; }
 ERROR     { return ERROR; }
 ERR       { return ERROR; }
+RAISE     { return RAISE; }
 
  /* math functions */
 ABS			  { return ABS; }
@@ -168,6 +169,9 @@ PEEK      { return PEEK; }  // also EXAM (North Star) and FETCH (Digital Group O
 POS       { return POS; }   // COUNT in Atom
 USR       { return USR; }
 LIN       { return LIN; }
+EL        { return EL; }
+EN        { return EN; }
+ERR\$     { return ERR; }
 
  /* various operators and punctuation */
 [:,;()\[\]\^=+\-*/\<\>\&]     { return yytext[0]; }
