@@ -3244,9 +3244,14 @@ static void perform_statement(list_t *statement_entry)
         
       case RESUME:
       {
-        expression_t *ret = statement->parms.generic_parameter;
+        // check to see if there is an error, otherwise report an error
+        if (interpreter_state.error_line <= 0) {
+          handle_error(ern_RES_NO_TRAP, "RESUME being called without a trap being set");
+          break;
+        }
         
         // if there is no parameter, we resume at the last error line
+        expression_t *ret = statement->parms.generic_parameter;
         if (ret == NULL)
           interpreter_state.next_statement = find_line(interpreter_state.error_line);
         
