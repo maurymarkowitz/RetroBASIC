@@ -170,7 +170,7 @@ POS       { return POS; }   // COUNT in Atom
 USR       { return USR; }
 LIN       { return LIN; }
 EL        { return EL; }
-EN        { return EN; }
+ER        { return ER; }
 ERR\$     { return ERR; }
 
  /* various operators and punctuation */

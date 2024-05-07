@@ -192,7 +192,7 @@ static expression_t *make_operator(int arity, int o)
 %token RESUME // jumps back to the error line
 %token ERROR  // used in ON ERROR
 %token RAISE  // raise an error, for testing
-%token ERR EL EN
+%token ERR EL ER
 
  /* type definitions added circa 1979 */
 %token DEFSTR DEFINT DEFSNG DEFDBL
@@ -1279,7 +1279,7 @@ fn_0:
   TIME { $$ = TIME; } |
   TIME_STR { $$ = TIME_STR; } |
   EL { $$ = EL; } |
-  EN { $$ = EN; }
+  ER { $$ = ER; }
   ;
 
  /* arity-1 functions */

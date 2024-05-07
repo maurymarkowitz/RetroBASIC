@@ -165,7 +165,7 @@
      ERROR = 381,
      RAISE = 382,
      ERR = 383,
-     EL = 384,
+     ER = 384,
      EN = 385,
      DEFSTR = 386,
      DEFINT = 387,
@@ -329,7 +329,7 @@
 #define RAISE 382
 #define ERR 383
 #define EL 384
-#define EN 385
+#define ER 385
 #define DEFSTR 386
 #define DEFINT 387
 #define DEFSNG 388
