@@ -51,11 +51,6 @@ bool goto_next_highest = false;				// if a branch targets an non-existant line, 
 bool ansi_on_boundaries = false;			// if the value for an ON statement <1 or >num entries, should it continue or error?
 bool ansi_tab_behaviour = false;			// if a TAB < current column, ANSI inserts a CR, MS does not
 
-int error_num = 0;                    // the last error, 0 if no error or reset
-int error_line = -1;                  // line number where an error occurred, -1 for none
-list_t *error_statement = NULL;       // statement where the error occurred, so RESUME can continue properly
-int trap_line = -1;                   // line to TRAP or ON ERROR to, -1 for none
-
 char *source_file = "";
 char *input_file = "";
 char *print_file = "";
@@ -115,9 +110,9 @@ struct timeval reset_time;     					// if the user resets the time with TIME$, t
 static void handle_error(const int errnum, const char *message)
 {
   // save the error data
-  error_num = errnum;
-  error_line = current_line();
-  error_statement = interpreter_state.current_statement;
+  interpreter_state.error_num = errnum;
+  interpreter_state.error_line = current_line();
+  interpreter_state.error_statement = interpreter_state.current_statement;
   
   // if there is a trap, find that line and go there
   //
@@ -125,18 +120,20 @@ static void handle_error(const int errnum, const char *message)
   //       handle here since find_line will return an error and cause a loop,
   //       we cheat here and just see if the line exists and don't bother
   //       trying to find the next highest
-  if (trap_line > 0) {
-    if (interpreter_state.lines[trap_line] == NULL) {
-      fprintf(stderr, "%s at line %d (%s)\n", error_messages[ern_NO_SUCH_LINE], trap_line, "TRAP/ON ERROR set to non-existent line");
+  if (interpreter_state.trap_line > 0) {
+    if (interpreter_state.lines[interpreter_state.trap_line] == NULL) {
+      fprintf(stderr, "%s at line %d (%s)\n", error_messages[ern_NO_SUCH_LINE], interpreter_state.trap_line, "TRAP/ON ERROR set to non-existent line");
+      return;
     }
-    interpreter_state.next_statement = find_line(trap_line);
+    interpreter_state.next_statement = find_line(interpreter_state.trap_line);
+    return;
   }
   
   // if we got this far there is no trapping, so report it
   if (strlen(message) > 0)
-    fprintf(stderr, "%s at line %d (%s)\n", error_messages[error_num], error_line, message);
+    fprintf(stderr, "?%s at line %d (%s)\n", error_messages[interpreter_state.error_num], interpreter_state.error_line, message);
   else
-    fprintf(stderr, "%s at line %d\n", error_messages[error_num], error_line);
+    fprintf(stderr, "?%s at line %d\n", error_messages[interpreter_state.error_num], interpreter_state.error_line);
 }
 
 /**
@@ -813,7 +810,6 @@ static bool redim_matrix(variable_reference_t *destination_ref, variable_referen
   }
 
   // see if we are resizing to the source, or the subscripts
-  list_t *source_act_dimensions = lst_first_node(source_store->actual_dimensions);
   list_t *subs = lst_first_node(source_ref->subscripts);
 
   if (subs != NULL) {
@@ -842,7 +838,6 @@ static bool redim_matrix(variable_reference_t *destination_ref, variable_referen
   
   // rewind the lists
   destination_act_dimensions = lst_first_node(destination_store->actual_dimensions);
-  source_act_dimensions = lst_first_node(source_store->actual_dimensions);
   subs = lst_first_node(source_ref->subscripts);
   
   // if we got this far, the destination is large enough so redim it
@@ -857,7 +852,7 @@ static bool redim_matrix(variable_reference_t *destination_ref, variable_referen
   }
   else {
     destination_act_dimensions = lst_first_node(destination_store->actual_dimensions);
-    source_act_dimensions = lst_first_node(source_store->actual_dimensions);
+    list_t *source_act_dimensions = lst_first_node(source_store->actual_dimensions);
     if (destination_ref->subscripts == NULL)
       while (source_act_dimensions != NULL) {
         destination_act_dimensions->data = source_act_dimensions->data;
@@ -1047,6 +1042,13 @@ static value_t evaluate_expression(const expression_t *expression)
         result.type = NUMBER;
 
         switch (expression->parms.op.opcode) {
+          case EL:
+            result.number = interpreter_state.error_line;
+            break;
+          case EN:
+            result.number = interpreter_state.error_num;
+            break;
+
           case FRE:
             result.number = 0; // always return zero
             break;
@@ -1054,7 +1056,7 @@ static value_t evaluate_expression(const expression_t *expression)
             result.number = M_PI;
             break;
             
-          case RND:  // get a value between 0..<1
+          case RND:  // zero-arity, get a value between 0..<1
             result.number = ((double)rand() / (double)RAND_MAX); // don't forget the cast!
             break;
 						
@@ -1234,7 +1236,6 @@ static value_t evaluate_expression(const expression_t *expression)
           case VAL:
             result.number = atof(parameters[0].string);
             break;
-            
           case PEEK:
             // always return zero
             result.number = 0;
@@ -1365,7 +1366,14 @@ static value_t evaluate_expression(const expression_t *expression)
           case LBOUND:
             result.number = (double)array_base;
             break;
-												
+            
+          case ERR:
+          {
+            result.type = STRING;
+            result.string = error_messages[(int)parameters[0].number];
+          }
+            break;
+            
           default:
             handle_error(ern_DEF_UNKNOWN, "Unhandled arity-1 function");
         } //switch
@@ -2994,9 +3002,9 @@ static void perform_statement(list_t *statement_entry)
           
           // if the line number is negative or zero, set the trap_line to -1 to turn it off
           if (linenum <= 0)
-            trap_line = -1;
+            interpreter_state.trap_line = 0;
           else
-            trap_line = linenum;
+            interpreter_state.trap_line = linenum;
           
           // all done, exit this CASE
           break;
@@ -3143,6 +3151,12 @@ static void perform_statement(list_t *statement_entry)
       } //print
         break;
         
+      case RAISE:
+      {
+        handle_error(statement->parms.generic_parameter->parms.number, "");
+      }
+        break;
+        
       case RANDOMIZE:
       {
         // GW BASIC and Dartmouth work differently. In Dartmouth, RANDOMIZE with no
@@ -3234,7 +3248,7 @@ static void perform_statement(list_t *statement_entry)
         
         // if there is no parameter, we resume at the last error line
         if (ret == NULL)
-          interpreter_state.next_statement = find_line(error_line);
+          interpreter_state.next_statement = find_line(interpreter_state.error_line);
         
         // there is a value, so...
         else {
@@ -3245,10 +3259,14 @@ static void perform_statement(list_t *statement_entry)
           // if the line is -ve, that's because it was NEXT in the source
           // and we want to go to the next statement, not a line
           if (linenum < 0)
-            interpreter_state.next_statement = error_statement->next;
+            interpreter_state.next_statement = interpreter_state.error_statement->next;
           else
             interpreter_state.next_statement = find_line(linenum);
         }
+        
+        // in both cases, reset the error line and code
+        interpreter_state.error_line = 0;
+        interpreter_state.error_num = 0;
       }
         break;
 
@@ -3408,7 +3426,7 @@ static void perform_statement(list_t *statement_entry)
       {
         // see if there is a parameter, if not, turn it off and exit
         if (statement->parms.generic_parameter == NULL) {
-          trap_line = -1;
+          interpreter_state.trap_line = -1;
           break;
         }
           
@@ -3419,9 +3437,9 @@ static void perform_statement(list_t *statement_entry)
         // in Commodore BASIC, a null target turns off TRAP, in other BASICs,
         // it's generally a -ve value
         if (linenum <= 0)
-          trap_line = -1;
+          interpreter_state.trap_line = -1;
         else
-          trap_line = linenum;
+          interpreter_state.trap_line = linenum;
       }
         break;
 
@@ -3497,6 +3515,9 @@ void interpreter_setup(void)
 {
 	interpreter_state.variable_values = NULL;
 	interpreter_state.functions = NULL;
+  interpreter_state.error_num = 0;
+  interpreter_state.error_line = 0;
+  interpreter_state.trap_line = -1;
 }
 
 /* labels are stored as variables, but variables don't get an actual
@@ -3569,6 +3590,11 @@ void interpreter_run(void)
 {
   // the cursor starts in col 0
   interpreter_state.cursor_column = 0;
+  
+  // reset any errors
+  interpreter_state.error_num = 0;
+  interpreter_state.error_line = 0;
+  interpreter_state.trap_line = 0;
 
   // start the clocks
   start_ticks = clock();

@@ -163,38 +163,42 @@
      TRAP = 379,
      RESUME = 380,
      ERROR = 381,
-     DEFSTR = 382,
-     DEFINT = 383,
-     DEFSNG = 384,
-     DEFDBL = 385,
-     CHANGE = 386,
-     CONVERT = 387,
-     UCASE = 388,
-     LCASE = 389,
-     STRNG = 390,
-     TIME = 391,
-     TIME_STR = 392,
-     HEX = 393,
-     OCT = 394,
-     BIN = 395,
-     HEXSTR = 396,
-     OCTSTR = 397,
-     BINSTR = 398,
-     UBOUND = 399,
-     LBOUND = 400,
-     LABEL = 401,
-     MAT = 402,
-     MATPRINT = 403,
-     MATINPUT = 404,
-     MATREAD = 405,
-     MATGET = 406,
-     MATPUT = 407,
-     MATZER = 408,
-     MATCON = 409,
-     MATIDN = 410,
-     MATTRN = 411,
-     MATINV = 412,
-     MATDET = 413
+     RAISE = 382,
+     ERR = 383,
+     EL = 384,
+     EN = 385,
+     DEFSTR = 386,
+     DEFINT = 387,
+     DEFSNG = 388,
+     DEFDBL = 389,
+     CHANGE = 390,
+     CONVERT = 391,
+     UCASE = 392,
+     LCASE = 393,
+     STRNG = 394,
+     TIME = 395,
+     TIME_STR = 396,
+     HEX = 397,
+     OCT = 398,
+     BIN = 399,
+     HEXSTR = 400,
+     OCTSTR = 401,
+     BINSTR = 402,
+     UBOUND = 403,
+     LBOUND = 404,
+     LABEL = 405,
+     MAT = 406,
+     MATPRINT = 407,
+     MATINPUT = 408,
+     MATREAD = 409,
+     MATGET = 410,
+     MATPUT = 411,
+     MATZER = 412,
+     MATCON = 413,
+     MATIDN = 414,
+     MATTRN = 415,
+     MATINV = 416,
+     MATDET = 417
    };
 #endif
 /* Tokens.  */
@@ -322,38 +326,42 @@
 #define TRAP 379
 #define RESUME 380
 #define ERROR 381
-#define DEFSTR 382
-#define DEFINT 383
-#define DEFSNG 384
-#define DEFDBL 385
-#define CHANGE 386
-#define CONVERT 387
-#define UCASE 388
-#define LCASE 389
-#define STRNG 390
-#define TIME 391
-#define TIME_STR 392
-#define HEX 393
-#define OCT 394
-#define BIN 395
-#define HEXSTR 396
-#define OCTSTR 397
-#define BINSTR 398
-#define UBOUND 399
-#define LBOUND 400
-#define LABEL 401
-#define MAT 402
-#define MATPRINT 403
-#define MATINPUT 404
-#define MATREAD 405
-#define MATGET 406
-#define MATPUT 407
-#define MATZER 408
-#define MATCON 409
-#define MATIDN 410
-#define MATTRN 411
-#define MATINV 412
-#define MATDET 413
+#define RAISE 382
+#define ERR 383
+#define EL 384
+#define EN 385
+#define DEFSTR 386
+#define DEFINT 387
+#define DEFSNG 388
+#define DEFDBL 389
+#define CHANGE 390
+#define CONVERT 391
+#define UCASE 392
+#define LCASE 393
+#define STRNG 394
+#define TIME 395
+#define TIME_STR 396
+#define HEX 397
+#define OCT 398
+#define BIN 399
+#define HEXSTR 400
+#define OCTSTR 401
+#define BINSTR 402
+#define UBOUND 403
+#define LBOUND 404
+#define LABEL 405
+#define MAT 406
+#define MATPRINT 407
+#define MATINPUT 408
+#define MATREAD 409
+#define MATGET 410
+#define MATPUT 411
+#define MATZER 412
+#define MATCON 413
+#define MATIDN 414
+#define MATTRN 415
+#define MATINV 416
+#define MATDET 417
 
 
 
@@ -371,7 +379,7 @@ typedef union YYSTYPE
   variable_reference_t *variable;
 }
 /* Line 1529 of yacc.c.  */
-#line 375 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
+#line 383 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
     YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

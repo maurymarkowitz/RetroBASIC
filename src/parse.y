@@ -187,10 +187,12 @@ static expression_t *make_operator(int arity, int o)
 %token TAB
 %token POS
 %token USR
-%token LIN /* from HP, a vertical version of TAB */
-%token TRAP /* error handling, used both as a command and as a type of ON statement (see below) */
-%token RESUME /* jumps back to the error line */
-%token ERROR /* used in ON ERROR */
+%token LIN    // from HP, a vertical version of TAB
+%token TRAP   // error handling, used both as a command and as a type of ON statement (see below)
+%token RESUME // jumps back to the error line
+%token ERROR  // used in ON ERROR
+%token RAISE  // raise an error, for testing
+%token ERR EL EN
 
  /* type definitions added circa 1979 */
 %token DEFSTR DEFINT DEFSNG DEFDBL
@@ -750,6 +752,13 @@ statement:
     $$ = new;
   }
   |
+  RAISE expression
+  {
+    statement_t *new = make_statement(RAISE);
+    new->parms.generic_parameter = $2;
+    $$ = new;
+  }
+  |
   RANDOMIZE
   {
     statement_t *new = make_statement(RANDOMIZE);
@@ -1268,7 +1277,9 @@ fn_0:
   PI { $$ = PI; } |
   RND { $$ = RND; } |
   TIME { $$ = TIME; } |
-  TIME_STR { $$ = TIME_STR; }
+  TIME_STR { $$ = TIME_STR; } |
+  EL { $$ = EL; } |
+  EN { $$ = EN; }
   ;
 
  /* arity-1 functions */
@@ -1302,7 +1313,8 @@ fn_1:
   TAB  { $$ = TAB; } |
   VAL  { $$ = VAL; } |
   UCASE  { $$ = UCASE; } |
-  USR  { $$ = USR; }
+  USR  { $$ = USR; } |
+  ERR  { $$ = ERR; }
   ;
   
  /* arity-2 functions */

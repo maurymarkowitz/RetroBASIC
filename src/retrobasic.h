@@ -203,7 +203,7 @@ typedef struct {
  GOSUB and FOR/NEXT */
 typedef struct {
   list_t *lines[MAXLINE];         // the lines in the program, stored as an array of statement lists
-  int first_line;		              // index of the first line in the lines array
+  int first_line;		              // index of the first line in the lines array, often 10
   list_t *current_statement;      // currently executing statement
   list_t *next_statement;         // next statement to run, might change for GOTO and such
   list_t *current_data_statement;	// current 'DATA' statement
@@ -211,6 +211,10 @@ typedef struct {
   list_t *variable_values;		    // name/value pairs used to store variable values
   list_t *functions;              // name/expression pairs for user-defined functions
   list_t *runtime_stack;	        // stack of FOR and GOSUB statements
+  int error_num;                  // the last error, 0 if no error or reset
+  int error_line;                 // line number where an error occurred, -1 for none
+  list_t *error_statement;        // statement where the error occurred, so RESUME can continue properly
+  int trap_line;                  // line to TRAP or ON ERROR to, -1 for none
   int cursor_column;              // current column of the output cursor
   int running_state;              // is the program running (1), paused/stopped (0), or setting up a function (-1)
 } interpreterstate_t;
