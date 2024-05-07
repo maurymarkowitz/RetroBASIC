@@ -137,8 +137,8 @@ Version 1.9.1 - 13 February 2024
 
 Version 2.0.0 -
 
-- refactored error handling to return Commodore-like error numbers, see errors.h
 - added error handling in the form of TRAP, ON ERROR and RESUME statements, see reference manual
+- refactored error handling to return Commodore-like error numbers, see errors.h
 - add MAT commands from Dartmouth BASIC V4
 - reimplemented array handling to aid MAT commands
 - added -t/--trace option to turn on line tracing, which means -t is no longer short for --tabs
