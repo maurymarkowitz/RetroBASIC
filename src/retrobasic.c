@@ -2018,6 +2018,10 @@ static void perform_statement(list_t *statement_entry)
         delete_variables();
         clear_stack();
         reset_data_pointer(interpreter_state.first_line);
+        
+        interpreter_state.error_num = -1;
+        interpreter_state.error_line = 0;
+        interpreter_state.trap_line = -1;
       }
         break;
         

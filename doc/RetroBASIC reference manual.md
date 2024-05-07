@@ -1834,9 +1834,7 @@ The code at this line is known as an *error handler*. A handler allows the progr
 
 The simple trap concept used in BASIC is subject to a number of problems. Among these is that if an error occurs *in* the handler, then it can trap back into itself and cause an infinite loop. Additionally, few dialects allow only certain errors to be trapped, it's normally all or nothing, which means the handler has to be very generic.
 
-The error numbers in RetroBASIC default to those from Commodore BASIC as it is likely the most common dialect of the era based on units sold. Thus, a syntax error is number 21, and the table of numbers from any Commodore reference manual will be useful. The only notable difference is that file-related errors 
-
-Commodore BASIC 3.5 and later uses two variables, `EL` and `EN`, for "error line" and "error number", respectively. These can be used in the handlers to examine or print out information about the error. Unfortunately, using these variables means programs from any other dialect, including the vast majority of Commodore programs, will have problems if they use these otherwise normal variable names. RetroBASIC implements these as functions rather than variables, which will cause a syntax error if you attempt to set their values, better indicating a problem in the code.
+Commodore BASIC 3.5 and later uses two system variables, `EL` and `ER`, for "error line" and "error number", respectively. These can be used in the handlers to examine or print out information about the error. Unfortunately, using these variables means programs from any other dialect, including the vast majority of Commodore programs, will have problems if they use these otherwise normal variable names.
 
 ### {`TRAP`|`ON ERROR`|`ONERR`} [*aexp*]
 
@@ -1844,13 +1842,13 @@ When any of these statements is encountered in a program, the *aexp* is evaluate
 
 The method of turning the trap off differs across dialects. In Commodore BASIC, one uses `TRAP` with no parameter, in Atari BASIC any number above 32,767 does the same, and in Applesoft one has to `POKE 216,0`. In RetroBASIC, traps are turned off with an empty parameter or any expression that evaluates to zero or a negative value.
 
-### `RESUME` [`NEXT`, *aexp*, ]
-
-When a handler is complete, `RESUME` is used to return to the code. If there are no parameters, it will return to the line where the error occurred. Using `NEXT` modifies this to return to the statement after the error, in the case that there is more than one statement on the line. If *aexp* is provided, it performs the equivalent of a `GOTO`.
-
 ### `RAISE` *aexp*
 
 Causes an error to be raised with the error number *aexp*. Generally used for testing purposes.
+
+### `RESUME` [`NEXT`, *aexp*, ]
+
+When a handler is complete, `RESUME` is used to return to the code. If there are no parameters, it will return to the line where the error occurred. Using `NEXT` modifies this to return to the statement after the error, in the case that there is more than one statement on the line. If *aexp* is provided, it performs the equivalent of a `GOTO`.
 
 ### `EL`{`()`}
 
