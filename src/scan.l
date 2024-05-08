@@ -169,8 +169,9 @@ PEEK      { return PEEK; }  // also EXAM (North Star) and FETCH (Digital Group O
 POS       { return POS; }   // COUNT in Atom
 USR       { return USR; }
 LIN       { return LIN; }
-EL        { return EL; }
-ER        { return ER; }
+ERL       { return EL; }
+ERN       { return ER; }
+ERR       { return ER; }
 ERR\$     { return ERR; }
 
  /* various operators and punctuation */
