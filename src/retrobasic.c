@@ -109,7 +109,7 @@ struct timeval reset_time;     					// if the user resets the time with TIME$, t
  */
 static void handle_error(const int errnum, const char *message)
 {
-  // if the number is 0 or -1 then that means no error, that should not happen, but...
+  // if the number is 0 then that means no error, that should not happen, but...
   if (errnum <= 0)
     return;
   
@@ -1049,7 +1049,7 @@ static value_t evaluate_expression(const expression_t *expression)
           case EL:
             result.number = interpreter_state.error_line;
             break;
-          case EN:
+          case ER:
             result.number = interpreter_state.error_num;
             break;
 
@@ -2019,9 +2019,9 @@ static void perform_statement(list_t *statement_entry)
         clear_stack();
         reset_data_pointer(interpreter_state.first_line);
         
-        interpreter_state.error_num = -1;
+        interpreter_state.error_num = 0;
         interpreter_state.error_line = 0;
-        interpreter_state.trap_line = -1;
+        interpreter_state.trap_line = 0;
       }
         break;
         
@@ -3008,7 +3008,7 @@ static void perform_statement(list_t *statement_entry)
           // turn it into a line number
           int linenum = (int)floor(line_val.number);
           
-          // if the line number is negative or zero, set the trap_line to -1 to turn it off
+          // if the line number is negative or zero, set the trap_line to 0 to turn it off
           if (linenum <= 0)
             interpreter_state.trap_line = 0;
           else
@@ -3279,7 +3279,7 @@ static void perform_statement(list_t *statement_entry)
         
         // in both cases, reset the error line and code
         interpreter_state.error_line = 0;
-        interpreter_state.error_num = -1;
+        interpreter_state.error_num = 0;
       }
         break;
 
@@ -3439,7 +3439,7 @@ static void perform_statement(list_t *statement_entry)
       {
         // see if there is a parameter, if not, turn it off and exit
         if (statement->parms.generic_parameter == NULL) {
-          interpreter_state.trap_line = -1;
+          interpreter_state.trap_line = 0;
           break;
         }
           
@@ -3450,7 +3450,7 @@ static void perform_statement(list_t *statement_entry)
         // in Commodore BASIC, a null target turns off TRAP, in other BASICs,
         // it's generally a -ve value
         if (linenum <= 0)
-          interpreter_state.trap_line = -1;
+          interpreter_state.trap_line = 0;
         else
           interpreter_state.trap_line = linenum;
       }
@@ -3528,9 +3528,9 @@ void interpreter_setup(void)
 {
 	interpreter_state.variable_values = NULL;
 	interpreter_state.functions = NULL;
-  interpreter_state.error_num = -1;
+  interpreter_state.error_num = 0;
   interpreter_state.error_line = 0;
-  interpreter_state.trap_line = -1;
+  interpreter_state.trap_line = 0;
 }
 
 /* labels are stored as variables, but variables don't get an actual
@@ -3605,9 +3605,9 @@ void interpreter_run(void)
   interpreter_state.cursor_column = 0;
   
   // reset any errors
-  interpreter_state.error_num = -1;
+  interpreter_state.error_num = 0;
   interpreter_state.error_line = 0;
-  interpreter_state.trap_line = -1;
+  interpreter_state.trap_line = 0;
 
   // start the clocks
   start_ticks = clock();
