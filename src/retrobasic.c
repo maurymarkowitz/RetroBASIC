@@ -2115,7 +2115,7 @@ static void perform_statement(list_t *statement_entry)
         
         // error if there is nothing there
         if (interpreter_state.runtime_stack  == NULL || lst_length(interpreter_state.runtime_stack) == 0) {
-          handle_error(ern_NEXT_NO_FOR, "EXIT without FOR or GOSUB");
+          handle_error(ern_POP_NO_STACK, "EXIT without FOR or GOSUB");
           break;
         }
         
@@ -3087,13 +3087,13 @@ static void perform_statement(list_t *statement_entry)
         break;
         
       case POP:
-        // see also EXIT
+        // see also EXIT, this also handles DISPOSE
       {
         list_t *stack_node;
         
         // error if there is nothing there
         if (interpreter_state.runtime_stack  == NULL || lst_length(interpreter_state.runtime_stack) == 0) {
-          handle_error(ern_NEXT_NO_FOR, "POP without FOR or GOSUB");
+          handle_error(ern_POP_NO_STACK, "POP without FOR or GOSUB");
           break;
         }
         

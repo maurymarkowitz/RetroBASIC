@@ -68,7 +68,8 @@
 #define ern_DEF_UNKNOWN       37     // call to user-defined function that doesn't exist
 #define ern_OUT_OF_STACK      40     // unused in RetroBASIC
 #define ern_CANT_CONTINUE     41     // RetroBASIC does not support CONTinue
-#define ern_RES_NO_TRAP       42     // a RESUME was encountered with no corresponding TRAP
+#define ern_POP_NO_STACK      42     // a POP/EXIT/DISPOSE
+#define ern_RES_NO_TRAP       44     // a RESUME was encountered with no corresponding TRAP
 
 #define ers_TOO_MANY_FILES    "TOO MANY FILES"
 #define ers_FILE_OPEN         "FILE OPEN"
@@ -101,6 +102,7 @@
 #define ers_DEF_UNKNOWN       "UNDEFINED FUNCTION"
 #define ers_OUT_OF_STACK      "OUT OF STACK"
 #define ers_CANT_CONTINUE     "UNABLE TO RESUME"
+#define ers_POP_NO_STACK      "POP WITH NO STACK"
 #define ers_RES_NO_TRAP       "RESUME WITHOUT TRAP"
 
 char *error_messages[] = {
@@ -133,6 +135,7 @@ char *error_messages[] = {
   [ern_DEF_UNKNOWN] = ers_DEF_UNKNOWN,
   [ern_OUT_OF_STACK] = ers_OUT_OF_STACK,
   [ern_CANT_CONTINUE] = ers_CANT_CONTINUE,
+  [ern_POP_NO_STACK] = ers_POP_NO_STACK,
   [ern_RES_NO_TRAP] = ers_RES_NO_TRAP
 };
 
