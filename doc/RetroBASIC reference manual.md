@@ -1997,11 +1997,11 @@ The method of turning the trap off differs across dialects. In Commodore BASIC, 
 Causes an error to be raised with the error number *aexp*. Generally used for testing purposes.
 
 <a name="resume-next-aexp-"></a>
-### `RESUME` [`NEXT`, *aexp*, ]
+### `RESUME` [`NEXT`, *aexp*]
 
-When a handler is complete, `RESUME` is used to clear out the error condition and return execution to the main code. It is similar in concept to the `RETURN` statement used with `GOSUB`. If a `RESUME` statement is executed with no active trap being set, an error will occur. This is similar to encountering a `RETURN` with no corresponding `GOSUB`.
+When a handler is complete, `RESUME` is used to clear out the error condition and return execution to the main code. It is similar in concept to the `RETURN` statement used with `GOSUB`. If a `RESUME` statement is executed with no active trap being set, an error will occur, similar to encountering a `RETURN` with no corresponding `GOSUB`.
 
-If the statement is used with no parameter, execution returns to the start of the line where the error occurred. If *aexp* is provided, it performs the equivalent of a `GOTO` to the provided line number. Using `NEXT` as the parameter tells it to return to the statement *after* the error, which is likely the most useful option. If *aexp* is provided, it performs the equivalent of a `GOTO`.
+If the statement is used with no parameter, execution returns to the start of the line where the error occurred. If *aexp* is provided, it performs the equivalent of a `GOTO` to the provided line number. Using `NEXT` as the parameter tells it to return to the statement *after* the error, which is likely the most useful option in most cases.
 
 <a name="erl"></a>
 ### `ERL()`
