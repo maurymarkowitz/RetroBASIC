@@ -87,6 +87,7 @@ static void delete_variables(void);
 static void delete_functions(void);
 static void delete_lines(void);
 static void clear_stack(void);
+static void clear_error(void);
 static void reset_data_pointer(int line);
 
 /* definitions of variables used by the static analyzer */
@@ -99,13 +100,16 @@ struct timeval reset_time;     					// if the user resets the time with TIME$, t
 /**
  * Handles runtime errors.
  *
- * If trap_line is set to a -ve value, there is no error handling turned
- * on, in which case it simply calls report_error. If trap_line is +ve,
+ * If trap_line is set to 0, there is no error handling turned on,
+ * in which case it simply reports the error. If trap_line is +ve,
  * it does not report the error and instead moves to the trap.
  *
  * If there is no trap and the error is going to be reported, it will
  * always report the error string and the line where it occurred. If
  * @p message is not empty, it will be printed in parens at the end.
+ *
+ * @param errnum error number, see errors.h for a list
+ * @param message optional message string damfor extra information
  */
 static void handle_error(const int errnum, const char *message)
 {
@@ -123,7 +127,7 @@ static void handle_error(const int errnum, const char *message)
   // NOTE: if the line number is invalid, that causes an error that we have to
   //       handle here since find_line will return an error and cause a loop,
   //       we cheat here and just see if the line exists and don't bother
-  //       trying to find the next highest
+  //       trying to find the next line which would be valid in some dialects
   if (interpreter_state.trap_line > 0) {
     if (interpreter_state.lines[interpreter_state.trap_line] == NULL) {
       fprintf(stderr, "%s at line %d (%s)\n", error_messages[ern_NO_SUCH_LINE], interpreter_state.trap_line, "TRAP/ON ERROR set to non-existent line");
@@ -467,7 +471,7 @@ void insert_typed_variable(const variable_reference_t *variable, int type)
  * @param storage The variable_storage_t for that variable
  * @param start The (possibly) adjusted start position within the string
  * @param end The (possibly) adjusted end position within the string
- * @return True if the variable
+ * @return True if the variable can be sliced and the inputs are valid
  */
 bool slice_limits(const variable_reference_t *variable, const variable_storage_t *storage, int* start, int* end)
 {
@@ -1729,7 +1733,9 @@ static value_t evaluate_expression(const expression_t *expression)
   return result;
 } //evaluate_expression
 
-/* handles the PRINT and PRINT USING statements, which can get complex */
+/**
+ * Handles the PRINT and PRINT USING statements, which can get complex.
+ */
 static void print_value(value_t v, const char *format)
 {
 	// if the format string is empty, NULL it
@@ -1800,9 +1806,11 @@ static void print_expression(expression_t *e, const char *format)
   print_value(v, format);
 }
 
-/* given a statement, this returns the line number it's part of */
-/* NOTE: this is likely expensive, because is uses the index lookup
-				methods in list_t, which loop. So only use it when required!
+/**
+ * Given a statement, this returns the line number it's part of.
+ *
+ * NOTE: this is likely expensive, because is uses the index lookup
+ *        methods in list_t, which loop. So only use it when required!
  */
 static int line_for_statement(const list_t *statement)
 {
@@ -1834,13 +1842,17 @@ static int line_for_statement(const list_t *statement)
   return -1;
 } //line_for_statement
 
-/* curries line_for_statement to return the current line */
+/**
+ * Curries line_for_statement to return the current line.
+ */
 static int current_line(void)
 {
   return line_for_statement(interpreter_state.current_statement);
 }
 
-/* returns a pointer to the named line or returns an error if it's not found */
+/**
+ * Returns a pointer to the named line or returns an error if it's not found.
+ */
 static list_t *find_line(int linenumber)
 {
   char buffer[50];
@@ -1877,9 +1889,12 @@ static list_t *find_line(int linenumber)
   return interpreter_state.lines[linenumber];
 } // find_line
 
-/* returns the number of (non-empty) lines between two lines.
- used in the statistics to calculate how far a jump is */
-// NOTE: not currently used
+/**
+ * Returns the number of (non-empty) lines between two lines.
+ *
+ * Was used in the statistics to calculate how far a jump is,
+ * but not currently used.
+ */
 //static int lines_between(int first_line, int second_line)
 //{
 //    // may as well try this just in case...
@@ -1895,7 +1910,9 @@ static list_t *find_line(int linenumber)
 //    return distance;
 //}
 
-/* performs a single statement */
+/**
+ * Performs a single statement.
+ */
 static void perform_statement(list_t *statement_entry)
 {
   // now process this statement
@@ -2017,11 +2034,8 @@ static void perform_statement(list_t *statement_entry)
       {
         delete_variables();
         clear_stack();
+        clear_error();
         reset_data_pointer(interpreter_state.first_line);
-        
-        interpreter_state.error_num = 0;
-        interpreter_state.error_line = 0;
-        interpreter_state.trap_line = 0;
       }
         break;
         
@@ -3278,8 +3292,7 @@ static void perform_statement(list_t *statement_entry)
         }
         
         // in both cases, reset the error line and code
-        interpreter_state.error_line = 0;
-        interpreter_state.error_num = 0;
+        clear_error();
       }
         break;
 
@@ -3522,15 +3535,19 @@ static void reset_data_pointer(int line) {
   interpreter_state.current_statement = first_statement;          // the first statement
   interpreter_state.current_data_statement = first_statement;     // the DATA can point anywhere
 }
+/* clear any error */
+static void clear_error(void) {
+  interpreter_state.error_num = 0;
+  interpreter_state.error_line = 0;
+  interpreter_state.trap_line = 0;
+}
 
 /* set up empty trees to store variables and user functions as we find them */
 void interpreter_setup(void)
 {
 	interpreter_state.variable_values = NULL;
 	interpreter_state.functions = NULL;
-  interpreter_state.error_num = 0;
-  interpreter_state.error_line = 0;
-  interpreter_state.trap_line = 0;
+  clear_error();
 }
 
 /* labels are stored as variables, but variables don't get an actual
@@ -3540,7 +3557,7 @@ void interpreter_setup(void)
   of them to see if it is a label, and if so, call eval to set its
   value. The code is essentially identical to LET. This is called from
   post_setup, so it doesn't need to be public */
-void interpreter_eval_labels(void)
+static void interpreter_eval_labels(void)
 {
   list_t *next_statement = interpreter_state.lines[interpreter_state.first_line];
   while (next_statement) {
@@ -3562,7 +3579,7 @@ void interpreter_eval_labels(void)
  that way we don't have to search through the line array for the
  next non-null entry during the run loop, we just keep stepping
  through the ->next until we fall off the end. this is how most
-interpreters handled it anyway. */
+ interpreters handled it anyway. */
 void interpreter_post_parse(void)
 {
   // look for the first entry in the lines array with a non-empty statement list
@@ -3605,9 +3622,7 @@ void interpreter_run(void)
   interpreter_state.cursor_column = 0;
   
   // reset any errors
-  interpreter_state.error_num = 0;
-  interpreter_state.error_line = 0;
-  interpreter_state.trap_line = 0;
+  clear_error();
 
   // start the clocks
   start_ticks = clock();
