@@ -37,13 +37,6 @@ Boston, MA 02111-1307, USA.  */
 #ifndef matrix_h
 #define matrix_h
 
-void transpose(int size, int source[][size], int dest[][size])
-{
-    int i, j;
-    for (i = 0; i < size; i++)
-        for (j = 0; j < size; j++)
-            dest[i][j] = source[j][i];
-}
-
+void transpose(int size, int source[][size], int dest[][size]);
 
 #endif /* matrix_h */
