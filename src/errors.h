@@ -68,7 +68,7 @@
 #define ern_DEF_UNKNOWN       37     // call to user-defined function that doesn't exist
 #define ern_OUT_OF_STACK      40     // unused in RetroBASIC
 #define ern_CANT_CONTINUE     41     // RetroBASIC does not support CONTinue
-#define ern_POP_NO_STACK      42     // a POP/EXIT/DISPOSE
+#define ern_POP_NO_STACK      42     // a POP/EXIT/DISPOSE was called with nothing on the stack
 #define ern_RES_NO_TRAP       44     // a RESUME was encountered with no corresponding TRAP
 
 #define ers_TOO_MANY_FILES    "TOO MANY FILES"
