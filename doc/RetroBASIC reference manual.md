@@ -1904,7 +1904,7 @@ When any of these equivalent statements is encountered in a program, the *aexp* 
 
 The method of turning the trap off differs across dialects. In Commodore BASIC, one uses `TRAP` with no parameter, in Atari BASIC any number above 32,767 does the same, and in AppleSoft one has to `POKE 216,0`. In RetroBASIC, traps are turned off with an empty parameter or any expression that evaluates to zero or a negative value.
 
-Note that `ON ERROR` can only be used with a `GOTO`, in contrast to a normal `ON` statement which also allows `GOSUB`. Using `GOSUB` here is not allowed and will return a syntax error.
+Note that `ON ERROR` can only be used with a `GOTO`, in contrast to a normal `ON` statement which also allows `GOSUB`. Using `GOSUB` here is not allowed and will return a syntax error when it is loaded.
 
 <a name="raise-aexp"></a>
 ### `RAISE` *aexp*
