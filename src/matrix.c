@@ -20,3 +20,10 @@ Boston, MA 02111-1307, USA.  */
 
 #include "matrix.h"
 
+void transpose(int size, int source[][size], int dest[][size])
+{
+    int i, j;
+    for (i = 0; i < size; i++)
+        for (j = 0; j < size; j++)
+            dest[i][j] = source[j][i];
+}
