@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>logFormatVersion</key>
+	<integer>10</integer>
+	<key>logs</key>
+	<dict>
+		<key>DE2C6415-929D-4A0F-B5C1-2FA4BC71A51C</key>
+		<dict>
+			<key>className</key>
+			<string>DBGConsoleLog</string>
+			<key>documentTypeString</key>
+			<string>com.apple.dt.IDE.DebuggerLogContentType</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
+			<key>fileName</key>
+			<string>DE2C6415-929D-4A0F-B5C1-2FA4BC71A51C.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>S</string>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>RetroBASIC project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>RetroBASIC</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Run retrobasic</string>
+			<key>timeStartedRecording</key>
+			<real>684694836.05642295</real>
+			<key>timeStoppedRecording</key>
+			<real>684694887.42426705</real>
+			<key>title</key>
+			<string>Run retrobasic</string>
+			<key>uniqueIdentifier</key>
+			<string>DE2C6415-929D-4A0F-B5C1-2FA4BC71A51C</string>
+		</dict>
+		<key>EF475BB0-1728-458E-9094-823300E0E21D</key>
+		<dict>
+			<key>className</key>
+			<string>DBGConsoleLog</string>
+			<key>documentTypeString</key>
+			<string>com.apple.dt.IDE.DebuggerLogContentType</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.DebugLog</string>
+			<key>fileName</key>
+			<string>EF475BB0-1728-458E-9094-823300E0E21D.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>S</string>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>RetroBASIC project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>SST</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Run retrobasic</string>
+			<key>timeStartedRecording</key>
+			<real>684776306.05378902</real>
+			<key>timeStoppedRecording</key>
+			<real>684776349.89920604</real>
+			<key>title</key>
+			<string>Run retrobasic</string>
+			<key>uniqueIdentifier</key>
+			<string>EF475BB0-1728-458E-9094-823300E0E21D</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

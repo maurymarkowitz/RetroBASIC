@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>logFormatVersion</key>
+	<integer>10</integer>
+	<key>logs</key>
+	<dict>
+		<key>A10EAC49-6ABC-4ABE-B4A2-EBC88F234A50</key>
+		<dict>
+			<key>className</key>
+			<string>IDEActivityLogMajorGroupSection</string>
+			<key>documentTypeString</key>
+			<string>&lt;nil&gt;</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.target.product-type.tool</string>
+			<key>fileName</key>
+			<string>A10EAC49-6ABC-4ABE-B4A2-EBC88F234A50.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>E</string>
+			</dict>
+			<key>signature</key>
+			<string>retrobasic-flaeohnahqpovzdpxqfdidxawnsa</string>
+			<key>timeStartedRecording</key>
+			<real>684253749.88609397</real>
+			<key>timeStoppedRecording</key>
+			<real>684253749.90714598</real>
+			<key>title</key>
+			<string>Build target retrobasic</string>
+			<key>uniqueIdentifier</key>
+			<string>A10EAC49-6ABC-4ABE-B4A2-EBC88F234A50</string>
+		</dict>
+		<key>C43ABB0F-D83D-4079-B5B3-D25F96C19E87</key>
+		<dict>
+			<key>className</key>
+			<string>IDEActivityLogMajorGroupSection</string>
+			<key>documentTypeString</key>
+			<string>&lt;nil&gt;</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.target.product-type.tool</string>
+			<key>fileName</key>
+			<string>C43ABB0F-D83D-4079-B5B3-D25F96C19E87.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>W</string>
+			</dict>
+			<key>signature</key>
+			<string>retrobasic-ajesokywayskgtgjlftsjgmmqios</string>
+			<key>timeStartedRecording</key>
+			<real>684776303.81368005</real>
+			<key>timeStoppedRecording</key>
+			<real>684776306.00737906</real>
+			<key>title</key>
+			<string>Build target retrobasic</string>
+			<key>uniqueIdentifier</key>
+			<string>C43ABB0F-D83D-4079-B5B3-D25F96C19E87</string>
+		</dict>
+	</dict>
+	<key>preserveOldLogs</key>
+	<true/>
+</dict>
+</plist>
