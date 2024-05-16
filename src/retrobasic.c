@@ -368,7 +368,7 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
     
     // the *number* of dimensions has to match, you can't DIM A(1,1) and then LET B=A(1)
     if (lst_length(act_dimensions) != lst_length(variable_indexes))
-      handle_error(ern_BAD_SUBSCRIPT, "Array dimensions of variable does not match storage");
+      handle_error(ern_BAD_SUBSCRIPT, "Number of array dimensions in code does not match DIMmed storage");
     else
       while (act_dimensions && variable_indexes) {
         // evaluate the variable reference's index for a given dimension
@@ -2358,9 +2358,9 @@ static void perform_statement(list_t *statement_entry)
       } //let
         break;
         
-      case MAT:
+      case MAT: // matrix assignment, MAT LET
       {
-        // get the reference from the LHS
+        // get the destination reference from the LHS
         variable_reference_t *destination_ref = statement->parms.let.variable;
 
         // get/make the storage entry for this variable
@@ -2411,12 +2411,10 @@ static void perform_statement(list_t *statement_entry)
         else if (dims == 2) {
           int rows = POINTER_TO_INT(act_dimensions->data);
           int cols = POINTER_TO_INT(act_dimensions->next->data);
-          int index;
-          
           for (int r = 1; r <= rows; r++) {
             for (int c = 1; c <= cols; c++) {
-              index = r * cols + c;
-              destination_store->array[index] = source_store->array[index];
+              int slot = r * cols + c;
+              destination_store->array[slot] = source_store->array[slot];
             }
           }
         }
@@ -2486,12 +2484,12 @@ static void perform_statement(list_t *statement_entry)
             
             for (int r = 1; r <= rows; r++) {
               for (int c = 1; c <= cols; c++) {
-                int index = r * cols + c;
+                int slot = r * cols + c;
                 fflush(stdout);
                 if (fgets(line, sizeof(line), stdin) != line)
                   exit(EXIT_FAILURE);
                 line[strlen(line) - 1] = '\0';
-                sscanf(line, "%lg", &array_store->array[index].number);
+                sscanf(line, "%lg", &array_store->array[slot].number);
               }
             }
           }
@@ -2570,8 +2568,8 @@ static void perform_statement(list_t *statement_entry)
 
             for (int r = 1; r <= rows; r++) {
               for (int c = 1; c <= cols; c++) {
-                int index = r * cols + c;
-                value_t val = either_to_value(array_store->array[index], array_store->type);
+                int slot = r * cols + c;
+                value_t val = either_to_value(array_store->array[slot], array_store->type);
                 print_value(val, NULL);
                 // and advance the cursor based on the separator, which defaults to comma for arrays, not semi
                 if (sep != ';')
@@ -2622,7 +2620,7 @@ static void perform_statement(list_t *statement_entry)
             int len = POINTER_TO_INT(act_dimensions->data);
             
             // remember to skip zero
-            for (int index = 1; index <= len; index++) {
+            for (int slot = 1; slot <= len; slot++) {
               // get the next data value, and fail out if we didn't get one
               value_t data_value = read_next_data_value();
               if (data_value.type == 0)
@@ -2631,9 +2629,9 @@ static void perform_statement(list_t *statement_entry)
               // test the type, if the variable and data are the same type assign it, otherwise return an error
               if (data_value.type == array_type) {
                 if (array_type == STRING)
-                  array_store->array[index].string = data_value.string;
+                  array_store->array[slot].string = data_value.string;
                 else
-                  array_store->array[index].number = data_value.number;
+                  array_store->array[slot].number = data_value.number;
               } else {
                 char buffer[80];
                 sprintf(buffer, "Type mismatch in MAT READ, reading a %s but got a %s",
@@ -2650,7 +2648,7 @@ static void perform_statement(list_t *statement_entry)
             
             for (int r = 1; r <= rows; r++) {
               for (int c = 1; c <= cols; c++) {
-                int index = r * cols + c;
+                int slot = r * cols + c;
                 
                 // get the next data value, and fail out if we didn't get one
                 value_t data_value = read_next_data_value();
@@ -2660,9 +2658,9 @@ static void perform_statement(list_t *statement_entry)
                 // test the type, if the variable and data are the same type assign it, otherwise return an error
                 if (data_value.type == array_type) {
                   if (array_type == STRING)
-                    array_store->array[index].string = data_value.string;
+                    array_store->array[slot].string = data_value.string;
                   else
-                    array_store->array[index].number = data_value.number;
+                    array_store->array[slot].number = data_value.number;
                 } else {
                   char buffer[80];
                   sprintf(buffer, "Type mismatch in MAT READ, reading a %s but got a %s",
@@ -2710,8 +2708,8 @@ static void perform_statement(list_t *statement_entry)
           int len = POINTER_TO_INT(act_dimensions->data);
           
           // remember to skip zero
-          for (int index = 1; index <= len; index++)
-              array_store->array[index].number = 1;
+          for (int slot = 1; slot <= len; slot++)
+              array_store->array[slot].number = 1;
         } // dim=1
         else if (dims == 2) {
           int rows = POINTER_TO_INT(act_dimensions->data);
@@ -2719,14 +2717,125 @@ static void perform_statement(list_t *statement_entry)
           
           for (int r = 1; r <= rows; r++)
             for (int c = 1; c <= cols; c++) {
-              int index = r * cols + c;
-              array_store->array[index].number = 1;
+              int slot = r * cols + c;
+              array_store->array[slot].number = 1;
             }
         } // dim=2
         else {
           handle_error(ern_TYPE_MISMATCH, "MAT CON with too many dimensions");
         } // dims
       }  //mat con
+        break;
+        
+      case MATDET:
+      {
+        // find the storage
+        variable_reference_t *mat_item = statement->parms.let.variable;
+        variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, mat_item->name);
+        int array_type = variable_type(mat_item);
+        
+        // has to be a number
+        if (array_type == STRING) {
+          handle_error(ern_TYPE_MISMATCH, "MAT DET with string variable");
+          break;
+        }
+        
+        // redim if needed
+        if (!redim_matrix(mat_item, mat_item))
+          break;
+        
+        // get the resulting number of dimensions
+        list_t *act_dimensions = lst_first_node(array_store->actual_dimensions);
+        int rows = POINTER_TO_INT(act_dimensions->data);
+        int cols = POINTER_TO_INT(act_dimensions->next->data);
+        if (rows != cols) {
+          handle_error(ern_TYPE_MISMATCH, "MAT DET with non-square array");
+          break;
+        }
+        
+        // handle to the matrix
+        int det = 1, total = 1; // det starts at 1
+        int temp[rows + 1];     // temporary array for storing row
+
+        // loop for traversing the diagonal elements
+        int index;
+        for (int i = 0; i < rows; i++) {
+          index = i; // initialize the index
+
+          // finding the index which has non zero value
+          int slot =  i * cols + i;
+          while (index < rows && array_store->array[slot].number == 0)
+            index++;
+          
+          // if there is no zero element the det is zero
+          if (index == rows)
+            continue;
+          
+          // loop for swapping the diagonal element row and index row
+          if (index != i)  {
+            for (int j = 0; j < rows; j++)
+              slot = i * cols + j;
+              swap(array_store->array[index][j].number, array_store->array[slot].number);
+
+            // determinant sign changes when we shift rows
+            // go through determinant properties
+            det = det * pow(-1, index - i);
+          }
+
+          // storing the values of diagonal row elements
+          for (int j = 0; j < n; j++)
+          {
+            temp[j] = mat[i][j];
+          }
+          
+            // traversing every row below the diagonal element
+            int num1, num2;
+            for (int j = i + 1; j < n; j++)
+            {
+              num1 = temp[i]; // value of diagonal element
+              num2 = mat[j][i]; // value of next row element
+
+              // traversing every column of row
+              // and multiplying to every row
+              for (int k = 0; k < n; k++)
+              {
+                // multiplying to make the diagonal
+                // element and next row element equal
+                mat[j][k] = (num1 * mat[j][k]) - (num2 * temp[k]);
+              }
+              total = total * num1; // Det(kA)=kDet(A);
+            }
+          }
+
+          // multiplying the diagonal elements to get determinant
+          for (int i = 0; i < n; i++)
+          {
+            det = det * mat[i][i];
+          }
+          return (det / total); // Det(kA)/k=Det(A);
+        }
+
+          // we start by assuming det is 1
+          double det = 1;
+          int l;
+          for (int k = 2; k <= rows; k++) {
+            l = k - 1;
+            int index = l * cols + l;
+
+            if (array_store->array[index].number != 0) {
+              
+            } else {
+              
+            }
+          }
+          
+          for (int r = 1; r <= rows; r++)
+            for (int c = 1; c <= cols; c++) {
+              int index = r * cols + c;
+              array_store->array[index].number = 1;
+            }
+        } /
+      }  //mat det
         break;
         
       case MATIDN:
