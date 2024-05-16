@@ -31,7 +31,7 @@ Boston, MA 02111-1307, USA.  */
  * and so forth.
  *
  * The list consists of a linked series of "nodes", which are also the basic struct of
- * the list itself. Lists and the nodes are synonomous. A minimal valid list consists
+ * the list itself. Lists and the nodes are synonymous. A minimal valid list consists
  * of a single node. The empty list is NULL, not a single empty node.
  *
  * The list normally contains data via a void* pointer which the user has to allocate
