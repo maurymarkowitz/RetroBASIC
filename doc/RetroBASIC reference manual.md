@@ -1382,7 +1382,7 @@ Trigonometric functions in BASIC are normally carried out using radians. A few d
 Returns the arccosine of the variable or expression in parentheses.
 
 <a name="variations"></a>
-### Variations:
+#### Variations:
 
 The Sinclair ZX80 uses `ARCOS` while the SHARP 1211 (TRS-80 Pocket Computer) uses `AC`.
 
