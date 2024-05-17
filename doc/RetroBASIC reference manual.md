@@ -45,7 +45,7 @@ Version 2.0.0
    * [`CALL` *aexp*[,*aexp*...], `SYSTEM` and `SYS`](#call-aexpaexp-system-and-sys)
    * [`OPTION BASE` [0|1]](#option-base-01)
 - [Input/Output Statements](#inputoutput-statements)
-   * [`PRINT` [*exp*{|[;|,]},...]]](#print-exp)
+   * [`PRINT` [*exp*{|[;|,]},...]](#print-exp)
    * [`INPUT` [*sexp*{[;|,]}]*var*[,*var*...]](#input-sexpvarvar)
 - [`DATA`, `READ` and `RESTORE`](#data-read-and-restore)
    * [`DATA` *con*[,*con*...]](#data-concon)
