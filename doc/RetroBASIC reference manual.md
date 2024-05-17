@@ -1262,9 +1262,9 @@ Rounds the number to the nearest integer or given decimal place. If only one *ae
 <a name="rndaexp"></a>
 ### `RND`([*aexp*])
 
-Returns a random positive number between 0 (inclusive) and 0.999... (exclusive). Some dialects require some form of expression in the parentheses even if they do not use it; others do not and you can leave the parameter empty. RetroBASIC works with either style. In many dialects, if a variable or expression is passed in the parentheses it is ignored and has no effect on the numbers returned, but there are numerous important exceptions. The variations are so (*ahem*) random, that Lien's *The BASIC Handbook* gives up and tells you to consult your manual.
+Returns a random positive number between 0 (inclusive) and 1 (exclusive). Some dialects require some form of expression in the parentheses even if they do not use it; others do not and you can leave the parameter empty. RetroBASIC works with either style. In many dialects, if a variable or expression is passed in the parentheses it is ignored and has no effect on the numbers returned, but there are numerous important exceptions. The variations are so (*ahem*) random, that Lien's *The BASIC Handbook* gives up and tells you to consult your manual.
 
-Most random number generators are based on a mathematical formula that takes the last random number as its input. This means that each call to the function will return a new value, it cannot be the last one. Systems vary widely on how this is actually implemented. In some, the initial number, or *seed* is always the same and thus the sequence of numbers generated will always be the same. These variations generally offer some method to change the initial value so that different sequences can be generated. Earlier dialects generally use `RANDOMIZE` for this, later ones modified the `RND` itself for this task. The best example is Microsoft and its many variations, which used a negative number as a seed. Other, like Atari BASIC, used an internal hardware timer to produce values, which was both faster and always randomized. Some blended the two options.
+Most random number generators are based on a mathematical formula that takes the last random number as its input. This means that each call to the function will return a new value in a random sequence. Systems vary widely on how this is actually implemented. In some, the initial number, or *seed* is always the same and thus the *sequence* of numbers generated will always be the same. These variations generally offer some method to change the initial value so that different sequences can be generated. Earlier dialects generally use `RANDOMIZE` for this, but later ones modified the `RND` itself for this task. The best example is Microsoft and its many variations, where a negative number in the parameter is converted to a positive value and used as the seed, whereas a positive value is simply ignored. Others, like Atari BASIC, used an internal hardware timer to produce random values, which was both faster and always randomized. Some blended the two options.
 
 `RND` is very common in BASIC programs, especially in games. In most cases, the program actually desires an integer value, and code to the effect of `INT(RND(0)*X+0.5)` can be found in many programs. This works by producing a number between 0 and X-*epsilon*, adds 0.5 to produce a value between 0.5 and X+0.5-*epsilon*, and then `INT`s that value, resulting in a value between 1 and X, inclusive. This bit of code is so common that some programs use a user-defined function to make references to this sequence of operations shorter; an example is *Super Star Trek*, which defines a function called `FNR` near the top of the program and then calls it from many locations.
 
@@ -1278,9 +1278,9 @@ Because there is no way to know which of these optional varieties is being used,
 
 ANSI BASIC *requires* the parameter to be empty. Very few dialects followed this rule, although DEC and the APF Imagination Machine are two known to do so.
 
-It is generally the case that any dialect that supports `RANDOMIZE` treats the *aexp* as a dummy.
+It is generally the case that any dialect that supports `RANDOMIZE` treats the *aexp* as a dummy. RetroBASIC is an exception, as it supports seeding in `RANDOMIZE` or `RND`.
 
-Apple's Integer BASIC produces only integer values, as these were the only types it could work with. The system always returns a value between 0 and *aexp*-1, which made it an analog of the more typical floating point versions that never returned the upper bound. To simulate rolling dice, for instance, one could use `LET ROLL=RND(6)+1`.
+Apple's Integer BASIC produces only integer values, as these were the only types it could work with. The system always returns a value between 0 and *aexp*-1, which made it an analog of the more typical floating point versions that never returned the upper bound. To simulate rolling dice, for instance, one would use `LET ROLL=RND(6)+1`.
 
 Sinclair QL BASIC has a similar feature, but uses a more explicit syntax that allows a range to be specified, `RND(10 TO 50)`.
 
@@ -1382,7 +1382,7 @@ Trigonometric functions in BASIC are normally carried out using radians. A few d
 Returns the arccosine of the variable or expression in parentheses.
 
 <a name="variations"></a>
-### Variations:
+#### Variations:
 
 The Sinclair ZX80 uses `ARCOS` while the SHARP 1211 (TRS-80 Pocket Computer) uses `AC`.
 
