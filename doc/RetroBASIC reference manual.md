@@ -1955,135 +1955,136 @@ This program starts by setting a trap and then raising a syntax error, error 21.
 ## Error codes
 
 RetroBASIC's error codes are mostly modelled on Commodore BASIC 3.5 seen on the Commodore 125 as their list is fairly generic. A few additional errors have been added to handle new functionality. Others have been left out as they apply to specific tasks like operating the cassette tape.
+<dl>
+<dt>0</dt>
+<dd>(none)</dd>
+<dd>There is no current error code. Commodore BASIC 3.5 used -1 for this.</dd>
 
-0
-:(none)
-:There is no current error code. Commodore BASIC 3.5 used -1 for this.
+<dt>1</dt>
+<dd>TOO MANY FILES</dd>
+<dd>The program is attempting to open a file with too many already open.</dd>
 
-1
-:TOO MANY FILES
-:The program is attempting to open a file with too many already open.
+<dt>2</dt>
+<dd>FILE OPEN</dd>
+<dd>Attempt to open a file that is already open.</dd>
 
-2
-:FILE OPEN
-:Attempt to open a file that is already open.
+<dt>3</dt>
+<dd>FILE NOT OPEN</dd>
+<dd>Attempt to use a file handle that has not been opened.</dd>
 
-3
-:FILE NOT OPEN
-:Attempt to use a file handle that has not been opened.
+<dt>4</dt>
+<dd>FILE NOT FOUND</dd>
+<dd>Attempt to open a file but the file cannot be found at the provided path.</dd>
 
-4
-:FILE NOT FOUND
-:Attempt to open a file but the file cannot be found at the provided path.
+<dt>5</dt>
+<dd>DEVICE NOT PRESENT</dd>
+<dd>The file is on a device that is not responding. Not used in RetroBASIC.</dd>
 
-5
-:DEVICE NOT PRESENT
-:The file is on a device that is not responding. Not used in RetroBASIC.
+<dt>6</dt>
+<dd>FILE NOT INPUT</dd>
+<dd>Attempt to read from a file that is opened for writing.</dd>
 
-6
-:FILE NOT INPUT
-:Attempt to read from a file that is opened for writing.
+<dt>7</dt>
+<dd>FILE NOT OUTPUT</dd>
+<dd>Attempt to write to a file that is opened for reading.</dd>
 
-7
-:FILE NOT OUTPUT
-:Attempt to write to a file that is opened for reading.
+<dt>8</dt>
+<dd>FILENAME MISSING</dd>
+<dd>Attempt to open a file without passing in a valid file name.</dd>
 
-8
-:FILENAME MISSING
-:Attempt to open a file without passing in a valid file name.
+<dt>9</dt>
+<dd>ILLEGAL DEVICE NUMBER</dd>
+<dd>Attempt to open a file on a non-existent device. Not used in RetroBASIC.</dd>
 
-9
-:ILLEGAL DEVICE NUMBER
-:Attempt to open a file on a non-existent device. Not used in RetroBASIC.
+<dt>14</dt>
+<dd>BREAK</dd>
+<dd>Indicates that BREAK was pressed and entered the handler. Not used in RetroBASIC.</dd>
 
-14
-:BREAK
-:Indicates that BREAK was pressed and entered the handler. Not used in RetroBASIC.
+<dt>15</dt>
+<dd>EXTRA IGNORED</dd>
+<dd>More items were entered during an INPUT than there are variables to hold it. Extra items at the end are ignored.</dd>
 
-15
-:EXTRA IGNORED
-:More items were entered during an INPUT than there are variables to hold it. Extra items at the end are ignored.
+<dt>16</dt>
+<dd>REDO FROM START</dd>
+<dd>The input cannot be converted to a number, and the INPUT statement asks for the same value again.</dd>
 
-16
-:REDO FROM START
-:The input cannot be converted to a number, and the INPUT statement asks for the same value again.
+<dt>20</dt>
+<dd>NEXT WITHOUT FOR</dd>
+<dd>A NEXT statement was encountered but no matching FOR has been called.</dd>
 
-20
-:NEXT WITHOUT FOR
-:A NEXT statement was encountered but no matching FOR has been called.
+<dt>21</dt>
+<dd>SYNTAX</dd>
+<dd>Syntax error. As RetroBASIC pre-parses before running, this does not normally occur.</dd>
 
-21
-:SYNTAX
-:Syntax error. As RetroBASIC pre-parses before running, this does not normally occur.
+<dt>22</dt>
+<dd>RETURN WITHOUT GOSUB</dd>
+<dd>A RETURN statement was encountered but no matching GOSUB has been called.</dd>
 
-22
-:RETURN WITHOUT GOSUB
-:A RETURN statement was encountered but no matching GOSUB has been called.
+<dt>23</dt>
+<dd>OUT OF DATA</dd>
+<dd>A READ statement is asking for more data, but there are no remaining DATA statements.</dd>
 
-23
-:OUT OF DATA
-:A READ statement is asking for more data, but there are no remaining DATA statements.
+<dt>24</dt>
+<dd>ILLEGAL QUANTITY</dd>
+<dd>Any parameter in a statement or function that is out-of-range, like a MID with a start parameter outside the string.</dd>
 
-24
-:ILLEGAL QUANTITY
-:Any parameter in a statement or function that is out-of-range, like a MID with a start parameter outside the string.
+<dt>25</dt>
+<dd>OVERFLOW</dd>
+<dd>Result of calculation or formula is out-of-range. Should not occur in RetroBASIC.</dd>
 
-25
-:OVERFLOW
-:Result of calculation or formula is out-of-range. Should not occur in RetroBASIC.
+<dt>26</dt>
+<dd>OUT OF MEMORY</dd>
+<dd>The system has run out of memory, or the runtime stack has run out of room. Not used in RetroBASIC.</dd>
 
-26
-:OUT OF MEMORY
-:The system has run out of memory, or the runtime stack has run out of room. Not used in RetroBASIC.
+<dt>27</dt>
+<dd>UNDEFINED STATEMENT</dd>
+<dd>Branch (THEN/GOTO/GOSUB) to a non-existing line.</dd>
 
-27
-:UNDEFINED STATEMENT
-:Branch (THEN/GOTO/GOSUB) to a non-existing line.
+<dt>28</dt>
+<dd>BAD SUBSCRIPT</dd>
+<dd>Array indexes are outside the DIMmed range.</dd>
 
-28
-:BAD SUBSCRIPT
-:Array indexes are outside the DIMmed range.
+<dt>29</dt>
+<dd>REDIM'D ARRAY</dd>
+<dd>DIM being called on an already DIMed variable.</dd>
 
-29
-:REDIM'D ARRAY
-:DIM being called on an already DIMed variable.
+<dt>30</dt>
+<dd>DIVISION BY ZERO</dd>
+<dd>Any division by zero, including integer division, MOD, etc.</dd>
 
-30
-:DIVISION BY ZERO
-:Any division by zero, including integer division, MOD, etc.
+<dt>31</dt>
+<dd>ILLEGAL DIRECT</dd>
+<dd>A statement was entered in direct mode that can only be used in program mode. Examples are INPUT and GET. Not currently supported.</dd>
 
-31
-:ILLEGAL DIRECT
-:A statement was entered in direct mode that can only be used in program mode. Examples are INPUT and GET. Not currently supported.
+<dt>32</dt>
+<dd>TYPE MISMATCH</dd>
+<dd>A number was provided to a string parameter or vice versa.</dd>
 
-32
-:TYPE MISMATCH
-:A number was provided to a string parameter or vice versa.
+<dt>33</dt>
+<dd>STRING TOO LONG</dd>
+<dd>Unused in RetroBASIC, string sizes are effectively unlimited.</dd>
 
-33
-:STRING TOO LONG
-:Unused in RetroBASIC, string sizes are effectively unlimited.
+<dt>34</dt>
+<dd>FILE DATA</dd>
+<dd>An INPUT or GET from a file returned numeric data for a string or vice versa. Not used in RetroBASIC, 32 will be returned in this case.</dd>
 
-34
-:FILE DATA
-:An INPUT or GET from a file returned numeric data for a string or vice versa. Not used in RetroBASIC, 32 will be returned in this case.
+<dt>35</dt>
+<dd>FORMULA TOO COMPLEX</dd>
+<dd>The equation or formula was too complex to be interpreted. Does not occur in RetroBASIC.</dd>
 
-35
-:FORMULA TOO COMPLEX
-:The equation or formula was too complex to be interpreted. Does not occur in RetroBASIC.
+<dt>37</dt>
+<dd>UNDEFINED FUNCTION</dd>
+<dd>Call to user-defined function with no corresponding DEF FN.</dd>
 
-37
-:UNDEFINED FUNCTION
-:Call to user-defined function with no corresponding DEF FN.
+<dt>40</dt>
+<dd>OUT OF STACK</dd>
+<dd>Too many nested GOSUBs and FORs. Does not occur in RetroBASIC.</dd>
 
-40
-:OUT OF STACK
-:Too many nested GOSUBs and FORs. Does not occur in RetroBASIC.
+<dt>41</dt>
+<dd>UNABLE TO RESUME</dd>
+<dd>RESUME was called but the error is fatal.</dd>
 
-41
-:UNABLE TO RESUME
-:RESUME was called but the error is fatal.
-
-44
-:RESUME WITHOUT TRAP
-:A RESUME was encountered with no corresponding TRAP or ON ERROR. Commodore BASIC returned a syntax error in this case.
+<dt>44</dt>
+<dd>RESUME WITHOUT TRAP</dd>
+<dd>A RESUME was encountered with no corresponding TRAP or ON ERROR. Commodore BASIC returned a syntax error in this case.</dd>
+</dl>
