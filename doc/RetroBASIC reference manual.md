@@ -134,13 +134,11 @@ Version 2.0.0
    * [Example:](#example)
 - [Error codes](#error-codes)
 
-<!-- TOC --><a name="about-this-manual"></a>
 <a name="about-this-manual"></a>
 ## About this manual
 
 This manual is primarily a listing of the operators, commands and statements in the RetroBASIC interpreter. It also details some of the internal structures and differences between dialects of BASIC. It is written in Markdown to make it readable on most platforms.
 
-<!-- TOC --><a name="abbreviations"></a>
 <a name="abbreviations"></a>
 ### Abbreviations
 
@@ -164,7 +162,6 @@ The following abbreviations will be used in this manual:
 - *statmnt* - any complete statement
 - *lineno* - a line number
 
-<!-- TOC --><a name="formatting-and-notation"></a>
 <a name="formatting-and-notation"></a>
 ### Formatting and notation
 
@@ -185,11 +182,9 @@ This indicates that the PRINT statement consists of the statement keyword `PRINT
 
 Note that the line number is not indicated at the front, nor are the <CR> or <Enter> at the end, as these are assumed to be in the source code.
 
-<!-- TOC --><a name="introduction"></a>
 <a name="introduction"></a>
 ## Introduction
 
-<!-- TOC --><a name="what-is-retrobasic"></a>
 <a name="what-is-retrobasic"></a>
 ### What is RetroBASIC?
 
@@ -205,7 +200,6 @@ So, for instance, RetroBASIC can run the version of Super Star Trek found in *BA
 
 Programs must be provided in plain text, better known as "source code". RetroBASIC cannot read binary files from other platforms, which was the normal way to store BASIC programs on home computers. There are a variety of programs available that will read these binary files and output text, which can then be run in RetroBASIC.
 
-<!-- TOC --><a name="what-retrobasic-is-not"></a>
 <a name="what-retrobasic-is-not"></a>
 ### What RetroBASIC is not
 
@@ -216,7 +210,6 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
 - it does not include any platform-specific instructions like sound or graphics, as these are not portable
 - it does not (currently) have file handling features, as these vary considerably across platforms
 
-<!-- TOC --><a name="some-underlying-concepts"></a>
 <a name="some-underlying-concepts"></a>
 ## Some underlying concepts
 
@@ -234,7 +227,7 @@ The purpose of an **expression** is to provide data to be acted on by the statem
 - **string** - a series of characters surrounded by double-quote marks, like "Hello, World!". Also known as **string constants**.
 - **variable** - a symbolic name which can store the value of a number or a string for future recall.
 - **array** - a type of variable that stores multiple values at once.
-- **operator** - symbol characters, typically from mathematics, that take one or two expressions and produce a number or string.
+- **operator** - symbol characters, typically from mathematics, that take one or two expressions and produces a number or string.
 - **function** - operators using names instead of symbols.
 
 In most dialects, variables can contain either a number value or a string value but cannot change from one to another. This split was introduced in Dartmouth BASIC, which required the user to add a dollar sign suffix to variables that wanted to hold a string value. These are known as **string variables**, and non-string variables are sometimes, but not always, referred to as **numeric variables**. A few dialects allow any variable to store any value, and these generally lack the dollar sign. This is not supported in RetroBASIC, because most dialects consider assigning one to the other to be an error, and RetroBASIC needs to report these errors.
@@ -243,7 +236,6 @@ BASIC programs are generally organized over multiple **lines**, each of which co
 
 BASIC was written in an era when editing was carried out on typewriters and had a fixed-width line, often 132 characters, but sometimes 80 or 72, or rarely, even less. Years later, microcomputers emerged that limited lines to roughly 40 characters. To address the need to allow larger statements to be typed in, most dialects have the concept of a **logical line** versus a **physical line**. A physical line is simply a single line or text as produced by the device the user is typing on, while a logical line can span multiple physical lines up to some pre-set limit. Logical lines also allow the code to operate properly while moving between machines with different physical line lengths, only the display of the line will change.
 
-<!-- TOC --><a name="syntax-example"></a>
 <a name="syntax-example"></a>
 ### Syntax example
 
@@ -256,7 +248,7 @@ Here is a simple example of a BASIC program that illustrates the overall form th
     50 IF C>10 THEN PRINT "C is > 10"
     60 END
 
-Line 10 of this program uses the `LET` statement keyword to assign a value to the numeric variable `A`, using the operator `=` to separate the variable name from the expression that provides a value. In this case, the associated **numeric expression** is the numeric constant 10. The assignment statement is almost always the most common statement in a BASIC program, and for this reason, most versions of BASIC allow the `LET` keyword to be left out. This produces an exception to the rule that statements start with a statement keyword; they can actually start with a statement keyword *or* a variable name.
+Line 10 of this program uses the `LET` statement keyword to assign a value to the numeric variable `A`, using the operator `=` to separate the variable name from the expression that provides a value. In this case, the associated **arithmetic expression** (*aexp*) is the numeric constant 10. The assignment statement is almost always the most common statement in a BASIC program, and for this reason, most versions of BASIC allow the `LET` keyword to be left out. This produces an exception to the rule that statements start with a statement keyword; they can actually start with a statement keyword *or* a variable name.
 
 Line 20 of this program is also an assignment statement, leaving off the optional `LET`. Notice the dollar sign on the variable name that indicates that the language should expect a string expression on the other side of the `=` operator, not a number. The expression used in this statement is the string constant "Hello".
 
@@ -264,11 +256,16 @@ Line 30 is an example of a multi-statement line, with two statements separated b
 
 Line 40 shows an example of *overloading*, where a keyword may mean different things depending on the context. The expression in the print statement has the `+` operator but is being given **string expressions** instead of numeric. In this case, the `+` does not represent numeric addition but string concatenation, which places the right-hand string at the end of the left-hand string and returns a new, longer string. The result of this print statement is "Hello, World!" being printed to the console.
 
-Line 50 is an example of a logical comparison, which is indicated by the `IF` statement keyword. This is followed by a **logical expression** using the larger-than operator, which calculates the results of expressions on both sides of the operator, compares them, and then, depending on the outcome of the comparison, optionally performs the statement following the `THEN`. As `C` will hold the value 15 at this point, and 15 is larger than 10, the statement after `THEN` *will* be performed and produce the string "C is > 10" on the console.
+Line 50 is an example of a logical comparison, which is indicated by the `IF` statement keyword. This is followed by a **logical expression** (*lexp*) using the larger-than operator, which calculates the results of expressions on both sides of the operator, compares them, and then, depending on the outcome of the comparison, optionally performs the statement following the `THEN`. As `C` will hold the value 15 at this point, and 15 is larger than 10, the statement after `THEN` *will* be performed and produce the string "C is > 10" on the console.
 
 Line 60 is the `END` statement, which takes no expression and stops the execution of the program. `END` is optional in most dialects.
 
-<!-- TOC --><a name="data-in-basic-programs"></a>
+When this program runs, it will produce:
+
+    15
+    Hello, World!
+    C is > 10
+
 <a name="data-in-basic-programs"></a>
 ## Data in BASIC programs
 
@@ -278,13 +275,12 @@ Another key concept in most programming languages is the difference between a *c
 
 The types, capabilities and syntax of constants and variables are fairly constant across dialects, although there are a few optional features found in later versions. RetroBASIC attempts to support as many of these variations as possible.
 
-<!-- TOC --><a name="numbers"></a>
 <a name="numbers"></a>
 ### Numbers
 
 Most BASIC interpreters of the RetroBASIC era store numbers using the equivalent of a *single* type, also known as a *float*. Unless otherwise indicated, any variable will default to this type. Thus, the name `I` found in a program would refer to a variable with the name "I" that holds a numeric value, initially zero. The internal format used to store the value was chosen to balance the need to save memory while maximizing precision. Microcomputers generally used 32-bit or 40-bit numeric formats, as larger formats would use up too much of the extremely limited memory available in these machines. Mainframe and minicomputer dialects generally used that platform's "natural" format, whatever that might be.
 
-Some dialects had a second number format, *integer*. Most notable among these are later versions of Microsoft BASIC, so this feature is widely available in home computer dialects, though rarely used. MS used 16-bit values for integers, potentially saving considerable amounts of memory in programs with large numbers of numeric constants. To indicate that a variable should store the value in integer format, the percent sign, `%`, was added to the end of the variable name. So, `I` would store a value in the default format, normally a 40-bit floating point, while `I%` would store the value as a 16-bit integer.
+Some dialects had a second number format, *integer*. Most notable among these are the later versions of Microsoft BASIC, so this feature is widely available in home computer dialects, though rarely used. MS used 16-bit values for integers, potentially saving considerable amounts of memory in programs with large numbers of numeric constants. To indicate that a variable should store the value in integer format, the percent sign, `%`, was added to the end of the variable name. So, `I` would store a value in the default format, normally a 40-bit floating point, while `I%` would store the value as a 16-bit integer.
 
 A few dialects also added a *double* format as well, once again led by Microsoft in their 12k Extended BASIC. These were indicated by adding the hash symbol, `#`, to the end of the variable name. In dialects that had doubles, it was common for the default internal format of the single to be smaller than normal and then have the programmer use doubles if more precision was required. For instance, on the Atari Microsoft BASIC, a single was 32 bits instead of the more typical 40, while a double was 64 bits. In most of these dialects, a single-precision value could be explicitly indicated by adding the bang, `!`, to the end of a variable name. As single was the default format for variables, the bang is almost never found in real-world programs.
 
@@ -292,29 +288,28 @@ RetroBASIC uses the 64-bit IEEE double format to store all numbers. This does no
 
 BASIC inputs and outputs numbers in decimal format, using the same formatting rules as C's "g" format. This means that large numbers and small fractions are output in exponent format, regardless of how they are input. For instance, if the program asks the user to type in a number and they type fifteen ones, when output that value will be rendered something like `1.11111E14`. For those dialects that supported doubles, numeric constants could be set to doubles by changing the E to a D.
 
-RetroBASIC has the additional feature that numeric constants can be entered in hexadecimal, octal or binary format. Hexadecimal values are indicated by placing the prefix `0x`, `0h` or `&` in front of the value, for instance, `&1F3A` will be converted internally to the value 7994. Octal is indicated by `0o`, like `0o3725`, and binary with `0b`, like `0b10110011`. These values can be used in any numeric expression in place of a decimal constant. Like any numeric value, they are converted to doubles internally.
+RetroBASIC has the additional feature that numeric constants can be entered in hexadecimal, octal or binary format. Hexadecimal values are indicated by placing the prefix `0x`, `0h` or `&` in front of the value, for instance, `&1F3A` will be converted internally to the decimal value 7994. Octal is indicated by `0o`, like `0o3725`, and binary with `0b`, like `0b10110011`. These values can be used in any numeric expression in place of a decimal constant. Like any numeric value, they are converted to IEEE doubles internally.
 
-Because the input and output are in decimal, but the internal format is in binary, there are numbers that one can type into the source code cannot be exactly represented internally. This is similar to the lack of a way to exactly represent 1/3 in decimal, which we represent as 0.333... . Generally, different number formats will always have some numbers that cannot be exactly represented.
+Because the input and output are in decimal, but the internal format is in binary, there are numbers that one can type into the source code cannot be exactly represented internally. This is similar to the way one cannot exactly represent 1/3 in decimal, which we represent as 0.333... . Generally, when moving values between number formats there will always be some values that cannot be exactly represented.
 
-As a result of the differences between binary and decimal, BASIC programs are subject to "round-off error" that can produce odd results, especially when dealing with fractional values. It is widely suggested that you do not rely on a variable containing a specific value when testing it; instead of `IF X=5 THEN A=1`, you should `IF X<>5 THEN A=A:A-1` in case the value of X rounded up to 5.000111... during a previous calculation. While this solves the problem, it also leads to messy and confusing code. RetroBASIC's double format is not immune to round-off error, although it is greatly reduced in frequency by the higher-accuracy numbers being used internally. As such, this sort of error is *highly* unlikely to be seen and the confusing code can be avoided.
+As a result of the differences between binary and decimal, BASIC programs are subject to "round-off error" that can produce odd results, especially when dealing with fractional values. It is widely suggested that you do not rely on a variable containing a specific value when testing it; instead of `IF X=5 THEN A=1`, you should `IF X<>5 THEN A=A:A-1` in case the value of X rounded up to 5.000111... during a previous calculation. While this solves the problem, it also leads to messy and confusing code. RetroBASIC's double format is not immune to round-off error, although it is *greatly* reduced in frequency by the higher-accuracy numbers being used internally. As such, this sort of error is *highly* unlikely to be seen and the confusing code can be avoided.
 
 To avoid round-off errors, some dialects used a different format known as binary coded decimal, or BCD, which stores decimal numbers directly. This means that any number one can represent in the source code can be exactly represented in memory. This does not eliminate round-off, one can still perform `A=1/3`, but the cases where this occurs are more obvious to the user. The downside to BCD is that the numbers take up slightly more memory and are generally slower to perform math with. This was a small price in some settings, and those machines intended for business roles like the Wang 2200, used BCD, as do most handheld calculators. Although not unheard of in general-purpose dialects, only Atari BASIC and TI-99 BASIC used this format in widespread use. It was also used in the later MSX dialect. The added precision of the IEEE format used in RetroBASIC makes the use of BCD superfluous for its intended uses, most of the cases where round-off would occur in earlier dialects will not result in round-off in RetroBASIC.
 
-<!-- TOC --><a name="strings"></a>
 <a name="strings"></a>
 ### Strings
 
 Strings hold zero or more characters to form sentence-like values. They are stored in memory as a series of numbers using ASCII encoding, or more commonly, a platform-specific variation of ASCII like PETASCII or ATASCII. The maximum size of a string varies on different platforms. Those that originated on systems with printer terminals are often limited to 72 or 132 characters, the length of one line on paper, while those from the video terminal and home computer era are normally 128 or 256 characters, which makes it easy to store the length in an 8-bit value. Some dialects allow strings to be limited only by system memory.
 
-RetroBASIC strings are always variable-length can be any size up to the underlying operating system's limit, typically a 32-bit or 64-bit value. This is much more than any known early dialect of BASIC. So while it is possible that bad code would produce strings that are too long for the machine it was originally written on, causing an error, that same code will likely work fine in RetroBASIC.
+RetroBASIC strings are always variable-length can be any size up to the underlying operating system's limit, typically a huge 32-bit or 64-bit value. This is always much more than any known early dialect of BASIC. So while it is possible that bad code would produce strings that are too long for the machine it was originally written on, causing an error, that same code will likely work fine in RetroBASIC.
  
 String constants are normally delimited with double quotes, like `"Hello, World!"`, although some dialects use single-quotes, `'Hello, World!'`, or allow either format. Dialects vary widely in the way that they include quotes inside string constants; the modern solution of placing two double quotes beside each other inside a string, like `"Hello, ""World""!"`, is a later invention. Another curiosity, also seen in the FOCAL language, is that the closing quote can be left off if it is the last character on the line, although this is *rarely* seen in BASIC programs.
 
-The major difference between dialects of BASIC is the way that strings and substrings are manipulated. These vary significantly between the three "families" of BASIC. Code that manipulates strings using one of these styles will not run on other variations and will require some level of porting effort to do so.
+The major difference between dialects of BASIC is the way that strings are manipulated. These vary significantly between the three "families" of BASIC. Code that manipulates strings using one of these styles will not run on other variations and will require some level of porting effort to do so.
 
 Dartmouth v4 introduced the `CHANGE` command in V4. This converts a string of characters into a numeric array containing the length of the string in the zero slot and the ASCII values of each character in the rest of the slots in the array. The values were then manipulated numerically, and then `CHANGE`d back into a string. The system was not easy to use for many simple tasks, like concatenation, which required loops and copying values from one array to another. It does have some advantages in certain operations, like converting upper to lower case or back, where the ASCII number is what is being used.
 
-HP BASIC introduced a second system. They included the `CHANGE` command from Dartmouth, but renamed it `CONVERT`. While one might argue this is a better name for this feature, changing it seems to offer little advantage compared to the need to port programs that would otherwise run without change. HP is more notable for introducing the concept of the *slice*, a pair of numbers that represents a series of continuous characters within the original string. Slices are efficient as they are represented by a pointer to the starting location and a length, which makes efficient use of memory.
+HP BASIC introduced a second system, the concept of the *slice*, a pair of numbers that represents a series of continuous characters within the original string. Slices are efficient as they are represented by a pointer to the starting location and a length, which makes efficient use of memory. They also included the `CHANGE` command from Dartmouth, but renamed it `CONVERT`. While one might argue this is a better name for this feature, changing it seems to offer little advantage compared to the need to port programs that would otherwise run without change. 
 
 Today, the best-known method of manipulating strings is the version found in MS-derived dialects. This uses the `+` operator for concatenation and the functions `MID$`, `LEFT$` and `RIGHT$` to return substrings. This style of manipulation was originally introduced by Tymshare on their SUPER BASIC, which was then copied by DEC to produce BASIC-PLUS, which was then copied by MS to produce Microsoft BASIC. It is arguably the least efficient method of performing string manipulations and often leads to MS systems running out of memory after performing even a relatively few string operations.
  
@@ -322,7 +317,6 @@ When microcomputers were first emerging in the mid-1970s, the programmers on the
 
 One of the major goals of RetroBASIC was to support programs from any of the older dialects, and for this reason, it supports all of these styles. It includes the entire set of string functions from MS, slicing from HP, and both `CHANGE` and `CONVERT`.
 
-<!-- TOC --><a name="variables"></a>
 <a name="variables"></a>
 ### Variables
 
@@ -340,11 +334,10 @@ This means that every time a variable is encountered, the interpreter has to per
 
     10 I=0;J=0;K=0;A=0;X=0;Y=0
 
-The purpose of this line is to force these six variables to be at the top of the table and thus be found more rapidly, improving the performance of the program. Typically, the list is ordered, so the most commonly used variable ends up first in the list.
+The purpose of this line is to force these six variables to be at the top of the table and thus be found more rapidly, improving the performance of the program. Typically, the list is ordered, so the most commonly used variable ends up first in the list. This was known as *manual caching*.
 
-Not all dialects work this way. Compilers, like Dartmouth, hold links directly to each variable's storage in memory and thus do not have to search the table at runtime. A number of interpreters use the same strategy, Atari BASIC being a notable example. In these versions, from a performance standpoint it is as if every variable is at the top of a one-entry list, and while the manual caching example above will still run, it offers no performance advantage.
+Not all dialects work this way. Compilers, like Dartmouth, hold links directly to each variable's storage in memory and thus do not have to search the table at runtime. A number of interpreters use the same strategy, Atari BASIC being a notable example. In these versions, from a performance standpoint it is as if every variable is at the top of a one-entry list, and while the caching example above will still run, it offers no performance advantage.
 
-<!-- TOC --><a name="arrays"></a>
 <a name="arrays"></a>
 ### Arrays
 
@@ -354,9 +347,9 @@ Most BASIC dialects include the concept of an *array*. An array is a group of re
     20 A(1)=5
     30 A(2)=10
 
-This program sets aside eleven locations in memory that can hold numeric values. It then assigns the values 5 and 10 to the first two slots. The rest have not been set, and those slots will contain zeros.
+This program sets aside eleven locations in memory, or slots, that can hold numeric values. It then assigns the values 5 and 10 to the first two slots. The rest have not been set, and those slots will contain zeros.
 
-The exact handling of arrays depends on the dialect. Some allow a single dimension, while most allow two, and a small number allow three or more. RetroBASIC allows any number of dimensions and should properly run code from any of these dialects. In those dialects that allow two or more dimensions, single-dimension arrays, like the example above, are sometimes referred to as *vectors*, or in a few occasions, *lists*, while those with two are sometimes known as *matrixes*, or alternately *tables*. When talking about arrays, it is also common to refer to non-array numerical values as *scalars*.
+The exact handling of arrays depends on the dialect. Some allow a single dimension, while most allow two, and a small number allow three or more. RetroBASIC allows any number of dimensions and should properly run code from any of these dialects. In those dialects that allow two or more dimensions, single-dimension arrays, like the example above, are sometimes referred to as *vectors*, or in a few occasions, *lists*, while those with two dimensions are sometimes known as *matrixes*, or alternately *tables*. When talking about arrays, it is also common to refer to non-array numerical values as *scalars*.
 
 Dialects also vary based on what they consider to be the first entry in the array. Early versions of Dartmouth had slot 1 as the first entry in the array, but this was soon realized to be a mistake as it made it difficult to represent common polynomials, which often have a zeroth entry. Later versions of Dartmouth added a zero to every array to correct for this. Thus, the `DIM` statement above produces an array with 11 entries in it, not 10. Debate over whether to use 0 or 1 for the first slot ran into the 1980s, but this was largely moot as MS variations did include 0 and this was the *de facto* standard.
 
@@ -375,7 +368,6 @@ To summarize, consider this program following the MS conventions:
 
 The output of this program is ` 5  10  7`.
 
-<!-- TOC --><a name="commands"></a>
 <a name="commands"></a>
 ## Commands
 
@@ -385,7 +377,6 @@ Commands were generally intended to work on the program as a whole, loading or s
 
 RetroBASIC is intended to be used with known-good BASIC source code, which can be edited in any text editor. It is then loaded and run as part of starting up the program. Thus, there is no need for `LOAD`, `SAVE` or `LIST` as these are accomplished in the editor, and this also eliminates many of the editing statements like `RENUM` and similar. Nor is there a need for `RUN` or `CONT`, as the former occurs automatically and the latter is not needed as one cannot stop the program while it is running. It does, however, include a small number of statement keywords that are normally considered commands in most dialects and are found widely enough in source code to be useful:
 
-<!-- TOC --><a name="bye"></a>
 <a name="bye"></a>
 ### `BYE`
 
@@ -397,7 +388,6 @@ Later IBM PC dialects used `SYSTEM` instead of `BYE`, exiting to the DOS shell.
 
 Some systems allow `GOODBYE` in place of, or in addition to, `BYE`.
 
-<!-- TOC --><a name="clr-and-clear"></a>
 <a name="clear-and-clr"></a>
 ### `CLEAR` and `CLR`
 
@@ -413,19 +403,16 @@ The TRS-80 allows a single numeric expression as a parameter. If present, it set
 
 Amstrad CPC BASIC offers the `ERASE` variation which is a `CLEAR` that is applied to a list of variables instead of all of them.
 
-<!-- TOC --><a name="cls"></a>
 <a name="cls"></a>
 ### `CLS`
 
 Clears the screen. On modern machines with scrollback buffers in the console, the scrolled text will likely still be there, as is the case with RetroBASIC running in most console programs.
 
-<!-- TOC --><a name="end"></a>
 <a name="end"></a>
 ### `END`
 
 `END` stops the execution of the program and exits RetroBASIC, returning you to the console shell. `END` is optional in most dialects, but adding an `END` was considered good form. `END` does not have to be at the end of the source code, it was often found higher in the code with subroutines below it, preventing them from running unless explicitly called. It can also be called anywhere in the code to exit the program based on user input.
     
-<!-- TOC --><a name="new-erase-and-scratch"></a>
 <a name="new-erase-and-scratch"></a>
 ### `NEW`, `ERASE` and `SCRATCH`
 
@@ -443,7 +430,6 @@ Early versions of Microsoft BASIC, like BASIC-80, used `ERASE` to reset a single
 
 On the DEC-10 system, `SCRATCH` was used to erase data from a previously `OPEN`ed file, typically to prepare it for writing. On others, like Micropolis BASIC, `SCRATCH` was used to delete files from the disk.
     
-<!-- TOC --><a name="run-aexp"></a>
 <a name="run-aexp"></a>
 ### `RUN` [*aexp*]
     
@@ -453,7 +439,6 @@ On the DEC-10 system, `SCRATCH` was used to erase data from a previously `OPEN`e
 
 Many later BASICs allowed either a number or string for the optional expression. If the expression is a string, it is assumed to be a file name and the named program will be loaded and run. In some cases, like Apple Business BASIC, the string does not have to be enclosed in quotes. Some of these dialects also allowed a line number to follow the file name, separated by a comma.
 
-<!-- TOC --><a name="stop-sexp"></a>
 <a name="stop-sexp"></a>
 ### `STOP` [*sexp*]
 
@@ -465,19 +450,16 @@ RetroBASIC adds a feature from Wang BASIC, which allows it to output an optional
 
 Harris BASIC-V added the `BREAK` statement, which allowed one to place `STOP` markers in the code in a single statement. For instance, `BREAK 10-50,100` would perform a stop (break) at any line from 10 to 50, or line 100. This is useful as it allows you to easily control debugging without having to edit the entire program, a single statement at the top does the same duty as multiple `STOP` statements spread all over the code. RetroBASIC does not currently support `BREAK`.
 
-<!-- TOC --><a name="unsupported"></a>
 <a name="unsupported"></a>
 ### Unsupported
 
 `LIST` and `CONT` are not (currently) supported.
 
-<!-- TOC --><a name="program-statements"></a>
 <a name="program-statements"></a>
 ## Program statements
 
 This section explains the statements associated with loops, conditional and unconditional branches, subroutines, and similar functionality. It also explains the means of accessing data and the optional commands used for defining variables. The following list is not in order; it is meant to group statements with similar functionality.
 
-<!-- TOC --><a name="rem-scon"></a>
 <a name="rem-scon"></a>
 ### {`REM`|`'`|`!`} [*scon*]
 
@@ -489,7 +471,6 @@ This section explains the statements associated with loops, conditional and unco
     20 PRINT "Hello";:REM "World" will not be printed:PRINT "World"
     30 PRINT "!"
 
-<!-- TOC --><a name="let-varexpr"></a>
 <a name="let-varexpr"></a>
 ### [`LET`] *var*`=`*expr*
 
@@ -504,7 +485,6 @@ The keyword `LET` was made optional in later versions of Dartmouth BASIC, and mo
 
 Line 10 calculates the value of `10+10^2`, 110, and then copies that value into the numeric variable `A`. Line 20 copies the string constant "Hello, World!" into the string variable `B$`.
 
-<!-- TOC --><a name="dim-varnexp-nexpvarnexp-nexp"></a>
 <a name="dim-varnexp-nexpvarnexp-nexpvarnexp-nexpvarnexp-nexp"></a>
 ### `DIM` *var*(*nexp*[, *nexp*...])[,*var*(*nexp*[, *nexp*...])...],[*var*(*nexp*[, *nexp*...])[,*var*(*nexp*[, *nexp*...])...]...]
 
@@ -526,7 +506,6 @@ Some dialects, like Sinclair and TRS-80, allow only a single variable per `DIM`.
 
 Enterprise IS-BASIC allows the `TO` keyword to define the upper and lower limits of the array. For instance, `DIM A(10 TO 20)` defines an array with 11 entries, from 10 to 20 instead of 0 to 10.
 
-<!-- TOC --><a name="goto-and-go-to"></a>
 <a name="goto-aexp-and-go-to-aexp"></a>
 ### `GOTO` *aexp* and `GO TO` *aexp*
 
@@ -549,7 +528,6 @@ This program will print "Hello" to the user's console, as the second print state
 
 * `LABEL`
 
-<!-- TOC --><a name="gosub-and-return"></a>
 <a name="gosub-and-return-linenoaexp"></a>
 ### `GOSUB` and `RETURN` [{*lineno*|*aexp*}]
 
@@ -588,7 +566,6 @@ Many dialects of BASIC will search for a branch target, starting at the top of t
 
 The ability to RETURN to a line number was added in 2.0.0.
 
-<!-- TOC --><a name="if-lexp-then-linestatmntstatmnt"></a>
 <a name="if-lexp-then-linenostatmntstatmnt"></a>
 ### `IF` *lexp* `THEN` {*lineno*|*statmnt*[:*statmnt*:...]}
 
@@ -645,7 +622,6 @@ This causes the program to repeatedly add 1 to the current value of A, print the
 
 * `LABEL`
 
-<!-- TOC --><a name="on-aexpr-gotogosub-linenoaexprlinenoaexpr"></a>
 <a name="on-aexpr-gotogosub-linenoaexprlinenoaexpr"></a>
 ### `ON` *aexpr* {`GOTO`|`GOSUB`} [*lineno*|*aexpr*]{,[*lineno*|*aexpr*],...}
 
@@ -670,7 +646,6 @@ Some dialects use the alternate syntax `GOTO` *aexpr* `ON` and `GOSUB` *aexpr* `
 
 * `ON ERROR`
 
-<!-- TOC --><a name="for-avaraexpr1-to-aexpr2-step-aexpr3-statmnt-and-next-avaravar"></a>
 <a name="for-avaraexpr1-to-aexpr2-step-aexpr3-statmnt-and-next-avaravar"></a>
 ### `FOR` *avar*=*aexpr1* `TO` *aexpr2* [`STEP` *aexpr3*] {:|}<CR>} [*statmnt*,{:|}<CR>}...] and `NEXT` [*avar*,[*avar*,...]]
 
@@ -758,7 +733,6 @@ On most interpreted dialects, the output will be a single line, "1". On Dartmout
 * `POP`
 * `EXIT`
 
-<!-- TOC --><a name="pop"></a>
 <a name="pop"></a>
 ### `POP`
 
@@ -797,7 +771,6 @@ Commodore BASIC 3.5 and later added `DISPOSE` which works exactly like POP.
 
 * `EXIT`
 
-<!-- TOC --><a name="exit"></a>
 <a name="exit"></a>
 ### `EXIT`
 
@@ -816,7 +789,6 @@ In this example, there are two entries on the stack during the execution of the 
 
 * `POP`
 
-<!-- TOC --><a name="pause-aexp"></a>
 <a name="pause-aexp"></a>
 ### `PAUSE` *aexp*
     
@@ -834,7 +806,6 @@ The definition of a jiffy varies widely across platforms. See details in `TIME`.
 
 `PAUSE` was added in 1.8.4.
 
-<!-- TOC --><a name="label-nvar"></a>
 <a name="label-nvar"></a>
 ### `LABEL` *nvar*
 
@@ -854,7 +825,6 @@ A number of dialects included a `LABEL`-like feature, but there was no standard 
 
 `LABEL` was added in 1.8.3.
 
-<!-- TOC --><a name="call-system-and-sys"></a>
 <a name="call-aexpaexp-system-and-sys"></a>
 ### `CALL` *aexp*[,*aexp*...], `SYSTEM` and `SYS`
 
@@ -889,13 +859,11 @@ Control Data BASIC uses `BASE` in place of `OPTION BASE`.
 
 MAXBASIC allowed any number, not just 0 or 1. For instance `OPTION BASE 5` would make arrays start at index 5.
 
-<!-- TOC --><a name="inputoutput-statements"></a>
 <a name="inputoutput-statements"></a>
 ## Input/Output Statements
 
 This section describes the input/output statements that are used to access and display data.
 
-<!-- TOC --><a name="print-exp"></a>
 <a name="print-exp"></a>
 ### `PRINT` [*exp*{|[;|,]},...]]
 
@@ -959,7 +927,6 @@ The column widths for commas vary across platforms, but the most common setting 
 
 * `POS`
 
-<!-- TOC --><a name="input-sexpvarvar"></a>
 <a name="input-sexpvarvar"></a>
 ### `INPUT` [*sexp*{[;|,]}]*var*[,*var*...]
 
@@ -1020,7 +987,6 @@ Although the question-mark prompt is almost universal, Tiny BASIC uses the colon
 
 RetroBASIC does not currently allow multiple inputs on a single line, it expected a <return> to indicate the end of each value in a multi-value `INPUT`.
 
-<!-- TOC --><a name="data-concon-read-varvar-and-restore-linenoaexp"></a>
 <a name="data-read-and-restore"></a>
 ## `DATA`, `READ` and `RESTORE`
 
@@ -1075,17 +1041,15 @@ This program will print two totals at the console. The first time through A and 
 
 Wang BASIC interpreted the optional *aexp* not as a line number but an ordinal, such that `RESTORE 10` would set the pointer to the 10th element in the program's `DATA`. As there is no way to tell which is which, RetroBASIC always interprets the value as a line number, which is far more common.
 
-<!-- TOC --><a name="other-statements"></a>
 <a name="other-statements"></a>
 ## Other statements
 
-<!-- TOC --><a name="randomize-aexp"></a>
 <a name="randomize-aexp"></a>
 ### `RANDOMIZE` [*aexp*]
 
 In most dialects of BASIC, random numbers returned by the `RND` function are based on an internal mathematical function that produces a new value based on the last one. When a program is first `RUN`, the first number in the sequence is normally zero, and thus every time the program is run, it will produce the same series of values. For a program that is using `RND`, this is generally the opposite of what is desired.
 
-To address this problem, many dialects include the `RANDOMIZE` statement. When used alone, with no *aexp*, this uses a platform-specific solution to generate a new starting number, the **seed**, so it is not zero. With a `RANDOMIZE` statement near the top, every time the program is run it will produce a different series of numbers with `RND`, which is what is desired.
+To address this problem, some dialects include the `RANDOMIZE` statement. When used alone, with no *aexp*, this uses a platform-specific solution to generate a new starting number, the **seed**, so it is not zero. With a `RANDOMIZE` statement near the top, the program will produce a different series of numbers with `RND`, which is what is desired.
 
 Although `RANDOMIZE` is generally used to produce random seed values, it is also extremely useful during testing and debugging, where the opposite is desired. In this case, using the optional *aexp* will cause the same series of numbers to be returned every time, which makes it much easier to track down problems without the behavior of the program changing every time it runs. In these cases, a `RANDOMIZE 0` near the top of the program is very common.
 
@@ -1105,7 +1069,6 @@ Because `RANDOMIZE` is so useful for debugging and many programs do not include 
 
 * `RND`
 
-<!-- TOC --><a name="change-avarsvar-to-svaravar-convert-avarsvar-to-svaravar"></a>
 <a name="change-avarsvar-to-svaravar-and-convert-avarsvar-to-svaravar"></a>
 ### `CHANGE` {*avar*|*svar*} `TO` {*svar*|*avar*} and `CONVERT` {*avar*|*svar*} `TO` {*svar*|*avar*}
 
@@ -1126,11 +1089,9 @@ This program produces:
 
     The ASCII codes for the string 'hello' are: 104       101       108       108       111
 
-<!-- TOC --><a name="operators"></a>
 <a name="operators"></a>
 ## Operators
 
-<!-- TOC --><a name="mathematical-operators-arithmetic"></a>
 <a name="mathematical-operators-arithmetic"></a>
 ### Mathematical operators (arithmetic)
 
@@ -1140,7 +1101,6 @@ RetroBASIC supports the standard set of arithmetic operators: `+` for addition, 
 
 RetroBASIC follows MS's conventions for operator precedence, with parenthetical items and then exponents, multiplication and division, and finally addition and subtraction. 
 
-<!-- TOC --><a name="logical-operators"></a>
 <a name="logical-operators"></a>
 ### Logical operators
 
@@ -1156,7 +1116,6 @@ Tymshare SUPER BASIC defines a pseudo-variable `EPS`, short for *epsilon*, which
 
 `EQV` and `IMP` were added in 2.0.0.
 
-<!-- TOC --><a name="string-operators"></a>
 <a name="string-operators"></a>
 ### String operators
 
@@ -1164,11 +1123,9 @@ RetroBASIC supports only two string operators, `+` and `&`, both of which perfor
 
 String logical operators are the same as the mathematical ones: `=`, `>`, `<`, `<=`, `>=`, `<>` `#`, `=>` and `=<`.
 
-<!-- TOC --><a name="mathematical-functions"></a>
 <a name="mathematical-functions"></a>
 ## Mathematical functions
 
-<!-- TOC --><a name="absaexp"></a>
 <a name="absaexp"></a>
 ### `ABS`(*aexp*)
 
@@ -1194,7 +1151,6 @@ In RetroBASIC, `ADR` always returns zero.
 
 `ADR` was added in 2.0.0.
 
-<!-- TOC --><a name="clogaexp"></a>
 <a name="clogaexp"></a>
 ### `CLOG`(*aexp*)
 
@@ -1217,13 +1173,11 @@ A number of BASICs provide `DIV` as an operator rather than a function. In these
 
 `DIV` as a function was added in 2.0.0.
 
-<!-- TOC --><a name="expaexp"></a>
 <a name="expaexp"></a>
 ### `EXP`(*aexp*)
 
 Returns the value of *e* (approximately 2.71828283), raised to the power specified by the expression in parentheses. For instance, `EXP(3)`, returns 20.0855365.
 
-<!-- TOC --><a name="fixaexp"></a>
 <a name="fixaexp"></a>
 ### `FIX`(*aexp*)
 
@@ -1238,7 +1192,6 @@ Early Dartmouth versions performed the equivalent of `FIX` for `INT`. It was cha
 * `FRAC`
 * `INT`
 
-<!-- TOC --><a name="fracaexp"></a>
 <a name="fracaexp"></a>
 ### `FRAC`(*aexp*)
 
@@ -1249,7 +1202,6 @@ Returns the fractional part of the value of *aexp*. `FRAC(-3.445)` returns -0.44
 * `FIX`
 * `INT`
 
-<!-- TOC --><a name="intaexp"></a>
 <a name="intaexp"></a>
 ### `INT`(*aexp*)
 
@@ -1265,7 +1217,6 @@ RetroBASIC currently implements `INT` only as a floor, and users should be aware
 * `FRAC`
 * `ROUND`
 
-<!-- TOC --><a name="logaexp"></a>
 <a name="logaexp-and-lnaexp"></a>
 ### `LOG`(*aexp*) and `LN`(*aexp*)
 
@@ -1279,7 +1230,6 @@ BASICs originating in the UK, including BBC and Sinclair, among others like the 
 
 `LN` was added in 1.9.0.
 
-<!-- TOC --><a name="pidexp"></a>
 <a name="pidexp"></a>
 ### `PI`[(*dexp*)]
 
@@ -1304,23 +1254,21 @@ This "functional" style of `MOD` was used in Harris BASIC-V and DEC BASIC-PLUS. 
 
 `MOD` as a function and `MOD%` were added in 2.0.0.
 
-<!-- TOC --><a name="roundaexpaexp"></a>
 <a name="roundaexpaexp"></a>
 ### `ROUND`(*aexp*[,*aexp*])
 
 Rounds the number to the nearest integer or given decimal place. If only one *aexp* is provided, that number is rounded to the "zeroth decimal", that is, a whole number. `ROUND(1.234)` will return 1. If two *aexp*s are provided, the first value is rounded to the second decimal place, so `ROUND(1.2345,3)` will return 1.235.
 
-<!-- TOC --><a name="rndaexp"></a>
 <a name="rndaexp"></a>
 ### `RND`([*aexp*])
 
-Returns a random positive number between 0 (inclusive) and 0.999... (exclusive). Some dialects require some form expression in the parentheses even if they do not use it; some do not. RetroBASIC works with either style. In many dialects, the variable or expression in parentheses following RND is a dummy and has no effect on the numbers returned, but there are numerous important exceptions. The variations are so (*ahem*) random, that Lien's *The BASIC Handbook* just gives up and tells you to consult your manual.
+Returns a random positive number between 0 (inclusive) and 0.999... (exclusive). Some dialects require some form of expression in the parentheses even if they do not use it; others do not and you can leave the parameter empty. RetroBASIC works with either style. In many dialects, if a variable or expression is passed in the parentheses it is ignored and has no effect on the numbers returned, but there are numerous important exceptions. The variations are so (*ahem*) random, that Lien's *The BASIC Handbook* gives up and tells you to consult your manual.
 
 Most random number generators are based on a mathematical formula that takes the last random number as its input. This means that each call to the function will return a new value, it cannot be the last one. Systems vary widely on how this is actually implemented. In some, the initial number, or *seed* is always the same and thus the sequence of numbers generated will always be the same. These variations generally offer some method to change the initial value so that different sequences can be generated. Earlier dialects generally use `RANDOMIZE` for this, later ones modified the `RND` itself for this task. The best example is Microsoft and its many variations, which used a negative number as a seed. Other, like Atari BASIC, used an internal hardware timer to produce values, which was both faster and always randomized. Some blended the two options.
 
-`RND` is very common in BASIC programs, especially in games. In most cases, the program actually desires an integer value, and code to the effect of `INT(RND(0)*X+0.5)` can be found in many programs. This works by producing a number between 0 and X-*epsilon*, adds 0.5 to produce a value between 0.5 and X+0.5, and then `INT`s that value, resulting in a value between 1 and X, inclusive. This bit of code is so common that some programs use a user-defined function to make references to this sequence of operations shorter; an example is *Super Star Trek*, which defines a function called `FNR` near the top of the program and then calls it from many locations.
+`RND` is very common in BASIC programs, especially in games. In most cases, the program actually desires an integer value, and code to the effect of `INT(RND(0)*X+0.5)` can be found in many programs. This works by producing a number between 0 and X-*epsilon*, adds 0.5 to produce a value between 0.5 and X+0.5-*epsilon*, and then `INT`s that value, resulting in a value between 1 and X, inclusive. This bit of code is so common that some programs use a user-defined function to make references to this sequence of operations shorter; an example is *Super Star Trek*, which defines a function called `FNR` near the top of the program and then calls it from many locations.
 
-Because this series of operations takes some time to complete, a number of dialects offered ways to generate integer values directly in a single step. Unfortunately, there is no standard solution for this functionality, some use a separate function like `RAND`, while others modify `RND`. Among those that use `RND`, one common solution is that if the *aexp* produces a value between 0 and 1 it returns a floating point value as above, whereas larger positive values produce an integer value from 1 to the provided number. Integer BASIC and BBC BASIC are examples of this style.
+Because this series of operations takes some time to complete, a number of dialects offered ways to generate integer values directly in a single step. Unfortunately, there is no standard solution for this functionality, some use a separate function like `RAND`, while others modify `RND`. Among those that use `RND`, one common solution is that if the *aexp* produces any value between 0 and 1 it returns a floating point value as above, whereas larger positive values produce an integer value from 1 to the provided number. Integer BASIC and BBC BASIC are examples of this style.
 
 Another common variation is found in Microsoft BASICs, although these vary across implementations. In these, a negative *aexp* is equivalent to a `RANDOMIZE` with the positive value, such that `X=RND(-1)` performs the same operations as `RANDOMIZE 1:X=RND(1)`. As almost every other dialect uses only positive values in *aexp*, or ignores them completely, this functionality is considered highly compatible, and is supported in RetroBASIC.
 
@@ -1332,7 +1280,7 @@ ANSI BASIC *requires* the parameter to be empty. Very few dialects followed this
 
 It is generally the case that any dialect that supports `RANDOMIZE` treats the *aexp* as a dummy.
 
-Apple's Integer BASIC produces only integer values, as these were the only types it could work with. The system always returns a value between 0 and *aexp* - 1, which made it an analog of the more typical floating point versions that never returned the upper bound. To simulate rolling dice, for instance, one could use `LET ROLL=RND(6)+1`.
+Apple's Integer BASIC produces only integer values, as these were the only types it could work with. The system always returns a value between 0 and *aexp*-1, which made it an analog of the more typical floating point versions that never returned the upper bound. To simulate rolling dice, for instance, one could use `LET ROLL=RND(6)+1`.
 
 Sinclair QL BASIC has a similar feature, but uses a more explicit syntax that allows a range to be specified, `RND(10 TO 50)`.
 
@@ -1340,7 +1288,7 @@ Commodore BASIC uses `RND(0)` to produce a "randomized random value", which is a
 
 In AppleSoft BASIC, an *aexp* of zero causes the system to return the last value. This appears to be the same implementation as Commodore versions, but with no ability to tie in a timer.
 
-BBC BASIC supports the integer value syntax for *aexp* larger than zero, and this is often found in BBC programs. This returns the values 1 *aexp*, inclusive, in contrast to Integer BASIC which is 0 up to *aexp*. It also supports seeding the random if passed a negative *aexp*, but with the twist that it returns the seed number passed in, not a new random number based on that seed. Like AppleSoft, `RND(0)` returns the last value generated by `RND(1)`. If the function is called with no *aexp* between the parens, it returns a random value between -2147483648 and 2147483647, that is, a 32-bit signed integer. Finally, the sequence is only started with the `RUN` or `CHAIN` commands, so calling it from the prompt in immediate mode will return 0 until the program has started at least once.
+BBC BASIC supports the integer value syntax for *aexp* larger than zero, and this is often found in BBC programs. This returns the values 1 to *aexp*, inclusive, in contrast to Integer BASIC which is 0 up to *aexp*. It also supports seeding the random if passed a negative *aexp*, but with the twist that it returns the seed number passed in, not a new random number based on that seed. Like AppleSoft, `RND(0)` returns the last value generated by `RND(1)`. If the function is called with no *aexp* between the parens, it returns a random value between -2147483648 and 2147483647, that is, a 32-bit signed integer. Finally, the sequence is only started with the `RUN` or `CHAIN` commands, so calling it from the prompt in immediate mode will always return 0 until the program has started at least once.
 
 #### See also:
 
@@ -1351,7 +1299,6 @@ BBC BASIC supports the integer value syntax for *aexp* larger than zero, and thi
 Support for negative values seeding the sequence was added in 1.9.1.
 Support for integer values for *aexp* > 1 was added in 1.9.1.
 
-<!-- TOC --><a name="sgnaexp"></a>
 <a name="sgnaexp"></a>
 ### `SGN`(*aexp*)
 
@@ -1367,7 +1314,6 @@ Early dialects, including Dartmouth, returned 1 for all positive numbers, includ
 
 Returns the square root of the *aexp* which must be positive. If *aexp* is negative, an error will be raised.
 
-<!-- TOC --><a name="uboundavaraexp-and-lboundavaraexp"></a>
 <a name="uboundavaraexp-and-lboundavaraexp"></a>
 ### `UBOUND`(*avar*{,*aexp*}) and `LBOUND`(*avar*{,*aexp*})
 
@@ -1384,7 +1330,6 @@ Produces:
         The length of dimension 1 is 25
         The length of dimension 2 is 10
 
-<!-- TOC --><a name="numeric-string-functions"></a>
 <a name="numeric-string-functions"></a>
 ## Numeric string functions
 
@@ -1392,7 +1337,6 @@ BASIC interpreters display and input numbers in decimal format. In many programs
 
 RetroBASIC also allows binary, octal, and hexadecimal values to be typed in directly as constants, using the 0b, 0o and 0h prefixes, respectively, as well as & for hexadecimal. For instance, 0b10101010 represents the decimal value 170 entered as a binary constant. These are particularly useful when entering bit-oriented values like masks for fonts and sprites.
 
-<!-- TOC --><a name="binsexp-and-binaexp"></a>
 <a name="binsexp-and-binaexp"></a>
 ### `BIN`(*sexp*) and `BIN$`(*aexp*)
 
@@ -1402,8 +1346,7 @@ RetroBASIC also allows binary, octal, and hexadecimal values to be typed in dire
 
     10 PRINT "Convert bin 101010 to number, should print 42: ";BIN("101010")
     20 PRINT "Convert 55 to bin, should print 110111: ";BIN$(55)
-    
-<!-- TOC --><a name="octsexp-and-octaexp"></a>
+
 <a name="octsexp-and-octaexp"></a>
 ### `OCT`(*sexp*) and `OCT$`(*aexp*)
 
@@ -1414,7 +1357,6 @@ RetroBASIC also allows binary, octal, and hexadecimal values to be typed in dire
     10 PRINT "Convert oct 7654 to number, should print 4012: ";OCT("7654")
     20 PRINT "Convert 4321 to oct, should print 10341: ";OCT$(4321)
 
-<!-- TOC --><a name="hexsexp-and-hexaexp"></a>
 <a name="hexsexp-and-hexaexp"></a>
 ### `HEX`(*sexp*) and `HEX$`(*aexp*)
 
@@ -1429,13 +1371,11 @@ RetroBASIC also allows binary, octal, and hexadecimal values to be typed in dire
 
 Apple Business BASIC on the Apple III used the function `TEN` to convert a hex string to decimal. This is not currently supported.
 
-<!-- TOC --><a name="trigonometric-functions"></a>
 <a name="trigonometric-functions"></a>
 ## Trigonometric functions
 
 Trigonometric functions in BASIC are normally carried out using radians. A few dialects have a feature to switch to degrees, but this is not currently supported in RetroBASIC.
 
-<!-- TOC --><a name="acsaexp"></a>
 <a name="acsaexp"></a>
 ### `ACS`(*aexp*)
 
@@ -1446,7 +1386,6 @@ Returns the arccosine of the variable or expression in parentheses.
 
 The Sinclair ZX80 uses `ARCOS` while the SHARP 1211 (TRS-80 Pocket Computer) uses `AC`.
 
-<!-- TOC --><a name="asnaexp"></a>
 <a name="asnaexp"></a>
 ### `ASN`(*aexp*)
 
@@ -1456,7 +1395,6 @@ Returns the arcsine of the variable or expression in parentheses.
 
 Sinclair ZX80 uses `ARCSIN`.
 
-<!-- TOC --><a name="atnaexp"></a>
 <a name="atnaexp"></a>
 ### `ATN`(*aexp*)
 
@@ -1466,53 +1404,44 @@ Returns the arctangent of the variable or expression in parentheses.
 
 Sinclair QL BASIC uses `ATAN`, which is not used on any other of the Sinclair dialects. Most Sinclair's use `ARCTAN.
 
-<!-- TOC --><a name="cshaexp-and-coshaexp"></a>
 <a name="cshaexp-and-coshaexp"></a>
 ### `CSH`(*aexp*) and `COSH`(*aexp*)
 
 Returns the hyperbolic cosine of the expression in parentheses.
 
-<!-- TOC --><a name="cosaexp"></a>
 <a name="cosaexp"></a>
 ### `COS`(*aexp*)
 
 Returns the cosine of the expression in parentheses.
 
-<!-- TOC --><a name="cshaexp-and-coshaexp-1"></a>
 <a name="cshaexp-and-coshaexp-1"></a>
 ### `CSH`(*aexp*) and `COSH`(*aexp*)
 
 Returns the hyperbolic cosine of the expression in parentheses.
 
-<!-- TOC --><a name="sinaexp"></a>
 <a name="sinaexp"></a>
 ### `SIN`(*aexp*)
 
 Returns the sine of the expression in parentheses.
 
-<!-- TOC --><a name="snhaexp-and-sinhaexp"></a>
 <a name="snhaexp-and-sinhaexp"></a>
 ### `SNH`(*aexp*) and `SINH`(*aexp*)
 
 Returns the hyperbolic sine of the expression in parentheses.
 
-<!-- TOC --><a name="tanaexp"></a>
 <a name="tanaexp"></a>
 ### `TAN`(*aexp*)
 
 Returns the tangent of the expression in parentheses.
 
-<!-- TOC --><a name="tnhaexp-and-tanhaexp"></a>
 <a name="tnhaexp-and-tanhaexp"></a>
 ### `TNH`(*aexp*) and `TANH`(*aexp*)
 
 Returns the hyperbolic tangent of the expression in parentheses.
 
-<!-- TOC --><a name="string-functions"></a>
 <a name="string-functions"></a>
 ## String functions
 
-<!-- TOC --><a name="ascsexp"></a>
 <a name="ascsexp"></a>
 ### `ASC`(*sexp*)
 
@@ -1534,7 +1463,6 @@ Enterprise IS-BASIC uses `ORD` for no obvious reason.
 
 `ASCII` was added in 2.0.0.
 
-<!-- TOC --><a name="chraexp"></a>
 <a name="chraexp"></a>
 ### `CHR$`(*aexp*)
 
@@ -1544,7 +1472,6 @@ Returns the character as a single-character string, represented by the ASCII cod
 
 The Sinclair ZX series do not use ASCII and will return different characters for any given value.
 
-<!-- TOC --><a name="inkeydexp"></a>
 <a name="inkeydexp"></a>
 ### `INKEY$`(*dexp*)
 
@@ -1560,7 +1487,6 @@ AppleSoft BASIC and Apple Business BASIC used the `GET` *sexp* statement for thi
 
 A number of BASICs, including AppleSoft, Apple Business, Atari, BBC, etc., also used the `GET` statement for similar functionality, but most of these waited for a keystroke before continuing, and thus did not serve the same purpose. On these platforms, `INKEY$` was often implemented using `USR` or `PEEK`. On AppleSoft, one could optionally use an *aexp*, with some caveats. Apply versions also did not echo the typed character.
 
-<!-- TOC --><a name="instr"></a>
 <a name="instrsexp1sexp2aexp-index-and-pos"></a>
 ### `INSTR`(*sexp1*,*sexp2*[,*aexp*]), `INDEX` and `POS`
 
@@ -1581,7 +1507,6 @@ This program will produce:
 
 * `POS`
 
-<!-- TOC --><a name="lensexp"></a>
 <a name="lensexp"></a>
 ### `LEN`(*sexp*)
 
@@ -1620,19 +1545,16 @@ Apple Business BASIC has the similarly-named `SUB$`, but this is short for "subs
 
 Returns a new string containing the right-most *aexp* characters from the string *sexp*. `RIGHT$("Hello, World!",6)` returns "World!".
 
-<!-- TOC --><a name="straexp"></a>
 <a name="straexp"></a>
 ### `STR$`(*aexp*)
 
 This function returns a string that represents the ASCII representation of the number in *aexp*. For instance, if the *aexp* evaluates to 25, this function returns the string "25".
 
-<!-- TOC --><a name="valsexp"></a>
 <a name="valsexp"></a>
 ### `VAL`(*sexp*)
 
 This function returns a number of the same value as the number stored as a string, performing the opposite operation of the `STR$` function. For instance, if *sexp* evaluates to "25", this function will return the numerical value 25.
 
-<!-- TOC --><a name="ucasesexp-and-lcasesexp"></a>
 <a name="ucasesexp-and-lcasesexp"></a>
 ### `UCASE$`(*sexp*) and `LCASE$`(*sexp*)
 
@@ -1738,11 +1660,9 @@ Another that supported arrays and slicing was ANSI Full BASIC, which used a sepa
 
 Sinclair `TO` support was added in 1.9.0.
 
-<!-- TOC --><a name="system-functions"></a>
 <a name="system-functions"></a>
 ## System functions
 
-<!-- TOC --><a name="fredexp"></a>
 <a name="fredexp"></a>
 ### `FRE`(*dexp*)
 
@@ -1752,11 +1672,10 @@ In RetroBASIC, `FRE` always returns zero.
 
 #### Variations:
 
-Those dialects that allow the program to reserve space in memory for strings, typically using `CLEAR`, generally also allow that amount to be checked by passing in a dummy string variable name. In this case, `FRE()` will return the total amount of memory available, or the amount of memory available for program code, while `FRE(A$)`, where `A$` in this example can be any string variable name, will return the amount of memory in the string area. In early dialects, that was often as little as 50 or 200 bytes.
+Those dialects that allow the program to reserve space in memory for strings, typically using `CLEAR`, generally also allow that amount to be checked by passing in a string variable name. In this case, `FRE()` will return the total amount of memory available, or the amount of memory available for program code, while `FRE(A$)`, where `A$` in this example can be any string variable name, will return the amount of memory in the string area. In early dialects, that was often as little as 50 or 200 bytes.
 
 The TRS-80 II and Genie/Color Genie uses `MEM` for this function, while `FRE` returns string space. The Dragon 32 uses `SIZE`.
 
-<!-- TOC --><a name="peekaexp"></a>
 <a name="peekaexp"></a>
 ### `PEEK`(*aexp*)
 
@@ -1764,13 +1683,11 @@ Returns the contents of a specified memory address location *aexp*. The address 
 
 In RetroBASIC, `PEEK` always returns zero.
 
-<!-- TOC --><a name="posaexp"></a>
 <a name="posdexp"></a>
 ### `POS`(*dexp*)
 
 When POS is called with zero or one dummy parameter, it returns the current position of the cursor. This can be called after `PRINT` and `INPUT` statements to provide more control over output. When called with more parameters, it acts as an alias for `INSTR`, and is covered in the string functions section, above.
 
-<!-- TOC --><a name="linaexp"></a>
 <a name="linaexp"></a>
 ### `LIN`(*aexp*)
 
@@ -1788,7 +1705,6 @@ Produces:
     Hello
 
 
-<!-- TOC --><a name="spcaexp-spaaexp-and-spaceaexp"></a>
 <a name="spcaexp-spaaexp-and-spaceaexp"></a>
 ### `SPC`(*aexp*), `SPA`(*aexp*) and `SPACE$`(*aexp*)
 
@@ -1796,13 +1712,12 @@ Produces:
 
 #### Examples:
 
-    PRINT SPC(10);"Hello"
+    PRINT "Hello";SPC(10);"Hello"
 
 Produces:
 
-              Hello
+    Hello          Hello
 
-<!-- TOC --><a name="stringsexpaexpaexp"></a>
 <a name="stringaexpsexpaexp2"></a>
 ### `STRING$`(*aexp*,[*sexp*|*aexp2*])
 
@@ -1820,7 +1735,6 @@ Produces:
 
 Early instances of `STRING$`, in BASIC-PLUS for instance, only support a single ASCII character value in the second parameter. The ability to use a string parameter appeared later; it was available on the TRS-80, but it is unlikely that was the first example.
 
-<!-- TOC --><a name="tabaexp"></a>
 <a name="tabaexp"></a>
 ### `TAB`(*aexp*)
 
@@ -1853,7 +1767,6 @@ Produces:
 
 Support for Integer BASIC style TAB statements was added in 1.9.1.
 
-<!-- TOC --><a name="timedexp-and-timeaexp"></a>
 <a name="timedexp-and-timeaexp"></a>
 ### `TIME`[(*dexp*)] and `TIME=`*aexp*
 
@@ -1871,7 +1784,6 @@ Returns the real-time clock's time value in *jiffies*, which are 1/60ths of a se
 
 The definition of a jiffy is platform-dependant. For instance, on Atari machines, it was 1/30th of a second for machines using NTSC, and 1/25th on those using PAL or SECAM. On the BBC, it was 1/100th. This means that existing code that uses `TIME`, `TIME$` or `PAUSE` may work differently under RetroBASIC.
 
-<!-- TOC --><a name="timedexp-and-clk"></a>
 <a name="timedexp-and-clk"></a>
 ### `TIME$`(*dexp*) and `CLK$`
 
@@ -1885,11 +1797,12 @@ Produces:
 
     102456
 
-<!-- TOC --><a name="usraexp"></a>
+This means it is 10 AM, 24 minutes and 56 seconds.
+
 <a name="usraexp"></a>
 ### `USR`(*aexp*)
 
-`USR` is the other common method that BASIC interpreters used to call machine language code, the other being `CALL` and `SYSTEM`. The difference between `CALL` and `USR` is that `USR` expects a return value to be left in a particular location in memory, and the function returns that value.
+`USR` is one common method that BASIC interpreters used to call machine language code, the other being `CALL` and `SYSTEM`. The difference between `CALL` and `USR` is that `USR` expects a return value to be left in a particular location in memory, and the function returns that value. Thus if one uses `A=USR(1000)` to call a routine that returns the status of the fire button on a joystick, `A` will be set to that value.
 
 In RetroBASIC, `USR` always returns zero.
 
@@ -1900,7 +1813,7 @@ DEC's BASIC-PLUS, on TOPS at least, used `USR$` to return a listing of the files
 <a name="matrix-commands-operators-and-functions"></a>
 ## Matrix commands, operators and functions
 
-Dartmouth BASIC introduced a series of matrix related commands and functions that operate on entire arrays with a single operation. These operations can also be implemented using FOR/NEXT loops, but using a single instruction leads to higher performance and more clearly indicates the actual intent of the author. The downside is that only a few dialects supported these commands, mostly on mainframes, so using them leads to portability issues.
+Later versions of Dartmouth BASIC introduced a series of matrix related commands and functions that operate on entire arrays with a single operation. These operations can also be implemented using FOR/NEXT loops, but using a single instruction leads to higher performance and more clearly indicates the actual intent of the program. The downside is that only a few dialects supported these commands, mostly on mainframes, so using them leads to portability issues.
 
 The basic idea is that the common statements `PRINT`, `INPUT` and `READ` now have matrix-related versions, `MAT PRINT`, `MAT INPUT` and `MAT READ`. When called, these versions loop over the array and perform the statement on all of the elements within it. So, for instance, `MAT PRINT A` will print out the entire array instead of having to loop over the array and print each slot separately. In addition to these statements, there are also a number of matrix operators and functions. For instance, one can use the assignment statement `MAT A=ZER` to set all the slots in a matrix to 0. All of these instructions begin with the statement keyword `MAT`.
 
@@ -1976,20 +1889,20 @@ Transposes *avar2*, rotating it so columns become rows and rows columns, and pla
 
 Some versions of BASIC provide rudimentary error handling using the `TRAP` or `ON ERROR` statements. These will both be referred to here as *traps*. When a trap is turned on and an error occurs, or is *raised*, instead of printing the error message and stopping the program, execution continues at the indicated line.
 
-The code at this line is known as an *error handler*. A handler allows the program to examine the error and decide how to continue. Most dialects also allow the error number to be examined, as well as the line number where the error occurred. The dialects differ significantly on the details of how these features are turned on and off, and how the error can be examined and recovered.
+The code at this line is known as an *error handler*. When an error occurs, the error number and line are placed in memory and then the system performs a `GOTO` into the handler. The handler allows the program to examine the error and decide how to continue. Most dialects allow the error number to be examined, as well as the line number where the error occurred. Jumping into the handler does not clear these values out, as one will generally want to examine them in the handler code. This is the purpose of the `RESUME` statement seen in some dialects, which clears the error codes and returns to the point where the error occurred. A `NEW`, `CLR` and `RUN` also clear out these values.
 
-For instance, in Applesoft BASIC, which supports the `ONERR` statement, the error number is discovered using `PEEK(222)`. On the Atari, which uses `TRAP`, it is `PEEK(195)`. One of the few contemporary dialects that directly supported reading the error number was version 3.5 and later of Commodore BASIC, which used a system variable `ER` that was set to the error number and `EL` which held the line number. Attempting to assign a value to these would cause an error. Unfortunately, these are valid variable names, which meant that programs that used these as normal variables would cause errors. 3.5 was never released so compatibility is not required, while the functionality is still useful. RetroBASIC implements these as functions instead of variables, `ERN()` for error number and `ERL()` for error line, which avoids this problem.
+Dialects differ significantly on the details of how these features are turned on and off, and how the error can be examined and recovered. For instance, in Applesoft BASIC, which supports the `ONERR` statement, the error number is discovered using `PEEK(222)`. On the Atari, which uses `TRAP`, it is `PEEK(195)`. One of the few contemporary dialects that directly supported reading the error number was Commodore BASIC, which used a system variable `ER` that was set to the error number and `EL` which held the line number. Attempting to assign a value to these would cause an error. Unfortunately, these are valid variable names, which meant that programs that used these as normal variables would cause errors when run under 3.5. RetroBASIC implements these as functions instead of variables, `ERR()` for error number and `ERL()` for error line, which avoids this problem.
 
-When an error occurs, the error number and line are placed in memory and then the system performs a `GOTO` into the handler. Jumping into the handler does not clear these values out, as one will generally want to examine them in the handler code. This is the purpose of the `RESUME` statement seen in some dialects, which clears the error codes and returns to the point where the error occurred. A `NEW`, `CLR` and `RUN` also clear out these values.
-
-The simple trap concept used in BASIC is subject to a number of problems. Among these is that if an error occurs *in* the handler, then it can trap back into itself and cause an infinite loop. Additionally, few dialects allow only certain errors to be trapped, it's normally all or nothing, which means the handler has to be very generic as it might receive any error, not just the ones it was written to handle.
+The simple trap concept used in BASIC is subject to a number of problems. Among these is that if an error occurs *in* the handler, then it can trap back into itself and cause an infinite loop. Additionally, few, if any, dialects allow only specific errors to be trapped, it's normally all or nothing, which means the handler has to be very generic as it might receive any error, not just the ones it was written to handle.
 
 <a name="trapon-error-gotoonerr-goto-aexp"></a>
 ### {`TRAP`|`ON ERROR GOTO`|`ONERR GOTO`} [*aexp*]
 
 When any of these equivalent statements is encountered in a program, the *aexp* is evaluated, converted to a line number, and then stored for future reference. If an error occurs any time after the statement is encountered, execution will jump to the line number in *aexp*. If that line number does not exist, an error will be printed and execution will stop.
 
-The method of turning the trap off differs across dialects. In Commodore BASIC, one uses `TRAP` with no parameter, in Atari BASIC any number above 32,767 does the same, and in Applesoft one has to `POKE 216,0`. In RetroBASIC, traps are turned off with an empty parameter or any expression that evaluates to zero or a negative value.
+The method of turning the trap off differs across dialects. In Commodore BASIC, one uses `TRAP` with no parameter, in Atari BASIC any number above 32,767 does the same, and in AppleSoft one has to `POKE 216,0`. In RetroBASIC, traps are turned off with an empty parameter or any expression that evaluates to zero or a negative value.
+
+Note that `ON ERROR` can only be used with a `GOTO`, in contrast to a normal `ON` statement which also allows `GOSUB`. Using `GOSUB` here is not allowed and will return a syntax error when it is loaded.
 
 <a name="raise-aexp"></a>
 ### `RAISE` *aexp*
@@ -2006,12 +1919,18 @@ If the statement is used with no parameter, execution returns to the start of th
 <a name="erl"></a>
 ### `ERL()`
 
-Returns the line number where the last error occurred. `RESUME` resets this to 0.
+Returns the line number where the last error occurred. `RESUME` resets this to 0. The parens are optional.
 
 <a name="ern-and-err"></a>
-### `ERN()` and `ERR()`
+### `ERR()` and `ERN()`
 
-Returns the error number for the last error. `ERN` is often used as the input to `ERR$`. `RESUME` resets this to 0.
+Returns the error number for the last error. `ERN` is often used as the input to `ERR$`. `RESUME` resets this to 0. The parens are optional.
+
+#### Variations:
+
+TRS-80 Level II BASIC stores a value in the ERR function that does not equal the actual error code. In TRS-80 programs, you will see the value in ERR being divided by 2 and then adding 1 to get the actual value.
+
+Some versions of HP BASIC use `ERRN` instead of `ERR`. This is not currently supported in RetroBASIC.
 
 <a name="erraexp"></a>
 ### `ERR$(`*aexp*`)`
@@ -2027,7 +1946,7 @@ The following code illustrates a typical handler system using all of the functio
     110 RAISE 21:PRINT " ... CONTINUED"
     120 END
     2000 REM TRAP ROUTINE
-    2010 PRINT ER; ERR$(ER) " ERROR IN LINE" EL "!"
+    2010 PRINT ERR; ERR$(ERR) " ERROR IN LINE" ERL "!"
     2020 RESUME NEXT
     
 This program starts by setting a trap and then raising a syntax error, error 21. That causes it to jump into the handler at line 2000, which prints the error number, string and line number. The `RESUME NEXT` then picks up execution where it left off, so the `PRINT` on line 110 is executed.
@@ -2035,7 +1954,7 @@ This program starts by setting a trap and then raising a syntax error, error 21.
 <a name="error-codes"></a>
 ## Error codes
 
-RetroBASIC's error codes are mostly modelled on Commodore BASIC 3.5 as it is fairly generic. A few additional errors have been added to handle new functionality. Others have been left out as they apply to specific tasks like operating the cassette tape.
+RetroBASIC's error codes are mostly modelled on Commodore BASIC 3.5 seen on the Commodore 125 as their list is fairly generic. A few additional errors have been added to handle new functionality. Others have been left out as they apply to specific tasks like operating the cassette tape.
 
 0
 :(none)
@@ -2155,7 +2074,7 @@ RetroBASIC's error codes are mostly modelled on Commodore BASIC 3.5 as it is fai
 
 37
 :UNDEFINED FUNCTION
-:Call to user-defined function that doesn't exist.
+:Call to user-defined function with no corresponding DEF FN.
 
 40
 :OUT OF STACK
@@ -2167,4 +2086,4 @@ RetroBASIC's error codes are mostly modelled on Commodore BASIC 3.5 as it is fai
 
 44
 :RESUME WITHOUT TRAP
-:A RESUME was encountered with no corresponding TRAP.
+:A RESUME was encountered with no corresponding TRAP or ON ERROR. Commodore BASIC returned a syntax error in this case.
