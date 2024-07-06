@@ -180,7 +180,7 @@ For example:
 
 This indicates that the PRINT statement consists of the statement keyword `PRINT` followed by zero or more optional expressions separated by nothing, a semicolon, or a comma. The *exp* indicates that any expression type may be used, numeric or string.
 
-Note that the line number is not indicated at the front, nor are the <CR> or <Enter> at the end, as these are assumed to be in the source code.
+Note that the line number is not indicated at the front, nor are the \<CR\> or \<Enter\> at the end, as these are assumed to be in the source code.
 
 <a name="introduction"></a>
 ## Introduction
