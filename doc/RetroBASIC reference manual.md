@@ -386,7 +386,7 @@ RetroBASIC is intended to be used with known-good BASIC source code, which can b
 
 Later IBM PC dialects used `SYSTEM` instead of `BYE`, exiting to the DOS shell.
 
-Some systems allow `GOODBYE` in place of, or in addition to, `BYE`.
+Some systems, including Dartmouth, allow `GOODBYE` in place of, or in addition to, `BYE`.
 
 <a name="clear-and-clr"></a>
 ### `CLEAR` and `CLR`
@@ -842,6 +842,8 @@ Some dialects allowed parameters to be passed in after the address. Amstrad CPC 
 
 Later IBM PC dialects used `SYSTEM` as an alias for `BYE`, exiting to the DOS shell.
 
+Dartmouth BASIC used `SYSTEM` to load a language, either BASIC or ALGOL. It was not part of the BASIC language itself.
+
 #### See also:
 
 * `USR`
@@ -921,14 +923,14 @@ produces:
     COMMASAREFOR
     COUMNSPACING
     
-The column widths for commas vary across platforms, but the most common setting is 10 spaces, which is used by MS BASIC. RetroBASIC defaults to 10, but this can be changed with the `--tabs` command line switch.
+The column widths for commas vary across platforms; Dartmouth used 15 but the most common setting is 10 spaces, which is used by MS BASIC. RetroBASIC defaults to 10, but this can be changed with the `--tabs` command line switch.
 
 #### See also:
 
 * `POS`
 
 <a name="input-sexpvarvar"></a>
-### `INPUT` [*sexp*{[;|,]}]*var*[,*var*...]
+### `INPUT` [{*sexp*}{[;|,]}]*var*[,{*sexp*,}*var*,...]
 
 `INPUT` is the primary statement for asking the user for data from the keyboard. When it is encountered in a program, execution stops, and a question-mark prompt, `?`, is displayed on the console to indicate the computer is waiting for input. If the optional *sexp* is included, that text will be printed in front of the question-mark as an additional prompt. The user then enters their response and indicates they are done by pressing the <return> key. The value that they typed in is then processed and assigned to corresponding *var*.
 
@@ -990,12 +992,14 @@ RetroBASIC does not currently allow multiple inputs on a single line, it expecte
 <a name="data-read-and-restore"></a>
 ## `DATA`, `READ` and `RESTORE`
 
-`DATA`, `READ` and `RESTORE` statements are used to store multiple constants in the program source code. Early versions of Dartmouth BASIC lacked the ability to work with data files, which made it difficult to store data for use in a program. While one could implement this using multiple assignment statements, this made the code lengthy and difficult to understand. To solve this problem, the `DATA` statement was introduced, which allows constant values to be stored in a compact format. The `READ` statement retrieves these values and `RESTORE` resets the `READ`.
+`DATA`, `READ` and `RESTORE` statements are used to store and process multiple constants in the program source code.
+
+Early versions of Dartmouth BASIC lacked the ability to work with data files, which made it difficult to store data for use in a program. While one could implement this using multiple assignment statements, this made the code lengthy and difficult to understand. To solve this problem, the `DATA` statement was introduced, which allows constant values to be stored in a compact format. The `READ` statement retrieves these values and `RESTORE` resets the `READ`.
 
 <a name="data-concon"></a>
 ### `DATA` *con*[,*con*...]
 
-`DATA` is followed by a comma-separated list of constants, either strings or numbers. There can be any number of `DATA` statements in a program and any number of values per statement, up to the maximum line length on that platform. On curiosity of the syntax is that string values do not require quote delimiters, unless the string contains a comma.
+`DATA` is followed by a comma-separated list of constants, either strings or numbers. There can be any number of `DATA` statements in a program and any number of values per statement, up to the maximum line length on that platform. One curiosity of the syntax is that string values do not require quote delimiters, unless the string contains a comma.
 
 <a name="read-varvar"></a>
 ### `READ` *var*[,*var*...]
@@ -1011,13 +1015,17 @@ This program uses `DATA` to define the length and character data for two strings
     30 READ L
     40 READ S$
     50 FOR J=1 TO L
-    50 PRINT MID$(S$,J,1)
-    60 NEXT J
-    70 NEXT I
-    80 END
+    60 PRINT MID$(S$,J,1);
+    70 NEXT J
+    80 NEXT I
+    90 END
+
+This program produces:
+
+    Hello, World!
 
 <a name="restore-linenoaexp"></a>
-### `RESTORE` [{*lineno*!*aexp*}]
+### `RESTORE` [{*lineno*|*aexp*}]
 
 `RESTORE` is used to reset the data pointer to the start of the list or to the first data element on a particular line indicated by the optional line number or numeric expression.
 
@@ -1049,11 +1057,11 @@ Wang BASIC interpreted the optional *aexp* not as a line number but an ordinal, 
 
 In most dialects of BASIC, random numbers returned by the `RND` function are based on an internal mathematical function that produces a new value based on the last one. When a program is first `RUN`, the first number in the sequence is normally zero, and thus every time the program is run, it will produce the same series of values. For a program that is using `RND`, this is generally the opposite of what is desired.
 
-To address this problem, some dialects include the `RANDOMIZE` statement. When used alone, with no *aexp*, this uses a platform-specific solution to generate a new starting number, the **seed**, so it is not zero. With a `RANDOMIZE` statement near the top, the program will produce a different series of numbers with `RND`, which is what is desired.
+To address this problem, some dialects include the `RANDOMIZE` statement. When used alone, with no *aexp*, this uses a platform-specific solution to generate a new starting number, the *seed*, so it is not zero. With a `RANDOMIZE` statement near the top, the program will produce a different series of numbers with `RND` every time the program is run, which is what is desired.
 
-Although `RANDOMIZE` is generally used to produce random seed values, it is also extremely useful during testing and debugging, where the opposite is desired. In this case, using the optional *aexp* will cause the same series of numbers to be returned every time, which makes it much easier to track down problems without the behavior of the program changing every time it runs. In these cases, a `RANDOMIZE 0` near the top of the program is very common.
+Although `RANDOMIZE` is generally used to produce random seed values, it is also extremely useful during testing and debugging, where the opposite is desired. Using the optional *aexp* will cause the same series of numbers to be returned every time, which makes it much easier to track down problems without the behavior of the program changing every time it runs. In these cases, a `RANDOMIZE 0` near the top of the program is very common.
 
-Later dialects, those developed for home computers, often lack the `RANDOMIZE` statement. Instead, they generate random numbers by applying a simple formula to some internal hardware value, normally a timer on the video circuitry or the internal clock. This makes the random number system very simple to implement, it runs quickly, and there is no need to `RANDOMIZE` as even the shortest delays when `RUN`ning the program will be sufficient to produce completely random values. For the debugging cases, some dialects allowed negative inputs to `RND` to produce `RANDOMIZE`-like results, see `RND` for details.
+Later dialects, those developed for home computers, often lack the `RANDOMIZE` statement. Instead, they generate random numbers by applying a formula to some internal hardware value, normally a timer on the video circuitry or the internal realtime clock. This makes the random number system very simple to implement, it runs quickly, and there is no need to `RANDOMIZE` as even the shortest delays when `RUN`ning the program will be sufficient to produce completely random values. For the debugging cases, some dialects allowed negative inputs to `RND` to produce `RANDOMIZE`-like results, see `RND` for further details.
 
 #### Variations:
 
@@ -1070,7 +1078,7 @@ Because `RANDOMIZE` is so useful for debugging and many programs do not include 
 * `RND`
 
 <a name="change-avarsvar-to-svaravar-and-convert-avarsvar-to-svaravar"></a>
-### `CHANGE` {*avar*|*svar*} `TO` {*svar*|*avar*} and `CONVERT` {*avar*|*svar*} `TO` {*svar*|*avar*}
+### [`CHANGE`|`CONVERT`] {*avar*|*svar*} `TO` {*svar*|*avar*}
 
 The primary difference between the three main families of BASIC is the way they manipulate strings. In Dartmouth versions, this is accomplished with the `CHANGE` command, which takes a string and converts it a series of ASCII values in a numeric array, or takes a numeric array and converts it to a string. The length of the string is stored in the array's zero slot. `CONVERT` is the identical operation found in HP dialects.
 
@@ -1104,7 +1112,9 @@ RetroBASIC follows MS's conventions for operator precedence, with parenthetical 
 <a name="logical-operators"></a>
 ### Logical operators
 
-RetroBASIC supports the standard set of logical operators: `=`, `>`, `<`, `<=`, `>=` and `<>` for not-equals. It also supports the HP-style `#` which is the equivalent to `<>`, as well as the seldom-seen `=>` and `=<` variations. It also supports logical `NOT`, `AND`, `OR` and `XOR`.
+RetroBASIC supports the standard set of logical operators: `=`, `>`, `<`, `<=`, `>=` and `<>` for not-equals. It also supports the HP-style `#` which is the equivalent to `<>`, as well as the seldom-seen `=>` and `=<` variations.
+
+RetroBASIC supports the basic logical operators `NOT`, `AND` and `OR`, as well as the less-seen but useful `XOR`.
 
 RetroBASIC also supports two less well-known logical operators, `EQV` and `IMP`. `EQV`, for "equivalent", returns true if both of the parameters are the same, that is, both are true or both are false. `IMP`, for "implies", returns true only if the first parameter is true and the second false, otherwise it returns false.
 
@@ -1133,7 +1143,7 @@ Returns the absolute value of a number without regard to whether it is positive 
 
 #### Variations:
 
-According to Lien, some computers accept `A` as a short form, but it is not clear whether this is on entry, in the fashion that `?` expands to `PRINT`, or a separate statement.
+According to Lien, some computers accept `A` as a short form, but it is not clear whether this is on entry, in the fashion that `?` expands to `PRINT`, or a separate statement keyword.
 
 <a name="adraexp"></a>
 ### `ADR`(*aexp*)
@@ -1154,7 +1164,7 @@ In RetroBASIC, `ADR` always returns zero.
 <a name="clogaexp"></a>
 ### `CLOG`(*aexp*)
 
-Returns the logarithm to the base 10, or *common logarithm*, of the variable or expression in parentheses. CLOG(0) gives an error, and CLOG(1)equals 0.
+Returns the logarithm to the base 10, or *common logarithm*, of the variable or expression in parentheses. `CLOG(0)` gives an error, and `CLOG(1)` equals 0.
 
 <a name="divaexp1aexp2"></a>
 ### `DIV`(*aexp1*,*aexp2*)
@@ -1163,7 +1173,7 @@ Performs an integer division on the two parameters. For instance, `DIV(7,2)` ret
 
 #### Variations:
 
-A number of BASICs provide `DIV` as an operator rather than a function. In these, `DIV(7,2)` would be entered as `7 DIV 2`. It is not clear whether any dialects use this function-style version, but as it is known that functional versions of `MOD` are in use, so this has been added as well.
+A number of BASICs provide `DIV` as an operator rather than a function. In these, the equivalent of `DIV(7,2)` would be entered as `7 DIV 2`. It is not clear whether any dialects use the function-style version of `DIV`, but as it *is* known that functional versions of `MOD` are in use, so this has been added as well.
 
 #### See also:
 
@@ -1218,7 +1228,7 @@ RetroBASIC currently implements `INT` only as a floor, and users should be aware
 * `ROUND`
 
 <a name="logaexp-and-lnaexp"></a>
-### `LOG`(*aexp*) and `LN`(*aexp*)
+### [`LOG`|`LN`] (*aexp*)
 
 Returns the natural logarithm of the number or expression. `LOG(0)` gives an error, and `LOG(1)` equals 0.
 
@@ -1262,9 +1272,9 @@ Rounds the number to the nearest integer or given decimal place. If only one *ae
 <a name="rndaexp"></a>
 ### `RND`([*aexp*])
 
-Returns a random positive number between 0 (inclusive) and 0.999... (exclusive). Some dialects require some form of expression in the parentheses even if they do not use it; others do not and you can leave the parameter empty. RetroBASIC works with either style. In many dialects, if a variable or expression is passed in the parentheses it is ignored and has no effect on the numbers returned, but there are numerous important exceptions. The variations are so (*ahem*) random, that Lien's *The BASIC Handbook* gives up and tells you to consult your manual.
+Returns a random positive number between 0 (inclusive) and 1 (exclusive). Some dialects require some form of expression in the parentheses even if they do not use it; others do not and you can leave the parameter empty. RetroBASIC works with either style. In many dialects, if a variable or expression is passed in the parentheses it is ignored and has no effect on the numbers returned, but there are numerous important exceptions. The variations are so (*ahem*) random, that Lien's *The BASIC Handbook* gives up and tells you to consult your manual.
 
-Most random number generators are based on a mathematical formula that takes the last random number as its input. This means that each call to the function will return a new value, it cannot be the last one. Systems vary widely on how this is actually implemented. In some, the initial number, or *seed* is always the same and thus the sequence of numbers generated will always be the same. These variations generally offer some method to change the initial value so that different sequences can be generated. Earlier dialects generally use `RANDOMIZE` for this, later ones modified the `RND` itself for this task. The best example is Microsoft and its many variations, which used a negative number as a seed. Other, like Atari BASIC, used an internal hardware timer to produce values, which was both faster and always randomized. Some blended the two options.
+Most random number generators are based on a mathematical formula that takes the last random number as its input. This means that each call to the function is guaranteed to return a new value in a random sequence. Systems vary widely on how this is actually implemented. In some, the initial number, or *seed* is always the same and thus the *sequence* of numbers generated will always be the same. These variations generally offer some method to change the initial value so that different sequences can be generated. Earlier dialects generally use `RANDOMIZE` for this, but later ones modified the `RND` itself for this task. The best example is Microsoft and its many variations, where a negative number in the parameter is converted to a positive value and used as the seed, whereas a positive value is simply ignored. Others, like Atari BASIC, used an internal hardware timer to produce random values, which was both faster and always randomized, and ignored the parameter entirely. Some blended the two options.
 
 `RND` is very common in BASIC programs, especially in games. In most cases, the program actually desires an integer value, and code to the effect of `INT(RND(0)*X+0.5)` can be found in many programs. This works by producing a number between 0 and X-*epsilon*, adds 0.5 to produce a value between 0.5 and X+0.5-*epsilon*, and then `INT`s that value, resulting in a value between 1 and X, inclusive. This bit of code is so common that some programs use a user-defined function to make references to this sequence of operations shorter; an example is *Super Star Trek*, which defines a function called `FNR` near the top of the program and then calls it from many locations.
 
@@ -1278,9 +1288,9 @@ Because there is no way to know which of these optional varieties is being used,
 
 ANSI BASIC *requires* the parameter to be empty. Very few dialects followed this rule, although DEC and the APF Imagination Machine are two known to do so.
 
-It is generally the case that any dialect that supports `RANDOMIZE` treats the *aexp* as a dummy.
+It is generally the case that any dialect that supports `RANDOMIZE` treats the *aexp* as a dummy. RetroBASIC is an exception, as it supports seeding in `RANDOMIZE` or `RND`.
 
-Apple's Integer BASIC produces only integer values, as these were the only types it could work with. The system always returns a value between 0 and *aexp*-1, which made it an analog of the more typical floating point versions that never returned the upper bound. To simulate rolling dice, for instance, one could use `LET ROLL=RND(6)+1`.
+Apple's Integer BASIC produces only integer values, as these were the only types it could work with. The system always returns a value between 0 and *aexp*-1, which made it an analog of the more typical floating point versions that never returned the upper bound. To simulate rolling dice, for instance, one would use `LET ROLL=RND(6)+1`.
 
 Sinclair QL BASIC has a similar feature, but uses a more explicit syntax that allows a range to be specified, `RND(10 TO 50)`.
 
@@ -1405,7 +1415,7 @@ Returns the arctangent of the variable or expression in parentheses.
 Sinclair QL BASIC uses `ATAN`, which is not used on any other of the Sinclair dialects. Most Sinclair's use `ARCTAN.
 
 <a name="cshaexp-and-coshaexp"></a>
-### `CSH`(*aexp*) and `COSH`(*aexp*)
+### [`CSH`|`COSH`]`(*aexp*)
 
 Returns the hyperbolic cosine of the expression in parentheses.
 
@@ -1414,18 +1424,13 @@ Returns the hyperbolic cosine of the expression in parentheses.
 
 Returns the cosine of the expression in parentheses.
 
-<a name="cshaexp-and-coshaexp-1"></a>
-### `CSH`(*aexp*) and `COSH`(*aexp*)
-
-Returns the hyperbolic cosine of the expression in parentheses.
-
 <a name="sinaexp"></a>
 ### `SIN`(*aexp*)
 
 Returns the sine of the expression in parentheses.
 
 <a name="snhaexp-and-sinhaexp"></a>
-### `SNH`(*aexp*) and `SINH`(*aexp*)
+### [`SNH`|`SINH`](*aexp*)
 
 Returns the hyperbolic sine of the expression in parentheses.
 
@@ -1435,7 +1440,7 @@ Returns the hyperbolic sine of the expression in parentheses.
 Returns the tangent of the expression in parentheses.
 
 <a name="tnhaexp-and-tanhaexp"></a>
-### `TNH`(*aexp*) and `TANH`(*aexp*)
+### [`TNH`|`TANH`](*aexp*)
 
 Returns the hyperbolic tangent of the expression in parentheses.
 
@@ -1488,7 +1493,7 @@ AppleSoft BASIC and Apple Business BASIC used the `GET` *sexp* statement for thi
 A number of BASICs, including AppleSoft, Apple Business, Atari, BBC, etc., also used the `GET` statement for similar functionality, but most of these waited for a keystroke before continuing, and thus did not serve the same purpose. On these platforms, `INKEY$` was often implemented using `USR` or `PEEK`. On AppleSoft, one could optionally use an *aexp*, with some caveats. Apply versions also did not echo the typed character.
 
 <a name="instrsexp1sexp2aexp-index-and-pos"></a>
-### `INSTR`(*sexp1*,*sexp2*[,*aexp*]), `INDEX` and `POS`
+### [`INSTR`|`INDEX`|`POS`](*sexp1*,*sexp2*[,*aexp*])
 
 `INSTR` searches the string *sexp1* for the first occurrence of *sexp2*, returning the numerical location of the match. If no match is found, `INSTR` returns 0. If the optional *aexp* is provided, searching starts at that index instead.
 
@@ -1519,7 +1524,7 @@ This function returns the length in bytes of the designated *sexp*. `LEN("Hello"
 Returns a new string containing the left-most *aexp* characters from the string *sexp*. `LEFT$("Hello, World!",5)` returns "Hello".
 
 <a name="midsexpaexp1aexp2-seg-substr-and-substring"></a>
-### `MID$`(*sexp*,*aexp1*[,*aexp2*]), `SEG$`, `SUBSTR$` and `SUBSTRING$`
+### [`MID$`|`SEG$`|`SUBSTR$`|`SUBSTRING$`](*sexp*,*aexp1*[,*aexp2*])
 
 Returns a new string containing characters from *sexp* starting at *aexp1* and running to the end of the string. If the optional *aexp2* is provided, and it often is, it returns up to *aexp2* characters.
 
@@ -1706,7 +1711,7 @@ Produces:
 
 
 <a name="spcaexp-spaaexp-and-spaceaexp"></a>
-### `SPC`(*aexp*), `SPA`(*aexp*) and `SPACE$`(*aexp*)
+### [`SPC`|`SPA`|`SPACE$`](*aexp*)
 
 `SPC` returns a string containing the number of space characters in *aexp*. `SPA` is the alternate spelling for the same function found in HP, while `SPACE$` is found in other dialects.
 
@@ -1813,7 +1818,7 @@ DEC's BASIC-PLUS, on TOPS at least, used `USR$` to return a listing of the files
 <a name="matrix-commands-operators-and-functions"></a>
 ## Matrix commands, operators and functions
 
-Later versions of Dartmouth BASIC introduced a series of matrix related commands and functions that operate on entire arrays with a single operation. These operations can also be implemented using FOR/NEXT loops, but using a single instruction leads to higher performance and more clearly indicates the actual intent of the program. The downside is that only a few dialects supported these commands, mostly on mainframes, so using them leads to portability issues.
+Later versions of Dartmouth BASIC introduced a series of matrix related commands and functions that operate on entire arrays with a single operation. These operations can also be implemented using FOR/NEXT loops, but using a single instruction leads to higher performance and more clearly indicates the actual intent of the program. The downside is that only a few dialects supported these commands, mostly on mainframes, so using them also leads to portability issues.
 
 The basic idea is that the common statements `PRINT`, `INPUT` and `READ` now have matrix-related versions, `MAT PRINT`, `MAT INPUT` and `MAT READ`. When called, these versions loop over the array and perform the statement on all of the elements within it. So, for instance, `MAT PRINT A` will print out the entire array instead of having to loop over the array and print each slot separately. In addition to these statements, there are also a number of matrix operators and functions. For instance, one can use the assignment statement `MAT A=ZER` to set all the slots in a matrix to 0. All of these instructions begin with the statement keyword `MAT`.
 
@@ -1898,14 +1903,14 @@ The simple trap concept used in BASIC is subject to a number of problems. Among 
 <a name="trapon-error-gotoonerr-goto-aexp"></a>
 ### {`TRAP`|`ON ERROR GOTO`|`ONERR GOTO`} [*aexp*]
 
-When any of these equivalent statements is encountered in a program, the *aexp* is evaluated, converted to a line number, and then stored for future reference. If an error occurs any time after the statement is encountered, execution will jump to the line number in *aexp*. If that line number does not exist, an error will be printed and execution will stop.
+When any of these equivalent statements is encountered in a program, the *aexp* is evaluated, converted to a line number, and then stored for future reference. If an error occurs any time after the statement is encountered, execution will branch to the line number in *aexp*. If that line number does not exist, an error will be printed and execution will stop.
 
 The method of turning the trap off differs across dialects. In Commodore BASIC, one uses `TRAP` with no parameter, in Atari BASIC any number above 32,767 does the same, and in AppleSoft one has to `POKE 216,0`. In RetroBASIC, traps are turned off with an empty parameter or any expression that evaluates to zero or a negative value.
 
-Note that `ON ERROR` can only be used with a `GOTO`, in contrast to a normal `ON` statement which also allows `GOSUB`. Using `GOSUB` here is not allowed and will return a syntax error when it is loaded.
+Note that `ON ERROR` can only be used with a `GOTO`, in contrast to a normal `ON` statement which also allows `GOSUB`. Using `GOSUB` here is not allowed and will return a syntax error prior to the program running.
 
 <a name="raise-aexp"></a>
-### `RAISE` *aexp*
+### {`RAISE`|`ERROR`} *aexp*
 
 Causes an error to be raised with the error number *aexp*. Generally used for testing purposes.
 
@@ -1956,134 +1961,135 @@ This program starts by setting a trap and then raising a syntax error, error 21.
 
 RetroBASIC's error codes are mostly modelled on Commodore BASIC 3.5 seen on the Commodore 125 as their list is fairly generic. A few additional errors have been added to handle new functionality. Others have been left out as they apply to specific tasks like operating the cassette tape.
 
-0
-:(none)
-:There is no current error code. Commodore BASIC 3.5 used -1 for this.
+<!-- This simulates a definition list by placing two spaces behind the first two lines of each entry. Be careful with edits! -->
+0  
+(none)  
+There is no current error code. Commodore BASIC 3.5 used -1 for this.
 
-1
-:TOO MANY FILES
-:The program is attempting to open a file with too many already open.
+1  
+TOO MANY FILES  
+The program is attempting to open a file with too many already open.
 
-2
-:FILE OPEN
-:Attempt to open a file that is already open.
+2  
+FILE OPEN  
+Attempt to open a file that is already open.
 
-3
-:FILE NOT OPEN
-:Attempt to use a file handle that has not been opened.
+3  
+FILE NOT OPEN  
+Attempt to use a file handle that has not been opened.
 
-4
-:FILE NOT FOUND
-:Attempt to open a file but the file cannot be found at the provided path.
+4  
+FILE NOT FOUND  
+Attempt to open a file but the file cannot be found at the provided path.
 
-5
-:DEVICE NOT PRESENT
-:The file is on a device that is not responding. Not used in RetroBASIC.
+5  
+DEVICE NOT PRESENT  
+The file is on a device that is not responding. Not used in RetroBASIC.
 
-6
-:FILE NOT INPUT
-:Attempt to read from a file that is opened for writing.
+6  
+FILE NOT INPUT  
+Attempt to read from a file that is opened for writing.
 
-7
-:FILE NOT OUTPUT
-:Attempt to write to a file that is opened for reading.
+7  
+FILE NOT OUTPUT  
+Attempt to write to a file that is opened for reading.
 
-8
-:FILENAME MISSING
-:Attempt to open a file without passing in a valid file name.
+8  
+FILENAME MISSING  
+Attempt to open a file without passing in a valid file name.
 
-9
-:ILLEGAL DEVICE NUMBER
-:Attempt to open a file on a non-existent device. Not used in RetroBASIC.
+9  
+ILLEGAL DEVICE NUMBER  
+Attempt to open a file on a non-existent device. Not used in RetroBASIC.
 
-14
-:BREAK
-:Indicates that BREAK was pressed and entered the handler. Not used in RetroBASIC.
+14  
+BREAK  
+Indicates that BREAK was pressed and entered the handler. Not used in RetroBASIC.
 
-15
-:EXTRA IGNORED
-:More items were entered during an INPUT than there are variables to hold it. Extra items at the end are ignored.
+15  
+EXTRA IGNORED  
+More items were entered during an INPUT than there are variables to hold it. Extra items at the end are ignored.
 
-16
-:REDO FROM START
-:The input cannot be converted to a number, and the INPUT statement asks for the same value again.
+16  
+REDO FROM START  
+The input cannot be converted to a number, and the INPUT statement asks for the same value again.
 
-20
-:NEXT WITHOUT FOR
-:A NEXT statement was encountered but no matching FOR has been called.
+20  
+NEXT WITHOUT FOR  
+A NEXT statement was encountered but no matching FOR has been called.
 
-21
-:SYNTAX
-:Syntax error. As RetroBASIC pre-parses before running, this does not normally occur.
+21  
+SYNTAX  
+Syntax error. As RetroBASIC pre-parses before running, this does not normally occur.
 
-22
-:RETURN WITHOUT GOSUB
-:A RETURN statement was encountered but no matching GOSUB has been called.
+22  
+RETURN WITHOUT GOSUB  
+A RETURN statement was encountered but no matching GOSUB has been called.
 
-23
-:OUT OF DATA
-:A READ statement is asking for more data, but there are no remaining DATA statements.
+23  
+OUT OF DATA  
+A READ statement is asking for more data, but there are no remaining DATA statements.
 
-24
-:ILLEGAL QUANTITY
-:Any parameter in a statement or function that is out-of-range, like a MID with a start parameter outside the string.
+24  
+ILLEGAL QUANTITY  
+Any parameter in a statement or function that is out-of-range, like a MID with a start parameter outside the string.
 
-25
-:OVERFLOW
-:Result of calculation or formula is out-of-range. Should not occur in RetroBASIC.
+25  
+OVERFLOW  
+Result of calculation or formula is out-of-range. Should not occur in RetroBASIC.
 
-26
-:OUT OF MEMORY
-:The system has run out of memory, or the runtime stack has run out of room. Not used in RetroBASIC.
+26  
+OUT OF MEMORY  
+The system has run out of memory, or the runtime stack has run out of room. Not used in RetroBASIC.
 
-27
-:UNDEFINED STATEMENT
-:Branch (THEN/GOTO/GOSUB) to a non-existing line.
+27  
+UNDEFINED STATEMENT  
+Branch (THEN/GOTO/GOSUB) to a non-existing line.
 
-28
-:BAD SUBSCRIPT
-:Array indexes are outside the DIMmed range.
+28  
+BAD SUBSCRIPT  
+Array indexes are outside the DIMmed range.
 
-29
-:REDIM'D ARRAY
-:DIM being called on an already DIMed variable.
+29  
+REDIM'D ARRAY  
+DIM being called on an already DIMed variable.
 
-30
-:DIVISION BY ZERO
-:Any division by zero, including integer division, MOD, etc.
+30  
+DIVISION BY ZERO  
+Any division by zero, including integer division, MOD, etc.
 
-31
-:ILLEGAL DIRECT
-:A statement was entered in direct mode that can only be used in program mode. Examples are INPUT and GET. Not currently supported.
+31  
+ILLEGAL DIRECT  
+A statement was entered in direct mode that can only be used in program mode. Examples are INPUT and GET. Not currently supported.
 
-32
-:TYPE MISMATCH
-:A number was provided to a string parameter or vice versa.
+32  
+TYPE MISMATCH  
+A number was provided to a string parameter or vice versa.
 
-33
-:STRING TOO LONG
-:Unused in RetroBASIC, string sizes are effectively unlimited.
+33  
+STRING TOO LONG  
+Unused in RetroBASIC, string sizes are effectively unlimited.
 
-34
-:FILE DATA
-:An INPUT or GET from a file returned numeric data for a string or vice versa. Not used in RetroBASIC, 32 will be returned in this case.
+34  
+FILE DATA  
+An INPUT or GET from a file returned numeric data for a string or vice versa. Not used in RetroBASIC, 32 will be returned in this case.
 
-35
-:FORMULA TOO COMPLEX
-:The equation or formula was too complex to be interpreted. Does not occur in RetroBASIC.
+35  
+FORMULA TOO COMPLEX  
+:he equation or formula was too complex to be interpreted. Does not occur in RetroBASIC.
 
-37
-:UNDEFINED FUNCTION
-:Call to user-defined function with no corresponding DEF FN.
+37  
+UNDEFINED FUNCTION  
+Call to user-defined function with no corresponding DEF FN.
 
-40
-:OUT OF STACK
-:Too many nested GOSUBs and FORs. Does not occur in RetroBASIC.
+40  
+OUT OF STACK  
+Too many nested GOSUBs and FORs. Does not occur in RetroBASIC.
 
-41
-:UNABLE TO RESUME
-:RESUME was called but the error is fatal.
+41  
+UNABLE TO RESUME  
+RESUME was called but the error is fatal.
 
-44
-:RESUME WITHOUT TRAP
-:A RESUME was encountered with no corresponding TRAP or ON ERROR. Commodore BASIC returned a syntax error in this case.
+44  
+RESUME WITHOUT TRAP  
+A RESUME was encountered with no corresponding TRAP or ON ERROR. Commodore BASIC returned a syntax error in this case.
