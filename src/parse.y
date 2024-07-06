@@ -190,7 +190,7 @@ static expression_t *make_operator(int arity, int o)
 %token LIN    // from HP, a vertical version of TAB
 %token TRAP   // error handling, used both as a command and as a type of ON statement (see below)
 %token RESUME // jumps back to the error line
-%token ERROR  // used in ON ERROR
+%token ERROR  // used in ON ERROR, ONERR and also as a synonym for RAISE
 %token RAISE  // raise an error, for testing
 %token ERR EL ER
 
@@ -418,6 +418,13 @@ statement:
   END
   {
     statement_t *new = make_statement(END);
+    $$ = new;
+  }
+  |
+  ERROR expression
+  {
+    statement_t *new = make_statement(RAISE);
+    new->parms.generic_parameter = $2;
     $$ = new;
   }
   |

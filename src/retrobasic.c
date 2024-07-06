@@ -2753,88 +2753,88 @@ static void perform_statement(list_t *statement_entry)
           break;
         }
         
-        // handle to the matrix
-        int det = 1, total = 1; // det starts at 1
-        int temp[rows + 1];     // temporary array for storing row
-
-        // loop for traversing the diagonal elements
-        int index;
-        for (int i = 0; i < rows; i++) {
-          index = i; // initialize the index
-
-          // finding the index which has non zero value
-          int slot =  i * cols + i;
-          while (index < rows && array_store->array[slot].number == 0)
-            index++;
-          
-          // if there is no zero element the det is zero
-          if (index == rows)
-            continue;
-          
-          // loop for swapping the diagonal element row and index row
-          if (index != i)  {
-            for (int j = 0; j < rows; j++)
-              slot = i * cols + j;
-              swap(array_store->array[index][j].number, array_store->array[slot].number);
-
-            // determinant sign changes when we shift rows
-            // go through determinant properties
-            det = det * pow(-1, index - i);
-          }
-
-          // storing the values of diagonal row elements
-          for (int j = 0; j < n; j++)
-          {
-            temp[j] = mat[i][j];
-          }
-          
-            // traversing every row below the diagonal element
-            int num1, num2;
-            for (int j = i + 1; j < n; j++)
-            {
-              num1 = temp[i]; // value of diagonal element
-              num2 = mat[j][i]; // value of next row element
-
-              // traversing every column of row
-              // and multiplying to every row
-              for (int k = 0; k < n; k++)
-              {
-                // multiplying to make the diagonal
-                // element and next row element equal
-                mat[j][k] = (num1 * mat[j][k]) - (num2 * temp[k]);
-              }
-              total = total * num1; // Det(kA)=kDet(A);
-            }
-          }
-
-          // multiplying the diagonal elements to get determinant
-          for (int i = 0; i < n; i++)
-          {
-            det = det * mat[i][i];
-          }
-          return (det / total); // Det(kA)/k=Det(A);
-        }
-
-          // we start by assuming det is 1
-          double det = 1;
-          int l;
-          for (int k = 2; k <= rows; k++) {
-            l = k - 1;
-            int index = l * cols + l;
-
-            if (array_store->array[index].number != 0) {
-              
-            } else {
-              
-            }
-          }
-          
-          for (int r = 1; r <= rows; r++)
-            for (int c = 1; c <= cols; c++) {
-              int index = r * cols + c;
-              array_store->array[index].number = 1;
-            }
-        } /
+//        // handle to the matrix
+//        int det = 1, total = 1; // det starts at 1
+//        int temp[rows + 1];     // temporary array for storing row
+//
+//        // loop for traversing the diagonal elements
+//        int index;
+//        for (int i = 0; i < rows; i++) {
+//          index = i; // initialize the index
+//
+//          // finding the index which has non zero value
+//          int slot =  i * cols + i;
+//          while (index < rows && array_store->array[slot].number == 0)
+//            index++;
+//          
+//          // if there is no zero element the det is zero
+//          if (index == rows)
+//            continue;
+//          
+//          // loop for swapping the diagonal element row and index row
+//          if (index != i)  {
+//            for (int j = 0; j < rows; j++)
+//              slot = i * cols + j;
+//              swap(array_store->array[index][j].number, array_store->array[slot].number);
+//
+//            // determinant sign changes when we shift rows
+//            // go through determinant properties
+//            det = det * pow(-1, index - i);
+//          }
+//
+//          // storing the values of diagonal row elements
+//          for (int j = 0; j < n; j++)
+//          {
+//            temp[j] = mat[i][j];
+//          }
+//          
+//            // traversing every row below the diagonal element
+//            int num1, num2;
+//            for (int j = i + 1; j < n; j++)
+//            {
+//              num1 = temp[i]; // value of diagonal element
+//              num2 = mat[j][i]; // value of next row element
+//
+//              // traversing every column of row
+//              // and multiplying to every row
+//              for (int k = 0; k < n; k++)
+//              {
+//                // multiplying to make the diagonal
+//                // element and next row element equal
+//                mat[j][k] = (num1 * mat[j][k]) - (num2 * temp[k]);
+//              }
+//              total = total * num1; // Det(kA)=kDet(A);
+//            }
+//          }
+//
+//          // multiplying the diagonal elements to get determinant
+//          for (int i = 0; i < n; i++)
+//          {
+//            det = det * mat[i][i];
+//          }
+//          return (det / total); // Det(kA)/k=Det(A);
+//        }
+//
+//          // we start by assuming det is 1
+//          double det = 1;
+//          int l;
+//          for (int k = 2; k <= rows; k++) {
+//            l = k - 1;
+//            int index = l * cols + l;
+//
+//            if (array_store->array[index].number != 0) {
+//              
+//            } else {
+//              
+//            }
+//          }
+//          
+//          for (int r = 1; r <= rows; r++)
+//            for (int c = 1; c <= cols; c++) {
+//              int index = r * cols + c;
+//              array_store->array[index].number = 1;
+//            }
+//        } /
       }  //mat det
         break;
         
