@@ -3,43 +3,8 @@
 <plist version="1.0">
 <dict>
 	<key>logFormatVersion</key>
-	<integer>10</integer>
+	<integer>11</integer>
 	<key>logs</key>
-	<dict>
-		<key>72E4B977-24BD-45F8-90D0-3289A96D023B</key>
-		<dict>
-			<key>className</key>
-			<string>IDEActivityLogSection</string>
-			<key>documentTypeString</key>
-			<string>&lt;nil&gt;</string>
-			<key>domainType</key>
-			<string>Xcode.IDEActivityLogDomainType.BuildLog</string>
-			<key>fileName</key>
-			<string>72E4B977-24BD-45F8-90D0-3289A96D023B.xcactivitylog</string>
-			<key>hasPrimaryLog</key>
-			<true/>
-			<key>primaryObservable</key>
-			<dict>
-				<key>highLevelStatus</key>
-				<string>W</string>
-			</dict>
-			<key>schemeIdentifier-containerName</key>
-			<string>RetroBASIC project</string>
-			<key>schemeIdentifier-schemeName</key>
-			<string>test</string>
-			<key>schemeIdentifier-sharedScheme</key>
-			<integer>1</integer>
-			<key>signature</key>
-			<string>Build test</string>
-			<key>timeStartedRecording</key>
-			<real>737073303.59856498</real>
-			<key>timeStoppedRecording</key>
-			<real>737073307.13807201</real>
-			<key>title</key>
-			<string>Build test</string>
-			<key>uniqueIdentifier</key>
-			<string>72E4B977-24BD-45F8-90D0-3289A96D023B</string>
-		</dict>
-	</dict>
+	<dict/>
 </dict>
 </plist>

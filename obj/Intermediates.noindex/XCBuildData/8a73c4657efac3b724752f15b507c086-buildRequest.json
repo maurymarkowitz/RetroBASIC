@@ -1,0 +1,55 @@
+{
+  "_buildCommand2" : {
+    "command" : "build",
+    "skipDependencies" : false,
+    "style" : "buildAndRun"
+  },
+  "buildCommand" : "build",
+  "configuredTargets" : [
+    {
+      "guid" : "d3db205332c6e51ab3242da37a92701cf25a0d9bd09c89b7787310a826881d91"
+    }
+  ],
+  "containerPath" : "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/RetroBASIC.xcodeproj",
+  "continueBuildingAfterErrors" : true,
+  "enableIndexBuildArena" : false,
+  "hideShellScriptEnvironment" : false,
+  "parameters" : {
+    "action" : "build",
+    "activeArchitecture" : "x86_64",
+    "activeRunDestination" : {
+      "disableOnlyActiveArch" : false,
+      "platform" : "macosx",
+      "sdk" : "macosx13.1",
+      "sdkVariant" : "macos",
+      "supportedArchitectures" : [
+        "x86_64"
+      ],
+      "targetArchitecture" : "x86_64"
+    },
+    "arenaInfo" : {
+      "buildIntermediatesPath" : "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj/Intermediates.noindex",
+      "buildProductsPath" : "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj",
+      "derivedDataPath" : "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/DerivedData",
+      "indexDataStoreFolderPath" : "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/DerivedData/RetroBASIC/Index.noindex/DataStore",
+      "indexEnableDataStore" : true,
+      "indexPCHPath" : "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/DerivedData/RetroBASIC/Index.noindex/PrecompiledHeaders",
+      "pchPath" : "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj/Intermediates.noindex/PrecompiledHeaders"
+    },
+    "configurationName" : "Debug",
+    "overrides" : {
+      "synthesized" : {
+        "table" : {
+          "ENABLE_PREVIEWS" : "NO"
+        }
+      }
+    }
+  },
+  "schemeCommand" : "launch",
+  "schemeCommand2" : "launch",
+  "showNonLoggedProgress" : true,
+  "useDryRun" : false,
+  "useImplicitDependencies" : true,
+  "useLegacyBuildLocations" : false,
+  "useParallelTargets" : true
+}
