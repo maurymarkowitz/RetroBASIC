@@ -1,5 +1,5 @@
-RetroBASIC Reference Manual
-===========================
+RetroBASIC Language Reference Manual
+====================================
 
 **Copyright © 2023 Maury Markowitz**
 
@@ -7,12 +7,39 @@ Version 2.0.0
 
 [![GPL license](http://img.shields.io/badge/license-GPL-brightgreen.svg)](https://opensource.org/licenses/gpl-license)
 
+<a name="introduction"></a>
+## Introduction
+
+<a name="what-is-retrobasic"></a>
+### What is RetroBASIC?
+
+RetroBASIC is a multi-lingual version of the BASIC programming language intended to run classic BASIC programs written from the 1960s into the 1980s. It includes most features from three main families of BASIC:
+
+- Dartmouth BASIC Version 4
+- HP Timeshared BASIC
+- DEC BASIC-PLUS and its better-known offshoot, Microsoft BASIC
+
+While most BASIC dialects take their basic syntax and keywords from the original Dartmouth BASIC, they began to diverge in the late 1960s into these three general families. The goal of RetroBASIC is to run any program written for these dialects and their many offshoots.
+
+So, for instance, RetroBASIC can run the version of Super Star Trek found in *BASIC Computer Games*, written in Microsoft BASIC and likely one of the most widely-ported games in history. But it can also run the (non-Super) Star Trek found in the earlier *101 BASIC Games*, written for DEC BASIC. It can also run most programs from *What to do After You Hit Return*, which are written in HP BASIC. Practically any major program should run properly without conversion.
+
+Programs must be provided in plain text, better known as "source code". RetroBASIC cannot read binary files from other platforms, which was the normal way to store BASIC programs on home computers. There are a variety of programs available that will read these binary files and output text, which can then be run in RetroBASIC.
+
+<a name="what-retrobasic-is-not"></a>
+### What RetroBASIC is not
+
+The goal of RetroBASIC is to allow you to run popular BASIC programs written during the language's Golden Age. As such, it is also marked by a number of deliberate limitations:
+
+- the language is intended to *run* programs, not *edit* them, and it thus lacks an interactive editor
+- you cannot `LIST` a program, `LOAD` or `SAVE` it
+- it does not include any platform-specific instructions like sound or graphics, as these are not portable
+- it does not (currently) have file handling features, as these vary considerably across platforms
+
+## Contents
+
 - [About this manual](#about-this-manual)
    * [Abbreviations](#abbreviations)
    * [Formatting and notation](#formatting-and-notation)
-- [Introduction](#introduction)
-   * [What is RetroBASIC?](#what-is-retrobasic)
-   * [What RetroBASIC is not](#what-retrobasic-is-not)
 - [Some underlying concepts](#some-underlying-concepts)
    * [Syntax example](#syntax-example)
 - [Data in BASIC programs](#data-in-basic-programs)
@@ -126,7 +153,7 @@ Version 2.0.0
    * [`MAT` *avar1*`=TRN(`*avar2*`)`](#mat-avar1trnavar2)
 - [Error handling](#error-handling)
    * [{`TRAP`|`ON ERROR GOTO`|`ONERR GOTO`} [*aexp*]](#trapon-error-gotoonerr-goto-aexp)
-   * [`RAISE` *aexp*](#raise-aexp)
+   * [{`ERROR`|`RAISE`} *aexp*](#raise-aexp)
    * [`RESUME` [`NEXT`, *aexp*, ]](#resume-next-aexp-)
    * [`ERL()`](#erl)
    * [`ERN()` and `ERR()`](#ern-and-err)
@@ -181,34 +208,6 @@ For example:
 This indicates that the PRINT statement consists of the statement keyword `PRINT` followed by zero or more optional expressions separated by nothing, a semicolon, or a comma. The *exp* indicates that any expression type may be used, numeric or string.
 
 Note that the line number is not indicated at the front, nor are the \<CR\> or \<Enter\> at the end, as these are assumed to be in the source code.
-
-<a name="introduction"></a>
-## Introduction
-
-<a name="what-is-retrobasic"></a>
-### What is RetroBASIC?
-
-RetroBASIC is a multi-lingual version of the BASIC programming language intended to run classic BASIC programs written from the 1960s into the 1980s. It includes most features from three main families of BASIC:
-
-- Dartmouth BASIC Version 4
-- HP Timeshared BASIC
-- DEC BASIC-PLUS and its better-known offshoot, Microsoft BASIC
-
-While most BASIC dialects take their basic syntax and keywords from the original Dartmouth BASIC, they began to diverge in the late 1960s into these three general families. The goal of RetroBASIC is to run any program written for these dialects and their many offshoots.
-
-So, for instance, RetroBASIC can run the version of Super Star Trek found in *BASIC Computer Games*, written in Microsoft BASIC and likely one of the most widely-ported games in history. But it can also run the (non-Super) Star Trek found in the earlier *101 BASIC Games*, written for DEC BASIC. It can also run most programs from *What to do After You Hit Return*, which are written in HP BASIC. Practically any major program should run properly without conversion.
-
-Programs must be provided in plain text, better known as "source code". RetroBASIC cannot read binary files from other platforms, which was the normal way to store BASIC programs on home computers. There are a variety of programs available that will read these binary files and output text, which can then be run in RetroBASIC.
-
-<a name="what-retrobasic-is-not"></a>
-### What RetroBASIC is not
-
-The goal of RetroBASIC is to allow you to run popular BASIC programs written during the language's Golden Age. As such, it is also marked by a number of deliberate limitations:
-
-- the language is intended to *run* programs, not *edit* them, and it thus lacks an interactive editor
-- you cannot `LIST` a program, `LOAD` or `SAVE` it
-- it does not include any platform-specific instructions like sound or graphics, as these are not portable
-- it does not (currently) have file handling features, as these vary considerably across platforms
 
 <a name="some-underlying-concepts"></a>
 ## Some underlying concepts
@@ -535,9 +534,9 @@ This program will print "Hello" to the user's console, as the second print state
 
 The name "GOSUB" is a contraction of "go to subroutine". Subroutines are small sub-programs that perform a task and then return. For instance, one might write a subroutine to calculate the value of pi and then call that code repeatedly with different input values from different locations in the code. This allows the calculation code to be isolated, often placed near the bottom of the program to separate it visually, and then called from different parts of the rest of the program.
 
-As the lines of code making up subroutines are normal statements, programs might accidentally run them when they reach the end of the main program code. If this occurs, the `RETURN` at the end of the subroutines will be called without a `GOSUB` and an error will occur. To prevent this, programs generally place their `END` statement immediately before the subroutines, or alternately, place the `END` at a high line number like 9999 and then `GOTO 9999` at the end of the main code.
+As the lines of code making up subroutines are normal statements, programs might accidentally run them when they reach the end of the main program code. If this occurs, the `RETURN` at the end of the subroutine will be called without a `GOSUB` having placed useful information on the stack and an error will occur when `RETURN` attempts to retrieve it. To prevent this, programs generally place their `END` statement immediately before the subroutines, or alternately, place the `END` at a high line number like 9999 and then `GOTO 9999` at the end of the main code.
 
-RetroBASIC also supports the seldom-used option introduced in MSX BASIC that allows a line number to follow the `RETURN` statement. This is exactly equivalent to calling `POP` or `EXIT` followed by a `GOTO.
+RetroBASIC also supports the seldom-used option introduced in MSX BASIC that allows a line number to follow the `RETURN` statement. This is exactly equivalent to calling `POP` or `EXIT` followed by a `GOTO`.
 
 #### Examples:
 
@@ -554,7 +553,7 @@ Later versions of MS BASIC, notably MSX and BASIC-A, allow a line number express
 
 #### Notes:
 
-Many dialects of BASIC will search for a branch target, starting at the top of the program and then looking through the entire source code for the matching line. Normally, subroutines are placed at the end of the program to separate them, often using large line numbers to make this more obvious. However, this also maximizes the amount of time it takes to find the subroutine at runtime and slows performance. For this reason, programs looking to improve performance would sometimes place their subroutine code at the top of the program and then have a `GOTO` to jump past it when the program started. This led to the code being difficult to read.
+Many dialects of BASIC will search for a branch target by starting at the top of the program and then looking through the entire source code for the matching line. Normally, subroutines are placed at the end of the program to separate them, often using large line numbers to make this more obvious. However, this also maximizes the amount of time it takes to find the subroutine at runtime and slows performance. For this reason, programs looking to improve performance would sometimes place their subroutine code at the top of the program and then have a `GOTO` to jump past it when the program started. This led to the code being difficult to read.
 
 #### See also:
 
@@ -571,7 +570,7 @@ The ability to RETURN to a line number was added in 2.0.0.
 
 `IF` calculates the value of the logical expression *lexp*, producing zero if it is not true and a non-zero value, typically -1, if it is true. Like an assignment, the *type* of expression, numeric or string, must be the same on either side of the logical operator; otherwise, a runtime error will be raised.
 
-In early versions of Dartmouth BASIC, the only thing that could follow the `THEN` was a line number. This was used to perform a **conditional branch**, similar to a `GOTO` but only branching if the logical expression was true. This made the logic of such programs difficult to follow as they tended to perform many such logical comparisons and branches and thus jump around a lot. This is one of the reasons BASIC was dismissed by programmers like Dijkstra as causing "brain damage" and the common complaint that BASIC always produces "spaghetti code".
+In early versions of Dartmouth BASIC, the only thing that could follow the `THEN` was a line number. This was used to perform a **conditional branch**, similar to a `GOTO` but only branching if the logical expression was true. This made the logic of such programs difficult to follow as they tend to perform many such logical comparisons and thus had to jump around a lot to perform different statements. This is one of the reasons BASIC was dismissed by programmers like Dijkstra as causing "brain damage" and the common complaint that BASIC always produces "spaghetti code".
 
 This limitation was removed from later versions of Dartmouth, which allow one or more statements of any sort to follow the `THEN`. In the common case where only one statement needs to be performed, placing it after the `THEN`, instead of branching to or around it, can lead to dramatically more readable code. If there is more than one statement after the `THEN`, these are performed all-or-nothing; if the logical expression is true, all of the following statements *on the same line* are performed; if it fails, *none* of them are performed and the program moves to the first statement on the next line. A few memory-limited dialects, notably Sinclair BASIC, lacked the ability to place any statement after `THEN`, and thus followed the original Dartmouth syntax.
 
@@ -651,7 +650,7 @@ Some dialects use the alternate syntax `GOTO` *aexpr* `ON` and `GOSUB` *aexpr* `
 
 Another of the common statements found in BASIC is the FOR/NEXT loop. This is intended to perform a sequence of actions a set number of times. The statements are those between the `FOR` and its corresponding `NEXT`, which is known as the *body* of the loop. The same behavior can be accomplished using IF statements, but FOR/NEXT loops are optimized to make them run much faster.
 
-When a `FOR` is encountered at runtime, the system calculates the values of all of the provided *aexpr*s. `STEP` is optional, and if it is missing, *aexpr3* is set to 1. *avar* is then set to the value of *aexpr1*. It then continues execution at the next statement, continuing as normal until it reaches the `NEXT`. At that point, it adds the value in *aexpr3* to *avar*. If the result in *avar* is now equal to or larger than *aexpr2*, execution continues with the statement after the `NEXT`. If the value is smaller, execution returns to the statement after the `FOR`, continuing the loop.
+When a `FOR` is encountered at runtime, the system calculates the values of all of the provided *aexpr*s. `STEP` is optional, and if it is missing, *aexpr3* is set to 1. *avar*, known in this context as the *index variable*, is then set to the value of *aexpr1*. It then continues execution at the next statement, continuing as normal until it reaches the `NEXT`. At that point, it adds the value in *aexpr3* to *avar*. If the result in *avar* is now equal to or larger than *aexpr2*, execution continues with the statement after the `NEXT`. If the value is smaller, execution returns to the statement after the `FOR`, continuing the loop.
 
 In most cases, FOR/NEXT loops are used where a pre-determined number of executions is desired. However, it is possible to change the normal behavior, either by assigning a value into *avar* to cause it to exit at the `NEXT`, or alternately, branching out of the body using a `GOTO` or `IF`. Branching out may cause errors later in execution, and some dialects offer solutions for this, like `POP`.
 
@@ -1910,7 +1909,7 @@ The method of turning the trap off differs across dialects. In Commodore BASIC, 
 Note that `ON ERROR` can only be used with a `GOTO`, in contrast to a normal `ON` statement which also allows `GOSUB`. Using `GOSUB` here is not allowed and will return a syntax error prior to the program running.
 
 <a name="raise-aexp"></a>
-### {`RAISE`|`ERROR`} *aexp*
+### {`ERROR`|`RAISE`} *aexp*
 
 Causes an error to be raised with the error number *aexp*. Generally used for testing purposes.
 
@@ -1943,7 +1942,7 @@ Some versions of HP BASIC use `ERRN` instead of `ERR`. This is not currently sup
 Returns a string with the error message for a given error number.
 
 <a name="example"></a>
-### Example:
+### Example
 
 The following code illustrates a typical handler system using all of the functionality above:
 
@@ -1959,7 +1958,7 @@ This program starts by setting a trap and then raising a syntax error, error 21.
 <a name="error-codes"></a>
 ## Error codes
 
-RetroBASIC's error codes are mostly modelled on Commodore BASIC 3.5 seen on the Commodore 125 as their list is fairly generic. A few additional errors have been added to handle new functionality. Others have been left out as they apply to specific tasks like operating the cassette tape.
+RetroBASIC's error codes are mostly modelled on Commodore BASIC 3.5 seen on the Commodore 128, as their list is fairly generic. A few additional errors have been added to handle new functionality. Others have been left out as they apply to specific tasks like operating the cassette tape.
 
 <!-- This simulates a definition list by placing two spaces behind the first two lines of each entry. Be careful with edits! -->
 0  
@@ -2076,7 +2075,7 @@ An INPUT or GET from a file returned numeric data for a string or vice versa. No
 
 35  
 FORMULA TOO COMPLEX  
-:he equation or formula was too complex to be interpreted. Does not occur in RetroBASIC.
+The equation or formula was too complex to be interpreted. Does not occur in RetroBASIC.
 
 37  
 UNDEFINED FUNCTION  
