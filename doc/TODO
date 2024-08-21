@@ -10,6 +10,10 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
+- option base 1 should return error on 0
+
+- Dartmouth style FOR loops, exit on 1 TO 0
+
 - test column MAT PRINT?
 
 - add parameter checking to functions, currently most of them don't check that they were passed a string/number
