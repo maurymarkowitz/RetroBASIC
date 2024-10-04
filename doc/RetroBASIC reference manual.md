@@ -126,6 +126,8 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
    * [`LEFT$`(*sexp*,*aexp*)](#leftsexpaexp)
    * [`MID$`(*sexp*,*aexp1*[,*aexp2*]), `SEG$`, `SUBSTR$` and `SUBSTRING$`](#midsexpaexp1aexp2-seg-substr-and-substring)
    * [`RIGHT$`(*sexp*,*aexp*)](#rightsexpaexp)
+   * [`SPC`(*aexp*), `SPA`(*aexp*) and `SPACE$`(*aexp*)](#spcaexp-spaaexp-and-spaceaexp)
+   * [`STRING$`(*aexp*,[*sexp*|*aexp2*])](#stringaexpsexpaexp2)
    * [`STR$`(*aexp*)](#straexp)
    * [`VAL`(*sexp*)](#valsexp)
    * [`UCASE$`(*sexp*) and `LCASE$`(*sexp*)](#ucasesexp-and-lcasesexp)
@@ -136,8 +138,6 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
    * [`PEEK`(*aexp*)](#peekaexp)
    * [`POS`(*dexp*)](#posdexp)
    * [`LIN`(*aexp*)](#linaexp)
-   * [`SPC`(*aexp*), `SPA`(*aexp*) and `SPACE$`(*aexp*)](#spcaexp-spaaexp-and-spaceaexp)
-   * [`STRING$`(*aexp*,[*sexp*|*aexp2*])](#stringaexpsexpaexp2)
    * [`TAB`(*aexp*)](#tabaexp)
    * [`TIME`[(*dexp*)] and `TIME=`*aexp*](#timedexp-and-timeaexp)
    * [`TIME$`(*dexp*) and `CLK$`](#timedexp-and-clk)
@@ -1556,22 +1556,52 @@ The program will produce:
 
 #### Notes:
 
-Apple Business BASIC has the similarly-named `SUB$`, but this is short for "substitute", not "substring".
+Apple Business BASIC has the similarly-named `SUB$`, but this is short for "substitute", not "substring". This performs replacement of one portion of a string with another, which is useful in a system with MID/LEFT/RIGHT where this operation can be complex. For instance, `SUB$("Hello!", "XX", 2)` produces HXXlo!
          
 <a name="rightsexpaexp"></a>
 ### `RIGHT$`(*sexp*,*aexp*)
 
 Returns a new string containing the right-most *aexp* characters from the string *sexp*. `RIGHT$("Hello, World!",6)` returns "World!".
 
+<a name="spcaexp-spaaexp-and-spaceaexp"></a>
+### [`SPC`|`SPA`|`SPACE$`](*aexp*)
+
+`SPC` returns a string containing the number of space characters in *aexp*. `SPA` is the alternate spelling for the same function found in HP, while `SPACE$` is found in other dialects.
+
+#### Examples:
+
+    PRINT "Hello";SPC(10);"Hello"
+
+Produces:
+
+    Hello          Hello
+
+<a name="stringaexpsexpaexp2"></a>
+### `STRING$`(*aexp*,[*sexp*|*aexp2*])
+
+`STRING$` makes a new string containing *aexp* copies of the second parameter. The second parameter can be any string if it is provided as *sexp*, or it can be a single ASCII value if it is an *aexp*. `STRING$` can be used to provide the same functionality as `SPC` if *sexp* contains a single space or *aexp2* produces the value 32.
+
+#### Examples:
+
+    PRINT STRING$(3, "Hello")
+
+Produces:
+
+    HelloHelloHello
+
+#### Variations:
+
+Early instances of `STRING$`, in BASIC-PLUS for instance, only support a single ASCII character value in the second parameter. The ability to use a string parameter appeared later; it was available on the TRS-80, but it is unlikely that was the first example.
+
 <a name="straexp"></a>
 ### `STR$`(*aexp*)
 
-This function returns a string that represents the ASCII representation of the number in *aexp*. For instance, if the *aexp* evaluates to 25, this function returns the string "25".
+This function returns a string that represents the ASCII representation of the number in *aexp*. For instance, if the *aexp* evaluates to 25, this function returns the string "25". The `PRINT` statement performs this conversion automatically, so `STR$` is normally used when constructing strings from multiple parts, like `A$="Hello, "+STR$(25)+" times."`, which produces "Hello, 25 times.".
 
 <a name="valsexp"></a>
 ### `VAL`(*sexp*)
 
-This function returns a number of the same value as the number stored as a string, performing the opposite operation of the `STR$` function. For instance, if *sexp* evaluates to "25", this function will return the numerical value 25.
+This function returns a number of the same value as the number stored as a string, performing the opposite operation of the `STR$` function. For instance, if *sexp* evaluates to "25", this function will return the numerical value 25. `VAL` is generally more common than `STR$` as it is commonly used to convert user inputs into numbers.
 
 <a name="ucasesexp-and-lcasesexp"></a>
 ### `UCASE$`(*sexp*) and `LCASE$`(*sexp*)
@@ -1594,9 +1624,9 @@ Produces:
 
 String slicing is an alternative way to manipulate string and produce substrings. A "slice" is a substring defined as a starting and ending location within an existing string. Although slicing instructions are not functions in the traditional sense, they produce results similar to the `MID/LEFT/RIGHT` functions. The major difference between the slicing concept and string functions is that the functions take a location and length, not start and end locations. This can result in off-by-one errors when converting code from one system to another.
 
-Slicing syntax is generally similar to accessing a slot in an array, but the exact syntax varies. For instance, in most dialects `A$(1,5)` returns a slice with the first five characters of A$, which produces the same result as `MID$(A$,1,5)` or `LEFT(A$,5)`. They also vary in the way the parameters are separated, most use a comma, but Sinclair uses the `TO` keyword, like `A$(5 TO 5)` and the (little used) Full BASIC used the colon, `A$(5:5)`.
+Slicing syntax is generally similar to accessing a slot in an array, but the exact syntax varies. For instance, in most dialects `A$(1,5)` returns a slice with the first five characters of A$, which produces the same result as `MID$(A$,1,5)` or `LEFT(A$,5)`. They also vary in the way the parameters are separated, most use a comma, but Sinclair uses the `TO` keyword, like `A$(1 TO 5)` and the (little used) Full BASIC used the colon, `A$(1:5)`.
 
-Most slicing implementations allow one or two parameters, with the second parameter optional. Generally, if there is only one parameter it indicates a single character at that location, thus `A$(5)` is the fifth character in the string. To access the portion of the string after a given location, most dialects allowed the second parameter to be empty, `A$(5,)` means "character 5 to the end of the string". This is very useful, as it means you don't have to know the length of the string for common manipulations.
+Most slicing implementations allow one or two parameters, with the second parameter optional. Generally, if there is only one parameter it indicates a single character at that location, thus `A$(5)` is the fifth character in the string. To access the portion of the string after a given location, most dialects allowed the second parameter to be empty, `A$(5,)` means "character 5 to the end of the string". This is very useful, as it means you don't have to know the length of the string when performing common manipulations.
 
 Sinclair and Full BASIC allow either parameter to be optional, `A$( TO 5)` and `A$(:5)` (respectively) mean "the portion of A$ from the start to location 5". This is less useful than the more common one-parameter syntax as the starting location is always 1, whereas allowing the computer to automatically calculate the unknown ending location is very useful.
 
@@ -1606,7 +1636,7 @@ To work with the dialects that do not have unique syntax, like Atari BASIC, Retr
 
 #### Examples:
 
-Slicing is useful for many types of manipulation that are expensive to perform using functions. For instance, slicing can be used to assign strings into character locations. Consider this code in a MS-derived dialect:
+Slicing is useful for many types of manipulation that are expensive to perform using functions. For instance, slicing can be used to assign strings into character locations in another string. Consider this code in a MS-derived dialect:
 
     10 A$="Hello, World!"
     20 A$=LEFT$(A$,5)+". "+RIGHT$(A$,6)
@@ -1630,7 +1660,7 @@ The same syntax can be used for string concatenation. In MS, one would:
     20 A$=A$+" World!"
     30 PRINT A$
 
-Whereas in slicing systems, this is accomplished with the assignment:
+In slicing systems, this is accomplished with the assignment:
 
     10 A$="Hello,"
     20 A$(LEN(A$)+1)=" World!"
@@ -1664,7 +1694,7 @@ HP allowed either parentheses or brackets to be used to denote array slots in nu
 
 This is unfortunate, as it means there is no way for the interpreter to distinguish between an array slot and a slice. In HP's case this was not a concern, as they did not support arrays of strings. It treated each string as an array of characters, meaning `A$(1,1)` *was* an array access, albeit with the parameters having a different meaning.
 
-Had HP selected one of these two to indicate slicing instead of both, or alternately used a different definition, like Sinclair's `A$(1 TO 10)`, then BASICs could implement string arrays and slicing. For instance, `A$(2,3)[1,1]` would return the first character of the string in slot (2,3).
+Had HP selected *one* of these two to indicate slicing instead of both, or alternately used a different definition, like Sinclair's `A$(1 TO 10)`, then other BASICs copying them could implement string arrays and slicing. For instance, `A$(2,3)[1,1]` would return the first character of the string in slot (2,3) of the array of strings.
 
 #### Variations:
 
@@ -1721,37 +1751,6 @@ Produces:
 
 
     Hello
-
-
-<a name="spcaexp-spaaexp-and-spaceaexp"></a>
-### [`SPC`|`SPA`|`SPACE$`](*aexp*)
-
-`SPC` returns a string containing the number of space characters in *aexp*. `SPA` is the alternate spelling for the same function found in HP, while `SPACE$` is found in other dialects.
-
-#### Examples:
-
-    PRINT "Hello";SPC(10);"Hello"
-
-Produces:
-
-    Hello          Hello
-
-<a name="stringaexpsexpaexp2"></a>
-### `STRING$`(*aexp*,[*sexp*|*aexp2*])
-
-`STRING$` makes a new string containing *aexp* copies of the second parameter. The second parameter can be any string if it is provided as *sexp*, or it can be a single ASCII value if it is an *aexp*. `STRING$` can be used to provide the same functionality as `SPC` if *sexp* contains a single space or *aexp2* produces the value 32.
-
-#### Examples:
-
-    PRINT STRING$(3, "Hello")
-
-Produces:
-
-    HelloHelloHello
-
-#### Variations:
-
-Early instances of `STRING$`, in BASIC-PLUS for instance, only support a single ASCII character value in the second parameter. The ability to use a string parameter appeared later; it was available on the TRS-80, but it is unlikely that was the first example.
 
 <a name="tabaexp"></a>
 ### `TAB`(*aexp*)
@@ -1833,27 +1832,29 @@ DEC's BASIC-PLUS, on TOPS at least, used `USR$` to return a listing of the files
 
 Later versions of Dartmouth BASIC introduced a series of matrix related commands and functions that operate on entire arrays with a single operation. These operations can also be implemented using FOR/NEXT loops, but using a single instruction leads to higher performance and more clearly indicates the actual intent of the program. The downside is that only a few dialects supported these commands, mostly on mainframes, so using them also leads to portability issues.
 
-The basic idea is that the common statements `PRINT`, `INPUT` and `READ` now have matrix-related versions, `MAT PRINT`, `MAT INPUT` and `MAT READ`. When called, these versions loop over the array and perform the statement on all of the elements within it. So, for instance, `MAT PRINT A` will print out the entire array instead of having to loop over the array and print each slot separately. In addition to these statements, there are also a number of matrix operators and functions. For instance, one can use the assignment statement `MAT A=ZER` to set all the slots in a matrix to 0. All of these instructions begin with the statement keyword `MAT`.
+The basic idea is that the common statements `PRINT`, `INPUT` and `READ` now have matrix-related versions, `MAT PRINT`, `MAT INPUT` and `MAT READ`. When called, these versions loop over the array and perform the statement on all of the elements within it. So, for instance, `MAT PRINT A` will print out the entire array instead of having to use a FOR loop and print each slot separately. In addition to these statements, there are also a number of matrix operators and functions. For instance, one can use the assignment statement `MAT A=ZER` to set all the slots in a matrix to 0. All of these instructions begin with the statement keyword `MAT`.
 
-The system allows the dimensions of the array to be specified to limit the slots that a function will operate on. In the following documentation, we will refer to this as a *subarray*. For instance, if a program starts with `DIM A(10,10)`, then `MAT A=ZER` will assign 0 to all of the slots in A, 10 by 10, whereas `A=ZER(5,5)` will change the values only in the subarray of 1..5 in the rows and columns, leaving the other values, in 6..10, unchanged. This works as long as the largest slot number, M times N, is less than the total number of slots original dimensioned. For instance, it is acceptable to call `MAT A=DET(15,1)`, despite A being DIMmed (10,10). This is very much at odds with normal BASIC behavior, where a reference to `A(15,1)` would cause a runtime error, `?BAD SUBSCRIPT` in Commodore BASIC for instance.
+The system allows the dimensions of the array to be specified to limit the slots that a function will operate on. In the following documentation, we will refer to this as a *subarray*. For instance, if a program starts with `DIM A(10,10)`, then `MAT A=ZER` will assign 0 to all of the slots in A, 10 by 10, whereas `MAT A=ZER(5,5)` will change the values only in the subarray of 1..5 in the rows and columns, leaving the other values, in 6..10, unchanged. This works as long as the largest slot number, M times N, is less than the total number of slots original dimensioned. For instance, it is acceptable to call `MAT A=DET(15,1)`, despite A being DIMmed (10,10). This is very much at odds with normal BASIC behavior, where a reference to `A(15,1)` would cause a runtime error, `?BAD SUBSCRIPT` in Commodore BASIC for instance.
 
-One "gotcha" to be aware of is that the items in the zero indexes are ignored. So in a vector, the first slot is ignored, while in a matrix, all of the slots in the zero column and row are ignored. This may lead to unexpected results if data has been inserted in these slots using other statements and then manipulated with the matrix commands, which may cause that data to be cleared out.
+RetroBASIC records these changes in dimension, which it needs to do to properly support any following matrix operations. For instance, after `MAT A=ZER(5,5)`, a `MAT PRINT A` needs to know it has to print a 5 by 5 array. These bounds are also used in non-matrix operations, so after redimensioning a reference to `A(7,2)` will now fail with `?BAD SUBSCRIPT`.
+
+One "gotcha" to be aware of is that items in the slots at the zero indexes are ignored. So in a vector, the first slot is ignored, while in a matrix, all of the slots in the zero column and row are ignored. This may lead to unexpected results if data has been inserted in these slots using other statements and then manipulated with the matrix commands, which may cause that data to be cleared out, or alternately, data in those slots to appear in non-zero slots. For instance, in the original 10 by 10 dimension version of `A`, slot 10 holds the value for (1,0), if a value was placed in this slot and the array redimensioned to 5 by 5, that value is now in slot (2, 4), and will now be used in subsequent matrix operations. For this reason, code should be careful to ensure the slots in the zero indexes are never assigned values.
+
+Another issue to be aware of is that the matrix functions can only be used one at a time, in contrast to normal math expressions. For instance, one can `LET A=B+C-D`, which the system evaluates by reading the values for A and B, adding them and storing the result, and reading the value for D and subtracting it from that result and storing that result, and then assigning the final result to A. Because of the limited memory of the machines of the era, there is no room to store these sorts of intermediate values, so one can `MAT A=B+C`, but not `MAT A=B+C-D`.
 
 <a name="matrix-statements"></a>
 ### Matrix statements
 
-There are only four matrix statements, assignment with the optional `LET`, `PRINT`, `INPUT` and `READ`. All of these loop over the list of variables and then perform their normal actions on all of the elements in the array or the selected subarray. For instance, if you `MAT INPUT A,B`, the system will prompt you to input a value for all of the slots in A and then all of the slots in B.
+There are only four matrix statements, assignment with the always-optional `LET`, `PRINT`, `INPUT` and `READ`. All of these loop over the list of variables and then perform their normal actions on all of the elements in the array or the selected subarray. For instance, `MAT READ A` will read one value from the program's `DATA` statements for each slot in the matrix A, ignoring the zero slots. Thus a `MAT READ A` on a variable defined `DIM A(3,3)` will read nine values.
 
-One oddity is `MAT PRINT`, whose output differs depending on the type of array. If the array is 1-d, a vector, it will be considered a column and normally printed with each value on a separate line. In contrast, a matrix will be printed in a 2-d fashion, rows and columns. In both cases the layout can be changed by adding a comma or semicolon, which operate in a fashion similar to the normal `PRINT` statement, adjusting the width between the numbers; when applied to a vector, this also causes it to print out in a single row. 
+One oddity is `MAT PRINT`, whose output differs depending on the type of array. If the array is 1-d, a vector, it will be considered a column and normally printed with each value on a separate line. In contrast, a matrix will be printed in a 2-d fashion, rows and columns. In both cases the layout can be changed by adding a comma or semicolon, which operate in a fashion similar to the normal `PRINT` statement, adjusting the width between the numbers; when applied to a vector, this also causes it to print out in a single row.
+
+Another oddity is `MAT INPUT`, which would normally read a value for every slot in the array, similar to `MAT READ`. However, it parses this data from a single input line, which may not contain enough values to fully populate the array. In this case, no error is reported, and the remaining slots are simply ignored and will contain any value they did before. As it may not be possible to provide enough values on a single line to fill larger arrays, Dartmouth BASIC allowed you to type the ampersand, `&`, to indicate that the next line was part of the same input. This is not (currently) supported in RetroBASIC.
 
 <a name="matrix-operators"></a>
 ### Matrix operators
 
-The matrix system includes mathematical operators that mirror those that apply to scalar values. Dartmouth has assignment, plus, minus and multiply. Generally, these instructions require the variables to be of the same type and dimensions, you can add a matrix to a matrix or vector to vector, but you cannot add a vector to a matrix.
-
-Dartmouth also added the ability to multiply all of the elements by a scalar value, which uses a separate format that demands the scalar expression be in parentheses and be the left-hand-side of the operator. For reasons unclear, only multiplication was supported. RetroBASIC extends this format for all of the mathematical operators. In the case of division, this leads to odd syntax as the divisor is on the left.
-
-Note that matrix-by-matrix division is not supported. This is because dividing a matrix requires it to first be inverted, which is not always possible given the values it contains. While this could have been implemented and then simply reported an error in this situation, the two-step operation would have required too much working memory to be supported on machines of the era.
+The matrix system includes mathematical operators that mirror those that apply to scalar values. Dartmouth has assignment, addition, subtraction and multiplication. Generally, these instructions require the variables to be of the same type and dimensions, you can add a matrix to a matrix or vector to vector, but you cannot add a vector to a matrix. Dartmouth also added the ability to multiply all of the elements by a scalar value, which uses a separate format that demands the scalar expression be in parentheses and be the left-hand-side of the operator. Scalar division is not supported, as this syntax would have placed the divisor on the left.
 
 #### Examples:
 
@@ -1905,7 +1906,7 @@ Transposes *avar2*, rotating it so columns become rows and rows columns, and pla
 <a name="error-handling"></a>
 ## Error handling
 
-Some versions of BASIC provide rudimentary error handling using the `TRAP` or `ON ERROR` statements. These will both be referred to here as *traps*. When a trap is turned on and an error occurs, or is *raised*, instead of printing the error message and stopping the program, execution continues at the indicated line.
+Some versions of BASIC provide rudimentary error handling using the `TRAP` or `ON ERROR` statements. These will both be referred to here as *traps*. When a trap is turned on and an error occurs, or is *raised*, instead of printing the error message and stopping the program, the system branches to the indicated line and execution continues.
 
 The code at this line is known as an *error handler*. When an error occurs, the error number and line are placed in memory and then the system performs a `GOTO` into the handler. The handler allows the program to examine the error and decide how to continue. Most dialects allow the error number to be examined, as well as the line number where the error occurred. Jumping into the handler does not clear these values out, as one will generally want to examine them in the handler code. This is the purpose of the `RESUME` statement seen in some dialects, which clears the error codes and returns to the point where the error occurred. A `NEW`, `CLR` and `RUN` also clear out these values.
 
@@ -1918,7 +1919,7 @@ The simple trap concept used in BASIC is subject to a number of problems. Among 
 
 When any of these equivalent statements is encountered in a program, the *aexp* is evaluated, converted to a line number, and then stored for future reference. If an error occurs any time after the statement is encountered, execution will branch to the line number in *aexp*. If that line number does not exist, an error will be printed and execution will stop.
 
-The method of turning the trap off differs across dialects. In Commodore BASIC, one uses `TRAP` with no parameter, in Atari BASIC any number above 32,767 does the same, and in AppleSoft one has to `POKE 216,0`. In RetroBASIC, traps are turned off with an empty parameter or any expression that evaluates to zero or a negative value.
+The method of turning the trap off differs across dialects. In Commodore BASIC, one uses `TRAP` with no parameter, in Atari BASIC you `TRAP` with any line number above 32,767, and in AppleSoft one has to `POKE 216,0`. In RetroBASIC, traps are turned off with an empty parameter or any expression that evaluates to zero or a negative value.
 
 Note that `ON ERROR` can only be used with a `GOTO`, in contrast to a normal `ON` statement which also allows `GOSUB`. Using `GOSUB` here is not allowed and will return a syntax error prior to the program running.
 
@@ -1953,7 +1954,7 @@ Some versions of HP BASIC use `ERRN` instead of `ERR`. This is not currently sup
 <a name="erraexp"></a>
 ### `ERR$(`*aexp*`)`
 
-Returns a string with the error message for a given error number.
+Returns a string with the error message for a given error number. A list of the codes and their messages follows.
 
 <a name="example"></a>
 ### Example
@@ -1967,7 +1968,10 @@ The following code illustrates a typical handler system using all of the functio
     2010 PRINT ERR; ERR$(ERR) " ERROR IN LINE" ERL "!"
     2020 RESUME NEXT
     
-This program starts by setting a trap and then raising a syntax error, error 21. That causes it to jump into the handler at line 2000, which prints the error number, string and line number. The `RESUME NEXT` then picks up execution where it left off, so the `PRINT` on line 110 is executed.
+This program starts by setting a trap and then raising a syntax error, error 21. That causes it to jump into the handler at line 2000, which prints the error number, string and line number. The `RESUME NEXT` then picks up execution where it left off, so the `PRINT` on line 110 is executed. The result is:
+
+    21 SYNTAX ERROR IN LINE 110!
+    ... CONTINUED
 
 <a name="error-codes"></a>
 ## Error codes
