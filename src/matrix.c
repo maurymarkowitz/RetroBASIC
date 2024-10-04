@@ -30,8 +30,8 @@ void matrix_fill(int size, double destination[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE],
 }
 
 void matrix_copy(int size,
-                 double source[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE],
-                 double destination[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE])
+                 double destination[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE],
+                 double source[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE])
 {
   for (int i = 1; i <= size; i++)
     for (int j = 1; j <= size; j++)
