@@ -14,7 +14,7 @@ BP - DEC BASIC-PLUS
 
 - Dartmouth style FOR loops, exit on 1 TO 0
 
-- test column MAT PRINT?
+- matrix operations should generally not allow the same matrix variables on both sides
 
 - add parameter checking to functions, currently most of them don't check that they were passed a string/number
 

@@ -635,7 +635,7 @@ static value_t double_to_value(const double v)
  *
  * @return A value_t with the value and its type.
  */
-static value_t read_next_data_value()
+static value_t read_next_data_value(void)
 {
   value_t data_value;
 
@@ -2193,7 +2193,7 @@ static void perform_statement(list_t *statement_entry)
         loop_value->number = new_for->_for.begin;
       }
         break;
-        
+      
       case GOSUB:
       {
         stack_entry_t *new_sub = calloc(1, sizeof(*new_sub));
@@ -2379,6 +2379,12 @@ static void perform_statement(list_t *statement_entry)
         variable_storage_t *source_store = lst_data_with_key(interpreter_state.variable_values, source_ref->name);
         int source_type = variable_type(source_ref);
         
+        // make sure they are not both the same variable
+        if (source_store == destination_store) {
+          handle_error(ern_SYNTAX_ERROR, "MAT assign with the same variable on both sides.");
+          break;
+        }
+        
         // check that they are both the same type
         if (source_type != destination_type) {
           handle_error(ern_TYPE_MISMATCH, "MAT assign with different types, number and string.");
@@ -2388,7 +2394,7 @@ static void perform_statement(list_t *statement_entry)
         // check that the destination is big enough to hold the data
         // and redim the destination as needed
         if (!redim_matrix(destination_ref, source_ref))
-          break; // the error has already been printed
+          break; // the error has already been printed if its too small
 
         // now we can copy them over. the destination has been redimed
         // to the source size, so we need to recalculate the limits
@@ -2419,7 +2425,7 @@ static void perform_statement(list_t *statement_entry)
           }
         }
         else {
-          handle_error(ern_TYPE_MISMATCH, "MAT assign with too many dimensions");
+          handle_error(ern_BAD_SUBSCRIPT, "MAT assign with too many dimensions");
           break;
         } // number of dims
       } // mat let
@@ -2427,6 +2433,8 @@ static void perform_statement(list_t *statement_entry)
 
       case MATINPUT:
       {
+        // FIXME: this needs to read a line and stop, not keep asking for more input if none is provided
+
         printitem_t *input_item;
         char line[80];
 
@@ -2441,7 +2449,7 @@ static void perform_statement(list_t *statement_entry)
           // all of the items must be a variable?
           // FIXME: is that true?
           if (input_item->expression->type != variable) {
-            handle_error(ern_TYPE_MISMATCH, "MAT INPUT with non-variable item");
+            handle_error(ern_TYPE_MISMATCH, "MAT INPUT with non-variable");
             continue;
           }
           
@@ -2494,7 +2502,7 @@ static void perform_statement(list_t *statement_entry)
             }
           }
           else {
-            handle_error(ern_TYPE_MISMATCH, "MAT INPUT with too many dimensions");
+            handle_error(ern_BAD_SUBSCRIPT, "MAT INPUT with too many dimensions");
             break;
           } // number of dims
         } // input items
@@ -2503,9 +2511,9 @@ static void perform_statement(list_t *statement_entry)
         
       case MATPRINT:
       {
-        // FIXME: this does not handle the "column vector" output, see Dartmouth V4 page 57
         printitem_t *print_item;
-        char sep = ',';
+        // in contrast to normal print, a missing separator does not mean semi
+        char sep = 0;
 
         // loop over the items in the print list
         for (list_t *I = statement->parms.print.item_list; I != NULL; I = lst_next(I)) {
@@ -2519,7 +2527,7 @@ static void perform_statement(list_t *statement_entry)
           // all of the items must be a variable?
           // FIXME: is that true?
           if (print_item->expression->type != variable) {
-            handle_error(ern_TYPE_MISMATCH, "MAT PRINT with non-variable item");
+            handle_error(ern_TYPE_MISMATCH, "MAT PRINT with non-variable");
             continue;
           }
 
@@ -2543,22 +2551,28 @@ static void perform_statement(list_t *statement_entry)
             handle_error(ern_TYPE_MISMATCH, "MAT PRINT with scalar variable");
             break;
           }
-          else if (dims == 1) {
+          // column printing if it's 1-D or 2-D but the dimension is zero
+          else if (dims == 1 || (dims == 2 && POINTER_TO_INT(act_dimensions->next->data) == 0)) {
             // vector case
             int len = POINTER_TO_INT(act_dimensions->data);
             
             // remember to skip zero
             for (int i = 1; i <= len; i++) {
-              // get the value from the correct slot in storage
+              // get the value from the correct slot in storage and print it
               value_t val = either_to_value(array_store->array[i], array_store->type);
               print_value(val, NULL);
-              if (sep != ';')
+              
+              // in this case,
+              if (sep == ',')
                 while (interpreter_state.cursor_column % tab_columns != 0) {
                   printf(" ");
                   interpreter_state.cursor_column++;
                 }
+              // if the separator is null, add a return
+              else if (sep == 0)
+                putchar('\n');
             }
-            // and mat print always closes the line
+            // mat print always closes the line
             interpreter_state.cursor_column = 0;
             putchar('\n');
           }
@@ -2584,7 +2598,7 @@ static void perform_statement(list_t *statement_entry)
             }
           }
           else {
-            handle_error(ern_TYPE_MISMATCH, "MAT PRINT with too many dimensions");
+            handle_error(ern_BAD_SUBSCRIPT, "MAT PRINT with too many dimensions");
             break;
           }
         } //item list
@@ -2673,7 +2687,7 @@ static void perform_statement(list_t *statement_entry)
             }
           } // dim=2
           else {
-            handle_error(ern_TYPE_MISMATCH, "MAT PRINT with too many dimensions");
+            handle_error(ern_BAD_SUBSCRIPT, "MAT PRINT with too many dimensions");
           } // dims
         } // item list
       } // mat read
@@ -2722,7 +2736,7 @@ static void perform_statement(list_t *statement_entry)
             }
         } // dim=2
         else {
-          handle_error(ern_TYPE_MISMATCH, "MAT CON with too many dimensions");
+          handle_error(ern_BAD_SUBSCRIPT, "MAT CON with too many dimensions");
         } // dims
       }  //mat con
         break;
@@ -2744,12 +2758,19 @@ static void perform_statement(list_t *statement_entry)
         if (!redim_matrix(mat_item, mat_item))
           break;
         
+        // get the number of dimensions
+        int dims = lst_length(array_store->actual_dimensions);
+        if (dims != 2) {
+          handle_error(ern_BAD_SUBSCRIPT, "MAT DET with non-2D array");
+          break;
+        }
+        
         // get the resulting number of dimensions
         list_t *act_dimensions = lst_first_node(array_store->actual_dimensions);
         int rows = POINTER_TO_INT(act_dimensions->data);
         int cols = POINTER_TO_INT(act_dimensions->next->data);
         if (rows != cols) {
-          handle_error(ern_TYPE_MISMATCH, "MAT DET with non-square array");
+          handle_error(ern_BAD_SUBSCRIPT, "MAT DET with non-square array");
           break;
         }
         
@@ -2859,7 +2880,7 @@ static void perform_statement(list_t *statement_entry)
         int dims = lst_length(array_store->actual_dimensions);
         list_t *act_dimensions = lst_first_node(array_store->actual_dimensions);
         if (dims != 2) {
-          handle_error(ern_TYPE_MISMATCH, "MAT IDN with non-2D array");
+          handle_error(ern_BAD_SUBSCRIPT, "MAT IDN with non-2D array");
           break;
         }
         
@@ -2867,7 +2888,7 @@ static void perform_statement(list_t *statement_entry)
         int rows = POINTER_TO_INT(act_dimensions->data);
         int cols = POINTER_TO_INT(act_dimensions->next->data);
         if (rows != cols) {
-          handle_error(ern_TYPE_MISMATCH, "MAT IDN with non-square array");
+          handle_error(ern_BAD_SUBSCRIPT, "MAT IDN with non-square array");
           break;
         }
         
@@ -2937,7 +2958,7 @@ static void perform_statement(list_t *statement_entry)
           }
         } // dim=2
         else {
-          handle_error(ern_TYPE_MISMATCH, "MAT ZER with too many dimensions");
+          handle_error(ern_BAD_SUBSCRIPT, "MAT ZER with too many dimensions");
           break;
         } // dims
       } //mat zer
@@ -3027,7 +3048,7 @@ static void perform_statement(list_t *statement_entry)
 //            }
 //        } // dim=2
 //        else {
-//          handle_error(ern_TYPE_MISMATCH, "MAT multiply with too many dimensions");
+//          handle_error(ern_BAD_SUBSCRIPT, "MAT multiply with too many dimensions");
 //        } // dims
 //      }  //mat mul
 //        break;
