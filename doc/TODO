@@ -10,12 +10,12 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
+- add DET function
+
 - option base 1 should return error on 0
 
 - Dartmouth style FOR loops, exit on 1 TO 0
-
-- matrix operations should generally not allow the same matrix variables on both sides
-
+=
 - add parameter checking to functions, currently most of them don't check that they were passed a string/number
 
 - need to allow multiple INPUTs on a single line, currently it requires a CR between values

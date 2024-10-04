@@ -2554,7 +2554,7 @@ static void perform_statement(list_t *statement_entry)
             handle_error(ern_TYPE_MISMATCH, "MAT PRINT with scalar variable");
             break;
           }
-          // column printing if it's 1-D or 2-D but the dimension is zero
+          // column printing if it's 1-D, or 2-D but the dimension is zero
           else if (dims == 1 || (dims == 2 && POINTER_TO_INT(act_dimensions->next->data) == 0)) {
             // vector case
             int len = POINTER_TO_INT(act_dimensions->data);
@@ -2735,7 +2735,7 @@ static void perform_statement(list_t *statement_entry)
           for (int r = 1; r <= rows; r++)
             for (int c = 1; c <= cols; c++) {
               int slot = r * cols + c;
-              array_store->array[slot].number = 1;
+              array_store->array[slot].number = 1.0;
             }
         } // dim=2
         else {
@@ -2746,6 +2746,11 @@ static void perform_statement(list_t *statement_entry)
         
       case MATDET:
       {
+        // in contrast to the other matrix statements, DET is a scalar result,
+        // we call it "MATDET" so that it is easier to find. DET is only valid
+        // after a INV, it returns zero otherwise. Some dialects, like IBM 5100,
+        // instead take a second variable in INV and put the determinant there.
+        
         // find the storage
         variable_reference_t *mat_item = statement->parms.let.variable;
         variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, mat_item->name);
