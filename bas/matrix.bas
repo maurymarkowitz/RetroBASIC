@@ -1,4 +1,6 @@
+5 A=5:REM make sure A is not the same as A()
 10 DIM A(5,5)
+15 PRINT A
 20 A(3,3)=10
 30 PRINT"tight-printing 5x5 matrix containing one non-zero entry in 3,3"
 40 MAT PRINT A;

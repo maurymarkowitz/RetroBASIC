@@ -50,7 +50,9 @@ Boston, MA 02111-1307, USA.  */
  * @param matrix the matrix to fill.
  * @param fill_value the value to fill it with.
 */
-void matrix_fill(int size, double destination[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE], double fill_value);
+void matrix_fill(int size,
+                 double destination[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE],
+                 double fill_value);
 
 /**
  * Copies the values in the source matrix to the destination matrix.
@@ -59,7 +61,9 @@ void matrix_fill(int size, double destination[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE],
  * @param destination the destination matrix the values will be copied into.
  * @param source the source matrix.
 */
-void matrix_copy(int size, double destination[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE], double source[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE]);
+void matrix_copy(int size,
+                 double destination[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE],
+                 double source[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE]);
 
 /**
  * Adds the values in one array to the values already in another.

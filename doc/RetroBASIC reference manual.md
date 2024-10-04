@@ -1828,26 +1828,30 @@ In RetroBASIC, `USR` always returns zero.
 DEC's BASIC-PLUS, on TOPS at least, used `USR$` to return a listing of the files in the user's directory.
 
 <a name="matrix-commands-operators-and-functions"></a>
-## Matrix commands, operators and functions
+## Matrix statements, operators and functions
 
-Later versions of Dartmouth BASIC introduced a series of matrix related commands and functions that operate on entire arrays with a single operation. These operations can also be implemented using FOR/NEXT loops, but using a single instruction leads to higher performance and more clearly indicates the actual intent of the program. The downside is that only a few dialects supported these commands, mostly on mainframes, so using them also leads to portability issues.
+Later versions of Dartmouth BASIC introduced a series of matrix related statements and functions that operate on entire arrays with a single operation. These operations can also be implemented using FOR/NEXT loops, but using a single instruction leads to higher performance and more clearly indicates the actual intent of the program. The downside is that only a few dialects supported these commands, mostly on mainframes, so using them also leads to portability issues.
 
-The basic idea is that the common statements `PRINT`, `INPUT` and `READ` now have matrix-related versions, `MAT PRINT`, `MAT INPUT` and `MAT READ`. When called, these versions loop over the array and perform the statement on all of the elements within it. So, for instance, `MAT PRINT A` will print out the entire array instead of having to use a FOR loop and print each slot separately. In addition to these statements, there are also a number of matrix operators and functions. For instance, one can use the assignment statement `MAT A=ZER` to set all the slots in a matrix to 0. All of these instructions begin with the statement keyword `MAT`.
+The basic idea is that the common statements `PRINT`, `INPUT` and `READ` now have matrix-related versions, `MAT PRINT`, `MAT INPUT` and `MAT READ`. When called, these versions loop over the array and perform the statement on all of the elements within it. So, for instance, `MAT PRINT A` will print out the entire array instead of having to use a FOR loop to print each slot separately. In addition to these statements, there are also a number of matrix operators and functions. For instance, one can use the assignment statement `MAT A=ZER` to set all the slots in a matrix to 0. All of these instructions begin with the statement keyword `MAT`.
 
 The system allows the dimensions of the array to be specified to limit the slots that a function will operate on. In the following documentation, we will refer to this as a *subarray*. For instance, if a program starts with `DIM A(10,10)`, then `MAT A=ZER` will assign 0 to all of the slots in A, 10 by 10, whereas `MAT A=ZER(5,5)` will change the values only in the subarray of 1..5 in the rows and columns, leaving the other values, in 6..10, unchanged. This works as long as the largest slot number, M times N, is less than the total number of slots original dimensioned. For instance, it is acceptable to call `MAT A=DET(15,1)`, despite A being DIMmed (10,10). This is very much at odds with normal BASIC behavior, where a reference to `A(15,1)` would cause a runtime error, `?BAD SUBSCRIPT` in Commodore BASIC for instance.
 
-RetroBASIC records these changes in dimension, which it needs to do to properly support any following matrix operations. For instance, after `MAT A=ZER(5,5)`, a `MAT PRINT A` needs to know it has to print a 5 by 5 array. These bounds are also used in non-matrix operations, so after redimensioning a reference to `A(7,2)` will now fail with `?BAD SUBSCRIPT`.
+RetroBASIC records these changes in dimensions, which it needs to do to properly support any following matrix operations. For instance, after `MAT A=ZER(5,5)`, a `MAT PRINT A` needs to know it has to print a 5 by 5 array. These bounds are also used in non-matrix operations, so after redimensioning a reference to `A(7,2)` will now fail with `?BAD SUBSCRIPT`.
 
-One "gotcha" to be aware of is that items in the slots at the zero indexes are ignored. So in a vector, the first slot is ignored, while in a matrix, all of the slots in the zero column and row are ignored. This may lead to unexpected results if data has been inserted in these slots using other statements and then manipulated with the matrix commands, which may cause that data to be cleared out, or alternately, data in those slots to appear in non-zero slots. For instance, in the original 10 by 10 dimension version of `A`, slot 10 holds the value for (1,0), if a value was placed in this slot and the array redimensioned to 5 by 5, that value is now in slot (2, 4), and will now be used in subsequent matrix operations. For this reason, code should be careful to ensure the slots in the zero indexes are never assigned values.
+One "gotcha" to be aware of is that items in the slots at the zero indexes are ignored. So in a vector, the first slot is ignored, while in a matrix, all of the slots in the zero column and row are ignored. This may lead to unexpected results if data has been inserted in these slots using other statements and then manipulated with the matrix commands, which may cause that data to be cleared out, or alternately, data in those slots to appear in non-zero slots. For instance, in the original 10 by 10 dimension version of `A`, slot 10 holds the value for (1,0), if a value was placed in this slot and the array redimensioned to 5 by 5, that value is now in slot (2, 4), and will now be used in subsequent matrix operations. For this reason, BASIC code should be careful to ensure the slots in the zero indexes are never assigned values.
 
-Another issue to be aware of is that the matrix functions can only be used one at a time, in contrast to normal math expressions. For instance, one can `LET A=B+C-D`, which the system evaluates by reading the values for A and B, adding them and storing the result, and reading the value for D and subtracting it from that result and storing that result, and then assigning the final result to A. Because of the limited memory of the machines of the era, there is no room to store these sorts of intermediate values, so one can `MAT A=B+C`, but not `MAT A=B+C-D`.
+Another issue to be aware of is that the matrix functions can only be used one at a time, in contrast to normal math expressions. For instance, one can `LET A=B+C-D`. Because of the limited memory of the machines of the era, there is no room to store the values of intermediate steps, so one can `MAT A=B+C`, but not `MAT A=B+C-D`. Although a lack of memory is no longer an issue on modern machines, RetroBASIC follows this rule in keeping with its goal for remaining compatible where possible.
+
+Dartmouth BASIC also does not allow the same matrix to appear on both sides of most operations, for instance one cannot `MAT A=TRN(A)`. This was legal in other variants and is supported in RetroBASIC for that reason.
+
+And finally, like Dartmouth's `CHANGE` statement, `MAT` instructions always look for an array variable with the given name, even if there are no parentheses. This means that `MAT PRINT A` will *not* find the variable named `A`, but will look for the *array* `A`, in effect, `A()`. This means you can `LET A=5:DIM A(5,5):A(3,3)=10` and only the 10 will appear in a `MAT PRINT A`.
 
 <a name="matrix-statements"></a>
 ### Matrix statements
 
 There are only four matrix statements, assignment with the always-optional `LET`, `PRINT`, `INPUT` and `READ`. All of these loop over the list of variables and then perform their normal actions on all of the elements in the array or the selected subarray. For instance, `MAT READ A` will read one value from the program's `DATA` statements for each slot in the matrix A, ignoring the zero slots. Thus a `MAT READ A` on a variable defined `DIM A(3,3)` will read nine values.
 
-One oddity is `MAT PRINT`, whose output differs depending on the type of array. If the array is 1-d, a vector, it will be considered a column and normally printed with each value on a separate line. In contrast, a matrix will be printed in a 2-d fashion, rows and columns. In both cases the layout can be changed by adding a comma or semicolon, which operate in a fashion similar to the normal `PRINT` statement, adjusting the width between the numbers; when applied to a vector, this also causes it to print out in a single row.
+One oddity is `MAT PRINT`, whose output differs depending on the type of array. If the array is 1-d, a vector, it will be considered a column and normally printed with each value on a separate line. In contrast, a matrix will be printed in a 2-d fashion, rows and columns. In both cases the layout can be changed by adding a comma or semicolon, which operate in a fashion similar to the normal `PRINT` statement, adjusting the width between the numbers. When a comma or semi is added to a vector, this causes it to print out in a single row, not in column layout.
 
 Another oddity is `MAT INPUT`, which would normally read a value for every slot in the array, similar to `MAT READ`. However, it parses this data from a single input line, which may not contain enough values to fully populate the array. In this case, no error is reported, and the remaining slots are simply ignored and will contain any value they did before. As it may not be possible to provide enough values on a single line to fill larger arrays, Dartmouth BASIC allowed you to type the ampersand, `&`, to indicate that the next line was part of the same input. This is not (currently) supported in RetroBASIC.
 
@@ -1868,7 +1872,7 @@ Which assigns the values of B(1,1) through B(5,5) into A. A will now be a 5x5 ma
 
     MAT A=B+C
 
-Adds the value in slot (m,n) in B with the value in slot (m,n) in C, and places the result in slot (m,n) in A. This is only valid if B and C have the same dimensions, if they differ, a runtime error will occur.
+Adds the value in slot (m,n) in B with the value in slot (m,n) in C, and places the result in slot (m,n) in A. This is only valid if B and C have the same dimensions, if they differ, a runtime error will occur. If the result array has different dimensions, it will be redimensioned to fit the result if possible.
 
     MAT A=B*C
 
@@ -1881,7 +1885,7 @@ Scalar multiplication; calculates the value of the expression on the left, in th
 <a name="mat-avarzeraexp"></a>
 ### `MAT` *avar*`=ZER`[(*aexp*,...)]
 
-Changes all of the slots in *avar* to 0, or if the optional *aexp*s are provided, only that subarray. Works for both 1-d vectors and 2-d matrixes. This statement was widely used in Dartmouth programs in order to quickly reset or resize an array, even in programs that did not make use of other matrix features.
+Changes all of the slots in *avar* to 0, or if the optional *aexp*s are provided, the result array will be resized to the subarray. Works for both 1-d vectors and 2-d matrixes, and matrixes do not have to be square. This statement was widely used in Dartmouth programs in order to quickly reset or resize an array, even in programs that did not make use of other matrix features.
 
 <a name="mat-avarconaexp"></a>
 ### `MAT` *avar*`=CON`[(*aexp*,...)]
@@ -1896,7 +1900,11 @@ Places 1's in the diagonal of a 2-d matrix, creating an *identity matrix*. A run
 <a name="mat-avar1invavar2"></a>
 ### `MAT` *avar1*`=INV(`*avar2*`)`
 
-Inverts *avar2*, if possible, and places the results in *avar1*. 
+Inverts *avar2*, if possible, and places the results in *avar1*. A side-effect of running the INV is that the DET function will now return the determinant. If DET is zero, the inversion did not work and should not be used.
+
+Variants:
+
+BASIC on the IBM 5100 used an alternate solution to returning the determinant by placing a second (optional) scalar variable in a second parameter.
 
 <a name="mat-avar1trnavar2"></a>
 ### `MAT` *avar1*`=TRN(`*avar2*`)`
