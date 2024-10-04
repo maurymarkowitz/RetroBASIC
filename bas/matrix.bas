@@ -4,6 +4,9 @@
 40 MAT PRINT A;
 50 PRINT"wide-printing 5x5 containing one non-zero entry in 3,3"
 60 MAT PRINT A
+70 PRINT"printing a 1-D array"
+80 DIM Z(3)
+90 MAT PRINT Z
 100 DIM B(3,3)
 110 PRINT"input a 3x3"
 120 MAT INPUT B
