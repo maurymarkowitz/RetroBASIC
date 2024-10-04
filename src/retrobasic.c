@@ -109,7 +109,7 @@ struct timeval reset_time;     					// if the user resets the time with TIME$, t
  * @p message is not empty, it will be printed in parens at the end.
  *
  * @param errnum error number, see errors.h for a list
- * @param message optional message string damfor extra information
+ * @param message optional message string for extra information
  */
 static void handle_error(const int errnum, const char *message)
 {
@@ -142,6 +142,9 @@ static void handle_error(const int errnum, const char *message)
     fprintf(stderr, "?%s at line %d (%s)\n", error_messages[interpreter_state.error_num], interpreter_state.error_line, message);
   else
     fprintf(stderr, "?%s at line %d\n", error_messages[interpreter_state.error_num], interpreter_state.error_line);
+  
+  // errors are fatal
+  exit(errnum);
 }
 
 /**
