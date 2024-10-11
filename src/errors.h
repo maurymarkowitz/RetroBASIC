@@ -27,11 +27,11 @@
  * @date 1 April 2024
  * @brief Definitions of standard BASIC error numbers and messages
  *
- * The numbers are mostly taken from Commodore BASIC and will provide
- * some level of compatibility. A number of errors have not been included.
- * Among these are things like TEXT TOO LONG, which occurs when a Commodore
- * machine attempts to open a source code file longer than 64k. Others,
- * like STRING TO LONG, are included but should never occur.
+ * The numbers are mostly taken from Commodore BASIC B, and will provide
+ * some level of compatibility. A number of these are not used by RetroBASIC,
+ * like STRING TO LONG, which simply can't occur. The numbers for these are
+ * defined for completeness, but the corresponding message text is not
+ * defined and there is no entry in the mapping array.
  */
 
 #define ern_NO_ERROR          0      // no error
@@ -45,11 +45,17 @@
 #define ern_FILE_NOT_OUTPUT   7      // attempt to PRINT/PUT to a file opened for reading
 #define ern_FILENAME_MISSING  8      // attempt to OPEN a file with no filename
 #define ern_BAD_DEVICE_NUM    9      // attempt to OPEN a device that is invalid
+#define ern_ARE_YOU_SURE      10     // unused in RetroBASIC
+#define ern_BAD_DISK          11     // unused in RetroBASIC
 
 #define ern_READY             12     // no error but paused in ready state
+#define ern_IN                13     // not an error, this points to the string " IN ". unused in RetroBASIC
 #define ern_BREAK             14     // the user has pressed the BREAK key
 #define ern_INPUT_EXTRA       15     // too many items in the input line, extras ignored
 #define ern_INPUT_REDO        16     // input character data for a numeric variable
+#define ern_LAST_NUMBER       17     // not an error, returns last number parsed. unused in RetroBASIC
+#define ern_MORE              18     // not an error, this points to the string "MORE". unused in RetroBASIC
+#define ern_POWER_ON_MSG      19     // not an error, prints a startup message. unused in RetroBASIC
 #define ern_NEXT_NO_FOR       20     // NEXT without a FOR on the stack
 #define ern_SYNTAX_ERROR      21     // any syntax error
 #define ern_RET_NO_GOSUB      22     // RETURN without a GOSUB on the stack
@@ -64,11 +70,16 @@
 #define ern_DIRECT_MODE       31     // INPUT/GET cannot be used in direct mode - unused in RetroBASIC
 #define ern_TYPE_MISMATCH     32     // number provided to string operation or vice versa
 #define ern_STRING_TO_LONG    33     // unused in RetroBASIC
+#define ern_FILE_DATA         34     // attempt to read a number from a file but get a non-number. unused in RetroBASIC, returns 32 instead
 #define ern_FORMULA_TOO_LONG  35     // unused in RetroBASIC
+// no definition for 36 can be found
 #define ern_DEF_UNKNOWN       37     // call to user-defined function that doesn't exist
+#define ern_LOAD_ERROR        38     // program failed to load from cassette. unused in RetroBASIC
+#define ern_VERIFY_ERROR      39     // program failed to verify on saving to cassette. unused in RetroBASIC
 #define ern_OUT_OF_STACK      40     // unused in RetroBASIC
 #define ern_CANT_CONTINUE     41     // RetroBASIC does not support CONTinue
 #define ern_POP_NO_STACK      42     // a POP/EXIT/DISPOSE was called with nothing on the stack
+#define ern_OUT_OF_TEXT       43     // loading a file larger than 64. unused in RetroBASIC
 #define ern_RES_NO_TRAP       44     // a RESUME was encountered with no corresponding TRAP
 
 #define ers_TOO_MANY_FILES    "TOO MANY FILES"
