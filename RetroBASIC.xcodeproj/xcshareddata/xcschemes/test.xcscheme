@@ -52,7 +52,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-u test.bas"
+            argument = "-u input.bas"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

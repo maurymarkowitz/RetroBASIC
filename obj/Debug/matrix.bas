@@ -1,9 +1,17 @@
+5 A=5:REM make sure A is not the same as A()
 10 DIM A(5,5)
+15 PRINT A
 20 A(3,3)=10
 30 PRINT"tight-printing 5x5 matrix containing one non-zero entry in 3,3"
 40 MAT PRINT A;
 50 PRINT"wide-printing 5x5 containing one non-zero entry in 3,3"
 60 MAT PRINT A
+70 PRINT"printing a 1-D array"
+80 DIM Z(3)
+90 MAT PRINT Z
+95 PRINT"printing a (0,3) array"
+96 DIM Y(0,3)
+97 MAT PRINT Y
 100 DIM B(3,3)
 110 PRINT"input a 3x3"
 120 MAT INPUT B

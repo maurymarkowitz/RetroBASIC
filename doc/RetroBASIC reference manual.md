@@ -985,7 +985,7 @@ Using multiple variables in a single `INPUT` has a similar effect. For instance:
     20 INPUT "Type three numbers separated by commas ",A,B,C
     30 PRINT "The total is "A+B+C
 
-The difference here is the way that the user's input is interpreted. The user can type three values on one line, separated by commas, as noted in the prompt. They can also type a single value and press <return>, which will cause the `INPUT` to display two question marks and continue asking until all values are provided. In this example run, the user types one value per line:
+The difference here is the way that the user's input is handled, in this case user can type three values on one line separated by commas. They can also type a single value and press <return>, which will cause the `INPUT` to display two question marks and continue asking until all values are provided. In this example run, the user types one value per line:
 
     Enter three numbers to be summed...
     Type three numbers separated by commas? 3
