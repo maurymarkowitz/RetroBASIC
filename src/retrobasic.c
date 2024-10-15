@@ -2399,9 +2399,9 @@ static void perform_statement(list_t *statement_entry)
           if (fgets(line, sizeof(line), stdin) != line)
             exit(EXIT_FAILURE);
           
-          // first, test to see if the input is zero length, if so,
-          // we simply exit the INPUT and continue running the program
-          if (strlen(line) == 0)
+          // first, test to see if the input is zero length or is a newline
+          // if so, exit the INPUT and continue running the program
+          if (strlen(line) == 0 || *line == '\r' || *line == '\n')
             break;
           
           // we got something, so null-terminate the string
