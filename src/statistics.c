@@ -105,14 +105,14 @@ static void is_integer(void *key, void *value, void *user_data)
  */
 void print_statistics(void)
 {
-  int lines_total = 0, line_min = MAXLINE + 1, line_max = -1;
+  int lines_total = 0, line_min = MAX_LINE_NUMBER + 1, line_max = -1;
   double linenum_1_digit = 0.0, linenum_2_digit = 0.0, linenum_3_digit = 0.0, linenum_4_digit = 0.0, linenum_5_digit = 0.0;
   double linenum_tot_digits = 0.0;
   double linenum_ave_digits = 0;
   
   // start with line number stats
   // just look for any entry in the arra with a non-empty statement list
-  for(int i = 0; i < MAXLINE; i++) {
+  for(int i = 0; i < MAX_LINE_NUMBER; i++) {
     if (interpreter_state.lines[i] != NULL) {
       lines_total++;
       if (i < line_min) line_min = i;
@@ -148,7 +148,7 @@ void print_statistics(void)
   list_t *next_line;
   list_t *start = interpreter_state.lines[interpreter_state.first_line];
   
-  for (int i = interpreter_state.first_line; i < MAXLINE - 1; i++) {
+  for (int i = interpreter_state.first_line; i < MAX_LINE_NUMBER - 1; i++) {
     // get the next line's statements, and continue if its empty
     list_t *this_line = interpreter_state.lines[i];
     if (interpreter_state.lines[i] == NULL)
@@ -156,11 +156,11 @@ void print_statistics(void)
     
     // now find the next non-empty line
     next_num = i + 1; // note to me: no, you can't i++ here!
-    while ((next_num < MAXLINE) && (interpreter_state.lines[next_num] == NULL))
+    while ((next_num < MAX_LINE_NUMBER) && (interpreter_state.lines[next_num] == NULL))
       next_num++;
     
     // if we ran off the end of the list, exit
-    if (next_num > MAXLINE - 1)
+    if (next_num > MAX_LINE_NUMBER - 1)
       break;
     
     // otherwise we found the next line

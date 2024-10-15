@@ -947,6 +947,15 @@ statement:
     $$ = new;
   }
   |
+  MAT variable '=' expression '(' exprlist ')'
+  {
+    statement_t *new = make_statement(MAT);
+    new->parms.let.variable = $2;
+    new->parms.let.expression = $4;
+    new->parms.let.variable->subscripts = $6;
+    $$ = new;
+  }
+  |
   MAT variable '=' '(' expression ')' '*' variable
   {
     statement_t *new = make_statement(MATIDN);
@@ -955,22 +964,23 @@ statement:
     $$ = new;
   }
   |
-  MAT variable '=' '(' expression ')' '*' variable  '(' exprlist ')'
+  MAT variable '(' exprlist ')' '=' expression
   {
-    statement_t *new = make_statement(MATIDN);
+    statement_t *new = make_statement(MAT);
     new->parms.let.variable = $2;
+    new->parms.let.expression = $7;
+    new->parms.let.variable->subscripts = $4;
     $$ = new;
   }
 
   |
-  MAT variable '=' MATIDN '(' exprlist ')'
+  MAT variable '=' '(' expression ')' '*' variable '(' exprlist ')'
   {
-    statement_t *new = make_statement(MATIDN);
+    statement_t *new = make_statement(MAT);
     new->parms.let.variable = $2;
-    new->parms.let.variable->subscripts = $6;
+    new->parms.let.variable->subscripts = $10;
     $$ = new;
   }
-
   |
   MAT PRINT printlist
   {

@@ -90,6 +90,9 @@ static void clear_stack(void);
 static void clear_error(void);
 static void reset_data_pointer(int line);
 
+/* global variable used by Dartmouth's matrix inversion routine */
+double determinant = 0.0;
+
 /* definitions of variables used by the static analyzer */
 clock_t start_ticks = 0, end_ticks = 0;	// start and end ticks, for calculating CPU time
 struct timeval start_time, end_time;    // start and end clock, for total run time
@@ -101,8 +104,8 @@ struct timeval reset_time;     					// if the user resets the time with TIME$, t
  * Handles runtime errors.
  *
  * If trap_line is set to 0, there is no error handling turned on,
- * in which case it simply reports the error. If trap_line is +ve,
- * it does not report the error and instead moves to the trap.
+ * in which case it simply reports the error and exits. If trap_line
+ * is +ve, it does not report the error and instead moves to the trap.
  *
  * If there is no trap and the error is going to be reported, it will
  * always report the error string and the line where it occurred. If
@@ -145,6 +148,28 @@ static void handle_error(const int errnum, const char *message)
   
   // errors are fatal
   exit(errnum);
+}
+
+/**
+ * Handles runtime warnings.
+ *
+ * Similar to handle_error, but does not trigger a trap, and does not
+ * exit the program. Examples include REDO FROM START.
+*
+ * @param errnum error number, see errors.h for a list
+ * @param message optional message string for extra information
+ */
+static void handle_warning(const int errnum, const char *message)
+{
+  // if the number is 0 then that means no error, that should not happen, but...
+  if (errnum <= 0)
+    return;
+  
+  // report the error and continue
+  if (strlen(message) > 0)
+    fprintf(stderr, "?%s at line %d (%s)\n", error_messages[errnum], current_line(), message);
+  else
+    fprintf(stderr, "?%s at line %d\n", error_messages[errnum], current_line());
 }
 
 /**
@@ -671,6 +696,75 @@ static value_t read_next_data_value(void)
 }
 
 /**
+ * Mimics strtod in form, but returns a string delimited by commas.
+ *
+ * This method looks for an opening quote, and if it finds one, reads until
+ * at least the next quote. If there is no opening quote, it reads until it
+ * sees one of the other terminators.
+ *
+ * In keeping with MS BASICs, this routine also eats any leading or trailing
+ * quotes and/or whitespace.
+ *
+ * @param line The raw string read from the INPUT statement.
+ * @param end The last character read, pointing to the terminator.
+ * @return The resulting string, possibly zero length.
+*/
+static char* strtostr(char* restrict line, char** restrict end)
+{
+  static char str[MAX_INPUT_LENGTH]; // use static so we know it won't be collected between calls
+  str[0] = '\0';       // safety first!
+  char *start = line;
+  
+  // eat any leading whitespace
+  while (isspace(*start))
+    start++;
+  
+  // see if the first character is a quote
+  bool inQuotes = false;
+  if (*start == '"') {
+    inQuotes = true;
+    start++; // skip over it
+  }
+  
+  // now read the rest of the line
+  *end = start;
+  
+  // look for a line end, EOF or comma
+  while (**end != 0) {
+    // it seems unlikely we will get these, but to be sure
+    if (**end =='\r' || **end =='\n' || **end == EOF) {
+      (*end)++;
+      break;
+    }
+    
+    // check if this is a closing quote
+    if (**end =='"')
+      inQuotes = false;
+    
+    // if not, check for a comma, but only if we're outside the quotes
+    if (!inQuotes && **end ==',') {
+      (*end)++;
+      break;
+    }
+    
+    (*end)++;
+  }
+  
+  // eat any trailing whitespace and/or quote, and/or comma
+  while (**end == '"' || isspace(**end) || **end == ',')
+    (*end)--;
+    
+  // make a substring
+  strncpy(str, start, *end - start);
+  
+  // end should point to the next item, not the end of this one
+  (*end)++;
+  
+  // all done
+  return str;
+}
+
+/**
  * Converts a number to a string.  The system follows the rules found in MS BASICs
  * like the PET that is, generally:
  *
@@ -816,7 +910,7 @@ static bool redim_matrix(variable_reference_t *destination_ref, variable_referen
   list_t *destination_act_dimensions = lst_first_node(destination_store->actual_dimensions);
   int destination_slots = 1;
   while (destination_act_dimensions != NULL) {
-    destination_slots = destination_slots * POINTER_TO_INT(destination_act_dimensions->data);
+    destination_slots = destination_slots * (POINTER_TO_INT(destination_act_dimensions->data) + 1); // remember, zero is 1
     destination_act_dimensions = lst_next(destination_act_dimensions);
   }
 
@@ -838,7 +932,7 @@ static bool redim_matrix(variable_reference_t *destination_ref, variable_referen
   else {
     int source_slots = 1;
     while (destination_act_dimensions != NULL) {
-      destination_slots = destination_slots * POINTER_TO_INT(destination_act_dimensions->data);
+      destination_slots = destination_slots * (POINTER_TO_INT(destination_act_dimensions->data) + 1);
       destination_act_dimensions = lst_next(destination_act_dimensions);
     }
     if (destination_slots < source_slots) {
@@ -1827,7 +1921,7 @@ static int line_for_statement(const list_t *statement)
   // first statement is higher than that index. That means we must
   // be on the previous line
   int this_index, previous_line = interpreter_state.first_line;
-  for (int i = interpreter_state.first_line; i < MAXLINE; i++) {
+  for (int i = interpreter_state.first_line; i < MAX_LINE_NUMBER; i++) {
     // skip empty lines
     if (interpreter_state.lines[i] == NULL) continue;
     
@@ -1871,11 +1965,11 @@ static list_t *find_line(int linenumber)
   // go to the next-highest. this is definitely not what MS does, nor ANSI apparently,
   // but if this does come up we can use this flag on the command line
   if (goto_next_highest) {
-    while ((linenumber < MAXLINE) && (interpreter_state.lines[linenumber] == NULL))
+    while ((linenumber < MAX_LINE_NUMBER) && (interpreter_state.lines[linenumber] == NULL))
       linenumber++;
     
     // if we fell off the end, report an error
-    if (linenumber == MAXLINE) {
+    if (linenumber == MAX_LINE_NUMBER) {
       handle_error(ern_NO_SUCH_LINE, "Undefined line in branch, beyond highest line number");
       return NULL;
     }
@@ -2239,11 +2333,16 @@ static void perform_statement(list_t *statement_entry)
         
       case INPUT:
       {
-        // INPUT can mix together prompts and variables, it doesn't
-        // *have* to be a single prompt at the start, although that is
-        // the typical convention. this code handles this possibility
-        // by rolling over the expression list, doing a print if it's
-        // not a variable, and a scan if it is
+        // INPUT takes a list of one or more variables and then scans the line
+        // to parse them. Numbers and strings can be mixed in a single INPUT,
+        // and the user can type a multi-variable INPUT on a single line or
+        // across several lines. This makes handling it annoyingly complex.
+        //
+        // Many (most?) dialects also allow a prompt string at the front of
+        // the list of variables, and a few allow prompts anywhere in the
+        // variable list. Here we print the prompt only if the item in front
+        // of the "current variable" is text, so that following prompts
+        // will appear only if they are on a separate line.
         //
         // NOTE: in C64 an empty input will exit without setting the
         //    value of the associated variable, leaving it what it
@@ -2251,58 +2350,121 @@ static void perform_statement(list_t *statement_entry)
 				//    simply press return on the computer command input it
 				//    will run the last command again.
         
-        // loop over the items in the variable/prompt list
-        for (list_t *I = statement->parms.input; I != NULL; I = lst_next(I)) {
-          either_t *value;
-          int type = 0;
+        int type;
+        
+        // start at the front of the list
+        list_t *current_item = statement->parms.input;
+        bool isFirst = true;
+
+        // we keep looping until we have a value for each of the variables,
+        // or the user puts in an empty input
+        bool isComplete = false;
+        while (!isComplete) {
+          printitem_t *ppi = current_item->data;
+
+          // skip separators
+          if (ppi->expression == NULL) {
+            current_item = lst_next(current_item);
+            continue;
+          }
           
-          printitem_t *ppi = I->data;
-					if (ppi->expression == NULL) {
-						// skip this one
-					}
-					else if (ppi->expression->type == variable) {
-            char line[80];
-            
-            // if there is a previous item in the printlist, look at the separator
-            // and suppress question mark prompt if it is a comma
-            if (I->prev == NULL)
-              printf("?");
-            else {
-              printitem_t *prev_item = I->prev->data;
-              if (prev_item->separator != ',')
-                printf("?");
-            }
-            
-            // see if we can get some data, we should at least get a return
-            fflush(stdout);
-            if (fgets(line, sizeof(line), stdin) != line)
-              exit(EXIT_FAILURE);
-            
-            // we got something, so null-terminate the string
-            line[strlen(line) - 1] = '\0';
-            
-            // optionally convert to upper case
-            if (upper_case) {
-              char *c = line;
-              while (*c) {
-                c = str_toupper(c);
-                c++;
-              }
-            }
-            
-            // find the storage for this variable, and assign the value
-            value = variable_value(ppi->expression->parms.variable, &type);
-            if (type >= NUMBER) {
-              sscanf(line, "%lg", &value->number);
-            } else {
-              value->string = str_new(line);
-            }
-          }
-          // if it's not a variable, it's some sort of prompt, so print it
-          else {
+          // if there is no variable in this entry, it's a prompt of some sort
+          if (ppi->expression->type == string) {
+            // print it
             print_expression(ppi->expression, NULL);
+            
+            // normally the semicolon or comma after the prompt string
+            // would cause the next print to occur at that location, but that
+            // is not what happens on an input, so...
+            interpreter_state.cursor_column = 0;
+
+            // and move on
+            current_item = lst_next(current_item);
+            continue;
           }
-        }
+            
+          // if we got this far, the current item has to be a variable,
+          // so we print the question mark...
+          if (isFirst)
+            printf("? "); // we include the space, as in CB. AB, doesn't
+          else
+            printf("?? ");
+          // and we can't be first any more
+          isFirst =  false;
+
+          // ... and then ask for some input
+          // see if we can get some data, we should at least get a return
+          char line[MAX_INPUT_LENGTH];
+          fflush(stdout);
+          if (fgets(line, sizeof(line), stdin) != line)
+            exit(EXIT_FAILURE);
+          
+          // first, test to see if the input is zero length, if so,
+          // we simply exit the INPUT and continue running the program
+          if (strlen(line) == 0)
+            break;
+          
+          // we got something, so null-terminate the string
+          line[strlen(line) - 1] = '\0';
+          size_t len = strlen(line);
+
+          // optionally convert to upper case
+          if (upper_case) {
+            char *c = line;
+            while (*c) {
+              c = str_toupper(c);
+              c++;
+            }
+          }
+          
+          // now loop over the results until we run out of input
+          char *end = line;
+          while (end - line < len) {
+            // the next item might be a separator or a prompt, skip those
+            while (current_item) {
+              if (((printitem_t *)current_item->data)->expression == NULL)
+                current_item = lst_next(current_item);
+              else if (((printitem_t *)current_item->data)->expression->type == string)
+                current_item = lst_next(current_item);
+              else
+                break;
+            }
+            // did we roll off the end? maybe a trailing prompt?
+            if (current_item == NULL)
+              break;
+            
+            // get the variable (which is has to be at this point)
+            ppi = current_item->data;
+            either_t *value = variable_value(ppi->expression->parms.variable, &type);
+
+            // read one value
+            if (type >= NUMBER) {
+              value->number = strtod(end, &end);
+              
+              // strtod leaves us on the separator, so...
+              if (*end == ',' || *end == ' ')
+                end++;
+            } else {
+              // our code strips the separator
+              value->string = strtostr(end, &end);
+            }
+            
+            // move to the next item
+            current_item = lst_next(current_item);
+            
+            // if there are no more items, exit
+            if (current_item == NULL) {
+              isComplete = true;
+              break;
+            }
+          } // parsing one line
+          
+          // did we read all the way to the end of the input?
+          // or is there still data in the string we didn't use?
+          if (end - line < len)
+            handle_warning(ern_INPUT_EXTRA, "");
+          
+        } // isComplete
       }
         break;
         
@@ -2437,7 +2599,6 @@ static void perform_statement(list_t *statement_entry)
       case MATINPUT:
       {
         // FIXME: this needs to read a line and stop, not keep asking for more input if none is provided
-
         printitem_t *input_item;
         char line[80];
 
@@ -2449,16 +2610,15 @@ static void perform_statement(list_t *statement_entry)
           if (input_item->expression == NULL)
             continue;
           
-          // all of the items must be a variable?
-          // FIXME: is that true?
+          // all of the items must be a variable, MAT INPUT does not support prompt strings
           if (input_item->expression->type != variable) {
             handle_error(ern_TYPE_MISMATCH, "MAT INPUT with non-variable");
             continue;
           }
           
-          // find the storage for this matrix
+          // find the storage for this matrix and its type
           variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, input_item->expression->parms.variable->name);
-          
+
           // redim if needed
           if (!redim_matrix(input_item->expression->parms.variable, input_item->expression->parms.variable))
             break;
@@ -2472,10 +2632,14 @@ static void perform_statement(list_t *statement_entry)
             handle_error(ern_TYPE_MISMATCH, "MAT INPUT with scalar variable");
             break;
           }
-          else if (dims == 1) {
+          else if (dims == 1 || (dims == 2 && POINTER_TO_INT(act_dimensions->data) == 0)) {
             // vector, loop over elements and input each one
-            int len = POINTER_TO_INT(act_dimensions->data);
-            
+            int len;
+            if (dims == 1)
+               len = POINTER_TO_INT(act_dimensions->data);
+            else
+              len = POINTER_TO_INT(act_dimensions->next->data);
+
             // remember to skip zero
             for (int i = 1; i <= len; i++) {
               fflush(stdout);
@@ -2484,9 +2648,17 @@ static void perform_statement(list_t *statement_entry)
               
               // we got something, so null-terminate the string
               line[strlen(line) - 1] = '\0';
-
-              // and turn it into a double
-              sscanf(line, "%lg", &array_store->array[i].number);
+              
+              // read it based on the variable type
+              if (array_store->type == STRING)
+                array_store->array[i].string = str_new(line);
+              else {
+                int worked = sscanf(line, "%lg", &array_store->array[i].number);
+                if (worked < 1) {
+                  handle_error(ern_TYPE_MISMATCH, "MAT INPUT of non-numeric value in numeric array");
+                  break;
+                }
+              }
             }
           }
           else if (dims == 2) {
@@ -2496,11 +2668,21 @@ static void perform_statement(list_t *statement_entry)
             for (int r = 1; r <= rows; r++) {
               for (int c = 1; c <= cols; c++) {
                 int slot = r * cols + c;
+                
                 fflush(stdout);
                 if (fgets(line, sizeof(line), stdin) != line)
                   exit(EXIT_FAILURE);
                 line[strlen(line) - 1] = '\0';
-                sscanf(line, "%lg", &array_store->array[slot].number);
+
+                if (array_store->type == STRING)
+                  array_store->array[slot].string = str_new(line);
+                else {
+                  int worked = sscanf(line, "%lg", &array_store->array[slot].number);
+                  if (worked < 1) {
+                    handle_error(ern_TYPE_MISMATCH, "MAT INPUT of non-numeric value in numeric array");
+                    break;
+                  }
+                }
               }
             }
           }
@@ -2515,6 +2697,7 @@ static void perform_statement(list_t *statement_entry)
       case MATPRINT:
       {
         printitem_t *print_item;
+        
         // in contrast to normal print, a missing separator does not mean semi
         char sep = 0;
 
@@ -2528,7 +2711,6 @@ static void perform_statement(list_t *statement_entry)
             continue;
           
           // all of the items must be a variable?
-          // FIXME: is that true?
           if (print_item->expression->type != variable) {
             handle_error(ern_TYPE_MISMATCH, "MAT PRINT with non-variable");
             continue;
@@ -2555,7 +2737,7 @@ static void perform_statement(list_t *statement_entry)
             break;
           }
           // column printing if it's 1-D, or 2-D but the dimension is zero
-          else if (dims == 1 || (dims == 2 && POINTER_TO_INT(act_dimensions->next->data) == 0)) {
+          else if (dims == 1) {
             // vector case
             int len = POINTER_TO_INT(act_dimensions->data);
             
@@ -2565,7 +2747,7 @@ static void perform_statement(list_t *statement_entry)
               value_t val = either_to_value(array_store->array[i], array_store->type);
               print_value(val, NULL);
               
-              // in this case,
+              // now tab it out
               if (sep == ',')
                 while (interpreter_state.cursor_column % tab_columns != 0) {
                   printf(" ");
@@ -2580,8 +2762,15 @@ static void perform_statement(list_t *statement_entry)
             putchar('\n');
           }
           else if (dims == 2) {
+            // matrix case
             int rows = POINTER_TO_INT(act_dimensions->data);
             int cols = POINTER_TO_INT(act_dimensions->next->data);
+            
+            // it is possible that the rows or columns are zero, so force them to 1
+            if (rows == 0)
+              rows = 1;
+            if (cols == 0)
+              cols = 1;
 
             for (int r = 1; r <= rows; r++) {
               for (int c = 1; c <= cols; c++) {
@@ -2590,12 +2779,12 @@ static void perform_statement(list_t *statement_entry)
                 print_value(val, NULL);
                 // and advance the cursor based on the separator, which defaults to comma for arrays, not semi
                 if (sep != ';')
-                  //FIXME: this should wrap at 80 columns
                   while (interpreter_state.cursor_column % tab_columns != 0) {
                     printf(" ");
                     interpreter_state.cursor_column++;
                   }
               }
+              // according to Illustrating BASIC, there should also be a blank row, but Dartmouth shows otherwise
               interpreter_state.cursor_column = 0;
               putchar('\n');
             }
@@ -2675,7 +2864,7 @@ static void perform_statement(list_t *statement_entry)
                 // test the type, if the variable and data are the same type assign it, otherwise return an error
                 if (data_value.type == array_type) {
                   if (array_type == STRING)
-                    array_store->array[slot].string = data_value.string;
+                    array_store->array[slot].string = str_copy(data_value.string, strlen(data_value.string));
                   else
                     array_store->array[slot].number = data_value.number;
                 } else {
@@ -2726,7 +2915,7 @@ static void perform_statement(list_t *statement_entry)
           
           // remember to skip zero
           for (int slot = 1; slot <= len; slot++)
-              array_store->array[slot].number = 1;
+              array_store->array[slot].number = 1.0;
         } // dim=1
         else if (dims == 2) {
           int rows = POINTER_TO_INT(act_dimensions->data);
@@ -3657,7 +3846,7 @@ static void delete_functions(void) {
 	interpreter_state.functions = NULL;
 }
 static void delete_lines(void) {
-  for(int i = MAXLINE - 1; i >= 0; i--) {
+  for(int i = MAX_LINE_NUMBER - 1; i >= 0; i--) {
     if (interpreter_state.lines[i] != NULL) {
       lst_free(interpreter_state.lines[i]);
     }
@@ -3722,14 +3911,14 @@ void interpreter_post_parse(void)
 {
   // look for the first entry in the lines array with a non-empty statement list
   int first_line = 0;
-  while ((first_line < MAXLINE - 1) && (interpreter_state.lines[first_line] == NULL))
+  while ((first_line < MAX_LINE_NUMBER - 1) && (interpreter_state.lines[first_line] == NULL))
     first_line++;
   
   // that statement is going to be the head of the list when we're done
   list_t *first_statement = interpreter_state.lines[first_line];
   
   // now find the next non-null line and concat it to the first one, and repeat
-  for (int i = first_line + 1; i < MAXLINE; i++) {
+  for (int i = first_line + 1; i < MAX_LINE_NUMBER; i++) {
     if (interpreter_state.lines[i])
       first_statement = lst_concat(first_statement, interpreter_state.lines[i]);
   }
@@ -3761,6 +3950,9 @@ void interpreter_run(void)
   
   // reset any errors
   clear_error();
+  
+  // reset the determinant
+  determinant = 0.0;
 
   // start the clocks
   start_ticks = clock();
