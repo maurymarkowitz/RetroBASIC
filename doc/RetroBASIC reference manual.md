@@ -303,7 +303,7 @@ The added precision of the IEEE format used in RetroBASIC makes the use of BCD s
 
 Strings hold zero or more characters to form sentence-like values. They are stored in memory as a series of numbers using ASCII encoding, or more commonly, a platform-specific variation of ASCII like PETASCII or ATASCII. The maximum size of a string varies on different platforms. Those that originated on systems with printer terminals are often limited to 72 or 132 characters, the length of one line on paper, while those from the video terminal and home computer era are normally 128 or 256 characters, which makes it easy to store the length in an 8-bit value. Some dialects allow strings to be limited only by system memory.
 
-RetroBASIC strings are always variable-length can be any size up to the underlying operating system's limit, typically a huge 32-bit or 64-bit value. This is always much more than any known early dialect of BASIC. So while it is possible that bad code would produce strings that are too long for the machine it was originally written on, causing an error, that same code will likely work fine in RetroBASIC.
+RetroBASIC strings are always variable-length and can be any size up to the underlying operating system's limit, typically a 32-bit or 64-bit value. This is always *much* more than any known early dialect of BASIC. So while it is possible that bad code would produce strings that are too long for the machine it was originally written on, causing an error, that same code will likely work fine in RetroBASIC.
  
 String constants are normally delimited with double quotes, like `"Hello, World!"`, although some dialects use single-quotes, `'Hello, World!'`, or allow both formats. Dialects vary widely in the way that they include quotes inside string constants; the modern solution of placing two double quotes beside each other inside a string, like `"Hello, ""World""!"`, is a later invention. Another curiosity, also seen in the FOCAL language, is that the closing quote can be left off if it is the last character on the line, although this is *rarely* (if ever?) seen in BASIC programs.
 
@@ -942,13 +942,17 @@ The column widths for commas vary across platforms; Dartmouth used 15 but the mo
 * `POS`
 
 <a name="input-sexpvarvar"></a>
-### `INPUT` [{*sexp*}{[;|,]}]*var*[,{*sexp*,}*var*,...]
+### `INPUT` [{*sexp*}{[;|,]}]*var*[,{*sexp*{[;|,]}}*var*,...]
 
-`INPUT` is the primary statement for asking the user for data from the keyboard. When it is encountered in a program, execution stops, and a question-mark prompt, `?`, is displayed on the console to indicate the computer is waiting for input. If the optional *sexp* is included, that text will be printed in front of the question-mark as an additional prompt. The user then enters their response and indicates they are done by pressing the <return> key. The value that they typed in is then processed and assigned to corresponding *var*.
+`INPUT` is the primary statement for asking the user for data from the keyboard. When it is encountered in a program, execution stops and a question-mark prompt is displayed on the console to indicate the computer is waiting for input. If the optional *sexp* is included, that text will be printed in front of the question-mark as an additional prompt. The user then enters their response and indicates they are done by pressing the <return> key. The value that they typed in is then processed and assigned to corresponding *var*.
 
-`INPUT` can accept multiple inputs in a single statement, using a comma-separated list of variables. If the variable is numeric, the user may enter the value on its own and press <return>, or they can enter multiple values on a single line by separating the values with commas. If the variable is a string, it only ends at the <return>, and commas input by the user are included in the string. This means it is not possible to enter multiple string values on a single line. In either case, if the user types in fewer values than there are variables in the statement, another question-mark prompt will be displayed, and the process will repeat until a value has been received for each *var*.
+The handling of empty inputs, which occurs when the user hits <return> without typing a value, varies across implementations. Some dialects, like early Commodore BASIC on the PET, stop execution of the program and return to the READY prompt without reporting an error, while Atari BASIC will also exit but also print error 8, "INPUT or READ type mismatch". Others, like Commodore BASIC V2 on the C64, interpret this as the user saying "no change", and continue execution leaving the variable's previous values unchanged. RetroBASIC follows this latter pattern.
 
-Some dialects allow prompt strings in front of every input *var*, and RetroBASIC supports this option.
+`INPUT` can accept multiple inputs in a single statement, using a comma-separated list of variables. The user may enter any value on its own and press <return>, or they can enter multiple values on a single line by separating the values with commas. If the variable is a string, a comma can be typed within the string by surrounding it with quotes, in the same fashion as a `DATA` statement. If there are multiple variables in the `INPUT`, if the user types fewer than that number on any one line, the `INPUT` will print a `??` to indicate more data is needed.
+
+Many dialects allow a prompt string to be typed in the first entry in the variable list. If this is used, the prompt will be printed before the question mark. This eliminates the need to use a separate `PRINT` statement to tell the user what they are expected to type in. Commodore BASIC requires the separator between the prompt and list of variables be a semicolon, while most demand a comma. RetroBASIC supports either, and always treats them like a semicolon in that no space is inserted between the prompt string and the question mark.
+
+A few dialects allow prompts to be inserted at any point in the parameter list, and RetroBASIC follows this convention. In the case of multi-variable `INPUT`s, any prompts after the first one will only appear if the user does not type in all the values in a single line.
 
 #### Examples:
 
@@ -978,28 +982,49 @@ The user responds by typing a number and pressing <return>. This returns to the 
 Using multiple variables in a single `INPUT` has a similar effect. For instance:
 
     10 PRINT "Enter three numbers to be summed..."
-    20 INPUT "Type three numbers separated by commas "A,B,C
+    20 INPUT "Type three numbers separated by commas ",A,B,C
     30 PRINT "The total is "A+B+C
 
-The difference here is the way that the user's input is interpreted. The user can type three values on one line, separated by commas, as noted in the prompt. They can also type a single value and press <return>, which will cause the `INPUT` to display the question mark and continue until all values are provided. In this example run, the user types one value per line:
+The difference here is the way that the user's input is interpreted. The user can type three values on one line, separated by commas, as noted in the prompt. They can also type a single value and press <return>, which will cause the `INPUT` to display two question marks and continue asking until all values are provided. In this example run, the user types one value per line:
 
     Enter three numbers to be summed...
-    Type three numbers separated by commas 3
-    ? 2
-    ? 1
+    Type three numbers separated by commas? 3
+    ?? 2
+    ?? 1
+    The total is 6
+
+The user could also type them all on one line:
+
+    Enter three numbers to be summed...
+    Type three numbers separated by commas? 3,2,1
     The total is 6
 
 RetroBASIC allows multiple prompt strings in a single statement:
 
     10 PRINT "Enter three numbers to be summed..."
-    20 INPUT "What is value 1 "A,"What is value 2 "B,"What is value 3 "C
+    20 INPUT "What is value 1 "A,"What is value 2",B,"What is value 3",C
     30 PRINT "The total is "A+B+C
-    
-#### Notes:
 
-Although the question-mark prompt is almost universal, Tiny BASIC uses the colon, `:` in its place. Other dialects allow the question-mark to be suppressed, but there is no standard for this feature.
+If the user types in all the values at once, the interaction might look like this:
 
-RetroBASIC does not currently allow multiple inputs on a single line, it expected a <return> to indicate the end of each value in a multi-value `INPUT`.
+    Enter three numbers to be summed...
+    Type three numbers separated by commas? 3,2,1
+    The total is 6
+
+Alternately, they may type in the values separately, as in the example above. In that case the additional prompts will appear:
+
+    Enter three numbers to be summed...
+    Type three numbers separated by commas? 3,2
+    What is value 3?? 1
+    The total is 6
+
+#### Variations:
+
+Although the question-mark prompt is almost universal, Tiny BASIC uses the colon, `:` instead.
+
+Some dialects allow the question-mark to be suppressed, but there is no standard for this feature.
+
+IBM 5100 BASIC requires single quotes around string entries made by the user, but this is not needed in RetroBASIC.
 
 <a name="data-read-and-restore"></a>
 ## `DATA`, `READ` and `RESTORE`
@@ -1059,7 +1084,7 @@ This program will print two totals at the console. The first time through A and 
 
 #### Variations:
 
-Wang BASIC interpreted the optional *aexp* not as a line number but an ordinal, such that `RESTORE 10` would set the pointer to the 10th element in the program's `DATA`. As there is no way to tell which is which, RetroBASIC always interprets the value as a line number, which is far more common.
+Wang BASIC interpreted the optional *aexp* not as a line number but an ordinal, such that `RESTORE 10` would set the pointer to the 10th element in the program's `DATA`. As there is no way to tell which dialect any given code is using, RetroBASIC always interprets the value as a line number, which is far more common.
 
 <a name="other-statements"></a>
 ## Other statements
@@ -1115,7 +1140,7 @@ This program produces:
 <a name="mathematical-operators-arithmetic"></a>
 ### Mathematical operators (arithmetic)
 
-RetroBASIC supports the standard set of arithmetic operators: `+` for addition, `-` for subtraction, `*` for multiplication, `/` for division, and `^` for exponentiation. It also supports the alternative `**` for exponentiation, which is seen in some older dialects.
+RetroBASIC supports the standard set of arithmetic operators: `+` for addition, `-` for subtraction, `*` for multiplication, `/` for division, and `^` for exponentiation. It also supports the alternative `**` for exponentiation, which is seen in some older dialects that did not have a ^ character on their keyboards.
 
 `DIV` is used for integer division, which produces the result with any fractional part left off, so `7 DIV 3` returns 2. The `MOD` operator returns the remainder of the division, so that `A = 7.5 MOD 3.5` produces 0.5. Some dialects perform an `INT` on the result, so `7.5 MOD 3.5` returns 0, not 0.5. Others support this functionality using functions, not operators, as detailed in the function section below.
 
@@ -1132,7 +1157,7 @@ RetroBASIC also supports two less well-known logical operators, `EQV` and `IMP`.
 
 #### Notes:
 
-Tymshare SUPER BASIC defines a pseudo-variable `EPS`, short for *epsilon*, which holds what that particular machine considers to be a very small value. Comparisons could be performed with the "close to equals" operator, `=#`, which returned true if the two values were equal to within `EPS`. These "close enough" comparisons were used to avoid the rounding issues described in the [*Data* section](#data-in-basic-programs) above.
+Tymshare SUPER BASIC defines a pseudo-variable `EPS`, short for *epsilon*, which holds what that particular machine considers to be a very small value. Comparisons could be performed with the "close to equals" operator, `=#`, which returned true if the two values were equal to within `EPS`. These "close enough" comparisons were used to avoid the rounding issues described in the [*Data* section](#data-in-basic-programs) above. RetroBASIC does not currently support this feature.
 
 #### Availability:
 
@@ -1836,6 +1861,8 @@ The basic idea is that the common statements `PRINT`, `INPUT` and `READ` now hav
 
 The system allows the dimensions of the array to be specified to limit the slots that a function will operate on. In the following documentation, we will refer to this as a *subarray*. For instance, if a program starts with `DIM A(10,10)`, then `MAT A=ZER` will assign 0 to all of the slots in A, 10 by 10, whereas `MAT A=ZER(5,5)` will change the values only in the subarray of 1..5 in the rows and columns, leaving the other values, in 6..10, unchanged. This works as long as the largest slot number, M times N, is less than the total number of slots original dimensioned. For instance, it is acceptable to call `MAT A=DET(15,1)`, despite A being DIMmed (10,10). This is very much at odds with normal BASIC behavior, where a reference to `A(15,1)` would cause a runtime error, `?BAD SUBSCRIPT` in Commodore BASIC for instance.
 
+IBM's BASIC for the 5100 generally allowed these limits to be placed on either side of the equals sign, such that `MAT A(5,5)=ZER` would have the same result as `MAT A=ZER(5,5)`.
+
 RetroBASIC records these changes in dimensions, which it needs to do to properly support any following matrix operations. For instance, after `MAT A=ZER(5,5)`, a `MAT PRINT A` needs to know it has to print a 5 by 5 array. These bounds are also used in non-matrix operations, so after redimensioning a reference to `A(7,2)` will now fail with `?BAD SUBSCRIPT`.
 
 One "gotcha" to be aware of is that items in the slots at the zero indexes are ignored. So in a vector, the first slot is ignored, while in a matrix, all of the slots in the zero column and row are ignored. This may lead to unexpected results if data has been inserted in these slots using other statements and then manipulated with the matrix commands, which may cause that data to be cleared out, or alternately, data in those slots to appear in non-zero slots. For instance, in the original 10 by 10 dimension version of `A`, slot 10 holds the value for (1,0), if a value was placed in this slot and the array redimensioned to 5 by 5, that value is now in slot (2, 4), and will now be used in subsequent matrix operations. For this reason, BASIC code should be careful to ensure the slots in the zero indexes are never assigned values.
@@ -1849,11 +1876,39 @@ And finally, like Dartmouth's `CHANGE` statement, `MAT` instructions always look
 <a name="matrix-statements"></a>
 ### Matrix statements
 
-There are only four matrix statements, assignment with the always-optional `LET`, `PRINT`, `INPUT` and `READ`. All of these loop over the list of variables and then perform their normal actions on all of the elements in the array or the selected subarray. For instance, `MAT READ A` will read one value from the program's `DATA` statements for each slot in the matrix A, ignoring the zero slots. Thus a `MAT READ A` on a variable defined `DIM A(3,3)` will read nine values.
+There are only four matrix statements; assignment, `PRINT`, `INPUT` and `READ`. All of these loop over the list of variables and then perform their normal actions on all of the elements in the array or the selected subarray. For instance, `MAT READ A` will read one value from the program's `DATA` statements for each slot in the matrix A, ignoring the zero slots. Thus a `MAT READ A` on a variable defined `DIM A(3,3)` will read nine values.
 
-One oddity is `MAT PRINT`, whose output differs depending on the type of array. If the array is 1-d, a vector, it will be considered a column and normally printed with each value on a separate line. In contrast, a matrix will be printed in a 2-d fashion, rows and columns. In both cases the layout can be changed by adding a comma or semicolon, which operate in a fashion similar to the normal `PRINT` statement, adjusting the width between the numbers. When a comma or semi is added to a vector, this causes it to print out in a single row, not in column layout.
+### `MAT` [`LET`] *avar1*`=`*avar2*[`(`*aexp*,*aexp*')']
+
+Assigns the values in *avar2* to the slots in *avar1*. If *avar2* has more slots than *avar1*, the statement will fail. If *avar2* has fewer slots than *avar1*, *avar1* will be redimensioned to match *avar2*. If the optional dimensions are provided on *avar2*, *avar1* will be redimensioned to that size instead, and fail if it does not have enough slots available.
+
+#### Variations:
+
+BASIC for the IBM 5100 allowed a scalar value to be placed on the right hand side, in parentheses. This removes the need for `CON` or `ZER`, but these statements were also included for compatibility reasons.
+
+#### Examples:
+
+   10 DIM A(3,4),B(3,4),C(2,3)
+   20 MAT READ A
+   20 MAT READ B
+   30 MAT READ C
+   100 MAT A=B
+   110 MAT A=C
+   120 MAT C=B(2,3)
+   130 MAT C=B
+   200 DATA ...
+
+In this example, line 100 will overwrite the values in A with those in B. The dimensions are the same so A remains otherwise unchanged. Line 110 will redimension A to (2,3) to match the dimensions of C, and then copy the values. Line 120 copies only the (2,3) elements from B, so C does not have to be redimensioned. Line 140 will cause a `?BAD SUBSCRIPT` error as C is not large enough to hold all the values in B.
+
+### `MAT PRINT` *avar*[,|;][*avar*{|[;|,]},...]]
+
+`MAT PRINT` works in a fashion similar to `PRINT`, but with a few significant differences. There is no allowance for constants or other types, only array variables and separators are valid parameters. Any other type appearing in the parameter list will cause a `?TYPE MISMATCH`. Additionally, there must be at least one such variable, an "empty" `MAT PRINT` is not allowed, whereas an empty `PRINT` will print a single carriage return.
+
+One oddity is that the output differs depending on the type of array. If the array is 1-d, a vector, it will be considered a column and normally printed with each value on a separate line. In contrast, a matrix will be printed in a 2-d fashion, rows and columns. In both cases the layout can be changed by adding a comma or semicolon, which operate in a fashion similar to the normal `PRINT` statement, adjusting the width between the numbers. When a comma or semi is added after a vector, this causes it to print out in a single row, not in column layout. Additionally, if you want to have a vector that prints like a matrix, you can define it with zero rows, `DIM A(0,5)` will print in column layout.
 
 Another oddity is `MAT INPUT`, which would normally read a value for every slot in the array, similar to `MAT READ`. However, it parses this data from a single input line, which may not contain enough values to fully populate the array. In this case, no error is reported, and the remaining slots are simply ignored and will contain any value they did before. As it may not be possible to provide enough values on a single line to fill larger arrays, Dartmouth BASIC allowed you to type the ampersand, `&`, to indicate that the next line was part of the same input. This is not (currently) supported in RetroBASIC.
+
+*Illustrating BASIC*, a book from the late 1970s, suggests you should *not* use `MAT INPUT`. This is because the command does not allow a prompt and there is no chance to print one between each value being input. Worse, there is no way to test the results one-by-one, you will only know there is an issue after all of the values have been typed in and will now have to be re-entered. Using an `INPUT` in a `FOR` loop allows the values to be tested and re-typed individually. There is also the issue that terminals of the era did not allow you to type more values than could fit on a single line and different implementations offered different solutions to this problem, or none at all. Dartmouth BASIC, for instance, allowed you to type an ampersand, but this was not universal across implementations. For all of these reasons it concludes "So for the sake of portability, if nothing else, don't use 'MAT INPUT' for demanding data from the keyboard." Another argument one can make is that it does not support string variables, while `MAT PRINT` does, although that could be supported.
 
 <a name="matrix-operators"></a>
 ### Matrix operators
