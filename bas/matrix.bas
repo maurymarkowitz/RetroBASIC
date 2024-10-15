@@ -9,6 +9,9 @@
 70 PRINT"printing a 1-D array"
 80 DIM Z(3)
 90 MAT PRINT Z
+95 PRINT"printing a (0,3) array"
+96 DIM Y(0,3)
+97 MAT PRINT Y
 100 DIM B(3,3)
 110 PRINT"input a 3x3"
 120 MAT INPUT B

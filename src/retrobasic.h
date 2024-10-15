@@ -37,7 +37,10 @@
  */
 
 /* consts used during parsing the source */
-#define MAXLINE 65535
+#define MAX_LINE_NUMBER 65535
+
+/* maximum length of an input/print */
+#define MAX_INPUT_LENGTH 132
 
 /* internal state variables used for I/O and other tasks */
 extern bool run_program;                // default to running the program, not just parsing it
@@ -202,7 +205,7 @@ typedef struct {
  statement, a list of variables and their values, and the runtime stack for
  GOSUB and FOR/NEXT */
 typedef struct {
-  list_t *lines[MAXLINE];         // the lines in the program, stored as an array of statement lists
+  list_t *lines[MAX_LINE_NUMBER]; // the lines in the program, stored as an array of statement lists
   int first_line;		              // index of the first line in the lines array, often 10
   list_t *current_statement;      // currently executing statement
   list_t *next_statement;         // next statement to run, might change for GOTO and such

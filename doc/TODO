@@ -15,10 +15,8 @@ BP - DEC BASIC-PLUS
 - option base 1 should return error on 0
 
 - Dartmouth style FOR loops, exit on 1 TO 0
-=
-- add parameter checking to functions, currently most of them don't check that they were passed a string/number
 
-- need to allow multiple INPUTs on a single line, currently it requires a CR between values
+- add parameter checking to functions, currently most of them don't check that they were passed a string/number
 
 - LINPUT/LINE INPUT/INPUT LINE
 
@@ -37,8 +35,6 @@ BP - DEC BASIC-PLUS
 - DEFINT/SNG/DBL/STR does not support the "range" syntax, DEFINT A-F. only comma lists work, DEFINT A,B
 
 - needs command-line switch for ANSI, controls tab stops and many errors
-
-- support Dartmouth/ANSI style FOR loops which skip the body if the test fails on the first loop
 
 - ELSE would be relatively easy to add, at least the single-line variety
 
