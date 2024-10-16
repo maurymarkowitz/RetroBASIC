@@ -1,7 +1,7 @@
 5 REM various tests of INPUT statements
 5 REM
-10 REM PRINT "input single number with no prompt"
-20 REM INPUT A
+10 PRINT "input single number with no prompt"
+20 INPUT A
 30 REM PRINT "input single number with a prompt"
 40 REM INPUT "the prompt";A
 50 PRINT "input three numbers with a single prompt"

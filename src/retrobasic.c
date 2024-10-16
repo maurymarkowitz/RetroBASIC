@@ -2382,7 +2382,7 @@ static void perform_statement(list_t *statement_entry)
             current_item = lst_next(current_item);
             continue;
           }
-            
+REDO_INPUT:
           // if we got this far, the current item has to be a variable,
           // so we print the question mark...
           if (isFirst)
@@ -2399,12 +2399,12 @@ static void perform_statement(list_t *statement_entry)
           if (fgets(line, sizeof(line), stdin) != line)
             exit(EXIT_FAILURE);
           
-          // first, test to see if the input is zero length or is a newline
-          // if so, exit the INPUT and continue running the program with the old values
+          // test to see if the input is zero length or is a newline, if so,
+          // exitINPUT and continue running the program with the old values
           if (strlen(line) == 0 || *line == '\r' || *line == '\n')
             break;
           
-          // we got something, so null-terminate the string
+          // null-terminate the string
           line[strlen(line) - 1] = '\0';
           size_t len = strlen(line);
 
@@ -2417,7 +2417,9 @@ static void perform_statement(list_t *statement_entry)
             }
           }
           
-          // now loop over the results until we run out of input
+          // loop over the results until we run out of input
+          list_t *starting_item = current_item;
+          char *start = line;
           char *end = line;
           while (end - line < len) {
             // the next item might be a separator or a prompt, skip those
@@ -2439,8 +2441,15 @@ static void perform_statement(list_t *statement_entry)
 
             // read one value
             if (type >= NUMBER) {
-              value->number = strtod(end, &end);
+              value->number = strtod(start, &end);
               
+              // check to make sure that is a number
+              if (value->number == 0.0 && start == end) {
+                handle_warning(ern_INPUT_REDO, "");
+                current_item = starting_item;
+                goto REDO_INPUT;
+              }
+
               // strtod leaves us on the separator, so...
               if (*end == ',' || *end == ' ')
                 end++;
@@ -2449,7 +2458,10 @@ static void perform_statement(list_t *statement_entry)
               value->string = strtostr(end, &end);
             }
             
-            // move to the next item
+            // move up the string
+            start = end;
+            
+            // move to the next INPUT item
             current_item = lst_next(current_item);
             
             // if there are no more items, exit
