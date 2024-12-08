@@ -55,7 +55,7 @@ char* str_new(char *string);
  * on Windows.
  *
  * @param string The string to copy.
- * @param no_of_chars Number of characters to delete.
+ * @param no_of_chars Number of characters to copy.
  * @return The copied string.
  */
 char* str_copy(const char *string, size_t no_of_chars);

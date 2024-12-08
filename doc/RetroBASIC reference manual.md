@@ -163,7 +163,7 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
 <a name="about-this-manual"></a>
 ## About this manual
 
-This manual is primarily a listing of the operators, commands and statements in the RetroBASIC interpreter. It also details some of the internal structures and differences between dialects of BASIC. It is written in Markdown to make it readable on most platforms.
+This manual is a listing of the operators, commands and statements in the RetroBASIC interpreter. It also details some of the internal structures and differences between dialects of BASIC. It is written in Markdown to make it readable on most platforms.
 
 <a name="abbreviations"></a>
 ### Abbreviations
@@ -221,16 +221,18 @@ In most dialects, a subset of the statement keywords can only be used in certain
 
 The purpose of an **expression** is to provide data to be acted on by the statements. There are many different types of expressions and much of a program's complexity is found within them. The primary types of expressions are classified by type:
 
-- **number** - such as 10 or -1.75. Also known as **numeric constants**.
-- **string** - a series of characters surrounded by double-quote marks, like "Hello, World!". Also known as **string constants**.
-- **variable** - a symbolic name which can store the value of a number or a string for future use.
-- **array** - a type of variable that stores multiple values at once.
+- **number** - such as `10` or `-1.75`. Also known as **numeric constants**.
+- **string** - a series of characters surrounded by double-quote marks, like `"Hello, World!"`. Also known as **string constants**.
+- **variable** - a symbolic name, often a single letter, which can store the value of a number or a string for future use.
+- **array** - a type of variable that stores multiple values (numbers or strings) at once.
 - **operator** - single characters, typically common arithmetic symbols, that take one or two expressions and produces a new number or string.
 - **function** - operators using names instead of arithmetic symbols.
 
 In most dialects, variables can contain either a number value or a string value but cannot change from one to another. This split was introduced in Dartmouth BASIC, which required the user to add a dollar sign suffix to variables that wanted to hold a string value. These are known as **string variables**. Non-string variables are sometimes, but not always, referred to as **numeric variables**. A few dialects allow any variable to store any value, and these generally lack the dollar sign. This is not supported in RetroBASIC, because most dialects consider assigning one to the other to be an error, and RetroBASIC needs to report these errors.
 
-BASIC programs are generally organized over multiple **lines**, each of which contains one or more statements. A line starts with a **line number**, which acts as a label so other parts of the program can refer to it, as well as a way for various editing tools to allow the user to indicate which lines they wish to edit. After the line number, there is a statement keyword and then any expressions that keyword may use, forming a complete statement. Lines may have more than one statement separated by colons or backslashes, depending on the dialect. Execution normally starts with the first statement on the lowest-numbered line, and then continues statement by statement until it reaches the end of the program. Some statements can change this normally linear progression; these are known as **branches**.
+BASIC programs are generally organized over multiple **lines**, each of which contains one or more statements. A line starts with a **line number**, which acts as a label so other parts of the program can refer to it, as well as a way for various editing tools to allow the user to indicate which lines they wish to edit. After the line number, there is a statement keyword and then any expressions that keyword may use, forming a complete statement. Lines may have more than one statement separated by colons or backslashes, depending on the dialect.
+
+Execution normally starts with the first statement on the lowest-numbered line in the program, and then continues statement by statement until it reaches the end of the program. Some statements can change this normally linear progression; these are known as **branches**.
 
 BASIC was written in an era when editing was carried out on typewriters and had a fixed-width line, often 132 characters, but sometimes 80 or 72, or rarely, even less. Years later, microcomputers emerged that limited lines to roughly 40 characters. To address the need to allow larger statements to be typed in, most dialects have the concept of a **logical line** versus a **physical line**. A physical line is simply a single line or text as produced by the device the user is typing on, while a logical line can span multiple physical lines up to some pre-set limit. Logical lines also allow the code to operate properly while moving between machines with different physical line lengths, only the display of the line will change.
 
@@ -246,19 +248,19 @@ Here is a simple example of a BASIC program that illustrates the overall form th
     50 IF C>10 THEN PRINT "C is > 10"
     60 END
 
-Line 10 of this program uses the `LET` statement keyword to assign a value to the numeric variable `A`, using the operator `=` to separate the variable name from the expression that provides a value. In this case, the associated **arithmetic expression** (*aexp*) is the numeric constant 10. The assignment statement is almost always the most common statement in a BASIC program, and for this reason, most versions of BASIC allow the `LET` keyword to be left out. This produces an exception to the rule that statements start with a statement keyword; they can actually start with a statement keyword *or* a variable name.
+Line 10 of this program uses the `LET` statement keyword to assign a value to the numeric variable `A`, using the operator `=` to separate the variable name from the expression that provides a value. In this case, the associated **arithmetic expression** (or *aexp*) is the numeric constant 10. The assignment statement is almost always the most common statement in a BASIC program, and for this reason, most versions of BASIC allow the `LET` keyword to be left out. This produces an exception to the rule that statements start with a statement keyword; they can actually start with a statement keyword *or* a variable name.
 
-Line 20 of this program is also an assignment statement, leaving off the optional `LET`. Notice the dollar sign on the variable name that indicates that the language should expect a string expression on the other side of the `=` operator, not a number. The expression used in this statement is the string constant "Hello".
+Line 20 of this program is also an assignment statement, leaving off the optional `LET`. Notice the dollar sign on the variable name `B` that indicates that the language should expect a string expression on the other side of the `=` operator, not a number. The expression used in this statement is the string constant "Hello".
 
 Line 30 is an example of a multi-statement line, with two statements separated by a colon. The first statement is an assignment using the addition operator with the value stored in `A` and the numeric constant 5 as the inputs. This will have the effect of assigning the resulting value 15 to the variable `C`. The second statement on this line is a print statement, another very common statement in most programs. This will evaluate the expression, returning the numerical value 15, and then print that value to the user's console.
 
-Line 40 shows an example of *overloading*, where a keyword may mean different things depending on the context. The expression in the print statement has the `+` operator but is being given **string expressions** instead of numeric. In this case, the `+` does not represent numeric addition but string concatenation, which places the right-hand string at the end of the left-hand string and returns a new, longer string. The result of this print statement is "Hello, World!" being printed to the console.
+Line 40 shows an example of *overloading*, where a keyword may mean different things depending on the context. The expression in the print statement has the `+` operator but is being given **string expressions** instead of numeric. In this case, the `+` does not represent numeric addition but *string concatenation*, which places the right-hand string at the end of the left-hand string and returns a new, longer string. The result of this print statement is `Hello, World!` being printed to the console.
 
-Line 50 is an example of a logical comparison, which is indicated by the `IF` statement keyword. This is followed by a **logical expression** (*lexp*) using the larger-than operator, which calculates the results of expressions on both sides of the operator, compares them, and then, depending on the outcome of the comparison, optionally performs the statement following the `THEN`. As `C` will hold the value 15 at this point, and 15 is larger than 10, the statement after `THEN` *will* be performed and produce the string "C is > 10" on the console.
+Line 50 is an example of a logical comparison, which is indicated by the `IF` statement keyword. This is followed by a **logical expression** (*lexp*) using the larger-than operator, which calculates the results of expressions on both sides of the operator, compares them, and then, depending on the outcome of the comparison, optionally performs the statement following the `THEN`. As `C` will hold the value 15 at this point, and 15 is larger than 10, the statement after `THEN` *will* be performed and produce the string `C is > 10` on the console.
 
 Line 60 is the `END` statement, which takes no expression and stops the execution of the program. `END` is optional in most dialects.
 
-When this program runs, it will produce:
+So when this program runs, it will produce:
 
     15
     Hello, World!
@@ -415,6 +417,10 @@ Clears the screen. On modern machines with scrollback buffers in the console, th
 
 `END` stops the execution of the program and exits RetroBASIC, returning you to the console shell. `END` is optional in most dialects, but adding an `END` was considered good form. `END` does not have to be at the end of the source code, it was often found higher in the code with subroutines below it, preventing them from running unless explicitly called. It can also be called anywhere in the code to exit the program based on user input.
 
+#### See also:
+
+* `STOP`
+
 <a name="new-erase-and-scratch"></a>
 ### `NEW`, `ERASE` and `SCRATCH`
 
@@ -446,11 +452,15 @@ Many later BASICs allowed either a number or string for the optional expression.
 
 `STOP` is similar to `END` in that the program stops executing and the user is returned to the shell. It is intended to stop execution in the middle of the program and keep the data intact so the user can `CONT`inue running after it stops. It is mostly used for debugging purposes.
 
-RetroBASIC adds a feature from Wang BASIC, which allows it to output an optional string. This is useful for saying things like "Stopping for debugging, you should PRINT A". If no expression is included, RetroBASIC instead prints the default message "STOPped at line:" along with the line number.
+RetroBASIC adds a feature from Wang and IBM 5100 BASIC, which outputs an optional string. This is useful for saying things like "Stopping for debugging, you should PRINT A". If no expression is included, RetroBASIC instead prints the default message "STOPped at line:" along with the line number.
 
 #### Variations:
 
 Harris BASIC-V added the `BREAK` statement, which allowed one to place `STOP` markers in the code in a single statement. For instance, `BREAK 10-50,100` would perform a stop (break) at any line from 10 to 50, or line 100. This is useful as it allows you to easily control debugging without having to edit the entire program, a single statement at the top does the same duty as multiple `STOP` statements spread all over the code. RetroBASIC does not currently support `BREAK`.
+
+#### See also:
+
+* `END`
 
 <a name="unsupported"></a>
 ### Unsupported
@@ -941,6 +951,35 @@ The column widths for commas vary across platforms; Dartmouth used 15 but the mo
 
 * `POS`
 
+### `PRINT USING` [*exp*][,|;][*exp*{|[;|,]},...]]
+
+`PRINT USING` is a variation of the `PRINT` statement that adds a "format string" to define how the following expressions should be formatted. This can define, for instance, how floating point numbers should be printed, including the number of digits after the decimal point, or to add a dollar sign at the front. There are a wide variety of formatting strings supported by various dialects, as well as different ways to specify them in the statement. RetroBASIC does its best to support as many of these as possible.
+
+The most common variations allow a string constant to be placed directly after the `USING`, known as the "image" or "format string". The image contains special characters that indicate what should be printed at that location. Other characters found in the image are output as-is. One of the most commonly used special characters is the hash, `#`, which indicates a digit should be printed in that location. Values can be forced to integer format using an image string like `"####`" or currency format with `"###.##"`. Because other characters are output as-is, a typical image mixes the two, for instance, `"The price is $####.## per pound."`
+
+While a number of dialects require the image to be specified as a string constant, some allow the image to be stored in a string variable. Additionally, most dialects that supported some way to specify the image explicitly on a separate line, as was the case in FORTRAN where this feature was taken. The most common syntax was to place a colon directly after a line number, and then refer to that in the `USING` clause by that line number. HP BASIC used the `IMAGE` statement, which used a different format characters than other dialects.
+
+One curiosity to note is that `PRINT USING` *always* prints a <return> at the end of the line, ignoring the normal behaviour when a comma or semicolon is found at the end of the expression list or in the image.
+
+RetroBASIC currently only supports the hash for numeric definitions. A more full treatment will follow in the future.
+
+#### Examples:
+
+    PRINT USING "##.##";.78
+     0.78
+
+    PRINT USING "###.##";987.654
+     987.65
+     
+    PRINT USING "##.##" ;10.2,5.3,66.789,.234
+     10.20 5.30 66.79 0.23
+
+#### Variations:
+
+GW BASIC uses a semicolon between the image and expressions, not a comma. RetroBASIC allows either.
+
+*Illustrating BASIC* notes that "one BASIC uses % not :" for specifying an `IMAGE` line, but does not specify which BASIC that is. It also notes that "N.C.C Standard BASIC" suggests the separator between the image specification and expression list is a colon, although no dialect that followed that rule was known. 
+
 <a name="input-sexpvarvar"></a>
 ### `INPUT` [{*sexp*}{[;|,]}]*var*[,{*sexp*{[;|,]}}*var*,...]
 
@@ -1090,7 +1129,7 @@ Wang BASIC interpreted the optional *aexp* not as a line number but an ordinal, 
 ## Other statements
 
 <a name="randomize-aexp"></a>
-### `RANDOMIZE` [*aexp*]
+### `RANDOMIZE` [*aexp*|TIMER]
 
 In most dialects of BASIC, random numbers returned by the `RND` function are based on an internal mathematical function that produces a new value based on the last one. When a program is first `RUN`, the first number in the sequence is normally zero, and thus every time the program is run, it will produce the same series of values. For a program that is using `RND`, this is generally the opposite of what is desired.
 
@@ -1104,7 +1143,7 @@ Later dialects, those developed for home computers, often lack the `RANDOMIZE` s
 
 Sinclair BASICs use `RAND` as a short form for `RANDOMIZE`.
 
-GW-BASIC has the additional oddity that if the *aexp* is left out, it will pause and ask the user for a seed value similar to an `INPUT` statement. To get the same behavior as other dialects, where it uses the clock as a seed, one uses the `RANDOMIZE TIMER` variation, which is not (currently) supported in RetroBASIC.
+GW-BASIC has the additional oddity that if the *aexp* is left out, it will pause and ask the user for a seed value similar to an `INPUT` statement. To get the same behavior as other dialects, where it uses the clock as a seed, one uses the `RANDOMIZE TIMER` variation.
 
 #### Notes:
 
@@ -1857,17 +1896,17 @@ DEC's BASIC-PLUS, on TOPS at least, used `USR$` to return a listing of the files
 
 Later versions of Dartmouth BASIC introduced a series of matrix related statements and functions that operate on entire arrays with a single operation. These operations can also be implemented using FOR/NEXT loops, but using a single instruction leads to higher performance and more clearly indicates the actual intent of the program. The downside is that only a few dialects supported these commands, mostly on mainframes, so using them also leads to portability issues.
 
-The basic idea is that the common statements `PRINT`, `INPUT` and `READ` now have matrix-related versions, `MAT PRINT`, `MAT INPUT` and `MAT READ`. When called, these versions loop over the array and perform the statement on all of the elements within it. So, for instance, `MAT PRINT A` will print out the entire array instead of having to use a FOR loop to print each slot separately. In addition to these statements, there are also a number of matrix operators and functions. For instance, one can use the assignment statement `MAT A=ZER` to set all the slots in a matrix to 0. All of these instructions begin with the statement keyword `MAT`.
+The basic idea is that the common statements `PRINT`, `INPUT` and `READ` now have matrix-related versions, `MAT PRINT`, `MAT INPUT` and `MAT READ`. When called, these versions loop over the array and perform the statement on all of the slots within it. So, for instance, `MAT PRINT A` will print out the entire array instead of having to use a FOR loop to print each slot separately. There are also a number of matrix operators and functions. For instance, one can use the assignment statement `MAT A=ZER` to set all the slots in a matrix to 0. All of these instructions begin with the statement keyword `MAT`.
 
-The system allows the dimensions of the array to be specified to limit the slots that a function will operate on. In the following documentation, we will refer to this as a *subarray*. For instance, if a program starts with `DIM A(10,10)`, then `MAT A=ZER` will assign 0 to all of the slots in A, 10 by 10, whereas `MAT A=ZER(5,5)` will change the values only in the subarray of 1..5 in the rows and columns, leaving the other values, in 6..10, unchanged. This works as long as the largest slot number, M times N, is less than the total number of slots original dimensioned. For instance, it is acceptable to call `MAT A=DET(15,1)`, despite A being DIMmed (10,10). This is very much at odds with normal BASIC behavior, where a reference to `A(15,1)` would cause a runtime error, `?BAD SUBSCRIPT` in Commodore BASIC for instance.
+The system allows the dimensions of the array to be specified to limit the slots that a function will operate on. In the following documentation, we will refer to this as a *subarray*. For instance, if a program starts with `DIM A(10,10)`, then `MAT A=ZER` will assign 0 to all of the slots in A, 10 by 10, whereas `MAT A=ZER(5,5)` will change the values only in the subarray of 1..5 in the rows and columns, leaving the other values, in 6..10, unchanged. This works as long as the largest slot number, M times N, is less than the total number of slots original dimensioned. For instance, it is acceptable to call `MAT A=DET(15,1)`, despite A being DIMmed (10,10). This is very much at odds with normal BASIC behavior, where a reference to `A(15,1)` would cause a runtime error, `?BAD SUBSCRIPT`.
 
-IBM's BASIC for the 5100 generally allowed these limits to be placed on either side of the equals sign, such that `MAT A(5,5)=ZER` would have the same result as `MAT A=ZER(5,5)`.
+IBM's BASIC for the 5100 allowed the subarray limits to be placed on either side of the equals sign, such that `MAT A(5,5)=ZER` would have the same result as `MAT A=ZER(5,5)`. This allows a subarray to be used even on operations where it would normally not be allowed. For instance, when adding two matrixes, the two inputs have to be the same size and subarrays cannot be defined on them. The IBM syntax allows the result to be resized after calculation, so one might `MAT A(3,3)=B+C` to make a 3 by 3 matrix from two 5 by 5 matrixes.
 
-RetroBASIC records these changes in dimensions, which it needs to do to properly support any following matrix operations. For instance, after `MAT A=ZER(5,5)`, a `MAT PRINT A` needs to know it has to print a 5 by 5 array. These bounds are also used in non-matrix operations, so after redimensioning a reference to `A(7,2)` will now fail with `?BAD SUBSCRIPT`.
+RetroBASIC records these changes in dimensions, which it needs to do to properly support any following matrix operations. For instance, after `MAT A=ZER(5,5)`, a `MAT PRINT A` needs to know it has to print a 5 by 5 array, not the original 10 by 10. These bounds are also used in non-matrix operations, so after redimensioning a reference to `A(7,2)` will now fail with `?BAD SUBSCRIPT`.
 
-One "gotcha" to be aware of is that items in the slots at the zero indexes are ignored. So in a vector, the first slot is ignored, while in a matrix, all of the slots in the zero column and row are ignored. This may lead to unexpected results if data has been inserted in these slots using other statements and then manipulated with the matrix commands, which may cause that data to be cleared out, or alternately, data in those slots to appear in non-zero slots. For instance, in the original 10 by 10 dimension version of `A`, slot 10 holds the value for (1,0), if a value was placed in this slot and the array redimensioned to 5 by 5, that value is now in slot (2, 4), and will now be used in subsequent matrix operations. For this reason, BASIC code should be careful to ensure the slots in the zero indexes are never assigned values.
+One "gotcha" to be aware of is that items in the slots at the zero indexes are ignored. So in a vector, the first slot is ignored, while in a matrix, all of the slots in the zero column and row are ignored. This may lead to unexpected results if data has been inserted in these slots using other statements and then manipulated with the matrix commands, which may cause that data to be cleared out, or alternately, data in those slots to appear in non-zero slots. For instance, in the original 10 by 10 dimension version of `A`, slot 10 holds the value for index (1,0), if a value was placed in this slot and the array redimensioned to 5 by 5, that value is now in slot (2, 4), and will now be used in subsequent matrix operations. For this reason, BASIC code should be careful to ensure the slots in the zero indexes are never assigned values.
 
-Another issue to be aware of is that the matrix functions can only be used one at a time, in contrast to normal math expressions. For instance, one can `LET A=B+C-D`. Because of the limited memory of the machines of the era, there is no room to store the values of intermediate steps, so one can `MAT A=B+C`, but not `MAT A=B+C-D`. Although a lack of memory is no longer an issue on modern machines, RetroBASIC follows this rule in keeping with its goal for remaining compatible where possible.
+Another issue to be aware of is that the matrix functions can only be used one at a time, in contrast to normal math expressions. For instance, one can `LET A=B+C-D`, but it is not possible to `MAT A=B+C-D`. This is due to the limited memory of the machines of the era, there is no room to store the values of intermediate steps like the `B+C`. Although a lack of memory is no longer an issue on modern machines, RetroBASIC follows this rule in keeping with its goal for remaining compatible where possible.
 
 Dartmouth BASIC also does not allow the same matrix to appear on both sides of most operations, for instance one cannot `MAT A=TRN(A)`. This was legal in other variants and is supported in RetroBASIC for that reason.
 
@@ -1884,7 +1923,7 @@ Assigns the values in *avar2* to the slots in *avar1*. If *avar2* has more slots
 
 #### Variations:
 
-BASIC for the IBM 5100 allowed a scalar value to be placed on the right hand side, in parentheses. This removes the need for `CON` or `ZER`, but these statements were also included for compatibility reasons.
+BASIC for the IBM 5100 allowed a scalar value to be placed on the right hand side, in parentheses. This removes the need for `CON` or `ZER`, but these statements are also supported for compatibility reasons.
 
 #### Examples:
 
@@ -1913,7 +1952,7 @@ Another oddity is `MAT INPUT`, which would normally read a value for every slot 
 <a name="matrix-operators"></a>
 ### Matrix operators
 
-The matrix system includes mathematical operators that mirror those that apply to scalar values. Dartmouth has assignment, addition, subtraction and multiplication. Generally, these instructions require the variables to be of the same type and dimensions, you can add a matrix to a matrix or vector to vector, but you cannot add a vector to a matrix. Dartmouth also added the ability to multiply all of the elements by a scalar value, which uses a separate format that demands the scalar expression be in parentheses and be the left-hand-side of the operator. Scalar division is not supported, as this syntax would have placed the divisor on the left.
+The matrix system includes mathematical operators that mirror those that apply to scalar values. Dartmouth has assignment, addition, subtraction and multiplication. Generally, these instructions require the variables to be of the same type and dimensions, you can add a matrix to a matrix or vector to vector, but you cannot add a vector to a matrix. Dartmouth also added the ability to multiply all of the elements by a scalar value, which uses a separate format that demands the scalar expression be in parentheses and be the left-hand-side of the operator. Scalar division is not supported.
 
 #### Examples:
 
@@ -1931,16 +1970,18 @@ Adds the value in slot (m,n) in B with the value in slot (m,n) in C, and places 
 
     MAT A=B*C
 
-As above, but multiplies the values in B and C.
+Multiplies the values in slot (m,n) in B with the value in slot (o,p) in C. A is resized to (m,p) if possible.
 
     MAT A=(5)*B
 
-Scalar multiplication; calculates the value of the expression on the left, in this case the constant 5, and then multiplies all the values in B by that value and places the results in A. RetroBASIC supports all of the mathematical operations in this statement, not just multiplication.
+Scalar multiplication; calculates the value of the expression on the left, in this case the constant 5, and then multiplies all the values in B by that value and places the results in A. A will be resized to match B.
 
 <a name="mat-avarzeraexp"></a>
-### `MAT` *avar*`=ZER`[(*aexp*,...)]
+### `MAT` *var*`=ZER`[(*aexp*,...)]
 
 Changes all of the slots in *avar* to 0, or if the optional *aexp*s are provided, the result array will be resized to the subarray. Works for both 1-d vectors and 2-d matrixes, and matrixes do not have to be square. This statement was widely used in Dartmouth programs in order to quickly reset or resize an array, even in programs that did not make use of other matrix features.
+
+`ZER` can also be used with string arrays, which sets all values to the empty string. The same resizing rules apply as in the numeric case.
 
 <a name="mat-avarconaexp"></a>
 ### `MAT` *avar*`=CON`[(*aexp*,...)]
@@ -1953,13 +1994,15 @@ Changes all of the slots in *avar* to 1, or the slots in the subarray. Works for
 Places 1's in the diagonal of a 2-d matrix, creating an *identity matrix*. A runtime error will occur if *avar* is a vector or scalar.
 
 <a name="mat-avar1invavar2"></a>
-### `MAT` *avar1*`=INV(`*avar2*`)`
+### `MAT` *avar1*`=INV(`*avar2*`)[`,`*avar3*]
 
-Inverts *avar2*, if possible, and places the results in *avar1*. A side-effect of running the INV is that the DET function will now return the determinant. If DET is zero, the inversion did not work and should not be used.
+Inverts the matrix *avar2*, if possible, and places the results in *avar1*. A runtime error will occur if *avar2* is not a square matrix.
+
+A side-effect of running the INV is that the DET function will now return the determinant. If DET is zero, the inversion did not work and should not be used.
 
 Variants:
 
-BASIC on the IBM 5100 used an alternate solution to returning the determinant by placing a second (optional) scalar variable in a second parameter.
+BASIC on the IBM 5100 used an alternate solution to returning the determinant by placing a second (optional) scalar variable in a second parameter. RetroBASIC supports this format as well, using *avar3*.
 
 <a name="mat-avar1trnavar2"></a>
 ### `MAT` *avar1*`=TRN(`*avar2*`)`
@@ -1971,7 +2014,7 @@ Transposes *avar2*, rotating it so columns become rows and rows columns, and pla
 
 Some versions of BASIC provide rudimentary error handling using the `TRAP` or `ON ERROR` statements. These will both be referred to here as *traps*. When a trap is turned on and an error occurs, or is *raised*, instead of printing the error message and stopping the program, the system branches to the indicated line and execution continues.
 
-The code at this line is known as an *error handler*. When an error occurs, the error number and line are placed in memory and then the system performs a `GOTO` into the handler. The handler allows the program to examine the error and decide how to continue. Most dialects allow the error number to be examined, as well as the line number where the error occurred. Jumping into the handler does not clear these values out, as one will generally want to examine them in the handler code. This is the purpose of the `RESUME` statement seen in some dialects, which clears the error codes and returns to the point where the error occurred. A `NEW`, `CLR` and `RUN` also clear out these values.
+The code at this line is known as an *error handler*. When an error occurs, the error number and line number are placed in memory and then the system performs a `GOTO` into the handler. The handler allows the program to examine the error and decide how to continue. Most dialects allow the error number to be examined, as well as the line number where the error occurred. Jumping into the handler does not clear these values out, as one will generally want to examine them in the handler code. This is the purpose of the `RESUME` statement seen in some dialects, which clears the error codes and returns to the point where the error occurred. A `NEW`, `CLR` and `RUN` also clear out these values.
 
 Dialects differ significantly on the details of how these features are turned on and off, and how the error can be examined and recovered. For instance, in Applesoft BASIC, which supports the `ONERR` statement, the error number is discovered using `PEEK(222)`. On the Atari, which uses `TRAP`, it is `PEEK(195)`. One of the few contemporary dialects that directly supported reading the error number was Commodore BASIC, which used a system variable `ER` that was set to the error number and `EL` which held the line number. Attempting to assign a value to these would cause an error. Unfortunately, these are valid variable names, which meant that programs that used these as normal variables would cause errors when run under 3.5. RetroBASIC implements these as functions instead of variables, `ERR()` for error number and `ERL()` for error line, which avoids this problem.
 
@@ -1982,7 +2025,7 @@ The simple trap concept used in BASIC is subject to a number of problems. Among 
 
 When any of these equivalent statements is encountered in a program, the *aexp* is evaluated, converted to a line number, and then stored for future reference. If an error occurs any time after the statement is encountered, execution will branch to the line number in *aexp*. If that line number does not exist, an error will be printed and execution will stop.
 
-The method of turning the trap off differs across dialects. In Commodore BASIC, one uses `TRAP` with no parameter, in Atari BASIC you `TRAP` with any line number above 32,767, and in AppleSoft one has to `POKE 216,0`. In RetroBASIC, traps are turned off with an empty parameter or any expression that evaluates to zero or a negative value.
+The method of turning the trap off differs across dialects. In Commodore BASIC, one uses `TRAP` with no parameter, in Atari BASIC you `TRAP` with any line number above 32767, and in AppleSoft one has to `POKE 216,0`. In RetroBASIC, traps are turned off with an empty parameter or any expression that evaluates to zero or a negative value.
 
 Note that `ON ERROR` can only be used with a `GOTO`, in contrast to a normal `ON` statement which also allows `GOSUB`. Using `GOSUB` here is not allowed and will return a syntax error prior to the program running.
 
@@ -2017,7 +2060,7 @@ Some versions of HP BASIC use `ERRN` instead of `ERR`. This is not currently sup
 <a name="erraexp"></a>
 ### `ERR$(`*aexp*`)`
 
-Returns a string with the error message for a given error number. A list of the codes and their messages follows.
+Returns a string with the error message for a given error number. This function can be called at any time, an error does not have to be trapped for it to work. A list of the codes and their messages follows.
 
 <a name="example"></a>
 ### Example
@@ -2039,7 +2082,7 @@ This program starts by setting a trap and then raising a syntax error, error 21.
 <a name="error-codes"></a>
 ## Error codes
 
-RetroBASIC's error codes are mostly modelled on Commodore BASIC 3.5 seen on the Commodore 128, as their list is fairly generic. A few additional errors have been added to handle new functionality. Others have been left out as they apply to specific tasks like operating the cassette tape.
+RetroBASIC's error codes are mostly modelled on Commodore BASIC 3.5 seen on the Commodore 128, as their list is fairly generic. A few additional errors have been added to handle new functionality. Others have been left out as they apply to specific tasks like operating the cassette tape. Not all of these codes can occur in RetroBASIC, but have been added for completeness.
 
 <!-- This simulates a definition list by placing two spaces behind the first two lines of each entry. Be careful with edits! -->
 0  

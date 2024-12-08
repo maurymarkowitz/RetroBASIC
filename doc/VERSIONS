@@ -137,19 +137,22 @@ Version 1.9.1 - 13 February 2024
 
 Version 2.0.0 -
 
-- added error handling in the form of TRAP, ON ERROR and RESUME statements, see reference manual
-- refactored error handling to return Commodore-like error numbers, see errors.h
-- add MAT commands from Dartmouth BASIC V4
-- reimplemented array handling to aid MAT commands
 - added -t/--trace option to turn on line tracing, which means -t is no longer short for --tabs
+- GO SUB and GO TO (GOSUB/GOTO) are now working properly
+- INPUT properly handles multiple variables on a single line, no need to press <return> between them
+- added error handling in the form of TRAP, ON ERROR and RESUME statements, see reference manual
+- refactored error handling to return Commodore-like error numbers
+- added MAT commands from Dartmouth BASIC V4
+- reimplemented array handling to aid MAT commands
 - added dummy version of ADR, returns 0
 - added DISPOSE, the Commodore version of POP (from late model machines)
 - added EQV and IMP logical operators, seen in IBM and some other versions
-- added RETURN with a line number, seen in MSX. equivalent to a POP and GOTO
+- added RETURN with a line number, seen in MSX. equivalent to doing a POP and then GOTO
 - fixed MOD and DIV operators
-- added MOD and DIV functions
+- added MOD and DIV *functions*
 - added ASCII, DEC's version of ASC
 - added SLEEP, DEC's version of PAUSE
-- ON properly falls to next statement if index is greater than number of items (instead of error)
+- ON properly falls to next statement after the ON if the index is greater than number of items (instead of error)
 - NEW properly clears the runtime stack for RETURN and NEXT
 - slicing now checks against DIMmed bounds in non-ANSI dialects
+- added RANDOMIZE TIMER from GW

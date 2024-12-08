@@ -38,14 +38,14 @@ Command-line options include:
 `--array-base`, `-a`: set base index for arrays, normally 1 but some dialects use 0  
 `--trace`, `-t`: turn on line number tracing  
 `--tabs`: set the number of spaces for comma-separated items, defaults to 10  
-`--goto-next`, `-g`: if a branch is to a non-existant line, should it go to the next line or return an error?  
+`--goto-next`, `-g`: if a branch is to a non-existent line, should it go to the next line or return an error?  
 `--random`, `-r`: seed the random number generator  
 `--slicing`, `-s`: enable string slicing like HP, Integer, Atari, etc.  
 `--output-file`, `-o`: redirect PRINT to the named file  
 `--input-file`, `-i`: redirect INPUT from the named file, one INPUT value per line  
 `--no_run`, `-n`: do not run the BASIC program, simply read and parse it and then exit  
 `--print_statistics`, `-p`: send a selection of statistics to the console  
-`--write_statistics`, `-w`: write the statistics to the named file in a machine readable format
+`--write_statistics`, `-w`: write the statistics to the named file in a machine readable format  
 
 If you wish to use RetroBASIC to simply check syntax or collect statistics, use the -n and -p switches.
 
@@ -59,7 +59,7 @@ An Xcode project is also included, which is the primary building method during t
 
 If anyone would like to contribute a VS.net project, it would be greatly appreciated.
 
-## Missing features and Erata
+## Missing features and Errata
 
 A complete list is maintained in the TODO file, but here are some important limitations:
 
