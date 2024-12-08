@@ -40,6 +40,8 @@ Boston, MA 02111-1307, USA.  */
 %option yylineno
  //%option nodefault
 
+%x DATA_STATEMENT
+
 %%
 
  /* end of file */
@@ -63,12 +65,12 @@ BYE       { return BYE; }   // also SYSTEM and GOODBYE
 CLEAR     { return CLEAR; }
 CLR       { return CLEAR; } // synonyms
 DEF       { return DEF; }
-DATA      { return DATA; }
+DATA      { BEGIN(DATA_STATEMENT); return DATA; }
 DIM       { return DIM; }
 END       { return END; }
 FOR       { return FOR; }
-GOSUB		  { return GOSUB; }
-GOTO		  { return GOTO; }
+GO" "?SUB { return GOSUB; }
+GO" "?TO	{ return GOTO; }
 IF        { return IF; }
 INPUT     { return INPUT; }
 LET	      { return LET; }
@@ -93,6 +95,7 @@ CLEAR     { return CLEAR; }
 CLR       { return CLEAR; }
 CLS       { return CLS; }     // clear screen, do not confuse with CLR or CLEAR
 CMD       { return CMD; }     // redirects output of PRINT to another device
+EXEC      { return CALL; }    //
 GET       { return GET; }
 PUT       { return PUT; }
 INPUT#    { return INPUT_FILE; }
@@ -100,7 +103,9 @@ PRINT#    { return PRINT_FILE; }
 OPTION    { return OPTION; }
 BASE      { return BASE; }
 RANDOMIZE { return RANDOMIZE; }
+TIMER     { return RANDOMIZE; } // this returns the RANDOMIZE token instead of making a new one
 SYS       { return SYS; }     // same as CALL
+SYSTEM    { return SYS; }     // same as CALL
 USING     { return USING; }
 VARLIST   { return VARLIST; }
 PAUSE     { return PAUSE; }
@@ -178,6 +183,8 @@ ERR\$     { return ERR; }
 [:,;()\[\]\^=+\-*/\<\>\&]     { return yytext[0]; }
 MOD       { return MOD; }
 DIV       { return DIV; }
+MAX       { return MAX; }
+MIN       { return MIN; }
 
  /* alternate form for power */
 "**"      { return '^'; } // FIXME: we should have a separate token for this?
@@ -188,7 +195,7 @@ OR        { return OR; }
 NOT       { return NOT; }
 XOR       { return XOR; }
 XOR       { return EQV; }
-XOR       { return IMP; }
+IMP       { return IMP; }
 
  /* comparison operators */
 \<=       { return CMP_LE; }
@@ -211,8 +218,9 @@ CHANGE    { return CHANGE; }
 CONVERT   { return CONVERT; }
 UCASE\$   { return UCASE; }
 LCASE\$   { return LCASE; }
-STRING\$  { return STRNG; } // returns n copies of a given string
 SPACE\$   { return SPC; }   // returns n spaces as a value, which is how our SPC works anyway
+STRING\$  { return STRNG; } // returns n copies of a given string
+REPEAT\$  { return STRNG; } // alternate form of STRING
 
  /* commodore-style TIME and TIME$ */
 TIME\$    { return TIME_STR; }
@@ -292,10 +300,30 @@ TRN       { return MATTRN; }  // transpose
           }
 
  /* preserve line ends */
-[\n]        { return '\n'; }
+[\n]        { BEGIN(INITIAL); return '\n'; }
 
  /* eat other whitespace */
 [ \t\r\l]   {  }
+
+ /* DATA statements convert everything to a string */
+<DATA_STATEMENT>{
+[^,:\n]* {
+            // eat any leading and trailing whitespace
+            yytext = str_trim(yytext);
+            
+            // and quotes
+            yytext = str_unquote(yytext);
+
+            yylval.s = str_new(yytext);
+            return STRING;
+          }
+
+[,] { return ','; } // triggers the exprlist syntax
+ 
+ /* colons or line-ends end the data statement and reset the state */
+[:] { BEGIN(INITIAL); return ':'; }
+[\n] { BEGIN(INITIAL); return '\n'; }
+}
 
 . printf("Bad input character '%s' at line %d\n", yytext, yylineno);
 

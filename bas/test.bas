@@ -1,5 +1,6 @@
 1 REM lots of little tests
 2 REM
+3 RANDOMIZE TIMER
 5 REM print some random numbers
 6 REM
 7 PRINT"Some rnds with RANDOMIZE 1"
@@ -213,7 +214,7 @@
 4901 REM
 4902 REM use the value of A for a GOTO..OF
 4903 REM
-4910 GOSUB A OF 4920,4930,4940
+4910 GO SUB A OF 4920,4930,4940
 4915 GOTO 4960
 4920 PRINT"A was 1":RETURN
 4930 PRINT"A was 2":RETURN

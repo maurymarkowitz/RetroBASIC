@@ -10,7 +10,21 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
+- add REDIM
+
+- MAT INPUT should also allow multi-input on a single line
+
+- NUM function returns number of items in MAT INPUT
+
 - add DET function
+
+- LINPUT/LINE INPUT/INPUT LINE
+
+- MAX and MIN
+
+- IMAGE (etc) for PRINT USING with HP specifiers, and colon for image for other dialects
+
+- CHAIN and COMMON
 
 - option base 1 should return error on 0
 
@@ -18,19 +32,11 @@ BP - DEC BASIC-PLUS
 
 - add parameter checking to functions, currently most of them don't check that they were passed a string/number
 
-- LINPUT/LINE INPUT/INPUT LINE
-
-- MAX and MIN
-
 - WHILE...WEND, LOOP...UNTIL, but so many variations...
-
-- IMAGE (etc) for PRINT USING
 
 - test and error on incorrect nesting of FOR loops, which we currently ignore
 
 - add longer variable names
-
-- CHAIN and COMMON
 
 - DEFINT/SNG/DBL/STR does not support the "range" syntax, DEFINT A-F. only comma lists work, DEFINT A,B
 
@@ -108,4 +114,4 @@ Will not be done:
 
 - NUM, which is Digital Group's version of VAL, or NUM$ which is the same as STR$.
 
-- NODATA statement from BASIC-PLUS. This is simply an ON ERROR that traps the no-more-data error.
+- NODATA statement from BASIC-PLUS. This is simply an ON ERROR that traps the no-more-data error. You can do this with a normal TRAP.
