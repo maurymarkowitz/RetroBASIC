@@ -32,6 +32,8 @@ Boston, MA 02111-1307, USA.  */
 #include "retrobasic.h"
 #include "statistics.h"
 
+#define YYDEBUG 1
+
  /* used to track the line number being processed so
     that errors can report it */
 static double errline;
@@ -65,8 +67,6 @@ static expression_t *make_operator(int arity, int o)
   new->parms.op.arity = arity;
   return new;
 }
-
-#define YYDEBUG 1
 
  /************************************************************************/
 
@@ -169,6 +169,7 @@ static expression_t *make_operator(int arity, int o)
 %token ROUND  // two versions, round-to-int and round-to-place
 %token CINT CSNG CDBL
 %token MOD MOD_INT DIV
+%token MAX MIN
 
  /* trig set */
 %token COS SIN ATN
@@ -240,6 +241,11 @@ static expression_t *make_operator(int arity, int o)
 %token MATTRN
 %token MATINV
 %token MATDET
+%token MATADD
+%token MATSUB
+%token MATMUL /* array multiply */
+%token MATSCA /* scalar multiply */
+%token MATFIL /* fill an array with a value */
 
 %%
 
@@ -297,7 +303,7 @@ statement:
   REM
   {
     statement_t *new = make_statement(REM);
-    new->parms.rem = yylval.s;
+    new->parms.rem = yylval.s; // the string has been modified in scan to remove the REM
     $$ = new;
   }
   |
@@ -367,7 +373,6 @@ statement:
     $$ = new;
   }
   |
-  /* DATA can have any type in it, but it is unlikely true expressions are allowed, although we allow them here */
   DATA exprlist
   {
     statement_t *new = make_statement(DATA);
@@ -466,6 +471,13 @@ statement:
   
     /* static analyser - consider anything with a STEP special even if it is a 1 */
     for_loops_total++;
+  }
+  |
+  GET variable
+  {
+    statement_t *new = make_statement(GET);
+    new->parms.generic_variable = $2;
+    $$ = new;
   }
   |
   GOSUB NUMBER
@@ -766,6 +778,13 @@ statement:
     $$ = new;
   }
   |
+  PUT expression
+  {
+    statement_t *new = make_statement(PUT);
+    new->parms.generic_parameter = $2;
+    $$ = new;
+  }
+  |
   RAISE expression
   {
     statement_t *new = make_statement(RAISE);
@@ -784,6 +803,14 @@ statement:
   {
     statement_t *new = make_statement(RANDOMIZE);
     new->parms.generic_parameter = $2;
+    $$ = new;
+  }
+  |
+  RANDOMIZE RANDOMIZE
+  {
+    // this handles RANDOMIZE TIMER because scan converts TIMER to RANDOMIZE
+    statement_t *new = make_statement(RANDOMIZE);
+    new->parms.generic_parameter = NULL;
     $$ = new;
   }
   |
@@ -855,9 +882,9 @@ statement:
     $$ = new;
   }
   |
-  STRING expression
+  STRNG expression
   {
-    statement_t *new = make_statement(STOP);
+    statement_t *new = make_statement(STRNG);
     new->parms.generic_parameter = $2;
     $$ = new;
   }
@@ -939,46 +966,96 @@ statement:
   }
   /* all the matrix stuff follows */
   |
-  MAT variable '=' expression
+  MAT variable '=' variable
   {
     statement_t *new = make_statement(MAT);
-    new->parms.let.variable = $2;
-    new->parms.let.expression = $4;
+    new->parms.mat.variable = $2;
+    new->parms.mat.variable2 = $4;
+    
+    // for all of the mat instructions, a sub-array can be defined by putting
+    // subscripts on either the LHR (IBM only) or RHS. RetroBASIC assumes the
+    // latter overrides the former, so if we find subs on one of the parameters,
+    // copy them over to the LHS to make them easier to find at runtime.
+    //
+    // NOTE: in theory there should only be one set of sub-array specifiers,
+    //  and more should be an error. but we just use the right most one we find
+    if (new->parms.mat.variable2->subscripts != NULL) {
+      new->parms.mat.variable->subscripts = new->parms.mat.variable2->subscripts;
+    }
+    
     $$ = new;
   }
   |
-  MAT variable '=' expression '(' exprlist ')'
+  MAT variable '=' '(' expression ')'
   {
     statement_t *new = make_statement(MAT);
-    new->parms.let.variable = $2;
-    new->parms.let.expression = $4;
-    new->parms.let.variable->subscripts = $6;
+    new->parms.mat.variable = $2;
+    new->parms.mat.expression = $5;
+    $$ = new;
+  }
+  |
+  MAT variable '=' variable '+' variable
+  {
+    statement_t *new = make_statement(MATADD);
+    new->parms.mat.variable = $2;
+    new->parms.mat.variable2 = $4;
+    new->parms.mat.variable3 = $6;
+
+    if (new->parms.mat.variable2->subscripts != NULL) {
+      new->parms.mat.variable->subscripts = new->parms.mat.variable2->subscripts;
+    }
+    if (new->parms.mat.variable3->subscripts != NULL) {
+      new->parms.mat.variable->subscripts = new->parms.mat.variable3->subscripts;
+    }
+
+    $$ = new;
+  }
+  |
+  MAT variable '=' variable '-' variable
+  {
+    statement_t *new = make_statement(MATSUB);
+    new->parms.mat.variable = $2;
+    new->parms.mat.variable2 = $4;
+    new->parms.mat.variable3 = $6;
+
+    if (new->parms.mat.variable2->subscripts != NULL) {
+      new->parms.mat.variable->subscripts = new->parms.mat.variable2->subscripts;
+    }
+    if (new->parms.mat.variable3->subscripts != NULL) {
+      new->parms.mat.variable->subscripts = new->parms.mat.variable3->subscripts;
+    }
+
     $$ = new;
   }
   |
   MAT variable '=' '(' expression ')' '*' variable
   {
-    statement_t *new = make_statement(MATIDN);
-    new->parms.let.variable = $2;
-    new->parms.let.expression = $5;
-    $$ = new;
-  }
-  |
-  MAT variable '(' exprlist ')' '=' expression
-  {
-    statement_t *new = make_statement(MAT);
-    new->parms.let.variable = $2;
-    new->parms.let.expression = $7;
-    new->parms.let.variable->subscripts = $4;
-    $$ = new;
-  }
+    statement_t *new = make_statement(MATSCA);
+    new->parms.mat.variable = $2;
+    new->parms.mat.expression = $5;
+    new->parms.mat.variable3 = $8;
 
+    if (new->parms.mat.variable3->subscripts != NULL) {
+      new->parms.mat.variable->subscripts = new->parms.mat.variable3->subscripts;
+    }
+
+    $$ = new;
+  }
   |
-  MAT variable '=' '(' expression ')' '*' variable '(' exprlist ')'
+  MAT variable '=' variable '*' variable
   {
-    statement_t *new = make_statement(MAT);
-    new->parms.let.variable = $2;
-    new->parms.let.variable->subscripts = $10;
+    statement_t *new = make_statement(MATMUL);
+    new->parms.mat.variable = $2;
+    new->parms.mat.variable2 = $4;
+    new->parms.mat.variable3 = $6;
+
+    if (new->parms.mat.variable2->subscripts != NULL) {
+      new->parms.mat.variable->subscripts = new->parms.mat.variable2->subscripts;
+    }
+    if (new->parms.mat.variable3->subscripts != NULL) {
+      new->parms.mat.variable->subscripts = new->parms.mat.variable3->subscripts;
+    }
+
     $$ = new;
   }
   |
@@ -1000,86 +1077,89 @@ statement:
   {
     statement_t *new = make_statement(MATREAD);
     new->parms.read = $3;
+    
     $$ = new;
   }
   |
   MAT variable '=' MATCON
   {
     statement_t *new = make_statement(MATCON);
-    new->parms.let.variable = $2;
+    new->parms.mat.variable = $2;
     $$ = new;
   }
   |
   MAT variable '=' MATCON '(' exprlist ')'
   {
     statement_t *new = make_statement(MATCON);
-    new->parms.let.variable = $2;
-    new->parms.let.variable->subscripts = $6;
+    new->parms.mat.variable = $2;
+    new->parms.mat.variable->subscripts = $6;
     $$ = new;
   }
   |
   MAT variable '=' MATDET
   {
+    // there are two ways to get the DET, one is a normal function,
+    // the other is the IBM version of INV
     statement_t *new = make_statement(MATDET);
-    new->parms.let.variable = $2;
-    $$ = new;
-  }
-  |
-  MAT variable '=' MATDET '(' exprlist ')'
-  {
-    statement_t *new = make_statement(MATDET);
-    new->parms.let.variable = $2;
-    new->parms.let.variable->subscripts = $6;
+    new->parms.mat.variable = $2;
     $$ = new;
   }
   |
   MAT variable '=' MATZER
   {
     statement_t *new = make_statement(MATZER);
-    new->parms.let.variable = $2;
+    new->parms.mat.variable = $2;
     $$ = new;
   }
   |
   MAT variable '=' MATZER '(' exprlist ')'
   {
     statement_t *new = make_statement(MATZER);
-    new->parms.let.variable = $2;
-    new->parms.let.variable->subscripts = $6;
+    new->parms.mat.variable = $2;
+    new->parms.mat.variable->subscripts = $6;
     $$ = new;
   }
   |
   MAT variable '=' MATIDN
   {
     statement_t *new = make_statement(MATIDN);
-    new->parms.let.variable = $2;
+    new->parms.mat.variable = $2;
     $$ = new;
   }
   |
   MAT variable '=' MATIDN '(' exprlist ')'
   {
     statement_t *new = make_statement(MATIDN);
-    new->parms.let.variable = $2;
-    new->parms.let.variable->subscripts = $6;
+    new->parms.mat.variable = $2;
+    new->parms.mat.variable->subscripts = $6;
     $$ = new;
   }
-  /*
   |
-  MAT variable '=' MATINV '(' expression ')'
+  MAT variable '=' MATINV '(' variable ')'
   {
     statement_t *new = make_statement(MATINV);
-    new->parms.let.variable = $2;
-    new->parms.let.variable->subscripts = $6;
+    new->parms.mat.variable = $2;
+    new->parms.mat.variable2 = $6;
     $$ = new;
   }
   |
-  MAT variable '=' MATTRN '(' expression ')'
+  MAT variable '=' MATINV '(' variable ')' ',' variable
   {
-    statement_t *new = make_statement(MATTRN);
-    new->parms.let.variable = $2;
-    new->parms.let.variable->subscripts = $6;
+    // this is the IBM 5100 version, which returns the determinant
+    statement_t *new = make_statement(MATINV);
+    new->parms.mat.variable = $2;
+    new->parms.mat.variable2 = $6;
+    new->parms.mat.variable3 = $9;
     $$ = new;
   }
-   */
+  |
+  MAT variable '=' MATTRN '(' variable ')'
+  {
+    statement_t *new = make_statement(MATTRN);
+    new->parms.mat.variable = $2;
+    new->parms.mat.variable2 = $6;
+    $$ = new;
+  }
   ;
 
  /* precedence in RetroBASIC is handled through this pattern tree,
@@ -1202,6 +1282,8 @@ term:   '*' { $$ = '*'; } |
         '/' { $$ = '/'; } |
         MOD { $$ = MOD; } |
         DIV { $$ = DIV; } |
+        MAX { $$ = MAX; } |
+        MIN { $$ = MIN; } |
         '^' { $$ = '^'; } ;
 
 expression4:
@@ -1303,7 +1385,8 @@ fn_0:
   TIME { $$ = TIME; } |
   TIME_STR { $$ = TIME_STR; } |
   EL { $$ = EL; } |
-  ER { $$ = ER; }
+  ER { $$ = ER; } |
+  MATDET { $$ = MATDET; }
   ;
 
  /* arity-1 functions */
@@ -1345,6 +1428,8 @@ fn_1:
 fn_2:
   DIV  { $$ = DIV; } |
   MOD  { $$ = MOD; } |
+  MAX  { $$ = MAX; } |
+  MIN  { $$ = MIN; } |
   LEFT { $$ = LEFT; } |
   RIGHT { $$ = RIGHT; } |
   STRNG { $$ = STRNG; }
@@ -1361,7 +1446,6 @@ fn_x:
   UBOUND  { $$ = UBOUND; } |
   LBOUND  { $$ = LBOUND; } |
   MATCON  { $$ = MATCON; } |
-  MATDET  { $$ = MATDET; } |
   MATIDN  { $$ = MATIDN; } |
   MATINV  { $$ = MATINV; } |
   MATTRN  { $$ = MATTRN; } |
@@ -1613,7 +1697,7 @@ exprlist:
     $$ = lst_append($1, $3);
   }
   ;
-  
+    
   /* ANSI-style string slicing */
   // NOTE: the ANSI docs suggest the only correct format is two-parameter, start and end
   //       this contrasts with most other systems, where one or the other can be left off

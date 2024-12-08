@@ -165,8 +165,8 @@
      ERROR = 381,
      RAISE = 382,
      ERR = 383,
-     ER = 384,
-     EN = 385,
+     EL = 384,
+     ER = 385,
      DEFSTR = 386,
      DEFINT = 387,
      DEFSNG = 388,
@@ -198,7 +198,11 @@
      MATIDN = 414,
      MATTRN = 415,
      MATINV = 416,
-     MATDET = 417
+     MATDET = 417,
+     MATADD = 418,
+     MATSUB = 419,
+     MATMUL = 420,
+     MATSCA = 421
    };
 #endif
 /* Tokens.  */
@@ -362,13 +366,17 @@
 #define MATTRN 415
 #define MATINV 416
 #define MATDET 417
+#define MATADD 418
+#define MATSUB 419
+#define MATMUL 420
+#define MATSCA 421
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 73 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/src/parse.y"
+#line 80 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/src/parse.y"
 {
   double d;
   int i;
@@ -379,7 +387,7 @@ typedef union YYSTYPE
   variable_reference_t *variable;
 }
 /* Line 1529 of yacc.c.  */
-#line 383 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
+#line 391 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
     YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
