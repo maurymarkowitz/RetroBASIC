@@ -75,35 +75,35 @@
      PRINT = 291,
      PUT = 292,
      READ = 293,
-     RESTORE = 294,
-     RETURN = 295,
-     RUN = 296,
-     STEP = 297,
-     STOP = 298,
-     THEN = 299,
-     TO = 300,
-     USING = 301,
-     WAIT = 302,
-     OPEN = 303,
-     CLOSE = 304,
-     STATUS = 305,
-     PRINT_FILE = 306,
-     INPUT_FILE = 307,
-     GET_FILE = 308,
-     PUT_FILE = 309,
-     CALL = 310,
-     CLS = 311,
-     CMD = 312,
-     OPTION = 313,
-     BASE = 314,
-     PEEK = 315,
-     POKE = 316,
-     POP = 317,
-     RANDOMIZE = 318,
-     SYS = 319,
-     VARLIST = 320,
-     PAUSE = 321,
-     SLEEP = 322,
+     RETURN = 294,
+     RUN = 295,
+     STEP = 296,
+     STOP = 297,
+     THEN = 298,
+     TO = 299,
+     USING = 300,
+     WAIT = 301,
+     OPEN = 302,
+     CLOSE = 303,
+     STATUS = 304,
+     PRINT_FILE = 305,
+     INPUT_FILE = 306,
+     GET_FILE = 307,
+     PUT_FILE = 308,
+     CALL = 309,
+     CLS = 310,
+     CMD = 311,
+     OPTION = 312,
+     BASE = 313,
+     PEEK = 314,
+     POKE = 315,
+     POP = 316,
+     RANDOMIZE = 317,
+     SYS = 318,
+     VARLIST = 319,
+     PAUSE = 320,
+     SLEEP = 321,
+     RESTORE = 322,
      ABS = 323,
      SGN = 324,
      CLOG = 325,
@@ -160,38 +160,49 @@
      POS = 376,
      USR = 377,
      LIN = 378,
-     DEFSTR = 379,
-     DEFINT = 380,
-     DEFSNG = 381,
-     DEFDBL = 382,
-     CHANGE = 383,
-     CONVERT = 384,
-     UCASE = 385,
-     LCASE = 386,
-     STRNG = 387,
-     TIME = 388,
-     TIME_STR = 389,
-     HEX = 390,
-     OCT = 391,
-     BIN = 392,
-     HEXSTR = 393,
-     OCTSTR = 394,
-     BINSTR = 395,
-     UBOUND = 396,
-     LBOUND = 397,
-     LABEL = 398,
-     MAT = 399,
-     MATPRINT = 400,
-     MATINPUT = 401,
-     MATREAD = 402,
-     MATGET = 403,
-     MATPUT = 404,
-     MATZER = 405,
-     MATCON = 406,
-     MATIDN = 407,
-     MATTRN = 408,
-     MATINV = 409,
-     MATDET = 410
+     TRAP = 379,
+     RESUME = 380,
+     ERROR = 381,
+     RAISE = 382,
+     ERR = 383,
+     EL = 384,
+     ER = 385,
+     DEFSTR = 386,
+     DEFINT = 387,
+     DEFSNG = 388,
+     DEFDBL = 389,
+     CHANGE = 390,
+     CONVERT = 391,
+     UCASE = 392,
+     LCASE = 393,
+     STRNG = 394,
+     TIME = 395,
+     TIME_STR = 396,
+     HEX = 397,
+     OCT = 398,
+     BIN = 399,
+     HEXSTR = 400,
+     OCTSTR = 401,
+     BINSTR = 402,
+     UBOUND = 403,
+     LBOUND = 404,
+     LABEL = 405,
+     MAT = 406,
+     MATPRINT = 407,
+     MATINPUT = 408,
+     MATREAD = 409,
+     MATGET = 410,
+     MATPUT = 411,
+     MATZER = 412,
+     MATCON = 413,
+     MATIDN = 414,
+     MATTRN = 415,
+     MATINV = 416,
+     MATDET = 417,
+     MATADD = 418,
+     MATSUB = 419,
+     MATMUL = 420,
+     MATSCA = 421
    };
 #endif
 /* Tokens.  */
@@ -231,35 +242,35 @@
 #define PRINT 291
 #define PUT 292
 #define READ 293
-#define RESTORE 294
-#define RETURN 295
-#define RUN 296
-#define STEP 297
-#define STOP 298
-#define THEN 299
-#define TO 300
-#define USING 301
-#define WAIT 302
-#define OPEN 303
-#define CLOSE 304
-#define STATUS 305
-#define PRINT_FILE 306
-#define INPUT_FILE 307
-#define GET_FILE 308
-#define PUT_FILE 309
-#define CALL 310
-#define CLS 311
-#define CMD 312
-#define OPTION 313
-#define BASE 314
-#define PEEK 315
-#define POKE 316
-#define POP 317
-#define RANDOMIZE 318
-#define SYS 319
-#define VARLIST 320
-#define PAUSE 321
-#define SLEEP 322
+#define RETURN 294
+#define RUN 295
+#define STEP 296
+#define STOP 297
+#define THEN 298
+#define TO 299
+#define USING 300
+#define WAIT 301
+#define OPEN 302
+#define CLOSE 303
+#define STATUS 304
+#define PRINT_FILE 305
+#define INPUT_FILE 306
+#define GET_FILE 307
+#define PUT_FILE 308
+#define CALL 309
+#define CLS 310
+#define CMD 311
+#define OPTION 312
+#define BASE 313
+#define PEEK 314
+#define POKE 315
+#define POP 316
+#define RANDOMIZE 317
+#define SYS 318
+#define VARLIST 319
+#define PAUSE 320
+#define SLEEP 321
+#define RESTORE 322
 #define ABS 323
 #define SGN 324
 #define CLOG 325
@@ -316,45 +327,56 @@
 #define POS 376
 #define USR 377
 #define LIN 378
-#define DEFSTR 379
-#define DEFINT 380
-#define DEFSNG 381
-#define DEFDBL 382
-#define CHANGE 383
-#define CONVERT 384
-#define UCASE 385
-#define LCASE 386
-#define STRNG 387
-#define TIME 388
-#define TIME_STR 389
-#define HEX 390
-#define OCT 391
-#define BIN 392
-#define HEXSTR 393
-#define OCTSTR 394
-#define BINSTR 395
-#define UBOUND 396
-#define LBOUND 397
-#define LABEL 398
-#define MAT 399
-#define MATPRINT 400
-#define MATINPUT 401
-#define MATREAD 402
-#define MATGET 403
-#define MATPUT 404
-#define MATZER 405
-#define MATCON 406
-#define MATIDN 407
-#define MATTRN 408
-#define MATINV 409
-#define MATDET 410
+#define TRAP 379
+#define RESUME 380
+#define ERROR 381
+#define RAISE 382
+#define ERR 383
+#define EL 384
+#define ER 385
+#define DEFSTR 386
+#define DEFINT 387
+#define DEFSNG 388
+#define DEFDBL 389
+#define CHANGE 390
+#define CONVERT 391
+#define UCASE 392
+#define LCASE 393
+#define STRNG 394
+#define TIME 395
+#define TIME_STR 396
+#define HEX 397
+#define OCT 398
+#define BIN 399
+#define HEXSTR 400
+#define OCTSTR 401
+#define BINSTR 402
+#define UBOUND 403
+#define LBOUND 404
+#define LABEL 405
+#define MAT 406
+#define MATPRINT 407
+#define MATINPUT 408
+#define MATREAD 409
+#define MATGET 410
+#define MATPUT 411
+#define MATZER 412
+#define MATCON 413
+#define MATIDN 414
+#define MATTRN 415
+#define MATINV 416
+#define MATDET 417
+#define MATADD 418
+#define MATSUB 419
+#define MATMUL 420
+#define MATSCA 421
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 73 "/Users/maury/Documents/RetroBASIC/src/parse.y"
+#line 80 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/src/parse.y"
 {
   double d;
   int i;
@@ -365,8 +387,8 @@ typedef union YYSTYPE
   variable_reference_t *variable;
 }
 /* Line 1529 of yacc.c.  */
-#line 369 "/Users/maury/Documents/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
-	YYSTYPE;
+#line 391 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
+    YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1

@@ -1,6 +1,7 @@
 RetroBASIC TODO/BUGS/ERRATA list
 
 MS = MS BASIC, 6502 40-bit version
+CB = Commodore's MS BASIC
 HP = HP Time-Shared BASIC
 AB = Atari BASIC
 IB = Integer BASIC (aka Apple BASIC)
@@ -9,17 +10,27 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
-- errors should be made into ints instead of strings all over the place
+- add REDIM
+
+- MAT INPUT should also allow multi-input on a single line
+
+- NUM function returns number of items in MAT INPUT
+
+- add DET function
+
+- LINPUT/LINE INPUT/INPUT LINE
+
+- MAX and MIN
+
+- IMAGE (etc) for PRINT USING with HP specifiers, and colon for image for other dialects
+
+- CHAIN and COMMON
+
+- option base 1 should return error on 0
+
+- Dartmouth style FOR loops, exit on 1 TO 0
 
 - add parameter checking to functions, currently most of them don't check that they were passed a string/number
-
-- check string sizes against DIM in slicing dialects
-
-- need to allow multiple INPUTs on a single line, currently it requires a CR between values
-
-- LINPUT/LINE INPUT
-
-- MAX and MIN, for strings as well, and arrays
 
 - WHILE...WEND, LOOP...UNTIL, but so many variations...
 
@@ -27,19 +38,15 @@ BP - DEC BASIC-PLUS
 
 - add longer variable names
 
-- CHAIN and COMMON
-
 - DEFINT/SNG/DBL/STR does not support the "range" syntax, DEFINT A-F. only comma lists work, DEFINT A,B
 
 - needs command-line switch for ANSI, controls tab stops and many errors
-
-- support Dartmouth/ANSI style FOR loops which skip the body if the test fails on the first loop
 
 - ELSE would be relatively easy to add, at least the single-line variety
 
 - flesh out GET and PUT, which are just placeholders for now
 
-- support AB's DEG and RAD modes? WB also had gradians; SELECT G
+- support AB's DEG and RAD modes? WB also had gradians; SELECT G, Commodore 3.5 has similar?
 
 - PA allows multiple assignments in a LET, separated by commas, see assignlist.
 
@@ -64,6 +71,8 @@ BP - DEC BASIC-PLUS
 - EXCHANGE/SWAP that swaps the values of two variables
 
 - IF..LET, another alternative format for IF
+
+- ERASE, clears variables (IBM Advanced BASIC)
 
 Debatable:
 
@@ -91,6 +100,10 @@ Debatable:
 
 Will not be done:
 
+- STORE and RECALL from Applesoft, which writes and reads all the values in an array to cassette
+
+- RESTORE* and RESTORE$ from Dartmouth, which reset the numeric vs. string DATA pointers.
+
 - IP and FP, aliases for FIX and FRAC, too easily overlap with variable names.
 
 - EXAM and FETCH aliases to PEEK from North Star and Opus and similar. No point, this returns 0 anyway.
@@ -99,8 +112,6 @@ Will not be done:
 
 - WB uses CONVERT for ASC, which steps on HPs CONVERT.
 
-- INPUT LINE is not needed (for now) as all INPUTs are treated as LINE.
-
 - NUM, which is Digital Group's version of VAL, or NUM$ which is the same as STR$.
 
-- NODATA statement from BASIC-PLUS. This is simply an ON ERROR that traps the no-more-data error.
+- NODATA statement from BASIC-PLUS. This is simply an ON ERROR that traps the no-more-data error. You can do this with a normal TRAP.

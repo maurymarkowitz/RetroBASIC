@@ -105,14 +105,14 @@ static void is_integer(void *key, void *value, void *user_data)
  */
 void print_statistics(void)
 {
-  int lines_total = 0, line_min = MAXLINE + 1, line_max = -1;
+  int lines_total = 0, line_min = MAX_LINE_NUMBER + 1, line_max = -1;
   double linenum_1_digit = 0.0, linenum_2_digit = 0.0, linenum_3_digit = 0.0, linenum_4_digit = 0.0, linenum_5_digit = 0.0;
   double linenum_tot_digits = 0.0;
   double linenum_ave_digits = 0;
   
   // start with line number stats
   // just look for any entry in the arra with a non-empty statement list
-  for(int i = 0; i < MAXLINE; i++) {
+  for(int i = 0; i < MAX_LINE_NUMBER; i++) {
     if (interpreter_state.lines[i] != NULL) {
       lines_total++;
       if (i < line_min) line_min = i;
@@ -148,7 +148,7 @@ void print_statistics(void)
   list_t *next_line;
   list_t *start = interpreter_state.lines[interpreter_state.first_line];
   
-  for (int i = interpreter_state.first_line; i < MAXLINE - 1; i++) {
+  for (int i = interpreter_state.first_line; i < MAX_LINE_NUMBER - 1; i++) {
     // get the next line's statements, and continue if its empty
     list_t *this_line = interpreter_state.lines[i];
     if (interpreter_state.lines[i] == NULL)
@@ -156,11 +156,11 @@ void print_statistics(void)
     
     // now find the next non-empty line
     next_num = i + 1; // note to me: no, you can't i++ here!
-    while ((next_num < MAXLINE) && (interpreter_state.lines[next_num] == NULL))
+    while ((next_num < MAX_LINE_NUMBER) && (interpreter_state.lines[next_num] == NULL))
       next_num++;
     
     // if we ran off the end of the list, exit
-    if (next_num > MAXLINE - 1)
+    if (next_num > MAX_LINE_NUMBER - 1)
       break;
     
     // otherwise we found the next line
@@ -259,17 +259,18 @@ void print_statistics(void)
   if (write_stats) {
     //check that the file name is reasonable, and then try to open it
     FILE* fp = fopen(stats_file, "w+");
-    if (!fp) return;
+    if (!fp)
+      return;
     
     double tu = (double)(end_time.tv_usec - start_time.tv_usec);
     double ts = (double)(end_time.tv_sec - start_time.tv_sec);
-    fprintf(fp, "RUN TIME: %g\n", tu / 1000000 + ts);
+    fprintf(fp, "RUN TIME,%g\n", tu / 1000000 + ts);
     fprintf(fp, "CPU TIME,%g\n", ((double) (end_ticks - start_ticks)) / CLOCKS_PER_SEC);
     
     fprintf(fp, "LINE NUMBERS,total,%i\n", lines_total);
     fprintf(fp, "LINE NUMBERS,first,%i\n", line_min);
     fprintf(fp, "LINE NUMBERS,last,%i\n", line_max);
-    fprintf(fp, "LINE NUMBERS,average digits: %2.2f\n", linenum_ave_digits);
+    fprintf(fp, "LINE NUMBERS,average digits,%2.2f\n", linenum_ave_digits);
 
     fprintf(fp, "STATEMENTS,total,%i\n", lst_length(interpreter_state.lines[line_min]));
     fprintf(fp, "STATEMENTS,average,%g\n", (double)lst_length(interpreter_state.lines[line_min])/(double)lines_total);
@@ -312,19 +313,19 @@ void print_statistics(void)
     fprintf(fp, "BRANCHES,same line,%i\n",linenum_same_line);
     fprintf(fp, "BRANCHES,ons,%i\n",linenum_on_totals);
 
-    fprintf(fp, "OTHER,ASSIGN 0: %i\n",assign_zero);
-    fprintf(fp, "OTHER,ASSIGN 1: %i\n",assign_one);
-    fprintf(fp, "OTHER,ASSIGN OTHER: %i\n",assign_other);
-    fprintf(fp, "OTHER,FORs: %i\n",for_loops_total);
-    fprintf(fp, "OTHER,FORs step 1: %i\n",for_loops_step_1);
-    fprintf(fp, "OTHER,incs: %i\n",increments);
-    fprintf(fp, "OTHER,decs: %i\n",decrements);
-    fprintf(fp, "OTHER,logical=0: %i\n",compare_equals_zero);
-    fprintf(fp, "OTHER,logical!=0: %i\n",compare_not_equals_zero);
-    fprintf(fp, "OTHER,logical=1: %i\n",compare_equals_one);
-    fprintf(fp, "OTHER,logical!=1: %i\n",compare_not_equals_one);
-    fprintf(fp, "OTHER,logical=x: %i\n",compare_equals_other);
-    fprintf(fp, "OTHER,logical!=x: %i\n",compare_not_equals_other);
+    fprintf(fp, "OTHER,assign 0,%i\n",assign_zero);
+    fprintf(fp, "OTHER,assign 1,%i\n",assign_one);
+    fprintf(fp, "OTHER,assign other,%i\n",assign_other);
+    fprintf(fp, "OTHER,FORs,%i\n",for_loops_total);
+    fprintf(fp, "OTHER,FORs step 1,%i\n",for_loops_step_1);
+    fprintf(fp, "OTHER,incs,%i\n",increments);
+    fprintf(fp, "OTHER,decs,%i\n",decrements);
+    fprintf(fp, "OTHER,logical=0,%i\n",compare_equals_zero);
+    fprintf(fp, "OTHER,logical!=0,%i\n",compare_not_equals_zero);
+    fprintf(fp, "OTHER,logical=1,%i\n",compare_equals_one);
+    fprintf(fp, "OTHER,logical!=1,%i\n",compare_not_equals_one);
+    fprintf(fp, "OTHER,logical=x,%i\n",compare_equals_other);
+    fprintf(fp, "OTHER,logical!=x,%i\n",compare_not_equals_other);
     
     fclose(fp);
   }

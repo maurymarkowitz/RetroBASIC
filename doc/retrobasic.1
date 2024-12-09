@@ -4,7 +4,7 @@
 .\" License V.2 as specified in the LICENSE file that comes with
 .\" the RetroBASIC distribution.  
 
-.TH RETROBASIC 1 "20 August 2022" v1.1.3 "RetroBASIC"
+.TH RETROBASIC 1 "20 August 2022" v2.0.0 "RetroBASIC"
 .LO 1
 
 .SH NAME
@@ -13,11 +13,9 @@
 
 .SH SYNOPSIS
 .B retrobasic
-.RB [ \-ghnpsuv ]
+.RB [ \-ghnpstuv ]
 .RB [ \-a 1|0]
-.RB [ \-t 
-.IR num ]
-.RB [ \-r 
+.RB [ \-r
 .IR num ] 
 .RB [ \-o 
 .IR file ]
@@ -48,7 +46,7 @@ Set the base index for arrays, normally 0 but some dialects use 1.
 .TP
 .BI \-t,
 .BI \--trace,
-Turns on line number tracing.
+Turns on line number tracing. Similar to the TRACE ON seen in some dialects.
 .TP
 .BI \--tabs num,
 Sets the number of spaces for comma-separated items, defaults to 10 based on the Commodore PET.
@@ -148,12 +146,8 @@ option, although it does not appear to have ever been used in surviving code.
 .B retrobasic -u sst.bas
 \- play a game of Super Star Trek with caps lock turned on.
 
-.B retrobasic -np sst.bas
-\- parse Super Star Trek, print statistics about the program structure, and exit.
-
-.SH BUGS
-
-INPUT statements with multiple variables have to be entered on separate lines; most dialects allow these to be space delimited.
+.B retrobasic -np amaze.bas
+\- parse Amazing Maze, print statistics about the program structure, and exit.
 
 .SH AUTHORS
 

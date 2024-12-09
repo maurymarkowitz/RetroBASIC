@@ -14,7 +14,7 @@ RetroBASIC
 
 ## Introduction
 
-RetroBASIC is an interpreter for programs written using 1970s/80s variations of BASIC. It is patterned mostly on MS-BASIC as seen on Commodore machines and Apple II (and many others). It also includes the alternate string manipulation methods from Dartmouth BASIC v4 and HP Timeshared BASIC, the later of which was widely used in early microcomputer interpreters. The ultimate goal is to support almost any dialect from the era, including Tiny BASIC, Palo Alto Tiny BASIC, MS-BASIC (Altair, Commodore, etc.), HP Timeshared BASIC (Northstar, Apple, Atari, Sinclair, etc.) and others. 
+RetroBASIC is an interpreter for programs written using 1970s/80s variations of BASIC. It is patterned mostly on MS-BASIC as seen on Commodore machines and Apple II (and many others). It also includes the alternate string manipulation methods from Dartmouth BASIC v4 and HP Timeshared BASIC, the later of which was widely used in early microcomputer interpreters. The ultimate goal is to support almost any dialect from the era, including Dartmouth BASIC, Tiny BASIC (including Palo Alto), MS-BASIC (Altair, Commodore, etc.), HP Timeshared BASIC (Northstar, Apple, Atari, Sinclair, etc.) and others. 
 
 RetroBASIC can redirect the output from `PRINT` statements and `INPUT` prompts to a file, and read the responses to `INPUT` statements from a file. This can be used to provide the same input to a program multiple times, and then the output can be `diff`ed to look for changes. This is aided by setting the random seed value, which can be done on the command line to avoid editing the original BASIC code.
 
@@ -38,18 +38,18 @@ Command-line options include:
 `--array-base`, `-a`: set base index for arrays, normally 1 but some dialects use 0  
 `--trace`, `-t`: turn on line number tracing  
 `--tabs`: set the number of spaces for comma-separated items, defaults to 10  
-`--goto-next`, `-g`: if a branch is to a non-existant line, should it go to the next line or return an error?  
+`--goto-next`, `-g`: if a branch is to a non-existent line, should it go to the next line or return an error?  
 `--random`, `-r`: seed the random number generator  
 `--slicing`, `-s`: enable string slicing like HP, Integer, Atari, etc.  
 `--output-file`, `-o`: redirect PRINT to the named file  
 `--input-file`, `-i`: redirect INPUT from the named file, one INPUT value per line  
 `--no_run`, `-n`: do not run the BASIC program, simply read and parse it and then exit  
 `--print_statistics`, `-p`: send a selection of statistics to the console  
-`--write_statistics`, `-w`: write the statistics to the named file in a machine readable format
+`--write_statistics`, `-w`: write the statistics to the named file in a machine readable format  
 
 If you wish to use RetroBASIC to simply check syntax or collect statistics, use the -n and -p switches.
 
-Short options with no parameters can be gan ganged, for instance, -unp.
+Short options with no parameters can be ganged, for instance, -unp.
 
 ## Building RetroBASIC
 
@@ -59,11 +59,10 @@ An Xcode project is also included, which is the primary building method during t
 
 If anyone would like to contribute a VS.net project, it would be greatly appreciated.
 
-## Missing features and Erata
+## Missing features and Errata
 
 A complete list is maintained in the TODO file, but here are some important limitations:
 
-* INPUT statements with multiple values currently have to be entered with return/enter between each value, spaces do not work.
 * Variable names are currently limited to two characters, which is needed to support "crunched" statements without spaces in MS style.
 * The system does not support "immediate mode" (command line) input. It is not supposed to, but could potentially do so.
 * LIST, LOAD and SAVE are currently not implemented, in keeping with the use-case.
