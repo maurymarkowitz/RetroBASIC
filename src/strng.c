@@ -1,4 +1,4 @@
-/* string (implementation) for RetroBASIC
+/* strng (implementation) for RetroBASIC
    Copyright (C) 2020 Maury Markowitz
     
 This file is part of RetroBASIC.

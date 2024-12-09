@@ -29,13 +29,16 @@
  * @author Maury Markowitz
  * @brief Code for collecting and printing program statistics
  *
- * This file contains a number of counters that are updated
- * while the BASIC source code is being parsed, and a single
- * function that prints the results to the console or a file.
+ * This file contains a number of counters that are updated while the
+ * BASIC source code is being parsed, and a single function that prints
+ * the results to the console or a file.
  *
  * The statistics include the number of lines and the distribution of
  * line numbers, numeric and string constants, the number of loops,
  * and other commonly found constructs.
+ *
+ * The output format is different when sent to the console or a file,
+ * the later is in comma-separated-values format for easy parsing.
  *
  * This file also includes basic timers for calculating the CPU time
  * and user time for the program run.

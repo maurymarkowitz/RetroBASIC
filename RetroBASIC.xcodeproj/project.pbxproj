@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -11,7 +11,8 @@
 		550D54A6289BF9670062DF12 /* list.c in Sources */ = {isa = PBXBuildFile; fileRef = 550D54A5289BF9670062DF12 /* list.c */; };
 		550EED72258007FD00FE6D78 /* ahl.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 550EED702580071200FE6D78 /* ahl.bas */; };
 		550EED7525800B9E00FE6D78 /* sieve.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 550EED7425800B8A00FE6D78 /* sieve.bas */; };
-		55456E2E2BAB5D9000CDE7AC /* matrix.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 55456E2D2BAB5C7500CDE7AC /* matrix.bas */; };
+		553CD3702CBDB208002C7FC6 /* input.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 553CD36F2CBDAF2B002C7FC6 /* input.bas */; };
+		55456E2E2BAB5D9000CDE7AC /* matrix.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 55456E2D2BAB5C7500CDE7AC /* matrix.bas */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		5568AD6D240753E6001138F5 /* lunar.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5568AD6C240753C2001138F5 /* lunar.bas */; };
 		55873BDB2AF2B8C600005C6A /* amazing.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 55873BDA2AF2B84600005C6A /* amazing.bas */; };
 		5599AEFA239C0A6F00490A3A /* retrobasic.c in Sources */ = {isa = PBXBuildFile; fileRef = 5599AEF9239C0A6F00490A3A /* retrobasic.c */; };
@@ -21,6 +22,7 @@
 		55B3D421238E1BA700E6054E /* test.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 55B3D420238E1B9900E6054E /* test.bas */; };
 		55B3D42C23943EB100E6054E /* superstartrek.bas in CopyFiles */ = {isa = PBXBuildFile; fileRef = 55B3D42B23942C7200E6054E /* superstartrek.bas */; };
 		55B9698C252F44E70021CD8B /* parse.y in Sources */ = {isa = PBXBuildFile; fileRef = 55B9698B252F44E70021CD8B /* parse.y */; };
+		55BC0C412BF01879004E69BB /* matrix.c in Sources */ = {isa = PBXBuildFile; fileRef = 55BC0C402BF01879004E69BB /* matrix.c */; };
 		55CFD0BE2A23CCB200DC9896 /* letter.hpb in CopyFiles */ = {isa = PBXBuildFile; fileRef = 55CFD0BD2A23CC7700DC9896 /* letter.hpb */; };
 /* End PBXBuildFile section */
 
@@ -48,6 +50,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 16;
 			files = (
+				553CD3702CBDB208002C7FC6 /* input.bas in CopyFiles */,
 				55456E2E2BAB5D9000CDE7AC /* matrix.bas in CopyFiles */,
 				55873BDB2AF2B8C600005C6A /* amazing.bas in CopyFiles */,
 				55CFD0BE2A23CCB200DC9896 /* letter.hpb in CopyFiles */,
@@ -69,7 +72,9 @@
 		550EED6E257AC4F300FE6D78 /* VERSIONS */ = {isa = PBXFileReference; lastKnownFileType = text; path = VERSIONS; sourceTree = "<group>"; };
 		550EED702580071200FE6D78 /* ahl.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = ahl.bas; sourceTree = "<group>"; };
 		550EED7425800B8A00FE6D78 /* sieve.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = sieve.bas; sourceTree = "<group>"; };
+		553CD36F2CBDAF2B002C7FC6 /* input.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = input.bas; sourceTree = "<group>"; };
 		55456E2D2BAB5C7500CDE7AC /* matrix.bas */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = matrix.bas; sourceTree = "<group>"; };
+		55456E2F2BBAFAD000CDE7AC /* errors.h */ = {isa = PBXFileReference; indentWidth = 2; lastKnownFileType = sourcecode.c.h; path = errors.h; sourceTree = "<group>"; tabWidth = 2; };
 		5568AD6C240753C2001138F5 /* lunar.bas */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = lunar.bas; sourceTree = "<group>"; };
 		55845E982B935BBF00244EC2 /* parse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = parse.h; sourceTree = "<group>"; };
 		55873BDA2AF2B84600005C6A /* amazing.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = amazing.bas; sourceTree = "<group>"; };
@@ -82,7 +87,7 @@
 		55A42362287360B00070AF00 /* statistics.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.c.c; path = statistics.c; sourceTree = "<group>"; tabWidth = 2; };
 		55AEC9D72B37207C00E9A145 /* RetroBASIC reference manual.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "RetroBASIC reference manual.md"; sourceTree = "<group>"; };
 		55B3D40C238E051D00E6054E /* retrobasic */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = retrobasic; sourceTree = BUILT_PRODUCTS_DIR; };
-		55B3D420238E1B9900E6054E /* test.bas */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.bas; sourceTree = "<group>"; };
+		55B3D420238E1B9900E6054E /* test.bas */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = text; path = test.bas; sourceTree = "<group>"; tabWidth = 4; };
 		55B3D427238EB43100E6054E /* pass-fail.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "pass-fail.txt"; sourceTree = "<group>"; };
 		55B3D428238EB43100E6054E /* TODO */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TODO; sourceTree = "<group>"; };
 		55B3D429238EB43100E6054E /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -91,6 +96,8 @@
 		55B9698B252F44E70021CD8B /* parse.y */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.yacc; path = parse.y; sourceTree = "<group>"; tabWidth = 2; };
 		55B96990252F4FCA0021CD8B /* makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = makefile; sourceTree = "<group>"; };
 		55B96993252F5AB80021CD8B /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		55BC0C3F2BF0178F004E69BB /* matrix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = matrix.h; sourceTree = "<group>"; };
+		55BC0C402BF01879004E69BB /* matrix.c */ = {isa = PBXFileReference; indentWidth = 2; lastKnownFileType = sourcecode.c.c; path = matrix.c; sourceTree = "<group>"; tabWidth = 2; };
 		55C0605728B13842002B8345 /* retrobasic.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = retrobasic.1; sourceTree = "<group>"; };
 		55CFD0BD2A23CC7700DC9896 /* letter.hpb */ = {isa = PBXFileReference; lastKnownFileType = text; path = letter.hpb; sourceTree = "<group>"; };
 		55DEE88128A6A6B800270949 /* RetroBASIC design.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "RetroBASIC design.md"; sourceTree = "<group>"; };
@@ -141,6 +148,9 @@
 				550D54A1288DB6950062DF12 /* strng.c */,
 				550D54A4289BF9670062DF12 /* list.h */,
 				550D54A5289BF9670062DF12 /* list.c */,
+				55456E2F2BBAFAD000CDE7AC /* errors.h */,
+				55BC0C3F2BF0178F004E69BB /* matrix.h */,
+				55BC0C402BF01879004E69BB /* matrix.c */,
 				5599AEFC239C0ABF00490A3A /* scan.l */,
 				55B9698B252F44E70021CD8B /* parse.y */,
 				55845E982B935BBF00244EC2 /* parse.h */,
@@ -170,6 +180,7 @@
 		55B96987252CC1D30021CD8B /* bas */ = {
 			isa = PBXGroup;
 			children = (
+				553CD36F2CBDAF2B002C7FC6 /* input.bas */,
 				55B3D420238E1B9900E6054E /* test.bas */,
 				55456E2D2BAB5C7500CDE7AC /* matrix.bas */,
 				5568AD6C240753C2001138F5 /* lunar.bas */,
@@ -289,6 +300,7 @@
 				5599AEFE239C0ABF00490A3A /* scan.l in Sources */,
 				5599AEFA239C0A6F00490A3A /* retrobasic.c in Sources */,
 				55A42364287360B00070AF00 /* statistics.c in Sources */,
+				55BC0C412BF01879004E69BB /* matrix.c in Sources */,
 				55A42363287360B00070AF00 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
