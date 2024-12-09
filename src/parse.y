@@ -22,8 +22,17 @@ along with RetroBASIC; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
+/**
+ * @file parse.y
+ * @author Maury Markowitz
+ * @brief yacc/bison parser
+ *
+ */
+
 #include "retrobasic.h"
 #include "statistics.h"
+
+#define YYDEBUG 1
 
  /* used to track the line number being processed so
     that errors can report it */
@@ -58,8 +67,6 @@ static expression_t *make_operator(int arity, int o)
   new->parms.op.arity = arity;
   return new;
 }
-
-#define YYDEBUG 1
 
  /************************************************************************/
 
@@ -121,7 +128,6 @@ static expression_t *make_operator(int arity, int o)
 %token PRINT
 %token PUT
 %token READ
-%token RESTORE
 %token RETURN
 %token RUN
 %token STEP
@@ -152,6 +158,7 @@ static expression_t *make_operator(int arity, int o)
 %token VARLIST
 %token PAUSE
 %token SLEEP /* BASIC-PLUS variation */
+%token RESTORE
 
  /* common math functions */
 %token ABS SGN
@@ -162,6 +169,7 @@ static expression_t *make_operator(int arity, int o)
 %token ROUND  // two versions, round-to-int and round-to-place
 %token CINT CSNG CDBL
 %token MOD MOD_INT DIV
+%token MAX MIN
 
  /* trig set */
 %token COS SIN ATN
@@ -187,7 +195,12 @@ static expression_t *make_operator(int arity, int o)
 %token TAB
 %token POS
 %token USR
-%token LIN /* from HP, a vertical version of TAB */
+%token LIN    // from HP, a vertical version of TAB
+%token TRAP   // error handling, used both as a command and as a type of ON statement (see below)
+%token RESUME // jumps back to the error line
+%token ERROR  // used in ON ERROR, ONERR and also as a synonym for RAISE
+%token RAISE  // raise an error, for testing
+%token ERR EL ER
 
  /* type definitions added circa 1979 */
 %token DEFSTR DEFINT DEFSNG DEFDBL
@@ -228,6 +241,11 @@ static expression_t *make_operator(int arity, int o)
 %token MATTRN
 %token MATINV
 %token MATDET
+%token MATADD
+%token MATSUB
+%token MATMUL /* array multiply */
+%token MATSCA /* scalar multiply */
+%token MATFIL /* fill an array with a value */
 
 %%
 
@@ -285,7 +303,7 @@ statement:
   REM
   {
     statement_t *new = make_statement(REM);
-    new->parms.rem = yylval.s;
+    new->parms.rem = yylval.s; // the string has been modified in scan to remove the REM
     $$ = new;
   }
   |
@@ -355,7 +373,6 @@ statement:
     $$ = new;
   }
   |
-  /* DATA can have any type in it, but it is unlikely true expressions are allowed, although we allow them here */
   DATA exprlist
   {
     statement_t *new = make_statement(DATA);
@@ -416,6 +433,13 @@ statement:
     $$ = new;
   }
   |
+  ERROR expression
+  {
+    statement_t *new = make_statement(RAISE);
+    new->parms.generic_parameter = $2;
+    $$ = new;
+  }
+  |
   EXIT
   {
     statement_t *new = make_statement(EXIT);
@@ -447,6 +471,13 @@ statement:
   
     /* static analyser - consider anything with a STEP special even if it is a 1 */
     for_loops_total++;
+  }
+  |
+  GET variable
+  {
+    statement_t *new = make_statement(GET);
+    new->parms.generic_variable = $2;
+    $$ = new;
   }
   |
   GOSUB NUMBER
@@ -641,70 +672,6 @@ statement:
     }
   }
   |
-  MAT variable '=' expression
-  {
-    statement_t *new = make_statement(MAT);
-    new->parms.let.variable = $2;
-    new->parms.let.expression = $4;
-    $$ = new;
-  }
- |
-  MAT PRINT printlist
-  {
-    statement_t *new = make_statement(MATPRINT);
-    new->parms.print.item_list = $3;
-    $$ = new;
-  }
-  |
-  MAT INPUT printlist
-  {
-    statement_t *new = make_statement(MATINPUT);
-    new->parms.input = $3;
-    $$ = new;
-  }
-  |
-  MAT READ varlist
-  {
-    statement_t *new = make_statement(MATREAD);
-    new->parms.read = $3;
-    $$ = new;
-  }
-  |
-  MAT variable '=' MATCON
-  {
-    statement_t *new = make_statement(MATCON);
-    new->parms.let.variable = $2;
-    $$ = new;
-  }
-  |
-  MAT variable '=' MATDET
-  {
-    statement_t *new = make_statement(MATDET);
-    new->parms.let.variable = $2;
-    $$ = new;
-  }
-  |
-  MAT variable '=' MATZER
-  {
-    statement_t *new = make_statement(MATZER);
-    new->parms.let.variable = $2;
-    $$ = new;
-  }
-  |
-  MAT variable '=' MATIDN
-  {
-    statement_t *new = make_statement(MATIDN);
-    new->parms.let.variable = $2;
-    $$ = new;
-  }
-  |
-  MAT variable '=' MATINV
-  {
-    statement_t *new = make_statement(MATINV);
-    new->parms.let.variable = $2;
-    $$ = new;
-  }
-  |
   NEXT varlist // this handles one or more index variables, no need for a single-var case
   {
     statement_t *new = make_statement(NEXT);
@@ -743,6 +710,17 @@ statement:
     statement_t *new = make_statement(ON);
     new->parms.on.type = GOSUB;
     new->parms.on.expression = $2;
+    new->parms.on.numbers = $4;
+    $$ = new;
+    
+    linenum_constants_total += lst_length($4);
+    linenum_on_totals++;
+  }
+  |
+  ON ERROR GOTO exprlist
+  {
+    statement_t *new = make_statement(ON);
+    new->parms.on.type = TRAP;
     new->parms.on.numbers = $4;
     $$ = new;
     
@@ -800,6 +778,20 @@ statement:
     $$ = new;
   }
   |
+  PUT expression
+  {
+    statement_t *new = make_statement(PUT);
+    new->parms.generic_parameter = $2;
+    $$ = new;
+  }
+  |
+  RAISE expression
+  {
+    statement_t *new = make_statement(RAISE);
+    new->parms.generic_parameter = $2;
+    $$ = new;
+  }
+  |
   RANDOMIZE
   {
     statement_t *new = make_statement(RANDOMIZE);
@@ -811,6 +803,14 @@ statement:
   {
     statement_t *new = make_statement(RANDOMIZE);
     new->parms.generic_parameter = $2;
+    $$ = new;
+  }
+  |
+  RANDOMIZE RANDOMIZE
+  {
+    // this handles RANDOMIZE TIMER because scan converts TIMER to RANDOMIZE
+    statement_t *new = make_statement(RANDOMIZE);
+    new->parms.generic_parameter = NULL;
     $$ = new;
   }
   |
@@ -831,6 +831,28 @@ statement:
   {
     statement_t *new = make_statement(RESTORE);
     new->parms.generic_parameter = $2;
+    $$ = new;
+  }
+  |
+  RESUME NEXT /* return from an error */
+  {
+    statement_t *new = make_statement(RESUME);
+    expression_t *exp = make_expression(number);
+    exp->parms.number = -1;
+    new->parms.generic_parameter = exp;
+    $$ = new;
+  }
+  |
+  RESUME expression /* return from an error */
+  {
+    statement_t *new = make_statement(RESUME);
+    new->parms.generic_parameter = $2;
+    $$ = new;
+  }
+  |
+  RESUME
+  {
+    statement_t *new = make_statement(RESUME);
     $$ = new;
   }
   |
@@ -860,9 +882,9 @@ statement:
     $$ = new;
   }
   |
-  STRING expression
+  STRNG expression
   {
-    statement_t *new = make_statement(STOP);
+    statement_t *new = make_statement(STRNG);
     new->parms.generic_parameter = $2;
     $$ = new;
   }
@@ -895,6 +917,20 @@ statement:
     $$ = new;
   }
   |
+  TRAP expression /* error handling */
+  {
+    statement_t *new = make_statement(TRAP);
+    new->parms.generic_parameter = $2;
+    $$ = new;
+  }
+  |
+  TRAP /* turn off error handling */
+  {
+    statement_t *new = make_statement(TRAP);
+    new->parms.generic_parameter = NULL;
+    $$ = new;
+  }
+  |
   VARLIST /* lists out all the variables and their values */
   {
     statement_t *new = make_statement(VARLIST);
@@ -919,7 +955,7 @@ statement:
     //NOTE: same code above in LET
     if (new->parms.let.expression->type == number) {
       if ((int)new->parms.let.expression->parms.number == 0) {
-          assign_zero++;
+        assign_zero++;
       } else if ((int)new->parms.let.expression->parms.number == 1
                  && (int)new->parms.let.expression->parms.number == new->parms.let.expression->parms.number) {
         assign_one++;
@@ -927,7 +963,202 @@ statement:
         assign_other++;
       }
     }
+  }
+  /* all the matrix stuff follows */
+  |
+  MAT variable '=' variable
+  {
+    statement_t *new = make_statement(MAT);
+    new->parms.mat.variable = $2;
+    new->parms.mat.variable2 = $4;
+    
+    // for all of the mat instructions, a sub-array can be defined by putting
+    // subscripts on either the LHR (IBM only) or RHS. RetroBASIC assumes the
+    // latter overrides the former, so if we find subs on one of the parameters,
+    // copy them over to the LHS to make them easier to find at runtime.
+    //
+    // NOTE: in theory there should only be one set of sub-array specifiers,
+    //  and more should be an error. but we just use the right most one we find
+    if (new->parms.mat.variable2->subscripts != NULL) {
+      new->parms.mat.variable->subscripts = new->parms.mat.variable2->subscripts;
+    }
+    
+    $$ = new;
+  }
+  |
+  MAT variable '=' '(' expression ')'
+  {
+    statement_t *new = make_statement(MAT);
+    new->parms.mat.variable = $2;
+    new->parms.mat.expression = $5;
+    $$ = new;
+  }
+  |
+  MAT variable '=' variable '+' variable
+  {
+    statement_t *new = make_statement(MATADD);
+    new->parms.mat.variable = $2;
+    new->parms.mat.variable2 = $4;
+    new->parms.mat.variable3 = $6;
 
+    if (new->parms.mat.variable2->subscripts != NULL) {
+      new->parms.mat.variable->subscripts = new->parms.mat.variable2->subscripts;
+    }
+    if (new->parms.mat.variable3->subscripts != NULL) {
+      new->parms.mat.variable->subscripts = new->parms.mat.variable3->subscripts;
+    }
+
+    $$ = new;
+  }
+  |
+  MAT variable '=' variable '-' variable
+  {
+    statement_t *new = make_statement(MATSUB);
+    new->parms.mat.variable = $2;
+    new->parms.mat.variable2 = $4;
+    new->parms.mat.variable3 = $6;
+
+    if (new->parms.mat.variable2->subscripts != NULL) {
+      new->parms.mat.variable->subscripts = new->parms.mat.variable2->subscripts;
+    }
+    if (new->parms.mat.variable3->subscripts != NULL) {
+      new->parms.mat.variable->subscripts = new->parms.mat.variable3->subscripts;
+    }
+
+    $$ = new;
+  }
+  |
+  MAT variable '=' '(' expression ')' '*' variable
+  {
+    statement_t *new = make_statement(MATSCA);
+    new->parms.mat.variable = $2;
+    new->parms.mat.expression = $5;
+    new->parms.mat.variable3 = $8;
+
+    if (new->parms.mat.variable3->subscripts != NULL) {
+      new->parms.mat.variable->subscripts = new->parms.mat.variable3->subscripts;
+    }
+
+    $$ = new;
+  }
+  |
+  MAT variable '=' variable '*' variable
+  {
+    statement_t *new = make_statement(MATMUL);
+    new->parms.mat.variable = $2;
+    new->parms.mat.variable2 = $4;
+    new->parms.mat.variable3 = $6;
+
+    if (new->parms.mat.variable2->subscripts != NULL) {
+      new->parms.mat.variable->subscripts = new->parms.mat.variable2->subscripts;
+    }
+    if (new->parms.mat.variable3->subscripts != NULL) {
+      new->parms.mat.variable->subscripts = new->parms.mat.variable3->subscripts;
+    }
+
+    $$ = new;
+  }
+  |
+  MAT PRINT printlist
+  {
+    statement_t *new = make_statement(MATPRINT);
+    new->parms.print.item_list = $3;
+    $$ = new;
+  }
+  |
+  MAT INPUT printlist
+  {
+    statement_t *new = make_statement(MATINPUT);
+    new->parms.input = $3;
+    $$ = new;
+  }
+  |
+  MAT READ varlist
+  {
+    statement_t *new = make_statement(MATREAD);
+    new->parms.read = $3;
+    
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATCON
+  {
+    statement_t *new = make_statement(MATCON);
+    new->parms.mat.variable = $2;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATCON '(' exprlist ')'
+  {
+    statement_t *new = make_statement(MATCON);
+    new->parms.mat.variable = $2;
+    new->parms.mat.variable->subscripts = $6;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATDET
+  {
+    // there are two ways to get the DET, one is a normal function,
+    // the other is the IBM version of INV
+    statement_t *new = make_statement(MATDET);
+    new->parms.mat.variable = $2;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATZER
+  {
+    statement_t *new = make_statement(MATZER);
+    new->parms.mat.variable = $2;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATZER '(' exprlist ')'
+  {
+    statement_t *new = make_statement(MATZER);
+    new->parms.mat.variable = $2;
+    new->parms.mat.variable->subscripts = $6;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATIDN
+  {
+    statement_t *new = make_statement(MATIDN);
+    new->parms.mat.variable = $2;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATIDN '(' exprlist ')'
+  {
+    statement_t *new = make_statement(MATIDN);
+    new->parms.mat.variable = $2;
+    new->parms.mat.variable->subscripts = $6;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATINV '(' variable ')'
+  {
+    statement_t *new = make_statement(MATINV);
+    new->parms.mat.variable = $2;
+    new->parms.mat.variable2 = $6;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATINV '(' variable ')' ',' variable
+  {
+    // this is the IBM 5100 version, which returns the determinant
+    statement_t *new = make_statement(MATINV);
+    new->parms.mat.variable = $2;
+    new->parms.mat.variable2 = $6;
+    new->parms.mat.variable3 = $9;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATTRN '(' variable ')'
+  {
+    statement_t *new = make_statement(MATTRN);
+    new->parms.mat.variable = $2;
+    new->parms.mat.variable2 = $6;
+    $$ = new;
   }
   ;
 
@@ -1051,6 +1282,8 @@ term:   '*' { $$ = '*'; } |
         '/' { $$ = '/'; } |
         MOD { $$ = MOD; } |
         DIV { $$ = DIV; } |
+        MAX { $$ = MAX; } |
+        MIN { $$ = MIN; } |
         '^' { $$ = '^'; } ;
 
 expression4:
@@ -1150,7 +1383,10 @@ fn_0:
   PI { $$ = PI; } |
   RND { $$ = RND; } |
   TIME { $$ = TIME; } |
-  TIME_STR { $$ = TIME_STR; }
+  TIME_STR { $$ = TIME_STR; } |
+  EL { $$ = EL; } |
+  ER { $$ = ER; } |
+  MATDET { $$ = MATDET; }
   ;
 
  /* arity-1 functions */
@@ -1184,13 +1420,16 @@ fn_1:
   TAB  { $$ = TAB; } |
   VAL  { $$ = VAL; } |
   UCASE  { $$ = UCASE; } |
-  USR  { $$ = USR; }
+  USR  { $$ = USR; } |
+  ERR  { $$ = ERR; }
   ;
   
  /* arity-2 functions */
 fn_2:
   DIV  { $$ = DIV; } |
   MOD  { $$ = MOD; } |
+  MAX  { $$ = MAX; } |
+  MIN  { $$ = MIN; } |
   LEFT { $$ = LEFT; } |
   RIGHT { $$ = RIGHT; } |
   STRNG { $$ = STRNG; }
@@ -1207,7 +1446,6 @@ fn_x:
   UBOUND  { $$ = UBOUND; } |
   LBOUND  { $$ = LBOUND; } |
   MATCON  { $$ = MATCON; } |
-  MATDET  { $$ = MATDET; } |
   MATIDN  { $$ = MATIDN; } |
   MATINV  { $$ = MATINV; } |
   MATTRN  { $$ = MATTRN; } |
@@ -1459,7 +1697,7 @@ exprlist:
     $$ = lst_append($1, $3);
   }
   ;
-  
+    
   /* ANSI-style string slicing */
   // NOTE: the ANSI docs suggest the only correct format is two-parameter, start and end
   //       this contrasts with most other systems, where one or the other can be left off

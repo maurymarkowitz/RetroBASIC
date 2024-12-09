@@ -1,5 +1,6 @@
 1 REM lots of little tests
 2 REM
+3 RANDOMIZE TIMER
 5 REM print some random numbers
 6 REM
 7 PRINT"Some rnds with RANDOMIZE 1"
@@ -203,7 +204,7 @@
 4100 REM
 4110 REM testing inkey
 4120 REM
-4130 PRINT"test inkey, waiting for keypress"
+4130 PRINT"test inkey, waiting for keypress, X to exit"
 4140 I$=INKEY$
 4150 IF I$<>"" THEN PRINT "you pressed '";I$;"'"
 4160 IF I$<>"X" THEN 4140
@@ -213,7 +214,7 @@
 4901 REM
 4902 REM use the value of A for a GOTO..OF
 4903 REM
-4910 GOSUB A OF 4920,4930,4940
+4910 GO SUB A OF 4920,4930,4940
 4915 GOTO 4960
 4920 PRINT"A was 1":RETURN
 4930 PRINT"A was 2":RETURN
@@ -259,7 +260,16 @@
 6015 PRINT"testing CLEAR, R is currently "R
 6020 CLEAR
 6025 PRINT"after CLEARing, R is "R
-8000 STOP
+6100 REM
+6110 REM test ON ERROR syntax
+6120 REM
+6130 TRAP 6160
+6140 PAUSE 120
+6150 RAISE 21:PRINT " ... CONTINUED"
+6155 STOP
+6160 REM TRAP CATCH-UP ROUTINE
+6170 PRINT ERN; ERR$(ERN()) " ERROR IN LINE" ERL() "!"
+6180 RESUME NEXT
 8100 REM
 8101 REM test label'ed gosub
 8102 REM

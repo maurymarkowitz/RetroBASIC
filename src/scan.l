@@ -21,6 +21,13 @@ You should have received a copy of the GNU General Public License
 along with RetroBASIC; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
+  
+/**
+ * @file scan.l
+ * @author Maury Markowitz
+ * @brief lex/flex scanner
+ *
+ */
 
 #include "retrobasic.h"
 #include "strng.h"
@@ -32,6 +39,8 @@ Boston, MA 02111-1307, USA.  */
 %option caseless
 %option yylineno
  //%option nodefault
+
+%x DATA_STATEMENT
 
 %%
 
@@ -49,36 +58,36 @@ Boston, MA 02111-1307, USA.  */
     a separate token, this is the simplest solution. See:
     https://stackoverflow.com/questions/59117309/rest-of-line-in-bison/59122569#59122569
   */
-REM.*   { yylval.s = str_new(str_copy(yytext + 3, yyleng - 3)); return REM; }
-'.*     { yylval.s = str_new(str_copy(yytext + 1, yyleng - 1)); return QUOTEREM; } // short form in MS
-!.*     { yylval.s = str_new(str_copy(yytext + 1, yyleng - 1)); return BANGREM; }  // later MS allow bang as well
-BYE     { return BYE; } // also SYSTEM and GOODBYE
-CLEAR   { return CLEAR; }
-CLR     { return CLEAR; } /* synonyms */
-DEF     { return DEF; }
-DATA    { return DATA; }
-DIM     { return DIM; }
-END     { return END; }
-FOR     { return FOR; }
-GOSUB		{ return GOSUB; }
-GOTO		{ return GOTO; }
-IF      { return IF; }
-INPUT   { return INPUT; }
-LET	    { return LET; }
-NEXT	  { return NEXT; }
-NEW			{ return NEW; } // also CLEAR (sometimes with options), ERASE and SCRATCH
-OF      { return OF; }
-ON      { return ON; }
-POKE    { return POKE; }
-PRINT   { return PRINT; }
-READ		{ return READ; }
-RESTORE	{ return RESTORE; }
-RETURN	{ return RETURN; }
-RUN			{ return RUN; }
-STEP		{ return STEP; }
-STOP    { return STOP; }
-THEN		{ return THEN; }
-TO			{ return TO; }
+REM.*     { yylval.s = str_new(str_copy(yytext + 3, yyleng - 3)); return REM; }
+'.*       { yylval.s = str_new(str_copy(yytext + 1, yyleng - 1)); return QUOTEREM; } // short form in MS
+!.*       { yylval.s = str_new(str_copy(yytext + 1, yyleng - 1)); return BANGREM; }  // later MS allow bang as well
+BYE       { return BYE; }   // also SYSTEM and GOODBYE
+CLEAR     { return CLEAR; }
+CLR       { return CLEAR; } // synonyms
+DEF       { return DEF; }
+DATA      { BEGIN(DATA_STATEMENT); return DATA; }
+DIM       { return DIM; }
+END       { return END; }
+FOR       { return FOR; }
+GO" "?SUB { return GOSUB; }
+GO" "?TO	{ return GOTO; }
+IF        { return IF; }
+INPUT     { return INPUT; }
+LET	      { return LET; }
+NEXT	    { return NEXT; }
+NEW			  { return NEW; }   // also CLEAR (sometimes with options), ERASE and SCRATCH
+OF        { return OF; }
+ON        { return ON; }
+POKE      { return POKE; }
+PRINT     { return PRINT; }
+READ		  { return READ; }
+RESTORE	  { return RESTORE; }
+RETURN    { return RETURN; }
+RUN			  { return RUN; }
+STEP		  { return STEP; }
+STOP      { return STOP; }
+THEN		  { return THEN; }
+TO			  { return TO; }
 
  /* extended statements found in some versions*/
 CALL      { return CALL; }    // used to call system functions in TI-99 and some other BASICs
@@ -86,6 +95,7 @@ CLEAR     { return CLEAR; }
 CLR       { return CLEAR; }
 CLS       { return CLS; }     // clear screen, do not confuse with CLR or CLEAR
 CMD       { return CMD; }     // redirects output of PRINT to another device
+EXEC      { return CALL; }    //
 GET       { return GET; }
 PUT       { return PUT; }
 INPUT#    { return INPUT_FILE; }
@@ -93,12 +103,20 @@ PRINT#    { return PRINT_FILE; }
 OPTION    { return OPTION; }
 BASE      { return BASE; }
 RANDOMIZE { return RANDOMIZE; }
+TIMER     { return RANDOMIZE; } // this returns the RANDOMIZE token instead of making a new one
 SYS       { return SYS; }     // same as CALL
+SYSTEM    { return SYS; }     // same as CALL
 USING     { return USING; }
 VARLIST   { return VARLIST; }
 PAUSE     { return PAUSE; }
 POP       { return POP; }
-EXIT      { return EXIT; }    // same as POP
+DISPOSE   { return POP; }     // same as POP
+EXIT      { return EXIT; }    // slightly different than pop
+RESUME    { return RESUME; }
+TRAP      { return TRAP; }
+ERROR     { return ERROR; }
+ERR       { return ERROR; }
+RAISE     { return RAISE; }
 
  /* math functions */
 ABS			  { return ABS; }
@@ -156,11 +174,17 @@ PEEK      { return PEEK; }  // also EXAM (North Star) and FETCH (Digital Group O
 POS       { return POS; }   // COUNT in Atom
 USR       { return USR; }
 LIN       { return LIN; }
+ERL       { return EL; }
+ERN       { return ER; }
+ERR       { return ER; }
+ERR\$     { return ERR; }
 
  /* various operators and punctuation */
 [:,;()\[\]\^=+\-*/\<\>\&]     { return yytext[0]; }
 MOD       { return MOD; }
 DIV       { return DIV; }
+MAX       { return MAX; }
+MIN       { return MIN; }
 
  /* alternate form for power */
 "**"      { return '^'; } // FIXME: we should have a separate token for this?
@@ -171,7 +195,7 @@ OR        { return OR; }
 NOT       { return NOT; }
 XOR       { return XOR; }
 XOR       { return EQV; }
-XOR       { return IMP; }
+IMP       { return IMP; }
 
  /* comparison operators */
 \<=       { return CMP_LE; }
@@ -194,8 +218,9 @@ CHANGE    { return CHANGE; }
 CONVERT   { return CONVERT; }
 UCASE\$   { return UCASE; }
 LCASE\$   { return LCASE; }
-STRING\$  { return STRNG; } // returns n copies of a given string
 SPACE\$   { return SPC; }   // returns n spaces as a value, which is how our SPC works anyway
+STRING\$  { return STRNG; } // returns n copies of a given string
+REPEAT\$  { return STRNG; } // alternate form of STRING
 
  /* commodore-style TIME and TIME$ */
 TIME\$    { return TIME_STR; }
@@ -221,13 +246,13 @@ LBOUND    { return LBOUND; }
 LABEL     { return LABEL; }
 
  /* matrix commands and functions */
-MAT       { return MAT; }
-CON       { return MATCON; }
-DET       { return MATDET; }
-IDN       { return MATIDN; }
-INV       { return MATINV; }
-TRN       { return MATTRN; }
-ZER       { return MATZER; }
+MAT       { return MAT; }     // assignments
+ZER       { return MATZER; }  // zero matrix
+CON       { return MATCON; }  // all-1 matrix
+IDN       { return MATIDN; }  // identity matrix
+DET       { return MATDET; }  // determinant function
+INV       { return MATINV; }  // invert
+TRN       { return MATTRN; }  // transpose
 
  /* hex, oct and bin strings encoding numbers */
 \&[0-9a-fA-F]+  {
@@ -275,10 +300,30 @@ ZER       { return MATZER; }
           }
 
  /* preserve line ends */
-[\n]        { return '\n'; }
+[\n]        { BEGIN(INITIAL); return '\n'; }
 
  /* eat other whitespace */
 [ \t\r\l]   {  }
+
+ /* DATA statements convert everything to a string */
+<DATA_STATEMENT>{
+[^,:\n]* {
+            // eat any leading and trailing whitespace
+            yytext = str_trim(yytext);
+            
+            // and quotes
+            yytext = str_unquote(yytext);
+
+            yylval.s = str_new(yytext);
+            return STRING;
+          }
+
+[,] { return ','; } // triggers the exprlist syntax
+ 
+ /* colons or line-ends end the data statement and reset the state */
+[:] { BEGIN(INITIAL); return ':'; }
+[\n] { BEGIN(INITIAL); return '\n'; }
+}
 
 . printf("Bad input character '%s' at line %d\n", yytext, yylineno);
 
