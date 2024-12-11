@@ -31,6 +31,6 @@ parse.tab.c parse.tab.h: src/parse.y
 
 clean:
 	$(rm) $(TARGET) $(TARGET).o
-	$(rm) *.tab.h *.tab.c *.lex.c
+	$(rm) *.tab.h *.tab.c *.lex.c *.yy.c *.dSYM parse.output
 
 all: retrobasic
