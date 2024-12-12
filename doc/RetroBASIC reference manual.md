@@ -66,7 +66,7 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
    * [`GOSUB`, `GO SUB` and `RETURN` [{*lineno*|*aexp*}]](#gosub-go-sub-and-return-linenoaexp)
    * [`IF` *lexp* `THEN` {*lineno*|*statmnt*[:*statmnt*:...]}](#if-lexp-then-linenostatmntstatmnt)
    * [`ON` *aexpr* {`GOTO`|`GOSUB`} [*lineno*|*aexpr*]{,[*lineno*|*aexpr*],...}](#on-aexpr-gotogosub-linenoaexprlinenoaexpr)
-   * [`FOR` *avar*`=`*aexpr1* `TO` *aexpr2* [`STEP` *aexpr3*] {:|`\<CR\>`} [*statmnt*,{:|`\<CR\>`}...] and `NEXT` [*avar*,[*avar*,...]]](#for-avaraexpr1-to-aexpr2-step-aexpr3-cr-statmntcr-and-next-avaravar)
+   * [`FOR` *avar*`=`*aexpr1* `TO` *aexpr2* [`STEP` *aexpr3*] {:|`<CR>`} [*statmnt*,{:|`<CR>`}...] and `NEXT` [*avar*,[*avar*,...]]](#for-avaraexpr1-to-aexpr2-step-aexpr3-cr-statmntcr-and-next-avaravar)
    * [`POP` or `DISPOSE`](#pop-or-dispose)
    * [`EXIT`](#exit)
    * [`PAUSE` *aexp*](#pause-aexp)
@@ -133,7 +133,7 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
    * [`LEFT$`(*sexp*,*aexp*)](#leftsexpaexp)
    * [`MID$`|`SEG$`|`SUBSTR$`|`SUBSTRING$`](#midsegsubstrsubstring)
    * [`RIGHT$`(*sexp*,*aexp*)](#rightsexpaexp)
-   * [`SPC`|`SPA`|`SPACE$`](#spcspaspace)
+   * \[`SPC`|`SPA`|`SPACE$`\](#spcspaspace)
    * [{`STRING$`|`REPEAT$`} (*aexp*,[*sexp*|*aexp2*])](#stringrepeat-aexpsexpaexp2)
    * [`STR$`(*aexp*)](#straexp)
    * [`VAL`(*sexp*)](#valsexp)
@@ -674,7 +674,7 @@ Some dialects use the alternate syntax `GOTO` *aexpr* `ON` and `GOSUB` *aexpr* `
 * `ON ERROR`
 
 <!-- TOC --><a name="for-avaraexpr1-to-aexpr2-step-aexpr3-cr-statmntcr-and-next-avaravar"></a>
-### `FOR` *avar*`=`*aexpr1* `TO` *aexpr2* [`STEP` *aexpr3*] {:|`\<CR\>`} [*statmnt*,{:|`\<CR\>`}...] and `NEXT` [*avar*,[*avar*,...]]
+### `FOR` *avar*`=`*aexpr1* `TO` *aexpr2* [`STEP` *aexpr3*] {:|`<CR>`} [*statmnt*,{:|`<CR>`}...] and `NEXT` [*avar*,[*avar*,...]]
 
 Another of the common statements found in BASIC is the FOR/NEXT loop. This is intended to perform a sequence of actions a set number of times. The statements are those between the `FOR` and its corresponding `NEXT`, which is known as the *body* of the loop. The same behavior can be accomplished using IF statements, but FOR/NEXT loops are optimized to make them run much faster.
 
@@ -1537,7 +1537,7 @@ Produces:
 
         The length of dimension 1 is 25
         The length of dimension 2 is 10
-        
+
 #### See also:
 
 * `OPTION BASE`
@@ -1616,7 +1616,7 @@ Returns the arctangent of the variable or expression in parentheses.
 Sinclair QL BASIC uses `ATAN`, which is not used on any other of the Sinclair dialects. Most Sinclair's use `ARCTAN`.
 
 <!-- TOC --><a name="cshcoshaexp"></a>
-### [`CSH`|`COSH`]`(*aexp*)
+### \[`CSH`|`COSH`\](*aexp*)
 
 Returns the hyperbolic cosine of the expression in parentheses.
 
@@ -1631,7 +1631,7 @@ Returns the cosine of the expression in parentheses.
 Returns the sine of the expression in parentheses.
 
 <!-- TOC --><a name="snhsinh"></a>
-### [`SNH`|`SINH`](*aexp*)
+### \[`SNH`|`SINH`\](*aexp*)
 
 Returns the hyperbolic sine of the expression in parentheses.
 
@@ -1641,7 +1641,7 @@ Returns the hyperbolic sine of the expression in parentheses.
 Returns the tangent of the expression in parentheses.
 
 <!-- TOC --><a name="tnhtanh"></a>
-### [`TNH`|`TANH`](*aexp*)
+### \[`TNH`|`TANH`\](*aexp*)
 
 Returns the hyperbolic tangent of the expression in parentheses.
 
@@ -1698,7 +1698,7 @@ AppleSoft BASIC and Apple Business BASIC used the `GET` *sexp* statement for thi
 A number of BASICs, including AppleSoft, Apple Business, Atari, BBC, etc., also used the `GET` statement for similar functionality, but most of these waited for a keystroke before continuing, and thus did not serve exactly the same purpose. On these platforms, `INKEY$` was often implemented using `USR` or `PEEK`. On AppleSoft, one could optionally use an *aexp*, with some caveats. Apple versions also did not echo the typed character.
 
 <!-- TOC --><a name="instrindexpos"></a>
-### [`INSTR`|`INDEX`|`POS`](*sexp1*,*sexp2*[,*aexp*])
+### \[`INSTR`|`INDEX`|`POS`\](*sexp1*,*sexp2*[,*aexp*])
 
 `INSTR` searches the string *sexp1* for the first occurrence of *sexp2*, returning the numerical location of the match. If no match is found, `INSTR` returns 0. If the optional *aexp* is provided, searching starts at that index instead.
 
@@ -1728,7 +1728,7 @@ This function returns the length in bytes of the designated *sexp*. `LEN("Hello"
 Returns a new string containing the left-most *aexp* characters from the string *sexp*. `LEFT$("Hello, World!",5)` returns "Hello".
 
 <!-- TOC --><a name="midsegsubstrsubstring"></a>
-### [`MID$`|`SEG$`|`SUBSTR$`|`SUBSTRING$`](*sexp*,*aexp1*[,*aexp2*])
+### \[`MID$`|`SEG$`|`SUBSTR$`|`SUBSTRING$`\](*sexp*,*aexp1*[,*aexp2*])
 
 Returns a new string containing characters from *sexp* starting at *aexp1* and running to the end of the string. If the optional *aexp2* is provided, and it often is, it returns up to *aexp2* characters.
 
@@ -1755,7 +1755,7 @@ Apple Business BASIC has the similarly-named `SUB$`, but this is short for "subs
 Returns a new string containing the right-most *aexp* characters from the string *sexp*. `RIGHT$("Hello, World!",6)` returns "World!".
 
 <!-- TOC --><a name="spcspaspace"></a>
-### [`SPC`|`SPA`|`SPACE$`](*aexp*)
+### \[`SPC`|`SPA`|`SPACE$`\](*aexp*)
 
 `SPC` returns a string containing the number of space characters in *aexp*. `SPA` is the alternate spelling for the same function found in HP, while `SPACE$` is found in other dialects.
 
