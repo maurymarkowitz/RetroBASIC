@@ -135,7 +135,7 @@ Version 1.9.1 - 13 February 2024
 - added Integer BASIC's variation on TAB, which is a statement, not a pseudo-function
 - fix minor issue in RND that caused issues in SST
 
-Version 2.0.0 -
+Version 2.0.0 - 8 December 2024
 
 Major update. See the reference manual for details on the many changes.
 
@@ -160,3 +160,7 @@ Major update. See the reference manual for details on the many changes.
 - NEW properly clears the runtime stack for RETURN and NEXT
 - slicing now checks against DIMmed bounds in non-ANSI dialects
 - added RANDOMIZE TIMER from GW
+
+Version 2.0.1 - 12 December 2024
+
+Fixing major problems with the GitHub repo. Some very minor changes as well.
