@@ -165,8 +165,8 @@ INKEY\$   { return INKEY; }
  /* system functions */
 ADR       { return ADR; }
 FRE       { return FRE; }
-TAB        { return TAB; }   // also a statement in Integer BASIC
-SPC        { return SPC; }
+TAB       { return TAB; }   // also a statement in Integer BASIC
+SPC       { return SPC; }
 SPA       { return SPC; }   // from HP, same as SPC
 PEEK      { return PEEK; }  // also EXAM (North Star) and FETCH (Digital Group Opus)
 POS       { return POS; }   // COUNT in Atom
@@ -175,7 +175,6 @@ LIN       { return LIN; }
 ERL       { return EL; }
 ERN       { return ER; }
 ERR\$     { return ERR; }
-ERR       { return ER; }
 
  /* various operators and punctuation */
 [:,;()\[\]\^=+\-*/\<\>\&]     { return yytext[0]; }
