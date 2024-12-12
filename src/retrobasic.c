@@ -336,7 +336,7 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
       // now calculate how large to make the array
       value_t v;
       int slots = 1;
-      int actual = 1;
+      int actual;
       if (dim_dimensions) {
         // if there are DIMmed dimensions, always use that size
         for (list_t *L = dim_dimensions; L != NULL; L = lst_next(L)) {
@@ -1264,10 +1264,10 @@ value_t evaluate_expression(const expression_t *expression)
             // currently being pressed. it relies on the terminal settings having
             // buffering turned of when this code is entered.
             char buff[2];
-            int c = getkey(STDIN_FILENO);
+            int key = getkey(STDIN_FILENO);
             
-            if (c > 0) {
-              buff[0] = (char)c;
+            if (key > 0) {
+              buff[0] = (char)key;
               buff[1] = '\0';
             } else {
               buff[0] = '\0';
@@ -2384,11 +2384,11 @@ static void perform_statement(list_t *statement_entry)
       {
         // currently this works exactly like INKEY
         char buff[2];
-        int c = getkey(STDIN_FILENO);
+        int key = getkey(STDIN_FILENO);
         
         // put into a string and null terminate
-        if (c > 0) {
-          buff[0] = (char)c;
+        if (key > 0) {
+          buff[0] = (char)key;
           buff[1] = '\0';
         } else {
           buff[0] = '\0';
@@ -2760,12 +2760,11 @@ REDO_INPUT:
       case MATINPUT:
       {
         // FIXME: this needs to read a line and stop, not keep asking for more input if none is provided
-        printitem_t *input_item;
         char line[MAX_INPUT_LENGTH];
 
         // loop over the items in the variable/prompt list
         for (list_t *I = statement->parms.input; I != NULL; I = lst_next(I)) {
-          input_item = I->data;
+          printitem_t * input_item = I->data;
           
           // if it's a separator entry, move on
           if (input_item->expression == NULL)
@@ -2858,14 +2857,12 @@ REDO_INPUT:
         
       case MATPRINT:
       {
-        printitem_t *print_item;
-        
         // in contrast to normal print, a missing separator does not mean semi
         char sep = 0;
 
         // loop over the items in the print list
         for (list_t *I = statement->parms.print.item_list; I != NULL; I = lst_next(I)) {
-          print_item = I->data;
+          printitem_t *print_item = I->data;
           
           // if the expression is empty, it's a separator by itself, and we don't need those because
           // unlike a normal PRINT, we never leave the cursor at the end of a line
@@ -2966,11 +2963,9 @@ REDO_INPUT:
         
       case MATREAD:
       {
-        variable_reference_t *read_item;
-
         // loop over the items in the variable list
         for (list_t *I = statement->parms.read; I != NULL; I = lst_next(I)) {
-          read_item = I->data;
+          variable_reference_t *read_item = I->data;
           
           // get the array for that variable
           variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, read_item->name);
@@ -3592,14 +3587,13 @@ REDO_INPUT:
         // this is Integer BASIC's TAB, which is a statement, not a function
       case TAB:
       {
-        int tabs = 0;
         if (statement->parms.generic_parameter != NULL) {
           value_t tab_value = evaluate_expression(statement->parms.generic_parameter);
           if (tab_value.type == STRING) {
             handle_error(ern_TYPE_MISMATCH, "TAB being called with string value");
             break;
           }
-          tabs = (int)tab_value.number;
+          int tabs = (int)tab_value.number;
           if (tabs > interpreter_state.cursor_column) {
             for (int i = interpreter_state.cursor_column; i <= tabs - 1; i++) {
               putchar(32);
