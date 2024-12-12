@@ -171,129 +171,6 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
 - [Error codes](#error-codes)
 
 <!-- TOC end -->
-- [About this manual](#about-this-manual)
-   * [Abbreviations](#abbreviations)
-   * [Formatting and notation](#formatting-and-notation)
-- [Some underlying concepts](#some-underlying-concepts)
-   * [Syntax example](#syntax-example)
-- [Data in BASIC programs](#data-in-basic-programs)
-   * [Numbers](#numbers)
-   * [Strings](#strings)
-   * [Variables](#variables)
-   * [Arrays](#arrays)
-- [Commands](#commands)
-   * [`BYE`](#bye)
-   * [`CLEAR` and `CLR`](#clear-and-clr)
-   * [`CLS`](#cls)
-   * [`END`](#end)
-   * [`NEW`, `ERASE` and `SCRATCH`](#new-erase-and-scratch)
-   * [`RUN` [*aexp*]](#run-aexp)
-   * [`STOP` [*sexp*]](#stop-sexp)
-   * [Unsupported commands](#unsupported-commands)
-- [Program statements](#program-statements)
-   * [{`REM`|`'`|`!`} [*scon*]](#rem-scon)
-   * [[`LET`] *var*`=`*expr*](#let-varexpr)
-   * [`DIM` *var*(*nexp*[, *nexp*...])[,*var*(*nexp*[, *nexp*...])...],[*var*(*nexp*[, *nexp*...])[,*var*(*nexp*[, *nexp*...])...]...]](#dim-varnexp-nexpvarnexp-nexpvarnexp-nexpvarnexp-nexp)
-   * [`GOTO` *aexp* and `GO TO` *aexp*](#goto-aexp-and-go-to-aexp)
-   * [`GOSUB` and `RETURN` [{*lineno*|*aexp*}]](#gosub-and-return-linenoaexp)
-   * [`IF` *lexp* `THEN` {*lineno*|*statmnt*[:*statmnt*:...]}](#if-lexp-then-linenostatmntstatmnt)
-   * [`ON` *aexpr* {`GOTO`|`GOSUB`} [*lineno*|*aexpr*]{,[*lineno*|*aexpr*],...}](#on-aexpr-gotogosub-linenoaexprlinenoaexpr)
-   * [`FOR` *avar*=*aexpr1* `TO` *aexpr2* [`STEP` *aexpr3*] {:|}\<CR\>} [*statmnt*,{:|}\<CR\>}...] and `NEXT` [*avar*,[*avar*,...]]](#for-avaraexpr1-to-aexpr2-step-aexpr3-statmnt-and-next-avaravar)
-   * [`POP`](#pop)
-   * [`EXIT`](#exit)
-   * [`PAUSE` *aexp*](#pause-aexp)
-   * [`LABEL` *nvar*](#label-nvar)
-   * [`CALL` *aexp*[,*aexp*...], `SYSTEM` and `SYS`](#call-aexpaexp-system-and-sys)
-   * [`OPTION BASE` [0|1]](#option-base-01)
-- [Input/Output Statements](#inputoutput-statements)
-   * [`PRINT` [*exp*{|[;|,]},...]](#print-exp)
-   * [`INPUT` [*sexp*{[;|,]}]*var*[,*var*...]](#input-sexpvarvar)
-- [`DATA`, `READ` and `RESTORE`](#data-read-and-restore)
-   * [`DATA` *con*[,*con*...]](#data-concon)
-   * [`READ` *var*[,*var*...]](#read-varvar)
-   * [`RESTORE` [{*lineno*!*aexp*}]](#restore-linenoaexp)
-- [Other statements](#other-statements)
-   * [`POKE` *aexp1*,*aexp2*](#poke-aexp1-aexp2)
-   * [`RANDOMIZE` [*aexp*]](#randomize-aexp)
-   * [`CHANGE` {*avar*|*svar*} `TO` {*svar*|*avar*} and `CONVERT` {*avar*|*svar*} `TO` {*svar*|*avar*}](#change-avarsvar-to-svaravar-and-convert-avarsvar-to-svaravar)
-- [Operators](#operators)
-   * [Mathematical operators (arithmetic)](#mathematical-operators-arithmetic)
-   * [Logical operators](#logical-operators)
-   * [String operators](#string-operators)
-- [Mathematical functions](#mathematical-functions)
-   * [`ABS`(*aexp*)](#absaexp)
-   * [`ADR`(*aexp*)](#adraexp)
-   * [`CLOG`(*aexp*)](#clogaexp)
-   * [`DIV`(*aexp1*,*aexp2*)](#divaexp1aexp2)
-   * [`EXP`(*aexp*)](#expaexp)
-   * [`FIX`(*aexp*)](#fixaexp)
-   * [`FRAC`(*aexp*)](#fracaexp)
-   * [`INT`(*aexp*)](#intaexp)
-   * [`LOG`(*aexp*) and `LN`(*aexp*)](#logaexp-and-lnaexp)
-   * [`PI`[(*dexp*)]](#pidexp)
-   * [`MOD`(*aexp1*,*aexp2*) and `MOD%`(*aexp1*,*aexp2*)](#modaexp1aexp2-and-modaexp1aexp2)
-   * [`ROUND`(*aexp*[,*aexp*])](#roundaexpaexp)
-   * [`RND`([*aexp*])](#rndaexp)
-   * [`SGN`(*aexp*)](#sgnaexp)
-   * [`SQR`(*aexp*)](#sqraexp)
-   * [`UBOUND`(*avar*{,*aexp*}) and `LBOUND`(*avar*{,*aexp*})](#uboundavaraexp-and-lboundavaraexp)
-- [Numeric string functions](#numeric-string-functions)
-   * [`BIN`(*sexp*) and `BIN$`(*aexp*)](#binsexp-and-binaexp)
-   * [`OCT`(*sexp*) and `OCT$`(*aexp*)](#octsexp-and-octaexp)
-   * [`HEX`(*sexp*) and `HEX$`(*aexp*)](#hexsexp-and-hexaexp)
-- [Trigonometric functions](#trigonometric-functions)
-   * [`ACS`(*aexp*)](#acsaexp)
-   * [`ASN`(*aexp*)](#asnaexp)
-   * [`ATN`(*aexp*)](#atnaexp)
-   * [`CSH`(*aexp*) and `COSH`(*aexp*)](#cshaexp-and-coshaexp)
-   * [`COS`(*aexp*)](#cosaexp)
-   * [`CSH`(*aexp*) and `COSH`(*aexp*)](#cshaexp-and-coshaexp-1)
-   * [`SIN`(*aexp*)](#sinaexp)
-   * [`SNH`(*aexp*) and `SINH`(*aexp*)](#snhaexp-and-sinhaexp)
-   * [`TAN`(*aexp*)](#tanaexp)
-   * [`TNH`(*aexp*) and `TANH`(*aexp*)](#tnhaexp-and-tanhaexp)
-- [String functions](#string-functions)
-   * [`ASC`(*sexp*)](#ascsexp)
-   * [`CHR$`(*aexp*)](#chraexp)
-   * [`INKEY$`(*dexp*)](#inkeydexp)
-   * [`INSTR`(*sexp1*,*sexp2*[,*aexp*]), `INDEX` and `POS`](#instrsexp1sexp2aexp-index-and-pos)
-   * [`LEN`(*sexp*)](#lensexp)
-   * [`LEFT$`(*sexp*,*aexp*)](#leftsexpaexp)
-   * [`MID$`(*sexp*,*aexp1*[,*aexp2*]), `SEG$`, `SUBSTR$` and `SUBSTRING$`](#midsexpaexp1aexp2-seg-substr-and-substring)
-   * [`RIGHT$`(*sexp*,*aexp*)](#rightsexpaexp)
-   * [`SPC`(*aexp*), `SPA`(*aexp*) and `SPACE$`(*aexp*)](#spcaexp-spaaexp-and-spaceaexp)
-   * [`STRING$`(*aexp*,[*sexp*|*aexp2*])](#stringaexpsexpaexp2)
-   * [`STR$`(*aexp*)](#straexp)
-   * [`VAL`(*sexp*)](#valsexp)
-   * [`UCASE$`(*sexp*) and `LCASE$`(*sexp*)](#ucasesexp-and-lcasesexp)
-- [String slicing](#string-slicing)
-   * [*svar*{(|[}*aexp*[{,|:|TO}*aexp*]{)|]}](#svaraexptoaexp)
-- [System functions](#system-functions)
-   * [`FRE`(*dexp*)](#fredexp)
-   * [`PEEK`(*aexp*)](#peekaexp)
-   * [`POS`(*dexp*)](#posdexp)
-   * [`LIN`(*aexp*)](#linaexp)
-   * [`TAB`(*aexp*)](#tabaexp)
-   * [`TIME`[(*dexp*)] and `TIME=`*aexp*](#timedexp-and-timeaexp)
-   * [`TIME$`(*dexp*) and `CLK$`](#timedexp-and-clk)
-   * [`USR`(*aexp*)](#usraexp)
-- [Matrix commands, operators and functions](#matrix-commands-operators-and-functions)
-   * [Matrix statements](#matrix-statements)
-   * [Matrix operators](#matrix-operators)
-   * [`MAT` *avar*`=ZER`[(*aexp*,...)]](#mat-avarzeraexp)
-   * [`MAT` *avar*`=CON`[(*aexp*,...)]](#mat-avarconaexp)
-   * [`MAT` *avar*`=IDN`[(*aexp*,...)]](#mat-avaridnaexp)
-   * [`MAT` *avar1*`=INV(`*avar2*`)`](#mat-avar1invavar2)
-   * [`MAT` *avar1*`=TRN(`*avar2*`)`](#mat-avar1trnavar2)
-- [Error handling](#error-handling)
-   * [{`TRAP`|`ON ERROR GOTO`|`ONERR GOTO`} [*aexp*]](#trapon-error-gotoonerr-goto-aexp)
-   * [{`ERROR`|`RAISE`} *aexp*](#raise-aexp)
-   * [`RESUME` [`NEXT`, *aexp*, ]](#resume-next-aexp-)
-   * [`ERL()`](#erl)
-   * [`ERN()` and `ERR()`](#ern-and-err)
-   * [`ERR$(`*aexp*`)`](#erraexp)
-   * [Example:](#example)
-- [Error codes](#error-codes)
 
 <!-- TOC --><a name="about-this-manual"></a>
 ## About this manual
@@ -1942,17 +1819,17 @@ Produces:
 <!-- TOC --><a name="svaraexptoaexp"></a>
 ### *svar*{(|[}*aexp*[{,|:|TO}*aexp*]{)|]}
 
-String slicing is an alternative way to manipulate strings and produce substrings. A "slice" is a substring defined as a starting and ending location within an existing string. Although slicing instructions are not functions in the traditional sense, they produce results similar to the `MID/LEFT/RIGHT` functions. The major difference between the slicing concept and string functions is that the functions take a location and length, not start and end locations. This can result in off-by-one errors when converting code from one system to another.
+String slicing is an alternative way to manipulate strings and produce substrings. A "slice" is a substring defined as a starting and ending location within an existing string. Although slicing instructions are not functions in the traditional sense, they produce results similar to the `MID/LEFT/RIGHT` functions seen in the DEC and Microsoft dialects. The major difference between the slicing concept and string functions is that the functions take a location and length, not start and end locations. This can result in off-by-one errors when converting code from one system to another.
 
-Slicing syntax is generally similar to accessing a slot in an array, but the exact syntax varies. For instance, in most dialects `A$(1,5)` returns a slice with the first five characters of A$, which produces the same result as `MID$(A$,1,5)` or `LEFT(A$,5)`. They also vary in the way the parameters are separated, most use a comma, but Sinclair uses the `TO` keyword, like `A$(1 TO 5)` and the (little used) Full BASIC used the colon, `A$(1:5)`.
+Slicing syntax is generally similar to accessing a slot in an array, but the exact syntax varies. For instance, in most dialects `A$(1,5)` returns a slice with the first five characters of A$, which produces the same result as `MID$(A$,1,5)` or `LEFT(A$,5)`. They also vary in the way the parameters are separated, most dialects use a comma, but Sinclair uses the `TO` keyword, like `A$(1 TO 5)` and the (little used) Full BASIC used the colon, `A$(1:5)`.
 
 Most slicing implementations allow one or two parameters, with the second parameter optional. Generally, if there is only one parameter it indicates a single character at that location, thus `A$(5)` is the fifth character in the string. To access the portion of the string after a given location, most dialects allowed the second parameter to be empty, `A$(5,)` means "character 5 to the end of the string". This is very useful, as it means you don't have to know the length of the string when performing common manipulations.
 
-Sinclair and Full BASIC allow either parameter to be optional, `A$( TO 5)` and `A$(:5)` (respectively) mean "the portion of A$ from the start to location 5". Since the starting position of the string is always 1, this syntax is less useful than the optional second parameter, where the computer automatically calculates the unknown ending location.
+Sinclair and Full BASIC allow either parameter to be optional, `A$( TO 5)` and `A$(:5)` (respectively) mean "the portion of A$ from the start to location 5". Since the starting position of the string is always 1, this syntax performs the equivalent to a `LEFT$` operation.
 
-RetroBASIC is designed to run any program that does not use platform-specific features. As string arrays are relatively commonly, it has to support them. This leads to it having to decide whether a reference in code like `A$(5)` is a slice or an array access. In the case that the syntax is clear, like Sinclair or Full, there is no ambiguity and one can use string arrays and string slicing in the same program using syntax like `A$(5)(5 TO)`, meaning the substring from the 5th character on in the string stored in slot five of `A$`.
+RetroBASIC is designed to run any program that does not use platform-specific features. As string arrays are relatively commonly, it has to support them. This leads to it having to decide whether a reference in code like `A$(5)` is a slice or an array access. In the case that the syntax is clear, like Sinclair or Full, there is no ambiguity and one can use string arrays and string slicing in the same program using syntax like `A$(5)(5 TO 10)`, meaning the substring from the 5th to 10th character on in the string stored in slot five of `A$`.
 
-To work with the dialects that do not have unique syntax, like Atari BASIC, RetroBASIC uses the `--slicing` command-line switch. When turned on, using `--slicing=1`, all "array like" parameters applied to strings are considered slices.
+To work with the dialects that do not have unique syntax, like Dartmouth or Atari BASIC, RetroBASIC offers the `--slicing` command-line switch. When turned on, using `--slicing=1`, all "array like" parameters applied to strings are considered slices.
 
 #### Examples:
 
@@ -2014,15 +1891,15 @@ HP allowed either parentheses or brackets to be used to denote array slots in nu
 
 This is unfortunate, as it means there is no way for the interpreter to distinguish between an array slot and a slice. In HP's case this was not a concern, as they did not support arrays of strings. It treated each string as an array of characters, meaning `A$(1,1)` *was* an array access, albeit with the parameters having a different meaning.
 
-Had HP selected *one* of these two to indicate slicing instead of both, or alternately used a different definition, like Sinclair's `A$(1 TO 10)`, then other BASICs copying them could implement string arrays and slicing. For instance, `A$(2,3)[1,1]` would return the first character of the string in slot (2,3) of the array of strings.
+Had HP selected *one* of these two to indicate slicing, instead of both, or alternately used a different definition, like Sinclair's `A$(1 TO 10)`, then other BASICs copying them could implement string arrays and slicing. For instance, `A$(2,3)[1,1]` would return the first character of the string in slot (2,3) of the array of strings.
 
 #### Variations:
 
-String slicing was common in early microcomputer BASICs, which were often written by programmers that were familiar with HP BASIC. Some worked exactly like HP, Atari and Apple Integer BASIC for instance.
+String slicing was common in early microcomputer BASICs, which were often written by programmers that were familiar with HP BASIC. The best example is Apple's Integer BASIC, which Woz wrote based on a HP manual while he worked at HP. Others also copied this style, Atari and North Star BASIC for instance.
 
 One dialect that did support arrays *and* slicing was SCELBAL, which indicated a slice with a leading colon. Thus `A$(1)` refers to the entire string in slot one in a string array, while `A$(1:5:5)` is the fifth character in that string. To slice a string that was not in an array, the slot was simply left off: `A$(:1:5)` returns the first five characters in A$.
 
-Another that supported arrays and slicing was ANSI Full BASIC, which used a separate colon-separated parameter. So `A$(1)(1:1)` is the first character in the first slot of the A$ array.
+Another dialect that supported arrays and slicing was ANSI Full BASIC, which used a separate colon-separated parameter. So `A$(1)(1:1)` is the first character in the first slot of the A$ array.
 
 #### Availability:
 

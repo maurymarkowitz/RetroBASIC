@@ -181,3 +181,43 @@ char* str_append(char *orig_string, char *new_chars)
   // this exists only to match the API from GLib, which is used to return a string into str_new
   return strcat(orig_string, new_chars);
 }
+
+/* remove leading and trailing whitespace */
+char* str_trim(char *orig_string)
+{
+  size_t len = strlen(orig_string);
+  size_t p = 0, q = len - 1;
+
+  while (isspace(orig_string[p]))
+    p++;
+  
+  while (isspace(orig_string[q]))
+    q--;
+  
+  size_t after_len = q + 1 - p;
+
+  memmove(orig_string, orig_string + p, after_len);
+  orig_string[after_len] = '\0';
+  
+  return orig_string;
+}
+
+/* remove leading and trailing quotes */
+char* str_unquote(char *orig_string)
+{
+  size_t len = strlen(orig_string);
+  size_t p = 0, q = len - 1;
+
+  if (orig_string[p] == '"')
+    p++;
+  
+  if (orig_string[q] == '"')
+    q--;
+  
+  size_t after_len = q + 1 - p;
+
+  memmove(orig_string, orig_string + p, after_len);
+  orig_string[after_len] = '\0';
+  
+  return orig_string;
+}

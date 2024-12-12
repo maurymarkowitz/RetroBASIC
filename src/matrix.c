@@ -133,7 +133,7 @@ void matrix_fill_num(statement_t *statement, double fill_value)
       cols = -1;
     }
     else {
-      value_t v = evaluate_expression(use_dimensions->data);
+      v = evaluate_expression(use_dimensions->data);
       rows = v.number;
       v = evaluate_expression(use_dimensions->next->data);
       cols = v.number;
@@ -208,16 +208,16 @@ void matrix_fill_str(statement_t *statement, char *fill_value)
   // if the dimensions are being passed in as a parameter, we need
   // to evaluate them to get the values, otherwise just use the
   // original dimensions from the array
+  value_t v;
   int rows, cols;
   if (statement->parms.mat.variable->subscripts != NULL) {
-    value_t v;
     if (num_dimensions == 1) {
       v = evaluate_expression(use_dimensions->data);
       rows = v.number;
       cols = -1;
     }
     else {
-      value_t v = evaluate_expression(use_dimensions->data);
+      v = evaluate_expression(use_dimensions->data);
       rows = v.number;
       v = evaluate_expression(use_dimensions->next->data);
       cols = v.number;
@@ -322,13 +322,6 @@ void matrix_identity(statement_t *statement)
     }
 }
 
-void matrix_copy(statement_t *statement)
-{
-//  for (int i = 1; i <= size; i++)
-//    for (int j = 1; j <= size; j++)
-//      destination[i][j] = source[i][j];
-}
-
 void matrix_add(statement_t *statement)
 {
   // find the destination array storage
@@ -402,7 +395,7 @@ void matrix_add(statement_t *statement)
   // get the resulting number of dimensions
   int dims = lst_length(destination_store->actual_dimensions);
   if (dims == 1) {
-    int cols = rows; // because it was put in rows above
+    cols = rows; // because it was put in rows above
     
     if (!redim_matrix_to_size(destination_ref, cols, -1))
       return;
@@ -496,7 +489,7 @@ void matrix_sub(statement_t *statement)
   // get the resulting number of dimensions
   int dims = lst_length(destination_store->actual_dimensions);
   if (dims == 1) {
-    int cols = rows;
+    cols = rows;
     
     if (!redim_matrix_to_size(destination_ref, cols, -1))
       return;
@@ -749,8 +742,11 @@ void matrix_transpose(statement_t *statement)
   }
 
   // resize the result matrix
-  if (!redim_matrix_to_size(ret_item, new_rows, new_cols))
+  if (!redim_matrix_to_size(ret_item, new_rows, new_cols)) {
+    free(tempnum);
+    free(tempstr);
     return;
+  }
 
   // copy back from temp
   for (int r = 1; r <= new_rows; r++) {
@@ -869,8 +865,11 @@ double matrix_invert(statement_t *statement)
     
     // scale the pivot row to make the pivot element equal to 1
     temp = *(matrix + i * rows + i);
-    if (temp == 0)
+    if (temp == 0) {
+      free(matrix);
+      free(inverse);
       return 0.0;  // Matrix is singular, no inverse exists
+    }
     
     det *= temp;
     for (int j = 0; j < rows; j++) {
