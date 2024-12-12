@@ -10,25 +10,24 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
-- add REDIM
+- word wrap at a given column
 
-- MAT INPUT should also allow multi-input on a single line
+- add REDIM?
 
-- NUM function returns number of items in MAT INPUT
+- EXCHANGE/SWAP that swaps the values of two variables
 
-- add DET function
+- MAT INPUT should allow multi-input on a single line, and should set NUM
+   Digital Group BASIC uses NUM for VAL, but we can do both
 
 - LINPUT/LINE INPUT/INPUT LINE
 
-- MAX and MIN
-
 - IMAGE (etc) for PRINT USING with HP specifiers, and colon for image for other dialects
 
-- CHAIN and COMMON
+- GW BASIC string formatters in PRINT USING, but number formats work
 
-- option base 1 should return error on 0
+- PA allows # to define field widths in PRINT, so PRINT A,#3,B,C will print B and C in 3-character widths. All expressions following the format use that format until reset by another # or another PRINT
 
-- Dartmouth style FOR loops, exit on 1 TO 0
+- CHAIN and COMMON (and APPEND?)
 
 - add parameter checking to functions, currently most of them don't check that they were passed a string/number
 
@@ -44,8 +43,6 @@ BP - DEC BASIC-PLUS
 
 - ELSE would be relatively easy to add, at least the single-line variety
 
-- flesh out GET and PUT, which are just placeholders for now
-
 - support AB's DEG and RAD modes? WB also had gradians; SELECT G, Commodore 3.5 has similar?
 
 - PA allows multiple assignments in a LET, separated by commas, see assignlist.
@@ -53,8 +50,6 @@ BP - DEC BASIC-PLUS
 - BP (and HP?) allows multiple assignments with equals, A=B=C=10
 
 - PA and BP allow single or double quotes around strings
-
-- PA allows # to define field widths in PRINT, so PRINT A,#3,B,C will print B and C in 3-character widths. All expressions following the format use that format until reset by another # or another PRINT
 
 - PA prints a colon after INPUTs, not ?, and prints the variable name if no prompt is given. So "INPUT A" prints "A:", while INPUT "TYPE A NUMBER"A prints "TYPE A NUMBER:"
 
@@ -64,21 +59,19 @@ BP - DEC BASIC-PLUS
 
 - CINT CSNG CDBL are not implemented
 
-- GW BASIC string formatters in PRINT USING, but number formats work
-
-- EQ, GT, GE and similar alternatives to =, >, >= etc.
-
-- EXCHANGE/SWAP that swaps the values of two variables
-
 - IF..LET, another alternative format for IF
 
 - ERASE, clears variables (IBM Advanced BASIC)
 
 Debatable:
 
-- BASIC-PLUS uses WAIT to limit the amount of time INPUT will wait, other dialects have similar variations
+- EQ, GT, GE and similar alternatives to =, >, >= etc.
 
-- it would not be difficult to allow any variable to hold a string, but in most dialects that is an error
+- option base 1 should return error on accessing 0
+
+- Dartmouth style FOR loops, exit on 1 TO 0
+
+- BASIC-PLUS uses WAIT to limit the amount of time INPUT will wait, other dialects have similar variations
 
 - SUB$ from Apple Business BASIC substitutes one string into another. EG, SUB$("Hello!", "**", 2) produces H**lo!
 
@@ -100,15 +93,17 @@ Debatable:
 
 Will not be done:
 
-- STORE and RECALL from Applesoft, which writes and reads all the values in an array to cassette
+- it would not be difficult to allow any variable to hold a string, but in most dialects that is an error.
+
+- STORE and RECALL from Applesoft, which writes and reads all the values in an array to cassette.
 
 - RESTORE* and RESTORE$ from Dartmouth, which reset the numeric vs. string DATA pointers.
+
+- WB allows RESTORE to use an ordinal position in the list, as opposed to a line number. There appears to be no easy way to distinguish this.
 
 - IP and FP, aliases for FIX and FRAC, too easily overlap with variable names.
 
 - EXAM and FETCH aliases to PEEK from North Star and Opus and similar. No point, this returns 0 anyway.
-
-- WB allows RESTORE to use an ordinal position in the list, as opposed to a line number. There appears to be no easy way to distinguish this.
 
 - WB uses CONVERT for ASC, which steps on HPs CONVERT.
 

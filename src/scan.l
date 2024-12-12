@@ -70,29 +70,27 @@ DIM       { return DIM; }
 END       { return END; }
 FOR       { return FOR; }
 GO" "?SUB { return GOSUB; }
-GO" "?TO	{ return GOTO; }
+GO" "?TO  { return GOTO; }
 IF        { return IF; }
 INPUT     { return INPUT; }
-LET	      { return LET; }
-NEXT	    { return NEXT; }
-NEW			  { return NEW; }   // also CLEAR (sometimes with options), ERASE and SCRATCH
+LET        { return LET; }
+NEXT      { return NEXT; }
+NEW        { return NEW; }   // also CLEAR (sometimes with options), ERASE and SCRATCH
 OF        { return OF; }
 ON        { return ON; }
 POKE      { return POKE; }
 PRINT     { return PRINT; }
-READ		  { return READ; }
-RESTORE	  { return RESTORE; }
+READ      { return READ; }
+RESTORE    { return RESTORE; }
 RETURN    { return RETURN; }
-RUN			  { return RUN; }
-STEP		  { return STEP; }
+RUN        { return RUN; }
+STEP      { return STEP; }
 STOP      { return STOP; }
-THEN		  { return THEN; }
-TO			  { return TO; }
+THEN      { return THEN; }
+TO        { return TO; }
 
  /* extended statements found in some versions*/
 CALL      { return CALL; }    // used to call system functions in TI-99 and some other BASICs
-CLEAR     { return CLEAR; }
-CLR       { return CLEAR; }
 CLS       { return CLS; }     // clear screen, do not confuse with CLR or CLEAR
 CMD       { return CMD; }     // redirects output of PRINT to another device
 EXEC      { return CALL; }    //
@@ -119,39 +117,39 @@ ERR       { return ERROR; }
 RAISE     { return RAISE; }
 
  /* math functions */
-ABS			  { return ABS; }
+ABS        { return ABS; }
 ACS       { return ACS; }
 ASN       { return ASN; }
 ATN       { return ATN; }
 COS       { return COS; }
 COSH      { return COSH; }
-CLOG		  { return CLOG; } // CLG on Honeywell Series 60
+CLOG      { return CLOG; } // CLG on Honeywell Series 60
 CSH       { return COSH; }
 EXP       { return EXP; }
 FIX       { return FIX; }
 FRAC      { return FRAC; }
-INT			  { return INT; }
+INT        { return INT; }
 LN        { return LOG; }
 LOG       { return LOG; }
 PI        { return PI; }
-SIN			  { return SIN; }
+SIN        { return SIN; }
 SINH      { return SINH; }
-SGN			  { return SGN; }
-SQR			  { return SQR; }
+SGN        { return SGN; }
+SQR        { return SQR; }
 SNH       { return SINH; }
 ROUND     { return ROUND; }
 RND       { return RND; }
 TAN       { return TAN; }
 TANH      { return TANH; }
 TNH       { return TANH; }
-VAL			  { return VAL; }
+VAL        { return VAL; }
 
  /* string-related functions */
 ASC       { return ASC; } // CODE on Sinclair due to being non-ASCII, CH on Atom (no parens)
 ASCII     { return ASC; } // DEC version of ASC
 CHR\$     { return CHR; } // CHR (SOL and SWTP), CHAR (MAX-BASIC), CHAR$ (Micropolis)
-LEFT\$		{ return LEFT; }
-RIGHT\$		{ return RIGHT; }
+LEFT\$    { return LEFT; }
+RIGHT\$    { return RIGHT; }
 MID\$     { return MID; }
 LEN       { return LEN; }
 STR\$     { return STR; } // also NUM$ in some dialects
@@ -167,8 +165,8 @@ INKEY\$   { return INKEY; }
  /* system functions */
 ADR       { return ADR; }
 FRE       { return FRE; }
-TAB			  { return TAB; }   // also a statement in Integer BASIC
-SPC			  { return SPC; }
+TAB        { return TAB; }   // also a statement in Integer BASIC
+SPC        { return SPC; }
 SPA       { return SPC; }   // from HP, same as SPC
 PEEK      { return PEEK; }  // also EXAM (North Star) and FETCH (Digital Group Opus)
 POS       { return POS; }   // COUNT in Atom
@@ -176,8 +174,8 @@ USR       { return USR; }
 LIN       { return LIN; }
 ERL       { return EL; }
 ERN       { return ER; }
-ERR       { return ER; }
 ERR\$     { return ERR; }
+ERR       { return ER; }
 
  /* various operators and punctuation */
 [:,;()\[\]\^=+\-*/\<\>\&]     { return yytext[0]; }
@@ -250,9 +248,9 @@ MAT       { return MAT; }     // assignments
 ZER       { return MATZER; }  // zero matrix
 CON       { return MATCON; }  // all-1 matrix
 IDN       { return MATIDN; }  // identity matrix
-DET       { return MATDET; }  // determinant function
 INV       { return MATINV; }  // invert
 TRN       { return MATTRN; }  // transpose
+DET       { return MATDET; }  // determinant
 
  /* hex, oct and bin strings encoding numbers */
 \&[0-9a-fA-F]+  {

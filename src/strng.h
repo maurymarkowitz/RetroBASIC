@@ -35,7 +35,7 @@ Boston, MA 02111-1307, USA.  */
  * Unix is annoying.
  *
  * It also includes a replacement for strndup, which is POSIX and not available in windows.
- * 
+ *
  */
 
 // this should be more than large enough for programs of the era,
@@ -43,7 +43,7 @@ Boston, MA 02111-1307, USA.  */
 #define MAXSTRING 256
 
 /**
- * mallocs a new string and copies the optional @p string into it.
+ * callocs a new string and copies the optional @p string into it.
  *
  * @param string The string to to copy from, or NULL.
  */
@@ -126,5 +126,21 @@ char* str_fruncate(char *string, size_t no_of_chars);
  * @return The resulting string.
  */
 char* str_append(char *orig_string, char *new_string);
+
+/**
+ * Deletes any leading or trailing whitespace from @p orig_string.
+ *
+ * @param orig_string The string to trim.
+ * @return The resulting string.
+ */
+char* str_trim(char *orig_string);
+
+/**
+ * Deletes leading or trailing double-quotes from @p orig_string.
+ *
+ * @param orig_string The string to trim.
+ * @return The resulting string.
+ */
+char* str_unquote(char *orig_string);
 
 #endif /* string_h */
