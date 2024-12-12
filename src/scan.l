@@ -191,7 +191,7 @@ AND       { return AND; }
 OR        { return OR; }
 NOT       { return NOT; }
 XOR       { return XOR; }
-XOR       { return EQV; }
+EQV       { return EQV; }
 IMP       { return IMP; }
 
  /* comparison operators */
