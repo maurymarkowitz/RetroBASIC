@@ -1413,11 +1413,11 @@ Returns the value of *pi*, 3.1415... The (*dexp*) is optional; `A=PI`, `A=PI()` 
 <!-- TOC --><a name="maxaexp"></a>
 ### `MAX`(*aexp*,...)
 
-Returns the largest number in the provided list, `MAX(7,5)` returns 7. This functionality is also available as an operator, where this same call would be written `7 MOD 5`.
+Returns the largest number in the provided list, `MAX(7,5)` returns 7. This functionality is also available as an operator, where this same call would be written `7 MAX 5`.
 
 #### Variations:
 
-The "functional" style of `MOD` was used in Micropolis BASIC, and likely others.
+The "functional" style of `MAX` was used in Micropolis BASIC, and likely others.
 
 #### See also:
 
@@ -1453,7 +1453,7 @@ Returns the modulus, or remainder, of the division of *aexp1*/*aexp2*. `MOD(7,3)
 
 #### Variations:
 
-This "functional" style of `MOD` was used in Harris BASIC-V and DEC BASIC-PLUS. BASIC-PLUS also added `MOD%.
+This "functional" style of `MOD` was used in Harris BASIC-V and DEC BASIC-PLUS. BASIC-PLUS also added `MOD%`.
 
 #### See also:
 
