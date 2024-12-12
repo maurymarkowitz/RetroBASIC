@@ -32,27 +32,61 @@ Boston, MA 02111-1307, USA.  */
  * to a normal C array which is 0..n-1. This matches the way Dartmouth BASIC
  * organizes its arrays. Items are allowed in the 0 indexes, but are ignored
  * in this code, which, like Dartmouth, can result in odd output when not
- * expected.
+ * expected if the matrix changes dimensions as a side-effect of the calc.
+ *
+ * These are not general purpose routines and are not expected to be used with
+ * other programs, unlike list or strng. This code needs to know about
+ * statement_t which requires it to import retrobasic.h, and will report errors
+ * and cause execution to stop if one is encountered.
  *
  */
 
 #ifndef matrix_h
 #define matrix_h
 
-/**
- * Dartmouth can have a maximum matrix size of 32k, so we'll allow 200x200 in this code.
-*/
-#define MATRIX_MAX_SIZE 200
+#include "retrobasic.h"
 
 /**
- * Fills the source matrix with a given double value. Used for ZER and CON.
+ * Used for REDIM and similar instructions that have to resize an array
+ * or matrix to a specified size. Most of the matrix functions will
+ * call this even if the size is the same before and after.
  *
- * @param matrix the matrix to fill.
- * @param fill_value the value to fill it with.
+ * @param destination_ref The array to resize.
+ * @param x the X dimension, must be > 0.
+ * @param y the Y dimension. Optional, if not being used, set to -1 for clarity.
+ * @return true if the resize worked, false otherwise.
+ */
+bool redim_matrix_to_size(variable_reference_t *destination_ref, int x, int y);
+
+/**
+ * Fills the destination matrix with a given double value.
+ * Used for ZER and CON and numeric expression assignments.
+ *
+ * @param statement the statement containing the fill operation.
+ * @param fill_value the numeric value to fill it with. This
+ * function checks to make sure the array is numeric and will
+ * report an error if it is not.
 */
-void matrix_fill(int size,
-                 double destination[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE],
-                 double fill_value);
+void matrix_fill_num(statement_t *statement, double fill_value);
+
+/**
+ * Fills the destination matrix with a given string value.
+ * Used for string expression assignments. This function checks
+ * to make sure the array is a string and will report an error
+ * if it is not.
+ *
+ * @param statement the statement containing the fill operation.
+ * @param fill_value the string value to fill it with.
+*/
+void matrix_fill_str(statement_t *statement, char *fill_value);
+
+/**
+ * Makes the destination matrix into an identity matrix. The matrix has
+ * to be numeric, and square.
+ *
+ * @param statement the statement containing the fill operation.
+*/
+void matrix_identity(statement_t *statement);
 
 /**
  * Copies the values in the source matrix to the destination matrix.
@@ -61,9 +95,7 @@ void matrix_fill(int size,
  * @param destination the destination matrix the values will be copied into.
  * @param source the source matrix.
 */
-void matrix_copy(int size,
-                 double destination[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE],
-                 double source[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE]);
+void matrix_copy(statement_t *statement);
 
 /**
  * Adds the values in one array to the values already in another.
@@ -72,10 +104,7 @@ void matrix_copy(int size,
  * @param matrix the destination matrix.
  * @param addend the source matrix the addition values will be taken from.
 */
-void matrix_add(int size,
-                double destination[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE],
-                double addend1[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE],
-                double addend2[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE]);
+void matrix_add(statement_t *statement);
 
 /**
  * Subtracts the values in one array from the values already in another.
@@ -84,10 +113,7 @@ void matrix_add(int size,
  * @param matrix the destination matrix.
  * @param subtrahend the source matrix the subtraction values will be taken from.
 */
-void matrix_sub(int size,
-                double destination[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE],
-                double minuend[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE],
-                double subtrahend[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE]);
+void matrix_sub(statement_t *statement);
 
 /**
  * Multiplies the values in one array by the values in another.
@@ -96,21 +122,15 @@ void matrix_sub(int size,
  * @param matrix the destination matrix.
  * @param multiplier the source matrix the multiplier values will be taken from.
 */
-void matrix_mul(int size,
-                double destination[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE],
-                double multiplicand[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE],
-                double multiplier[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE]);
+void matrix_mul(statement_t *statement);
 
 /**
  * Multiplies the values in a matrix by a double value.
  *
  * @param size the actual dimensions of the resulting array.
  * @param matrix the destination matrix.
- * @param multiplier the multiplier value.
 */
-void matrix_mul_const(int size,
-                      double matrix[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE],
-                      double multiplier);
+void matrix_mul_const(statement_t *statement);
 
 /**
  * Transposes a matrix.
@@ -118,8 +138,7 @@ void matrix_mul_const(int size,
  * @param size the actual dimensions of the resulting array.
  * @param matrix the destination matrix.
 */
-void transpose(int size,
-               int source[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE]);
+void matrix_transpose(statement_t *statement);
 
 /**
  * Inverts a matrix.
@@ -130,23 +149,9 @@ void transpose(int size,
  *
  * Additionally, this function can fail, so it returns an integer value.
  *
- * @param size the actual dimensions of the resulting array.
- * @param matrix the matrix to invert matrix.
- * @param inverse the resulting inverted matrix.
- * @return 0 for success, non-zero for failure (currently only -1 is used).
+ * @param statement the statement containing the matrix to invert.
+ * @return determinant, used to indicate if the operation was successful.
 */
-int martix_invert(int size,
-                  double matrix[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE],
-                  double inverse[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE]);
-
-/**
- * Calculates the determinant of a matrix.
- *
- * @param size the actual dimensions of the resulting array.
- * @param matrix the matrix to calculate the determinant of.
- * @return the determinant.
-*/
-double matrix_determinant(int size,
-                          double matrix[MATRIX_MAX_SIZE][MATRIX_MAX_SIZE]);
+double matrix_invert(statement_t *statement);
     
 #endif /* matrix_h */

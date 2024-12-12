@@ -24,6 +24,7 @@
 		55B9698C252F44E70021CD8B /* parse.y in Sources */ = {isa = PBXBuildFile; fileRef = 55B9698B252F44E70021CD8B /* parse.y */; };
 		55BC0C412BF01879004E69BB /* matrix.c in Sources */ = {isa = PBXBuildFile; fileRef = 55BC0C402BF01879004E69BB /* matrix.c */; };
 		55CFD0BE2A23CCB200DC9896 /* letter.hpb in CopyFiles */ = {isa = PBXBuildFile; fileRef = 55CFD0BD2A23CC7700DC9896 /* letter.hpb */; };
+		55EADEA42D0A68790000CE5D /* errors.c in Sources */ = {isa = PBXBuildFile; fileRef = 55EADEA32D0A68750000CE5D /* errors.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -102,6 +103,7 @@
 		55CFD0BD2A23CC7700DC9896 /* letter.hpb */ = {isa = PBXFileReference; lastKnownFileType = text; path = letter.hpb; sourceTree = "<group>"; };
 		55DEE88128A6A6B800270949 /* RetroBASIC design.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "RetroBASIC design.md"; sourceTree = "<group>"; };
 		55E12DB82904279A0005D17F /* RetroBASIC build notes.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "RetroBASIC build notes.md"; sourceTree = "<group>"; };
+		55EADEA32D0A68750000CE5D /* errors.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = errors.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -149,6 +151,7 @@
 				550D54A4289BF9670062DF12 /* list.h */,
 				550D54A5289BF9670062DF12 /* list.c */,
 				55456E2F2BBAFAD000CDE7AC /* errors.h */,
+				55EADEA32D0A68750000CE5D /* errors.c */,
 				55BC0C3F2BF0178F004E69BB /* matrix.h */,
 				55BC0C402BF01879004E69BB /* matrix.c */,
 				5599AEFC239C0ABF00490A3A /* scan.l */,
@@ -295,6 +298,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				550D54A3288DB6950062DF12 /* strng.c in Sources */,
+				55EADEA42D0A68790000CE5D /* errors.c in Sources */,
 				550D54A6289BF9670062DF12 /* list.c in Sources */,
 				55B9698C252F44E70021CD8B /* parse.y in Sources */,
 				5599AEFE239C0ABF00490A3A /* scan.l in Sources */,
