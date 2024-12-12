@@ -3,7 +3,7 @@ RetroBASIC Language Reference Manual
 
 **Copyright © 2023 Maury Markowitz**
 
-Version 2.0.0
+Version 2.0.1
 
 [![GPL license](http://img.shields.io/badge/license-GPL-brightgreen.svg)](https://opensource.org/licenses/gpl-license)
 
