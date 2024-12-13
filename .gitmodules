@@ -1,0 +1,6 @@
+[submodule "extern/getopt-for-windows"]
+	path = extern/getopt-for-windows
+	url = https://github.com/Chunde/getopt-for-windows
+[submodule "extern/termiWin"]
+	path = extern/termiWin
+	url = https://github.com/veeso/termiWin

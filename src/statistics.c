@@ -22,6 +22,13 @@
 
 #include "parse.h"
 
+#if _WIN32
+#define _USE_MATH_DEFINES
+#include "winsupport.h"
+#else
+#include <sys/time.h> // for run timers
+#endif
+
 /* declarations of the externs from the header */
 int variables_total = 0;
 int variables_default = 0;
@@ -118,13 +125,11 @@ void print_statistics(void)
       if (i < line_min) line_min = i;
       if (i > line_max) line_max = i;
       
-      switch(i) {
-        case 0 ... 9 : linenum_1_digit++; linenum_tot_digits = linenum_tot_digits + 1; break;
-        case 10 ... 99 : linenum_2_digit++; linenum_tot_digits = linenum_tot_digits + 2; break;
-        case 100 ... 999 : linenum_3_digit++; linenum_tot_digits = linenum_tot_digits + 3; break;
-        case 1000 ... 9999 : linenum_4_digit++; linenum_tot_digits = linenum_tot_digits + 4; break;
-        case 10000 ... 99999 : linenum_5_digit++; linenum_tot_digits = linenum_tot_digits + 5; break;
-      }
+      if (i >= 0 && i <= 9) { linenum_1_digit++; linenum_tot_digits = linenum_tot_digits + 1; }
+      else if (i >= 10 && i <= 99) { linenum_2_digit++; linenum_tot_digits = linenum_tot_digits + 2; }
+      else if (i >= 100 && i <= 999) { linenum_3_digit++; linenum_tot_digits = linenum_tot_digits + 3; }
+      else if (i >= 1000 && i <= 9999) { linenum_4_digit++; linenum_tot_digits = linenum_tot_digits + 4; }
+      else if (i >= 10000 && i <= 99999) { linenum_5_digit++; linenum_tot_digits = linenum_tot_digits + 5; }
     }
   }
   

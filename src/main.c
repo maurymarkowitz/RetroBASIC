@@ -18,7 +18,12 @@
  the Free Software Foundation, 59 Temple Place - Suite 330,
  Boston, MA 02111-1307, USA.  */
 
+#ifdef _WIN32
+#include "getopt.h"
+#else
 #include <getopt.h>
+#endif
+
 #include <unistd.h>   // used for getpid
 
 #include "retrobasic.h"
