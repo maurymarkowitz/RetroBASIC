@@ -21,7 +21,6 @@
  the Free Software Foundation, 59 Temple Place - Suite 330,
  Boston, MA 02111-1307, USA.  */
 
-#include <sys/time.h> // for run timers
 #include <unistd.h>   // used for sleep
 
 #include "retrobasic.h"
@@ -30,9 +29,16 @@
 #include "matrix.h"
 
 #if _WIN32
+#define _USE_MATH_DEFINES
+#define TERMIWIN_DONOTREDEFINE
+#define STDIN_FILENO 0
+  #include <math.h>
   #include <conio.h>
+  #include "winsupport.h"
+  #include "termios.h"
 #else
   #include <sys/termios.h>
+  #include <sys/time.h> // for run timers
 #endif
 
 /* here's the actual definition of the interpreter state which is extern in the header */
