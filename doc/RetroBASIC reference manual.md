@@ -2186,16 +2186,16 @@ Places 1's in the diagonal of a 2-d matrix, creating an *identity matrix*. A run
 
 Inverts the matrix *avar2*, if possible, and places the results in *avar1*. A runtime error will occur if *avar2* is not a square matrix or contains strings.
 
-A side-effect of running the INV is that the DET function will now return the determinant. If DET is zero, the inversion did not work and should not be used. The determinant will also be placed in the optional *nvar*, if provided.
+A side-effect of running the INV is that the `DET` function will now return the determinant. If DET is zero, the inversion did not work and should not be used. The determinant will also be placed in the optional *nvar*, if provided, so `MAT A=INV(B),D` will result in the inverted matrix in A (if it worked) and the determinant value in D.
 
 #### Variations:
 
-BASIC on the IBM 5100 used an alternate solution to returning the determinant by placing a second (optional) scalar variable in a second parameter. RetroBASIC supports this format as well, using the optional *nvar*.
+The optional *nvar* for the determinant was introduced in IBM 5100 BASIC.
 
 <!-- TOC --><a name="mat-var1trnvar2"></a>
 ### `MAT` *var1*`=TRN(`*var2*`)`
 
-Transposes *var2*, rotating it so columns become rows and rows columns, and places the result in *vvar1*. This may be used with numeric or string arrays.
+Transposes *var2*, rotating it so columns become rows and rows columns, and places the result in *var1*. This may be used with numeric or string arrays.
 
 <!-- TOC --><a name="mat-varzeraexp"></a>
 ### `MAT` *var*`=ZER`[(*aexp*,...)]
