@@ -19,6 +19,7 @@
  Boston, MA 02111-1307, USA.  */
 
 #include <getopt.h>
+#include <unistd.h>   // used for getpid
 
 #include "retrobasic.h"
 #include "statistics.h"
