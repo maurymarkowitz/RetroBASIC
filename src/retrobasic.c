@@ -3405,7 +3405,7 @@ REDO_INPUT:
             srand(seed_value.number);
           }
           else if (seed_value.type == STRING) {
-              if (strcmp(seed_value.string, "TIMER") || strcmp(seed_value.string, "timer")) {
+              if (strcmp(str_toupper(seed_value.string), "TIMER")) {
                 srand((unsigned int)time(NULL));
               } else{
                 handle_error(ern_TYPE_MISMATCH, "RANDOMIZE being called with string value");
