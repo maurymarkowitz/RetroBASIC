@@ -1928,7 +1928,7 @@ static void print_value(value_t v, const char *format)
   
   // if there is a USING string, build a c-style format string from it
   if (format != NULL) {
-    char copy[MAXSTRING];
+    char copy[MAX_STRING_LEN];
     char *hash;
     int width = 0, prec = 0;
     
@@ -2199,7 +2199,7 @@ static void perform_statement(list_t *statement_entry)
 					variable_storage_t *string_store;
 
 					// this one is a little easier, we can keep going until we see a zero
-					char new_string[MAXSTRING];
+					char new_string[MAX_STRING_LEN];
           int len = array_store->array[0].number;
 					for (int i = 1; i <= POINTER_TO_INT(array_store->actual_dimensions->data) && array_store->array[i].number != 0; i++) {
 						new_string[i - 1] = (char)array_store->array[i].number;
@@ -2222,6 +2222,7 @@ static void perform_statement(list_t *statement_entry)
         clear_stack();
         clear_error();
         reset_data_pointer(interpreter_state.first_line);
+        determinant = 0.0;
       }
         break;
         
@@ -3001,7 +3002,7 @@ REDO_INPUT:
                 char *end;
                 array_store->array[slot].number = strtod(data_value.string, &end);
                 if (end == data_value.string)
-                  handle_error(ern_TYPE_MISMATCH, "READ with numeric variable but string data value");
+                  handle_error(ern_TYPE_MISMATCH, "MAT READ with numeric variable but string data value");
               }
 
             }
@@ -3026,13 +3027,13 @@ REDO_INPUT:
                   char *end;
                   array_store->array[slot].number = strtod(data_value.string, &end);
                   if (end == data_value.string)
-                    handle_error(ern_TYPE_MISMATCH, "READ with numeric variable but string data");
+                    handle_error(ern_TYPE_MISMATCH, "MAT READ with numeric variable but string data");
                 }
               }
             }
           } // dim=2
           else {
-            handle_error(ern_BAD_SUBSCRIPT, "MAT PRINT with too many dimensions");
+            handle_error(ern_BAD_SUBSCRIPT, "MAT READ with too many dimensions");
           } // dims
         } // item list
       } // mat read
@@ -3072,22 +3073,6 @@ REDO_INPUT:
         if (fabs(determinant) <= 0.01)
           handle_warning(ern_OVERFLOW, "MAT INV with singular matrix (cannot be inverted)");
       }  //mat inv
-        break;
-        
-      case MATDET:
-      {
-        // in contrast to the other matrix statements, DET is a scalar result,
-        // we call it "MATDET" so that it is easier to find. DET is only valid
-        // after a INV, it returns zero otherwise. Some dialects, like IBM 5100,
-        // instead take a second variable in INV and put the determinant there.
-        
-        // find the storage
-        //variable_reference_t *mat_item = statement->parms.mat.variable;
-//        variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, mat_item->name);
-//        int array_type = variable_type(mat_item);
-        
-
-      }  //mat det
         break;
         
       case MATADD:
