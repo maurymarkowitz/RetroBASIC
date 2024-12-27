@@ -23,7 +23,7 @@ Boston, MA 02111-1307, USA.  */
 /* makes a new string and copies in chars */
 char* str_new(char *string)
 {
-  char *newstr = malloc((MAXSTRING + 1) * sizeof(char));
+  char *newstr = malloc((MAX_STRING_LEN + 1) * sizeof(char));
   
   if (newstr == NULL) {
     fprintf(stderr, "Malloc in str_new failed.");
