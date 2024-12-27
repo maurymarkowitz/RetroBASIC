@@ -40,7 +40,7 @@ Boston, MA 02111-1307, USA.  */
 
 // this should be more than large enough for programs of the era,
 // but some like Atari will use large strings for data storage
-#define MAXSTRING 256
+#define MAX_STRING_LEN 256
 
 /**
  * callocs a new string and copies the optional @p string into it.

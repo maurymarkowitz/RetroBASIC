@@ -19,9 +19,7 @@ RetroBASIC is a multi-dialect version of the BASIC programming language intended
 - HP Timeshared BASIC
 - DEC BASIC-PLUS and its better-known offshoot, Microsoft BASIC
 
-While most BASIC dialects take most of their syntax and keywords from the original Dartmouth BASIC, they began to diverge in the late 1960s into these three general families. The goal of RetroBASIC is to run any program written for these dialects and their many offshoots.
-
-So, for instance, RetroBASIC can run the version of Super Star Trek found in *BASIC Computer Games*, written in Microsoft BASIC and likely one of the most widely-ported games in history. But it can also run the (non-Super) Star Trek found in the earlier *101 BASIC Games*, written for DEC BASIC. It can also run most programs from *What to do After You Hit Return*, which are written in HP BASIC. Practically any major program should run properly without conversion.
+The goal of RetroBASIC is to run any program written for these dialects and their many offshoots. RetroBASIC can run the version of Super Star Trek found in *BASIC Computer Games*, written in Microsoft BASIC and likely one of the most widely-ported games in history. But it can also run the (non-Super) Star Trek found in the earlier *101 BASIC Games*, written for DEC BASIC. It can also run most programs from *What to do After You Hit Return*, which are written in HP BASIC. Practically any major program should run properly without conversion.
 
 Programs must be provided in plain text, better known as "source code". RetroBASIC cannot read binary files from other platforms, which was the normal way to store BASIC programs on home computers. There are a variety of programs available that will read these binary files and output text, which can then be run in RetroBASIC.
 
@@ -1419,6 +1417,8 @@ Returns the largest number in the provided list, `MAX(7,5)` returns 7. This func
 
 The "functional" style of `MAX` was used in Micropolis BASIC, and likely others.
 
+Tymshare SUPER BASIC allows any number of expressions in the functional style, this is not currently supported.
+
 #### See also:
 
 * `MIN`
@@ -1430,11 +1430,13 @@ The "functional" style of `MAX` was used in Micropolis BASIC, and likely others.
 <!-- TOC --><a name="minaexp"></a>
 ### `MIN`(*aexp*,...)
 
-Returns the largest number in the provided list, `MIN(7,5)` returns 5. This functionality is also available as an operator, where this same call would be written `7 MIN 5`.
+Returns the smallest number in the provided list, `MIN(7,5)` returns 5. This functionality is also available as an operator, where this same call would be written `7 MIN 5`.
 
 #### Variations:
 
 The "functional" style of `MIN` was used in Micropolis BASIC, and likely others.
+
+Tymshare SUPER BASIC allows any number of expressions in the functional style, this is not currently supported.
 
 #### See also:
 
@@ -2073,7 +2075,7 @@ If *var2* has more slots than *var1*, the statement will fail. If *var2* has few
 
 #### Variations:
 
-The ability to place an expression in parens on the right hand side comes from the IBM 5100, a few other dialects also supported this.
+The ability to place an expression in parens on the right hand side comes from the IBM 5100, a few other dialects also supported this. This is allowed in all MAT statements in RetroBASIC.
 
 McD DATA/BASIC allowed you to use assignment to assign a numeric value to all the slots, `MAT A=5`, or `MAT A=0` without the parens. It also allowed you to assign a 1-D to 2-D array and vice versa, in "row major order", meaning that if you `DIM X(5,2),Y(10)` and then `MAT Y=X(2,3)` would copy the value into Y's slot 2x2+3 = slot 7. This capability appears in no other dialect, and neither of these features are supported in RetroBASIC.
 
@@ -2203,6 +2205,21 @@ Transposes *var2*, rotating it so columns become rows and rows columns, and plac
 Changes all of the slots in *avar* to 0, or if the optional *aexp*s are provided, the result array will be resized to the subarray. Works for both 1-d vectors and 2-d matrixes, and matrixes do not have to be square. This statement was widely used in Dartmouth programs in order to quickly reset or resize an array, even in programs that did not make use of other matrix features.
 
 `ZER` can also be used with string arrays, which sets all values to the empty string.
+
+### `DET`[(*aexp*)]
+
+`DET` is a scalar function that returns the determinant calculated on the last call of `INV`. It is reset to zero when the program is run or `CLEAR`ed. Very small values, under 0.01, should generally be considered a sign that the inversion failed and the resulting matrix should not be used.
+
+#### Examples:
+
+   100 DIM A(5,5),B(5,5)
+   110 MAT READ A
+   120 MAT B=INV(A)
+   130 IF ABS(DET)<0.01 THEN PRINT "MATRIX INVERSION FAILED"
+
+### `NUM`[(*aexp*)]
+
+`NUM` returns the number of items typed in a `MAT INPUT` statement. It is reset to zero when the program is run or `CLEAR`ed.
 
 <!-- TOC --><a name="error-handling"></a>
 ## Error handling
