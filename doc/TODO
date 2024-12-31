@@ -10,14 +10,15 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
+- add clear_variables and change CLEAR
+
 - word wrap at a given column
 
 - add REDIM?
 
 - EXCHANGE/SWAP that swaps the values of two variables
 
-- MAT INPUT should allow multi-input on a single line, and should set NUM
-   Digital Group BASIC uses NUM for VAL, but we can do both
+- MAT INPUT should allow multi-input on a single line
 
 - LINPUT/LINE INPUT/INPUT LINE
 

@@ -26,14 +26,9 @@
 
 #include "retrobasic.h"
 #include "parse.h"
+#include "io.h"
 #include "errors.h"
 #include "matrix.h"
-
-#if _WIN32
-  #include <conio.h>
-#else
-  #include <sys/termios.h>
-#endif
 
 /* here's the actual definition of the interpreter state which is extern in the header */
 interpreterstate_t interpreter_state;
@@ -85,6 +80,9 @@ static void reset_data_pointer(int line);
 
 /* global variable used by Dartmouth's matrix inversion routine */
 double determinant = 0.0;
+
+/* global variable used by Dartmouth's matrix input routine, but we support it for  */
+int num_input = 0;
 
 /* definitions of variables used by the static analyzer */
 clock_t start_ticks = 0, end_ticks = 0;	// start and end ticks, for calculating CPU time
@@ -142,63 +140,6 @@ void handle_warning(const int errnum, const char *message)
     fprintf(stderr, "\n?%s at line %d (%s)\n", error_messages[errnum], current_line(), message);
   else
     fprintf(stderr, "\n?%s at line %d\n", error_messages[errnum], current_line());
-}
-
-/**
- * Waits for a single character. Used for GET.
- *
- * @param fd, the file descriptor, typically STDIN_FILENO.
- * @return the keycode, NULL if an error occurred.
-*/
-int getbyte(int fd)
-{
-  int ch;
-  struct termios old_attrs, new_attrs;
-  tcgetattr(STDIN_FILENO, &old_attrs);
-  new_attrs = old_attrs;
-  new_attrs.c_lflag &= ~(ICANON | ECHO);
-  tcsetattr(STDIN_FILENO, TCSANOW, &new_attrs);
-  system("stty -echo"); //shell out to kill echo
-  ch = getchar();
-  system("stty echo");
-  tcsetattr(STDIN_FILENO, TCSANOW, &old_attrs);
-  return ch;
-}
-
-/**
- * Gets a single keystroke, or null if no key is pressed. Used for INKEY$.
- *
- * @param fd, the file descriptor, typically STDIN_FILENO.
- * @return the keycode, NULL if no key is pressed or an error occurred.
- *
- * See: https://stackoverflow.com/questions/1798511/how-to-avoid-pressing-enter-with-getchar-for-reading-a-single-character-only
-*/
-int getkey(int fd)
-{
-#if _WIN32
-    if (kbhit) {
-      return getch();
-    } else {
-      return 0;
-    }
-#else
-  int ch;
-  unsigned char buf[1];
-  struct termios old_attrs, new_attrs;
-  tcgetattr(STDIN_FILENO, &old_attrs);
-  new_attrs = old_attrs;
-  cfmakeraw(&new_attrs);
-  new_attrs.c_cc[VMIN] = 0;
-  new_attrs.c_cc[VTIME] = 0;
-  new_attrs.c_lflag &= ~(ICANON | ECHO);
-//  newt.c_cc[VMIN] = 0;
-  tcsetattr(STDIN_FILENO, TCSANOW, &new_attrs);
-  ch = (int)read(STDIN_FILENO, buf, 1);
-  if (ch > 0)
-      ch = buf[0];
-  tcsetattr(STDIN_FILENO, TCSANOW, &old_attrs);
-  return ch;
-#endif
 }
 
 /** Returns an int containing the type of the variable based on its name
@@ -1286,6 +1227,15 @@ value_t evaluate_expression(const expression_t *expression)
             result.string = str_new(buff);
           }
             break;
+            
+          case NUM:
+          {
+            // this is the zero-parameter version, which returns the
+            // number of items read in an INPUT or MAT INPUT. The
+            // single-parameter version is found below
+            result.number = num_input;
+          }
+            break;
 
 					default:
 						handle_error(ern_DEF_UNKNOWN, "Unhandled arity-0 function");
@@ -1363,12 +1313,12 @@ value_t evaluate_expression(const expression_t *expression)
           case FIX:
             result.number = trunc(a);
             break;
+          case FRAC:
+            result.number = a - trunc(a);
+            break;
           case INT:
             result.number = floor(a);
             break;
-					case FRAC:
-						result.number = a - trunc(a);
-						break;
             
             // this is the more common version of RND, with one parameter, possibly a dummy
           case RND:
@@ -1413,6 +1363,9 @@ value_t evaluate_expression(const expression_t *expression)
             result.number = tanh(a);
             break;
           case VAL:
+          case NUM:
+            // this version of NUM is from Digital Group and is a val,
+            // the dartmouth-style zero-param version is above
             result.number = atof(parameters[0].string);
             break;
           case PEEK:
@@ -2218,11 +2171,13 @@ static void perform_statement(list_t *statement_entry)
       case CLEAR:
         // wipe out any variables and other program state, reset to un-run condition
       {
-        delete_variables();
+        // FIXME: we need a clear_variables, delete actually drops them which we don't want
+        //delete_variables();
         clear_stack();
         clear_error();
         reset_data_pointer(interpreter_state.first_line);
         determinant = 0.0;
+        num_input = 0;
       }
         break;
         
@@ -2573,6 +2528,7 @@ REDO_INPUT:
                 current_item = starting_item;
                 goto REDO_INPUT;
               }
+              num_input++;
 
               // strtod leaves us on the separator, so...
               if (*end == ',' || *end == ' ')
@@ -2580,6 +2536,7 @@ REDO_INPUT:
             } else {
               // our code strips the separator
               value->string = strtostr(end, &end);
+              num_input++;
             }
             
             // move up the string
@@ -2762,6 +2719,9 @@ REDO_INPUT:
       {
         // FIXME: this needs to read a line and stop, not keep asking for more input if none is provided
         char line[MAX_INPUT_LENGTH];
+        
+        // reset the counter
+        num_input = 0;
 
         // loop over the items in the variable/prompt list
         for (list_t *I = statement->parms.input; I != NULL; I = lst_next(I)) {
@@ -2797,7 +2757,7 @@ REDO_INPUT:
             // vector, loop over elements and input each one
             int len;
             if (dims == 1)
-               len = POINTER_TO_INT(dest_dimensions->data);
+              len = POINTER_TO_INT(dest_dimensions->data);
             else
               len = POINTER_TO_INT(dest_dimensions->next->data);
 
@@ -2810,15 +2770,22 @@ REDO_INPUT:
               // we got something, so null-terminate the string
               line[strlen(line) - 1] = '\0';
               
+              // that may have only been the return at the end of the line, so...
+              if (strlen(line) == 0)
+                goto EXIT_MAT_INPUT;
+
               // read it based on the variable type
-              if (array_store->type == STRING)
+              if (array_store->type == STRING) {
                 array_store->array[i].string = str_new(line);
+                num_input++;
+              }
               else {
                 int worked = sscanf(line, "%lg", &array_store->array[i].number);
                 if (worked < 1) {
                   handle_error(ern_TYPE_MISMATCH, "MAT INPUT of non-numeric value in numeric array");
                   break;
                 }
+                num_input++;
               }
             }
           }
@@ -2834,16 +2801,22 @@ REDO_INPUT:
                 fflush(stdout);
                 if (fgets(line, sizeof(line), stdin) != line)
                   exit(EXIT_FAILURE);
+                
                 line[strlen(line) - 1] = '\0';
+                if (strlen(line) == 0)
+                  goto EXIT_MAT_INPUT;
 
-                if (array_store->type == STRING)
+                if (array_store->type == STRING) {
                   array_store->array[slot].string = str_new(line);
+                  num_input++;
+                }
                 else {
                   int worked = sscanf(line, "%lg", &array_store->array[slot].number);
                   if (worked < 1) {
                     handle_error(ern_TYPE_MISMATCH, "MAT INPUT of non-numeric value in numeric array");
                     break;
                   }
+                  num_input++;
                 }
               }
             }
@@ -2854,6 +2827,7 @@ REDO_INPUT:
           } // number of dims
         } // input items
       } //mat input
+EXIT_MAT_INPUT:
         break;
         
       case MATPRINT:
@@ -3819,8 +3793,9 @@ void interpreter_run(void)
   // reset any errors
   clear_error();
   
-  // reset the determinant
+  // reset the determinant and input counter
   determinant = 0.0;
+  num_input = 0;
 
   // start the clocks
   start_ticks = clock();
