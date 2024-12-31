@@ -164,3 +164,10 @@ Major update. See the reference manual for details on the many changes.
 Version 2.0.1 - 12 December 2024
 
 Fixing major problems with the GitHub repo. Some very minor changes as well.
+
+Version 2.0.2 - 31 December 2024
+
+- added NUM, which returns the number of items entered in INPUT or MAT INPUT
+- MAT INPUT now works with both string and number arrays
+- fixed issue in MAT INPUT which raised an error if the input was empty
+- separated out input/output routines

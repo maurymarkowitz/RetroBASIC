@@ -247,6 +247,8 @@ static expression_t *make_operator(int arity, int o)
 %token MATSCA /* scalar multiply */
 %token MATFIL /* fill an array with a value */
 
+%token NUM  /* introduced in Dartmouth for MAT INPUT, but we use it more generally */
+
 %%
 
 /* Grammar rules */
@@ -1442,14 +1444,15 @@ fn_x:
   MID { $$ = MID; } |
   SEG { $$ = SEG; } |
   SUBSTR { $$ = SUBSTR; } |
-  ROUND  { $$ = ROUND; } |
-  UBOUND  { $$ = UBOUND; } |
-  LBOUND  { $$ = LBOUND; } |
-  MATCON  { $$ = MATCON; } |
-  MATIDN  { $$ = MATIDN; } |
-  MATINV  { $$ = MATINV; } |
-  MATTRN  { $$ = MATTRN; } |
-  MATZER  { $$ = MATZER; }
+  ROUND { $$ = ROUND; } |
+  UBOUND { $$ = UBOUND; } |
+  LBOUND { $$ = LBOUND; } |
+  MATCON { $$ = MATCON; } |
+  MATIDN { $$ = MATIDN; } |
+  MATINV { $$ = MATINV; } |
+  MATTRN { $$ = MATTRN; } |
+  MATZER { $$ = MATZER; } |
+  NUM { $$ = NUM; }
   ;
 
  /* ultimately all expressions end up here in factor, which is either a

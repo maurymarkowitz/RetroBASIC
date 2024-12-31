@@ -3,7 +3,7 @@ RetroBASIC Language Reference Manual
 
 **Copyright © 2023 Maury Markowitz**
 
-Version 2.0.1
+Version 2.0.2
 
 [![GPL license](http://img.shields.io/badge/license-GPL-brightgreen.svg)](https://opensource.org/licenses/gpl-license)
 
@@ -1802,6 +1802,10 @@ This function returns a string that represents the ASCII representation of the n
 
 This function returns a number of the same value as the number stored as a string, performing the opposite operation of the `STR$` function. For instance, if *sexp* evaluates to "25", this function will return the numerical value 25. `VAL` is generally more common than `STR$` as it is commonly used to convert user inputs into numbers.
 
+#### Variations:
+
+Digital Group BASIC uses `NUM` instead of `VAL` for this functionality. In most dialects, at least those supporing matrix statements, `NUM` returns the number of items typed in a `MAT INPUT` statement. RetroBASIC supports both of these uses of `NUM`, as the matrix version has no parameters while the `VAL`-like version requires a single string parameter.
+
 <!-- TOC --><a name="ucasesexp-and-lcasesexp"></a>
 ### `UCASE$`(*sexp*) and `LCASE$`(*sexp*)
 
@@ -1922,6 +1926,22 @@ In RetroBASIC, `FRE` always returns zero.
 Those dialects that allow the program to reserve space in memory for strings, typically using `CLEAR`, generally also allow that amount to be checked by passing in a string variable name. In this case, `FRE()` will return the total amount of memory available, or the amount of memory available for program code, while `FRE(A$)`, where `A$` in this example can be any string variable name, will return the amount of memory in the string area. In early dialects, that was often as little as 50 or 200 bytes.
 
 The TRS-80 II and Genie/Color Genie uses `MEM` for this function, while `FRE` returns string space. The Dragon 32 uses `SIZE`.
+
+### `NUM`[(*sexp*)]
+
+`NUM` is a function with two completely different uses.
+
+The main purpose of this function is to return the number of items typed into the last `INPUT` or `MAT INPUT` statement. This was initially introduced in dialects that had matrix support, as it was common for users to enter a blank value in order to stop the `INPUT` statement in the case of large matricies. The program could then use `NUM` to test whether the entire matrix had been filled out, or, for instance, fill out the slots for any non-entered values with zero or some other value.
+
+In RetroBASIC, the functionality of `NUM` has been expanded to also work with conventional `INPUT` statements, as the same issues arise in this case and `NUM` can be just as useful here.
+
+The value of `NUM` is reset at the start of every `INPUT` or `MAT INPUT`, as well as when running a `CLEAR`/`CLR` statement.
+
+The other use of `NUM` is to support the dialect-specific funtion found in Digital Group BASICs, where it is the equivalent of `VAL`. This version will be called if a string expression is provided in *sexp*.
+
+#### Availability:
+
+`NUM` was added in 2.0.2.
 
 <!-- TOC --><a name="peekaexp"></a>
 ### `PEEK`(*aexp*)
@@ -2130,13 +2150,17 @@ According to *Illustrating BASIC*, some, or many, versions of MAT PRINT add an e
 <!-- TOC --><a name="mat-input-avaravar"></a>
 ### `MAT INPUT` *avar*[,*avar*,...]]
 
-`MAT INPUT` reads multiple values from the command line, filling the vector or matrix by column and then row. Unlike a normal `INPUT`, no prompt is allowed, and only array variables can be used. Additionally, only numeric values are supported, `MAT INPUT` cannot be used to fill a string array.
+`MAT INPUT` reads multiple values from the command line, filling the vector or matrix by column and then row. Unlike a normal `INPUT`, no prompt is allowed, and only array variables can be used.
 
 `MAT INPUT` normally reads a value for every slot in the array, similar to `MAT READ`. However, it parses this data from a single input line, which may not contain enough values to fully populate the array. In this case, no error is reported, and the remaining slots are simply ignored and will contain any value they did before. It sets the pseudo-variable `NUM` to the number of items read, so you can check for this case in code.
 
 *Illustrating BASIC* suggests you should *not* use `MAT INPUT`. This is because the command does not allow a prompt and there is no chance to print anything between each value being input. Worse, there is no way to test the results one-by-one, you will only know there is an issue after all of the values have been typed in and will now have to be re-entered from the start if there is a problem. Using an `INPUT` in a `FOR` loop allows the values to be tested and re-typed individually.
 
 There is also the issue that terminals of the era did not allow you to type more values than could fit on a single line and different implementations offered different solutions to this problem, or none at all. Dartmouth BASIC, for instance, allowed you to type an ampersand to indicate more data would follow on the next line, but this was not universal across implementations. For all of these reasons *Illustrating BASIC* concludes "So for the sake of portability, if nothing else, don't use 'MAT INPUT' for demanding data from the keyboard."
+
+#### See also:
+
+* `NUM`
 
 <!-- TOC --><a name="matrix-operators"></a>
 ### Matrix operators
@@ -2216,10 +2240,6 @@ Changes all of the slots in *avar* to 0, or if the optional *aexp*s are provided
    110 MAT READ A
    120 MAT B=INV(A)
    130 IF ABS(DET)<0.01 THEN PRINT "MATRIX INVERSION FAILED"
-
-### `NUM`[(*aexp*)]
-
-`NUM` returns the number of items typed in a `MAT INPUT` statement. It is reset to zero when the program is run or `CLEAR`ed.
 
 <!-- TOC --><a name="error-handling"></a>
 ## Error handling
