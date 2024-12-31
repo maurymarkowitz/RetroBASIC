@@ -244,12 +244,14 @@ LABEL     { return LABEL; }
 
  /* matrix commands and functions */
 MAT       { return MAT; }     // assignments
-ZER       { return MATZER; }  // zero matrix
+ZER       { return MATZER; }  // all-0 matrix
 CON       { return MATCON; }  // all-1 matrix
 IDN       { return MATIDN; }  // identity matrix
 INV       { return MATINV; }  // invert
 TRN       { return MATTRN; }  // transpose
 DET       { return MATDET; }  // determinant
+
+NUM       { return NUM; }  // number of items type in a single INPUT, or VAL in Digital Group
 
  /* hex, oct and bin strings encoding numbers */
 \&[0-9a-fA-F]+  {

@@ -205,7 +205,8 @@
      MATSUB = 421,
      MATMUL = 422,
      MATSCA = 423,
-     MATFIL = 424
+     MATFIL = 424,
+     NUM = 425
    };
 #endif
 /* Tokens.  */
@@ -376,7 +377,7 @@
 #define MATMUL 422
 #define MATSCA 423
 #define MATFIL 424
-
+#define NUM 425
 
 
 
