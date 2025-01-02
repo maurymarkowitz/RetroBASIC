@@ -772,11 +772,29 @@ statement:
     $$ = new;
   }
   |
+  PRINT_FILE expression ',' printlist
+  {
+    statement_t *new = make_statement(PRINT_FILE);
+    new->parms.print.channel = $2;
+    new->parms.print.format = NULL;
+    new->parms.print.item_list = $4;
+    $$ = new;
+  }
+  |
   PRINT USING expression ';' printlist
   {
     statement_t *new = make_statement(PRINT);
     new->parms.print.format = $3;
     new->parms.print.item_list = $5;
+    $$ = new;
+  }
+  |
+  PRINT_FILE expression USING expression ';' printlist
+  {
+    statement_t *new = make_statement(PRINT_FILE);
+    new->parms.print.channel = $2;
+    new->parms.print.format = $4;
+    new->parms.print.item_list = $6;
     $$ = new;
   }
   |

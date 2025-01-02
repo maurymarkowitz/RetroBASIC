@@ -36,16 +36,16 @@
 
 #define ern_NO_ERROR          0      // no error
 
-#define ern_TOO_MANY_FILES    1      // attempt to OPEN a file with many already OPEN
+#define ern_TOO_MANY_FILES    1      // attempt to OPEN a file with too many already OPEN
 #define ern_FILE_OPEN         2      // attempt to OPEN a file that's already OPEN
 #define ern_FILE_NOT_OPEN     3      // attempt to use a file that's not OPEN
 #define ern_FILE_NOT_FOUND    4      // attempt to OPEN a non-existent file
-#define ern_DEV_NOT_FOUND     5      // attempt to OPEN a non-existent device - unused in RetroBASIC
+#define ern_DEV_NOT_FOUND     5      // attempt to OPEN a non-existent device - used for paths
 #define ern_FILE_NOT_INPUT    6      // attempt to INPUT/GET from a file opened for writing
 #define ern_FILE_NOT_OUTPUT   7      // attempt to PRINT/PUT to a file opened for reading
 #define ern_FILENAME_MISSING  8      // attempt to OPEN a file with no filename
 #define ern_BAD_DEVICE_NUM    9      // attempt to OPEN a device that is invalid
-#define ern_ARE_YOU_SURE      10     // unused in RetroBASIC
+#define ern_ARE_YOU_SURE      10     // causes "are you sure" message before writing, unused in RetroBASIC
 #define ern_BAD_DISK          11     // unused in RetroBASIC
 
 #define ern_READY             12     // no error but paused in ready state

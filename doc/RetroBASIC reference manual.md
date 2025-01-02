@@ -2058,6 +2058,36 @@ In RetroBASIC, `USR` always returns zero.
 
 DEC's BASIC-PLUS, on TOPS at least, used `USR$` to return a listing of the files in the user's directory.
 
+## File handling
+
+Most versions of BASIC include some form of file handling based on the `OPEN` and `CLOSE` statements. Unfortunately, that is where the commonality ends. Devices on early computers varied widely in their underlying concepts as well as their implementations, such that sending data to one device, like a tape drive, would have entirely different syntax as sending the same data to a printer. Even those dialects that have the same underlying code, like Commodore BASIC and AppleSoft, vary too much to be portable, and often differ even between models from the same company, like the PET vs. C64.
+
+One of the goals for RetroBASIC is to run known-good programs with few or no changes to the original code. In the case of file handling this is simply not possible. One could choose a target platform and copy that syntax, say the C64, but this would force every other platform to be changed to that style.
+
+Instead, RetroBASIC implements the same basic set of file statements, but uses Unix-like syntax. All file input/output takes place through a filename and uses Unix-like modes for access, "r" for read, "w" for write, and "a" for append. The filename may contain a path, which can include path elements like `.`, `..` and `~`, which will be correctly expanded into complete paths.
+
+When a file is `OPEN`ed, it is assigned a number. RetroBASIC refers to these as "channels", which MS calls "logical file numbers" or Atari called "IOCB numbers". From that point on, any input or output to that device is handled using that channel number. RetroBASIC allows channel numbers between 0 and 255, which is a common limit found in many dilects, and allows a maximum of 16 channels to be open at a time.
+
+### `OPEN`[`#`] *aexp*,*sexp1*,*sexp2*
+
+Opens a channel with the number *aexp*, attached to the physical file at path/file *sexp1* with access mode *sexp2*. *aexp* must be between 0 and 255, and an error will be returned if that channel is already open or if there are too many files opened already.
+
+The file name in *sexp1* can be simply the name of a file, or contain a path portion. If there is no path portion, the file will be opened in the current directory, normally the same location as the RetroBASIC executable. If a path is provided, it will be expanded into a complete path and checked to ensure that the user can access the resulting file. Any given path/file can only be opened once, you cannot, for instance, open a file for writing in one channel and reading in another.
+
+The mode in *sexp2* is one of three single-character values, "r" for reading, "w" for writing, and "a" for writing to the end of an existing file. If the mode is "r" or "a", the file must already exist and will return an error otherwise. If the mode is "w" the file *cannot* already exist, and will return an error if it does.
+
+#### Variations:
+
+The vast majority of dialects use `OPEN` without a following `#`, but Atari demands it. RetroBASIC allows either format.
+
+### `CLOSE`[`#`] *aexp*
+
+Closes the channel *aexp* and removes it from the list of active channels. Will return an error if that channel number is not currently open.
+
+### `PRINT#` *aexp*,[*exp*{|[;|,]},...]
+
+`PRINT#` works exactly like the standard `PRINT` statement, but directs the output to channel *aexp*.
+
 <!-- TOC --><a name="matrix-statements-operators-and-functions"></a>
 ## Matrix statements, operators and functions
 
