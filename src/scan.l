@@ -73,17 +73,17 @@ GO" "?SUB { return GOSUB; }
 GO" "?TO  { return GOTO; }
 IF        { return IF; }
 INPUT     { return INPUT; }
-LET        { return LET; }
+LET       { return LET; }
 NEXT      { return NEXT; }
-NEW        { return NEW; }   // also CLEAR (sometimes with options), ERASE and SCRATCH
+NEW       { return NEW; }   // also CLEAR (sometimes with options), ERASE and SCRATCH
 OF        { return OF; }
 ON        { return ON; }
 POKE      { return POKE; }
 PRINT     { return PRINT; }
 READ      { return READ; }
-RESTORE    { return RESTORE; }
+RESTORE   { return RESTORE; }
 RETURN    { return RETURN; }
-RUN        { return RUN; }
+RUN       { return RUN; }
 STEP      { return STEP; }
 STOP      { return STOP; }
 THEN      { return THEN; }
@@ -117,7 +117,7 @@ ERR       { return ERROR; }
 RAISE     { return RAISE; }
 
  /* math functions */
-ABS        { return ABS; }
+ABS       { return ABS; }
 ACS       { return ACS; }
 ASN       { return ASN; }
 ATN       { return ATN; }
@@ -128,28 +128,28 @@ CSH       { return COSH; }
 EXP       { return EXP; }
 FIX       { return FIX; }
 FRAC      { return FRAC; }
-INT        { return INT; }
+INT       { return INT; }
 LN        { return LOG; }
 LOG       { return LOG; }
 PI        { return PI; }
-SIN        { return SIN; }
+SIN       { return SIN; }
 SINH      { return SINH; }
-SGN        { return SGN; }
-SQR        { return SQR; }
+SGN       { return SGN; }
+SQR       { return SQR; }
 SNH       { return SINH; }
 ROUND     { return ROUND; }
 RND       { return RND; }
 TAN       { return TAN; }
 TANH      { return TANH; }
 TNH       { return TANH; }
-VAL        { return VAL; }
+VAL       { return VAL; }
 
  /* string-related functions */
 ASC       { return ASC; } // CODE on Sinclair due to being non-ASCII, CH on Atom (no parens)
 ASCII     { return ASC; } // DEC version of ASC
 CHR\$     { return CHR; } // CHR (SOL and SWTP), CHAR (MAX-BASIC), CHAR$ (Micropolis)
 LEFT\$    { return LEFT; }
-RIGHT\$    { return RIGHT; }
+RIGHT\$   { return RIGHT; }
 MID\$     { return MID; }
 LEN       { return LEN; }
 STR\$     { return STR; } // also NUM$ in some dialects
@@ -241,6 +241,17 @@ LBOUND    { return LBOUND; }
 
  /* line labels, procedures, etc. */
 LABEL     { return LABEL; }
+
+ /* file handling */
+OPEN      { return OPEN; }
+OPEN#     { return OPEN; }
+CLOSE     { return CLOSE; }
+CLOSE#    { return CLOSE; }
+STATUS    { return STATUS; }
+PRINT#    { return PRINT_FILE; }
+INPUT#    { return INPUT_FILE; }
+GET#      { return GET_FILE; }
+PUT#      { return PUT_FILE; }
 
  /* matrix commands and functions */
 MAT       { return MAT; }     // assignments

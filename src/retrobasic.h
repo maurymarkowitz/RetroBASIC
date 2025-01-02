@@ -183,6 +183,7 @@ typedef struct statement_struct {
     } on;
     list_t *next;
     struct {
+      expression_t *channel;
       expression_t *format;
       list_t *item_list;
     } print;

@@ -1228,6 +1228,12 @@ value_t evaluate_expression(const expression_t *expression)
           }
             break;
             
+          case MATDET:
+          {
+            result.number = determinant;
+          }
+            break;
+            
           case NUM:
           {
             // this is the zero-parameter version, which returns the
@@ -1873,8 +1879,15 @@ value_t evaluate_expression(const expression_t *expression)
 /**
  * Handles the PRINT and PRINT USING statements, which can get complex.
  */
-static void print_value(value_t v, const char *format)
+static void print_value(value_t v, const char *format, FILE* fp)
 {
+  // if the fp is null, use stdout
+  FILE *out;
+  if (fp == NULL)
+    out = stdout;
+  else
+    out = fp;
+  
 	// if the format string is empty, NULL it
 	if (format != NULL && strlen(format) == 0)
 		format = NULL;
@@ -1910,10 +1923,10 @@ static void print_value(value_t v, const char *format)
     // and now print it out using that format
     switch (v.type) {
       case NUMBER:
-        interpreter_state.cursor_column += printf(copy, width, prec, v.number);
+        interpreter_state.cursor_column += fprintf(out, copy, width, prec, v.number);
         break;
       case STRING:
-        interpreter_state.cursor_column += printf(copy, width, prec, str_escape(v.string));
+        interpreter_state.cursor_column += fprintf(out, copy, width, prec, str_escape(v.string));
         break;
     }
   }
@@ -1925,24 +1938,24 @@ static void print_value(value_t v, const char *format)
       {
         // for some reason, PRINT adds a space at the end of numbers
         char* a = number_to_string(v.number);
-        interpreter_state.cursor_column += printf("%s ", a); // note the trailing space
+        interpreter_state.cursor_column += fprintf(out, "%s ", a); // note the trailing space
       }
         break;
       case STRING:
         // printf will print "(null)" when used with a specifier, so...
         if (v.string)
-          interpreter_state.cursor_column += printf("%-s", v.string);
+          interpreter_state.cursor_column += fprintf(out, "%-s", v.string);
         break;
     }
   }
 } //print_value
 
 // FIXME: cover method, should be removed
-static void print_expression(expression_t *e, const char *format)
+static void print_expression(expression_t *e, const char *format, FILE* fp)
 {
   // get the value of the expression for this item
   value_t v = evaluate_expression(e);
-  print_value(v, format);
+  print_value(v, format, fp);
 }
 
 /**
@@ -2427,7 +2440,6 @@ static void perform_statement(list_t *statement_entry)
 				//    was. you can see this in SST - for instance, if you
 				//    simply press return on the computer command input it
 				//    will run the last command again.
-        
         int type;
         
         // start at the front of the list
@@ -2449,7 +2461,7 @@ static void perform_statement(list_t *statement_entry)
           // if there is no variable in this entry, it's a prompt of some sort
           if (ppi->expression->type == string) {
             // print it
-            print_expression(ppi->expression, NULL);
+            print_expression(ppi->expression, NULL, NULL);
             
             // normally the semicolon or comma after the prompt string
             // would cause the next print to occur at that location, but that
@@ -2879,7 +2891,7 @@ EXIT_MAT_INPUT:
             for (int i = 1; i <= len; i++) {
               // get the value from the correct slot in storage and print it
               value_t val = either_to_value(array_store->array[i], array_store->type);
-              print_value(val, NULL);
+              print_value(val, NULL, NULL);
               
               // now tab it out if we are not at the end
               if (i < len) {
@@ -2915,7 +2927,7 @@ EXIT_MAT_INPUT:
                 // handle the case for DIM A(0,x), if org_rows is 0, -1 from the row
                 int slot = (org_rows == 0 ? r-1 : r) * (cols + 1) + c;
                 value_t val = either_to_value(array_store->array[slot], array_store->type);
-                print_value(val, NULL);
+                print_value(val, NULL, NULL);
                 // and advance the cursor based on the separator, which defaults to comma for arrays, not semi
                 if (sep != ';')
                   while (interpreter_state.cursor_column % tab_columns != 0) {
@@ -3277,8 +3289,19 @@ EXIT_MAT_INPUT:
         break;
         
       case PRINT:
+      case PRINT_FILE:
       {
         printitem_t *pp;
+        
+        // default to stdin unless it's a a PRINT_FILE
+        FILE* fp = stdout;
+        if (statement->type == PRINT_FILE) {
+          int channel = floor(evaluate_expression(statement->parms.print.channel).number);
+          fp = handle_for_channel(channel);
+          if (fp == NULL) {
+            handle_error(ern_FILE_NOT_OPEN, "Attempt to print to a file that has not been OPENed");
+          }
+        }
 				
 				// see if the list has a formatter, and set up the format string or set it to default
 				value_t format_string;
@@ -3296,7 +3319,7 @@ EXIT_MAT_INPUT:
 					// but the separator itself will be handled below, so for now we just need
 					// to see if there is an expression to print
 					if (pp->expression != NULL) {
-						print_expression(pp->expression, format_string.string);
+						print_expression(pp->expression, format_string.string, fp);
 					}
 					
 					// for each item in the list, look at the separator, if there is one
@@ -3304,7 +3327,7 @@ EXIT_MAT_INPUT:
 					if (pp->separator == ',')
 						//FIXME: this should wrap at 80 columns
 						while (interpreter_state.cursor_column % tab_columns != 0) {
-							printf(" ");
+							fprintf(fp, " ");
 							interpreter_state.cursor_column++;
 						}
 				}

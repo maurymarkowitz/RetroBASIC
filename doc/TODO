@@ -10,6 +10,8 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
+- add CMD?
+
 - add clear_variables and change CLEAR
 
 - word wrap at a given column
