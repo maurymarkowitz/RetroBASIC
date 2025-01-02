@@ -37,15 +37,48 @@ Boston, MA 02111-1307, USA.  */
  * @date 31 December 2024
  * @brief Input/output and file handling routines.
  *
+ */
+
+/**
+ * Returns the file handle for a given channel/file number.
+ *
+ * @param channel, the channel number.
+ * @return the file/stream pointer, or NULL if the channel is not open.
  *
  */
+FILE* handle_for_channel(int channel);
+
+/**
+ * Closes all open files and resets the file number map.
+ */
+void close_all_files(void);
+
+/**
+ * Opens a new or existing file, checking that the path and name are valid.
+ *
+ * @param channel, the channel number, from basic.
+ * @param name, the file name, optionally including a path, to open.
+ * @param mode, the unix-like access mode, n.
+ * @return true if the file was opened successfully, false otherwise
+ *
+ */
+bool open_file(const int channel, const char *name, const char mode);
+
+/**
+ * Closes an existing file channel.
+ *
+ * @param channel, the channel number.
+ * @return true if the file was opened successfully, false otherwise
+ *
+ */
+bool close_file(const int channel);
 
 /**
  * Waits for a single character. Used for GET.
  *
  * @param fd, the file descriptor, typically STDIN_FILENO.
  * @return the keycode, NULL if an error occurred.
-*/
+ */
 int getbyte(int fd);
 
 /**
@@ -55,8 +88,7 @@ int getbyte(int fd);
  * @return the keycode, NULL if no key is pressed or an error occurred.
  *
  * See: https://stackoverflow.com/questions/1798511/how-to-avoid-pressing-enter-with-getchar-for-reading-a-single-character-only
-*/
+ */
 int getkey(int fd);
-
 
 #endif /* io_h */
