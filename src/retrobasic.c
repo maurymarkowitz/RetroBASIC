@@ -2423,6 +2423,7 @@ static void perform_statement(list_t *statement_entry)
         break;
         
       case INPUT:
+      case INPUT_FILE:
       {
         // INPUT takes a list of one or more variables and then scans the line
         // to parse them. Numbers and strings can be mixed in a single INPUT,
@@ -2441,6 +2442,16 @@ static void perform_statement(list_t *statement_entry)
 				//    simply press return on the computer command input it
 				//    will run the last command again.
         int type;
+        
+        // default to stdin unless it's a a INPUT_FILE
+        FILE* fp = stdin;
+        if (statement->type == INPUT_FILE) {
+          int channel = floor(evaluate_expression(statement->parms.print.channel).number);
+          fp = handle_for_channel(channel);
+          if (fp == NULL) {
+            handle_error(ern_FILE_NOT_OPEN, "Attempt to INPUT from a file that has not been OPENed");
+          }
+        }
         
         // start at the front of the list
         list_t *current_item = statement->parms.input;
@@ -3293,13 +3304,13 @@ EXIT_MAT_INPUT:
       {
         printitem_t *pp;
         
-        // default to stdin unless it's a a PRINT_FILE
+        // default to stdout unless it's a a PRINT_FILE
         FILE* fp = stdout;
         if (statement->type == PRINT_FILE) {
           int channel = floor(evaluate_expression(statement->parms.print.channel).number);
           fp = handle_for_channel(channel);
           if (fp == NULL) {
-            handle_error(ern_FILE_NOT_OPEN, "Attempt to print to a file that has not been OPENed");
+            handle_error(ern_FILE_NOT_OPEN, "Attempt to PRINT to a file that has not been OPENed");
           }
         }
 				
@@ -3746,7 +3757,7 @@ void interpreter_setup(void)
   value until they are encountered in the program, which is too late
   for a forward jump - which is often the purpose of a label. So now
   that the program is a single long string of statements, we check all
-  of them to see if it is a label, and if so, call eval to set its
+  of the statements to see if it is a label, and if so, call eval to set its
   value. The code is essentially identical to LET. This is called from
   post_setup, so it doesn't need to be public */
 static void interpreter_eval_labels(void)

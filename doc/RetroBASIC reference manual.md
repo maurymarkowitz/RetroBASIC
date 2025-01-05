@@ -187,9 +187,6 @@ The following abbreviations will be used in this manual:
 - *svar* - a string variable
 - *avar* - an array variable (matrix)
 - *var* - any of the variable types above
-- *aop* - arithmetic operator
-- *sop* - string operator
-- *lop* - logical operator
 - *aexp* - arithmetic expression
 - *sexp* - string expression
 - *lexp* - logical expression
@@ -1220,17 +1217,17 @@ A number of later BASICs added a variation on `POKE` that allowed a 16-bit value
 
 In most dialects of BASIC, random numbers returned by the `RND` function are based on an internal mathematical function that produces a new value based on the last one. When a program is first `RUN`, the first number in the sequence is normally zero, and thus every time the program is run, it will produce the same series of values. For a program that is using `RND`, this is generally the opposite of what is desired.
 
-To address this problem, some dialects include the `RANDOMIZE` statement. When used alone, with no *aexp*, this uses a platform-specific solution to generate a new starting number, the *seed*, so it is not zero. With a `RANDOMIZE` statement near the top, the program will produce a different series of numbers with `RND` every time the program is run, which is what is desired.
+To address this problem, some dialects include the `RANDOMIZE` statement. When used alone, with no *aexp*, this uses a platform-specific solution to generate a new starting number, known as the *seed*, so it is not zero. With a `RANDOMIZE` statement near the top, the program will produce a different series of numbers with `RND` every time the program is run, which is what is desired.
 
-Although `RANDOMIZE` is generally used to produce random seed values, it is also extremely useful during testing and debugging, where the opposite is desired. Using the optional *aexp* will cause the same series of numbers to be returned every time, which makes it much easier to track down problems without the behavior of the program changing every time it runs. In these cases, a `RANDOMIZE 0` near the top of the program is very common.
+Although `RANDOMIZE` is generally used to produce random seed values, it is also extremely useful during testing and debugging when the opposite is desired. Using the optional *aexp* will cause the same series of numbers to be returned every time, which makes it much easier to track down problems without the behavior of the program changing every time it runs. In these cases, a `RANDOMIZE 0` near the top of the program is very common.
 
-Later dialects, those developed for home computers, often lack the `RANDOMIZE` statement. Instead, they generate random numbers by applying a formula to some internal hardware value, normally a timer on the video circuitry or the internal realtime clock. This makes the random number system very simple to implement, it runs quickly, and there is no need to `RANDOMIZE` as even the shortest delays when `RUN`ning the program will be sufficient to produce completely random values. For the debugging cases, some dialects allowed negative inputs to `RND` to produce `RANDOMIZE`-like results, see `RND` for further details.
+Later dialects, those developed for home computers, often lack the `RANDOMIZE` statement. Instead, they generate random numbers by applying a formula to some internal hardware value, normally a timer on the video circuitry or the internal realtime clock. This makes the random number system very simple to implement, it runs quickly, and there is no need to `RANDOMIZE` as even the shortest delays when `RUN`ning the program will be sufficient to produce completely random values. `RANDOMIZE` is still useful in the debugging cases, so some dialects included it, while others allowed negative inputs to `RND` to produce `RANDOMIZE`-like results. See `RND` for further details.
 
 #### Variations:
 
 Sinclair BASICs use `RAND` as a short form for `RANDOMIZE`.
 
-GW-BASIC has the additional oddity that if the *aexp* is left out, it will pause and ask the user for a seed value similar to an `INPUT` statement. This is not supported in RetroBASIC. To get the same behavior as other dialects, where it uses the clock as a seed, one uses the `RANDOMIZE TIMER` variation. This is almost always found in GW programs.
+GW-BASIC has the additional oddity that if the *aexp* is left out, it will pause and ask the user for a seed value similar to an `INPUT` statement. This is not supported in RetroBASIC. In GW, to get the same behavior as other dialects that use the clock as a seed, one uses the `RANDOMIZE TIMER` variation. This is almost always found in GW programs. This is supported in RetroBASIC.
 
 #### Notes:
 
@@ -1240,10 +1237,14 @@ Because `RANDOMIZE` is so useful for debugging and many programs do not include 
 
 * `RND`
 
+#### Versions:
+
+`RANDOMIZE TIMER` was added in 2.0.0.
+
 <!-- TOC --><a name="changeconvert-avarsvar-to-svaravar"></a>
 ### [`CHANGE`|`CONVERT`] {*avar*|*svar*} `TO` {*svar*|*avar*}
 
-The primary difference between the three main families of BASIC is the way they manipulate strings. In Dartmouth versions, this is accomplished with the `CHANGE` command, which takes a string and converts it a series of ASCII values in a numeric array, or takes a numeric array and converts it to a string. The length of the string is stored in the array's zero slot. `CONVERT` is the identical operation found in HP dialects.
+The primary difference between the three main families of BASIC is the way they manipulate strings. In Dartmouth versions, this is accomplished with the `CHANGE` statement, which takes a string and converts it a series of ASCII values in a numeric array, or takes a numeric array and converts it to a string. The length of the string is stored in the array's zero slot. `CONVERT` is the identical operation found in HP dialects.
 
 #### Examples:
 
@@ -1475,13 +1476,13 @@ Rounds the number to the nearest integer or given decimal place. If only one *ae
 
 Returns a random positive number between 0 (inclusive) and 1 (exclusive). Some dialects require some form of expression in the parentheses even if they do not use it; others do not and you can leave the parameter empty. RetroBASIC works with either style. In many dialects, if a variable or expression is passed in the parentheses it is ignored and has no effect on the numbers returned, but there are numerous important exceptions. The variations are so (*ahem*) random, that Lien's *The BASIC Handbook* gives up and tells you to consult your manual.
 
-Most random number generators are based on a mathematical formula that takes the last random number as its input. This means that each call to the function is guaranteed to return a new value in a random sequence. Systems vary widely on how this is actually implemented. In some, the initial number, or *seed* is always the same and thus the *sequence* of numbers generated will always be the same. These variations generally offer some method to change the initial value so that different sequences can be generated. Earlier dialects generally use `RANDOMIZE` for this, but later ones modified the `RND` itself for this task. The best example is Microsoft and its many variations, where a negative number in the parameter is converted to a positive value and used as the seed, whereas a positive value is simply ignored. Others, like Atari BASIC, used an internal hardware timer to produce random values, which was both faster and always randomized, and ignored the parameter entirely. Some blended the two options.
+Most random number generators are based on a mathematical formula that takes the last random number as its input. This means that each call to the function is guaranteed to return a new value in a random sequence. Systems vary widely on how this is actually implemented. In some, the initial number, or *seed* is always the same and thus the *sequence* of numbers generated will always be the same. These variations generally offer some method to change the initial value so that different sequences can be generated. Earlier dialects generally use `RANDOMIZE` for this, but later ones generally modified the `RND` itself for this task. The best example is Microsoft and its many variations, where a negative number in the parameter is converted to a positive value and used as the seed, whereas a positive value is simply ignored. Others, like Atari BASIC, ignored the parameter completely and used an internal hardware timer to produce random values, which was both faster and always randomized. Some blended the two options.
 
-`RND` is very common in BASIC programs, especially in games. In most cases, the program actually desires an integer value, and code to the effect of `INT(RND(0)*X+0.5)` can be found in many programs. This works by producing a number between 0 and X-*epsilon*, adds 0.5 to produce a value between 0.5 and X+0.5-*epsilon*, and then `INT`s that value, resulting in a value between 1 and X, inclusive. This bit of code is so common that some programs use a user-defined function to make references to this sequence of operations shorter; an example is *Super Star Trek*, which defines a function called `FNR` near the top of the program and then calls it from many locations.
+`RND` is very common in BASIC programs, especially in games. In most cases, the program actually desires an integer value, and code to the effect of `INT(RND(0)*X+0.5)` can be found in many programs. This bit of code is so common that some programs use a user-defined function to make references to this sequence of operations shorter; an example is *Super Star Trek*, which defines a function called `FNR` near the top of the program and then calls it from many locations.
 
-Because this series of operations to produce a random integer takes some time to complete, a number of dialects offered ways to generate integer values directly in a single step. Unfortunately, there is no standard solution for this functionality, some use a separate function like `RAND`, while others modify `RND`. Among those that use `RND`, one common solution is that if the *aexp* produces any value between 0 and 1 it returns a floating point value as above, whereas larger positive values produce an integer value from 1 to the provided number. Integer BASIC and BBC BASIC are examples of this style.
+Because this series of operations to produce a random integer takes some time to complete, a number of dialects offered ways to generate integer values directly in a single step. Unfortunately, there is no standard solution for this functionality, some use a separate function like `RAND`, while others modify `RND`. Among those that use `RND`, one common solution is that if the *aexp* produces any value between 0 and 1 it returns a floating point value as above, whereas larger positive values produce an integer value from 1 to the provided number. Apple's Integer BASIC and BBC BASIC are examples of this style.
 
-Another common variation is found in Microsoft BASICs, although these vary across implementations. In these, a negative *aexp* is equivalent to a `RANDOMIZE` with the positive value, such that `X=RND(-1)` performs the same operations as `RANDOMIZE 1:X=RND(1)`. As almost every other dialect uses only positive values in *aexp*, or ignores them completely. This MS-style functionality is highly compatible, and is supported in RetroBASIC.
+Another common variation is found in Microsoft BASICs, although these vary across implementations. In these, a negative *aexp* is equivalent to a `RANDOMIZE` with the positive value, such that `X=RND(-1)` performs the same operations as `RANDOMIZE 1:X=RND(1)`. As almost every other dialect uses only positive values in *aexp*, or ignores *aexp* completely, this MS-style functionality is highly compatible, and is supported in RetroBASIC.
 
 Because there is no way to know which of these optional varieties is being used, it is suggested that you use `RND(1)` in any case where it is not clearly specified.
 
@@ -1491,11 +1492,11 @@ ANSI BASIC *requires* the parameter to be empty. Very few dialects followed this
 
 It is generally the case that any dialect that supports `RANDOMIZE` treats the *aexp* as a dummy. RetroBASIC is an exception, as it supports seeding in `RANDOMIZE` or `RND`.
 
-Apple's Integer BASIC produces only integer values, as these were the only types it could work with. The system always returns a value between 0 and *aexp*-1, which made it an analog of the more typical floating point versions that never returned the upper bound. To simulate rolling dice, for instance, one would use `LET ROLL=RND(6)+1`.
+Apple's Integer BASIC produces only integer values, as these were the only numbers it could work with. The system always returns a value between 0 and *aexp*-1, which made it an analog of the more typical floating point versions that never returned the upper bound. To simulate rolling dice, for instance, one would use `LET ROLL=RND(6)+1`.
 
 Sinclair QL BASIC has a similar feature, but uses a more explicit syntax that allows a range to be specified, `RND(10 TO 50)`.
 
-Commodore BASIC uses `RND(0)` to produce a "randomized random value", which is accomplished by mixing the last value with the value from an internal timer. As the timer functions vary across their computer models, the outcome of this function also varies. On most machines, the timer is always running and `RND(0)` operates as if it has been seeded with `RANDOMIZE`. On the Commodore 64 the timer does not start automatically and `RND(0)` will normally always return the same value. Note that this is different than dialects like Dartmouth; those will return different values for `RND(0)` every time it is called, although the *sequence* of values will always be the same (unless `RANDOMIZE`d). On the C64, the *value* is the same every time it is called as well as every time it is run. To address this, users were told to add `RND(-TI)` near the start of their programs, using the ticks counter, `TI`, as the seed. This is not needed in RetroBASIC, but will work as expected.
+Commodore BASIC uses `RND(0)` to produce a "randomized random value", which is accomplished by mixing the last value with the value from an internal timer. As the timer functions vary across their computer models, the outcome of this function also varies. On most machines, the timer is always running and `RND(0)` operates as if it has been seeded with `RANDOMIZE`. On the Commodore 64 the timer does not start automatically and `RND(0)` will always return the same value. Note that this is different than dialects like Dartmouth; those will return different values for `RND(0)` every time it is called, although the *sequence* of values will always be the same (unless `RANDOMIZE`d). On the C64, the *value* is the same every time it is called as well as every time it is run. To address this, users were told to add `RND(-TI)` near the start of their programs, using the ticks counter, `TI`, as the seed. This is not needed in RetroBASIC, but will work as expected.
 
 In AppleSoft BASIC, an *aexp* of zero causes the system to return the last value. This appears to be the same implementation as Commodore versions (which were based on the same original code), but without the ability to tie in a timer.
 
@@ -1517,7 +1518,7 @@ Returns —1 if *aexp* evaluates to a negative number, a 0 if *aexp* evaluates t
 
 #### Variations:
 
-Early dialects, including Dartmouth, returned 1 for all positive numbers, including 0. Almost all later dialects, including RetroBASIC, return 0 in this case.
+Early Dartmouth dialects returned 1 for all positive numbers, including 0. Almost all later dialects, including RetroBASIC, return 0 in this case.
 
 <!-- TOC --><a name="sqraexp"></a>
 ### `SQR`(*aexp*)
@@ -1525,20 +1526,24 @@ Early dialects, including Dartmouth, returned 1 for all positive numbers, includ
 Returns the square root of the *aexp* which must be positive. If *aexp* is negative, an error will be raised.
 
 <!-- TOC --><a name="uboundavaraexp-and-lboundavaraexp"></a>
-### `UBOUND`(*avar*{,*aexp*}) and `LBOUND`(*avar*{,*aexp*})
+### `LBOUND`(*avar*{,*aexp*}) and `UBOUND`(*avar*{,*aexp*})
 
-Returns the upper and lower bounds of the array in *avar*, respectively. In RetroBASIC, the lower bound is normally zero, and the upper bound is the value in the associated `DIM` statement. If the variable was not `DIM`ensioned, `UBOUND` will return 10. For multi-dimensional arrays, the optional *aexp* indicates which dimension to count, starting at one. If *aexp* is not included and the array is multi-dimensional, they return the values for the first dimension. `LBOUND` will return 1 if `OPTION BASE 1` has been encountered.
+Returns the lower and upper bounds of the array in *avar*, respectively. In RetroBASIC, the lower bound is normally zero, but will be 1 if `OPTION BASE 1` has been encountered. The upper bound is normally the value in the associated `DIM` statement, or 10 if the variable has not been `DIM`ensioned.
+
+For multi-dimensional arrays, the optional *aexp* indicates which dimension to count, starting at one. If *aexp* is not included and the array is multi-dimensional, they return the values for the first dimension.
 
 #### Examples:
 
-    10 DIM A(25,10)
+    10 DIM A(25,15)
     20 PRINT "The length of dimension 1 is "UBOUND(A)
     30 PRINT "The length of dimension 2 is "UBOUND(A,2)
+    40 PRINT "The length of B is "UBOUND(B)
 
 Produces:
 
         The length of dimension 1 is 25
-        The length of dimension 2 is 10
+        The length of dimension 2 is 15
+        The length of B is 10
 
 #### See also:
 
@@ -1583,7 +1588,7 @@ RetroBASIC also allows binary, octal, and hexadecimal values to be typed in dire
     
 #### Variations:
 
-Apple Business BASIC on the Apple III used the function `TEN` to convert a hex string to decimal. This is not currently supported.
+Apple Business BASIC on the Apple III used the function `TEN` to convert a hex string to decimal. This is not currently supported in RetroBASIC.
 
 <!-- TOC --><a name="trigonometric-functions"></a>
 ## Trigonometric functions
@@ -2060,21 +2065,19 @@ DEC's BASIC-PLUS, on TOPS at least, used `USR$` to return a listing of the files
 
 ## File handling
 
-Most versions of BASIC include some form of file handling based on the `OPEN` and `CLOSE` statements. Unfortunately, that is where the commonality ends. Devices on early computers varied widely in their underlying concepts as well as their implementations, such that sending data to one device, like a tape drive, would have entirely different syntax as sending the same data to a printer. Even those dialects that have the same underlying code, like Commodore BASIC and AppleSoft, vary too much to be portable, and often differ even between models from the same company, like the PET vs. C64.
+Most versions of BASIC include some form of file handling based on the `OPEN` and `CLOSE` statements. Unfortunately, that is where the commonality ends. Devices on early computers varied widely in their underlying concepts as well as their implementations, such that sending data to one device, like a tape drive, would have entirely different syntax as sending the same data to a printer. Even those dialects that had the same underlying code, like Commodore BASIC and AppleSoft, vary too much to allow code to be portable, and often differ even between models from the same company, like the PET vs. C64.
 
-One of the goals for RetroBASIC is to run known-good programs with few or no changes to the original code. In the case of file handling this is simply not possible. One could choose a target platform and copy that syntax, say the C64, but this would force every other platform to be changed to that style.
+One of the goals for RetroBASIC is to run known-good programs with few or no changes to the original code. In the case of file handling this is simply not possible. One could choose a target platform and copy that syntax, say the C64, but this would force every other platform to be changed to that style. Instead, RetroBASIC implements the same basic set of file statements as most BASICs, but uses Unix-like syntax to refer to the files and devices. All file input/output takes place through a filename and uses Unix-like modes for access, "r" for read, "w" for write, and "a" for append. The filename may contain a path, which can include path elements like `.`, `..` and `~`, which will be correctly expanded into complete paths.
 
-Instead, RetroBASIC implements the same basic set of file statements, but uses Unix-like syntax. All file input/output takes place through a filename and uses Unix-like modes for access, "r" for read, "w" for write, and "a" for append. The filename may contain a path, which can include path elements like `.`, `..` and `~`, which will be correctly expanded into complete paths.
-
-When a file is `OPEN`ed, it is assigned a number. RetroBASIC refers to these as "channels", which MS calls "logical file numbers" or Atari called "IOCB numbers". From that point on, any input or output to that device is handled using that channel number. RetroBASIC allows channel numbers between 0 and 255, which is a common limit found in many dilects, and allows a maximum of 16 channels to be open at a time.
+When a file is `OPEN`ed, it is assigned a number. The name for these also varies, MS calls these "logical file numbers" while Atari called them "IOCB numbers". RetroBASIC refers to these as "channels". Once a channel is opened, any input or output to that device is handled using that channel number. RetroBASIC allows channel numbers between 0 and 255 and allows a maximum of 16 channels to be open at a time. Although these limits are arbitrary and much less than any modern machine can handle, a BASIC program that runs outside these limits is likely doing so due to an error in the code, so breaking either limit returns an error in RetroBASIC.
 
 ### `OPEN`[`#`] *aexp*,*sexp1*,*sexp2*
 
 Opens a channel with the number *aexp*, attached to the physical file at path/file *sexp1* with access mode *sexp2*. *aexp* must be between 0 and 255, and an error will be returned if that channel is already open or if there are too many files opened already.
 
-The file name in *sexp1* can be simply the name of a file, or contain a path portion. If there is no path portion, the file will be opened in the current directory, normally the same location as the RetroBASIC executable. If a path is provided, it will be expanded into a complete path and checked to ensure that the user can access the resulting file. Any given path/file can only be opened once, you cannot, for instance, open a file for writing in one channel and reading in another.
+The file name in *sexp1* can be simply the name of a file, or contain a path as well. If there is no path, the file will be opened in the current directory, normally the same location as the RetroBASIC executable. If a path is provided, it will be expanded into a complete path and checked to ensure that the user can access the resulting file. Any given path/file can only be opened once, you cannot, for instance, open a file for writing in one channel and reading in another.
 
-The mode in *sexp2* is one of three single-character values, "r" for reading, "w" for writing, and "a" for writing to the end of an existing file. If the mode is "r" or "a", the file must already exist and will return an error otherwise. If the mode is "w" the file *cannot* already exist, and will return an error if it does.
+The mode in *sexp2* is one of three single-character values, "r" for reading, "w" for writing, and "a" for appending, that is, writing to the end of an existing file. If the mode is "r" or "a", the file must already exist and will return an error otherwise. If the mode is "w" the file *cannot* already exist, and will return an error if it does.
 
 #### Variations:
 
@@ -2086,7 +2089,14 @@ Closes the channel *aexp* and removes it from the list of active channels. Will 
 
 ### `PRINT#` *aexp*,[*exp*{|[;|,]},...]
 
-`PRINT#` works exactly like the standard `PRINT` statement, but directs the output to channel *aexp*.
+`PRINT#` works exactly like the standard `PRINT` statement, but directs the output to channel *aexp*. If the channel is not open, or it is opened only for read access, RetroBASIC will return an error.
+
+### `INPUT#` *aexp*,[*exp*{|[;|,]},...]
+
+`INPUT#` works in a fashion like the standard `INPUT` statement, but does not print any user-supplied prompt strings or the question mark. It reads one line from the file and then parses it using the same logic as a normal `INPUT`, meaning that if there are fewer values in the read line than there are variables in the list, the next line of input
+
+directs the output to channel *aexp*. If the channel is not open, or it is opened only for read access, RetroBASIC will return an error.
+
 
 <!-- TOC --><a name="matrix-statements-operators-and-functions"></a>
 ## Matrix statements, operators and functions
