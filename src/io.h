@@ -49,6 +49,33 @@ Boston, MA 02111-1307, USA.  */
 FILE* handle_for_channel(int channel);
 
 /**
+ * Returns the path/file for a given channel/file number.
+ *
+ * @param channel, the channel number.
+ * @return the path/file name, or NULL if the channel is not open.
+ *
+ */
+char* path_for_channel(int channel);
+
+/**
+ * Returns whether the selected channel is readable.
+ *
+ * @param channel, the channel number.
+ * @return true if the file can be read, false otherwise.
+ *
+ */
+bool channel_is_readable(int channel);
+
+/**
+ * Returns whether the selected channel is writable.
+ *
+ * @param channel, the channel number.
+ * @return true if the file can be written, false otherwise.
+ *
+ */
+bool channel_is_writable(int channel);
+
+/**
  * Closes all open files and resets the file number map.
  */
 void close_all_files(void);
