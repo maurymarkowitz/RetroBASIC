@@ -1,22 +1,22 @@
 /* io (implementation) for RetroBASIC
- Copyright (C) 2024 Maury Markowitz
- 
- This file is part of RetroBASIC.
- 
- RetroBASIC is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2, or (at your option)
- any later version.
- 
- RetroBASIC is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- 
- You should have received a copy of the GNU General Public License
- along with RetroBASIC; see the file COPYING.  If not, write to
- the Free Software Foundation, 59 Temple Place - Suite 330,
- Boston, MA 02111-1307, USA.  */
+   Copyright (C) 2024 Maury Markowitz
+    
+This file is part of RetroBASIC.
+
+RetroBASIC is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+RetroBASIC is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with RetroBASIC; see the file COPYING.  If not, write to
+the Free Software Foundation, 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.  */
 
 #include "io.h"
 
@@ -34,9 +34,6 @@
 FILE* file_handle_map[max_file_num]; //!< maps the file numbers to C handles
 char file_name_map[max_file_num][PATH_MAX]; //!< maps the file numbers to C handles
 
-/*
- * Returns the file pointer for a given channel.
- */
 FILE* handle_for_channel(int channel)
 {
   if (channel < 0 || channel >= max_file_num) {
@@ -44,57 +41,6 @@ FILE* handle_for_channel(int channel)
     return NULL;
   }
   return file_handle_map[channel];
-}
-
-/*
- * Returns the path/file name for a given channel.
- */
-char* path_for_channel(int channel)
-{
-  if (channel < 0 || channel >= max_file_num) {
-    handle_error(ern_BAD_SUBSCRIPT, "Attempt to use a file channel that is outside the allowed range");
-    return NULL;
-  }
-  return file_name_map[channel];
-}
-
-/*
- * Returns is the file can be read or written, work method for following.
- */
-bool test_channel(int channel, int how)
-{
-  if (channel < 0 || channel >= max_file_num) {
-    handle_error(ern_BAD_SUBSCRIPT, "Attempt to use a file channel that is outside the allowed range");
-    return false;
-  }
-  
-  // test that we can get to that file, which should never fail because we already did it on open
-  char *path = path_for_channel(channel);
-  char temp_path[PATH_MAX];
-  if (realpath(temp_path, path) == NULL)
-    return false;
-
-  // now test it
-  if (access(temp_path, how) == 0)
-    return true;
-  else
-    return false;
-}
-
-/*
- * Returns is the file is readable for a given channel.
- */
-bool channel_is_readable(int channel)
-{
-  return test_channel(channel, R_OK);
-}
-
-/*
- * Returns is the file is writable for a given channel.
- */
-bool channel_is_writable(int channel)
-{
-  return test_channel(channel, W_OK);
 }
 
 /*
@@ -155,7 +101,7 @@ bool open_file(const int channel, const char *name, const char mode)
     handle_error(ern_FILE_OPEN, "Attempt to open a file but that channel is already in use");
     return false;
   }
-  
+
   // don't allow too many files to be open
   int num_open = 0;
   for (int i = 0; i < max_file_num; i++) {
@@ -170,7 +116,7 @@ bool open_file(const int channel, const char *name, const char mode)
   // pull the name apart
   char path[PATH_MAX], file[PATH_MAX];
   extract_path(name, path, file);
-  
+
   // see if there is a path, if so, see if it exists
   // it is OK to have no path, this means the working directory
   if (strlen(path) > 0) {
@@ -205,10 +151,10 @@ bool open_file(const int channel, const char *name, const char mode)
   // if the mode is "w", the file *cannot* already exist
   if (mode == 'w' && exists(name)) {
     // FIXME: this should be "FILE EXISTS"
-    handle_error(ern_FILE_NOT_FOUND, "Attempt to open a file for write or append but it already exists");
+    handle_error(ern_FILE_NOT_FOUND, "Attempt to open a file for writing but it already exists");
     return false;
   }
-  
+
   // all the inputs are valid, try to open the file
   FILE* fp = fopen(name, &mode);
   if (fp == NULL) {
@@ -219,7 +165,7 @@ bool open_file(const int channel, const char *name, const char mode)
   // is it now open, so record it
   file_handle_map[channel] = fp;
   strcpy(file_name_map[channel], name);
-  
+
   return true;
 }
 
@@ -249,7 +195,7 @@ bool close_file(const int channel)
 
 /*
  * Waits for a single character. Used for GET.
- */
+*/
 int getbyte(int fd)
 {
   int ch;
@@ -267,15 +213,15 @@ int getbyte(int fd)
 
 /*
  * Gets a single keystroke, or null if no key is pressed. Used for INKEY$.
- */
+*/
 int getkey(int fd)
 {
 #if _WIN32
-  if (kbhit) {
-    return getch();
-  } else {
-    return 0;
-  }
+    if (kbhit) {
+      return getch();
+    } else {
+      return 0;
+    }
 #else
   int ch;
   unsigned char buf[1];
@@ -286,11 +232,11 @@ int getkey(int fd)
   new_attrs.c_cc[VMIN] = 0;
   new_attrs.c_cc[VTIME] = 0;
   new_attrs.c_lflag &= ~(ICANON | ECHO);
-  //  newt.c_cc[VMIN] = 0;
+//  newt.c_cc[VMIN] = 0;
   tcsetattr(STDIN_FILENO, TCSANOW, &new_attrs);
   ch = (int)read(STDIN_FILENO, buf, 1);
   if (ch > 0)
-    ch = buf[0];
+      ch = buf[0];
   tcsetattr(STDIN_FILENO, TCSANOW, &old_attrs);
   return ch;
 #endif
