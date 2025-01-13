@@ -89,7 +89,7 @@ void close_all_files(void);
  * @return true if the file was opened successfully, false otherwise
  *
  */
-bool open_file(const int channel, const char *name, const char mode);
+bool open_file(const int channel, const char *name, const char *mode);
 
 /**
  * Closes an existing file channel.
