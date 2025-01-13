@@ -3394,7 +3394,7 @@ EXIT_MAT_INPUT:
         
         // if there are no more items, or it's NOT a separator, do a CR
         if (pp == NULL || pp->separator == 0) {
-          printf("\n");
+          fprintf(fp, "\n");
           interpreter_state.cursor_column = 0; // and reset this!
         }
       } //print
