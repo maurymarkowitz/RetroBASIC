@@ -165,10 +165,10 @@
 				5599AEFC239C0ABF00490A3A /* scan.l */,
 				55B9698B252F44E70021CD8B /* parse.y */,
 				55845E982B935BBF00244EC2 /* parse.h */,
-				5599AEF8239C0A6E00490A3A /* retrobasic.h */,
-				5599AEF9239C0A6F00490A3A /* retrobasic.c */,
 				55A42360287360B00070AF00 /* statistics.h */,
 				55A42362287360B00070AF00 /* statistics.c */,
+				5599AEF8239C0A6E00490A3A /* retrobasic.h */,
+				5599AEF9239C0A6F00490A3A /* retrobasic.c */,
 				55A42361287360B00070AF00 /* main.c */,
 			);
 			path = src;
