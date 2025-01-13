@@ -1,0 +1,4 @@
+10 OPEN 1,"TEXTFILE.TXT","w"
+20 PRINT#1,"Hello, World!"
+30 CLOSE#1
+9999 END

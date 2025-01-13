@@ -53,7 +53,7 @@ static statement_t *make_statement(int t)
   return new;
 }
 
-static expression_t *make_expression(expression_type_e t)
+static expression_t *make_expression(expression_type_t t)
 {
   expression_t *new = malloc(sizeof(*new));
   new->type = t;
@@ -363,6 +363,13 @@ statement:
     $$ = new;
   }
   |
+  CLOSE expression
+  {
+    statement_t *new = make_statement(CLOSE);
+    new->parms.generic.generic_parameter = $2;
+    $$ = new;
+  }
+  |
   CLS
   {
     statement_t *new = make_statement(CLS);
@@ -438,7 +445,7 @@ statement:
   ERROR expression
   {
     statement_t *new = make_statement(RAISE);
-    new->parms.generic_parameter = $2;
+    new->parms.generic.generic_parameter = $2;
     $$ = new;
   }
   |
@@ -478,7 +485,7 @@ statement:
   GET variable
   {
     statement_t *new = make_statement(GET);
-    new->parms.generic_variable = $2;
+    new->parms.generic.generic_variable = $2;
     $$ = new;
   }
   |
@@ -730,10 +737,19 @@ statement:
     linenum_on_totals++;
   }
   |
+  OPEN expression ',' expression ',' expression
+  {
+    statement_t *new = make_statement(OPEN);
+    new->parms.generic.generic_parameter = $2;
+    new->parms.generic.generic_parameter2 = $4;
+    new->parms.generic.generic_parameter3 = $6;
+    $$ = new;
+  }
+  |
   OPTION BASE expression
   {
     statement_t *new = make_statement(OPTION);
-    new->parms.generic_parameter = $3;
+    new->parms.generic.generic_parameter = $3;
     $$ = new;
   }
   |
@@ -746,15 +762,15 @@ statement:
   PAUSE expression // if there is an expression it's jiffies
   {
     statement_t *new = make_statement(PAUSE);
-    new->parms.generic_parameter = $2;
+    new->parms.generic.generic_parameter = $2;
     $$ = new;
   }
   |
   POKE expression ',' expression
   {
     statement_t *new = make_statement(POKE);
-    new->parms.generic_parameter = $2;
-    new->parms.generic_parameter2 = $4;
+    new->parms.generic.generic_parameter = $2;
+    new->parms.generic.generic_parameter2 = $4;
     $$ = new;
   }
   |
@@ -801,28 +817,28 @@ statement:
   PUT expression
   {
     statement_t *new = make_statement(PUT);
-    new->parms.generic_parameter = $2;
+    new->parms.generic.generic_parameter = $2;
     $$ = new;
   }
   |
   RAISE expression
   {
     statement_t *new = make_statement(RAISE);
-    new->parms.generic_parameter = $2;
+    new->parms.generic.generic_parameter = $2;
     $$ = new;
   }
   |
   RANDOMIZE
   {
     statement_t *new = make_statement(RANDOMIZE);
-    new->parms.generic_parameter = NULL;
+    new->parms.generic.generic_parameter = NULL;
     $$ = new;
   }
   |
   RANDOMIZE expression
   {
     statement_t *new = make_statement(RANDOMIZE);
-    new->parms.generic_parameter = $2;
+    new->parms.generic.generic_parameter = $2;
     $$ = new;
   }
   |
@@ -830,7 +846,7 @@ statement:
   {
     // this handles RANDOMIZE TIMER because scan converts TIMER to RANDOMIZE
     statement_t *new = make_statement(RANDOMIZE);
-    new->parms.generic_parameter = NULL;
+    new->parms.generic.generic_parameter = NULL;
     $$ = new;
   }
   |
@@ -850,7 +866,7 @@ statement:
   RESTORE expression /* some basics allow a parameter here, representing a line number in some or an ordinal in others */
   {
     statement_t *new = make_statement(RESTORE);
-    new->parms.generic_parameter = $2;
+    new->parms.generic.generic_parameter = $2;
     $$ = new;
   }
   |
@@ -859,14 +875,14 @@ statement:
     statement_t *new = make_statement(RESUME);
     expression_t *exp = make_expression(number);
     exp->parms.number = -1;
-    new->parms.generic_parameter = exp;
+    new->parms.generic.generic_parameter = exp;
     $$ = new;
   }
   |
   RESUME expression /* return from an error */
   {
     statement_t *new = make_statement(RESUME);
-    new->parms.generic_parameter = $2;
+    new->parms.generic.generic_parameter = $2;
     $$ = new;
   }
   |
@@ -885,7 +901,7 @@ statement:
   RETURN expression /* version seen in MSX that allows a line number */
   {
     statement_t *new = make_statement(RETURN);
-    new->parms.generic_parameter = $2;
+    new->parms.generic.generic_parameter = $2;
     $$ = new;
   }
   |
@@ -898,56 +914,56 @@ statement:
   STOP expression /* Wang BASIC allows a print-like expression here */
   {
     statement_t *new = make_statement(STOP);
-    new->parms.generic_parameter = $2;
+    new->parms.generic.generic_parameter = $2;
     $$ = new;
   }
   |
   STRNG expression
   {
     statement_t *new = make_statement(STRNG);
-    new->parms.generic_parameter = $2;
+    new->parms.generic.generic_parameter = $2;
     $$ = new;
   }
   |
   SYS expression /* same as CALL */
   {
     statement_t *new = make_statement(SYS);
-    new->parms.generic_parameter = $2;
+    new->parms.generic.generic_parameter = $2;
     $$ = new;
   }
   |
   TAB expression /* Integer BASIC's tab statement */
   {
     statement_t *new = make_statement(TAB);
-    new->parms.generic_parameter = $2;
+    new->parms.generic.generic_parameter = $2;
     $$ = new;
   }
   |
   TIME_STR '=' expression /* this is the weird variable-set version, which operates as a statement */
   {
     statement_t *new = make_statement(TIME_STR);
-    new->parms.generic_parameter = $3;
+    new->parms.generic.generic_parameter = $3;
     $$ = new;
   }
   |
   LET TIME_STR '=' expression /* unlikely to ever be see in the wild, but just in case... */
   {
     statement_t *new = make_statement(TIME_STR);
-    new->parms.generic_parameter = $4;
+    new->parms.generic.generic_parameter = $4;
     $$ = new;
   }
   |
   TRAP expression /* error handling */
   {
     statement_t *new = make_statement(TRAP);
-    new->parms.generic_parameter = $2;
+    new->parms.generic.generic_parameter = $2;
     $$ = new;
   }
   |
   TRAP /* turn off error handling */
   {
     statement_t *new = make_statement(TRAP);
-    new->parms.generic_parameter = NULL;
+    new->parms.generic.generic_parameter = NULL;
     $$ = new;
   }
   |

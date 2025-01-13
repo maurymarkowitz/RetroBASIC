@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
       fprintf(stderr, "File not found or invalid filename provided.\n");
       exit(EXIT_FAILURE);
     } else {
-      fprintf(stderr, "Error %i when opening file.\n", errno);
+      fprintf(stderr, "Error %i when opening file '%s'.\n", errno, source_file);
       exit(EXIT_FAILURE);
     }
   }

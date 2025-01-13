@@ -65,10 +65,10 @@ extern char *stats_file;
 extern double determinant;
 
 /** variable **references**
-* variable_reference_t is used to record a reference to a variable in the code,
-* not it's value. So this might be A or A$ or A(1,2). The actual value is held
-* in a variable_value_t in the variable_values list of the interpreter_state.
-*/
+ * variable_reference_t is used to record a reference to a variable in the code,
+ * not it's value. So this might be A or A$ or A(1,2). The actual value is held
+ * in a variable_value_t in the variable_values list of the interpreter_state.
+ */
 typedef struct {
   char *name;
   list_t *subscripts;   // subscripts, list of expressions
@@ -101,11 +101,11 @@ typedef struct {
 /** expression types */
 typedef enum {
   number, string, variable, op, fn
-} expression_type_e;
+} expression_type_t;
 
 /** expression_struct holds the structure of a single expression in BASIC */
 typedef struct expression_struct {
-  expression_type_e type;
+  expression_type_t type;
   union {
     double number;                    // if it's a constant
     char *string;                     // or a string constant
@@ -119,8 +119,8 @@ typedef struct expression_struct {
 } expression_t;
 
 /** printitem_t holds a print list, which are different from other lists in
-* BASIC because they have three possible separators, nulls, commas and semis.
-* most just use the comma.
+ * BASIC because they have three possible separators, nulls, commas and semis.
+ * most just use the comma.
  */
 typedef struct {
   expression_t *expression;
@@ -128,14 +128,16 @@ typedef struct {
 } printitem_t;
 
 /** every statement in the program gets a statement_t entry. the most
- basic forms are simply a type, which contains the token value. Other
- statements can store additional parameters in the params union.
+ * basic forms are simply a type, which contains the token value. Other
+ * statements can store additional parameters in the params union.
  */
 typedef struct statement_struct {
-  int type; // the enum for this is in yy
+  int type; // the enum for this is in parse.h
   union {
-    variable_reference_t *generic_variable;
-    expression_t *generic_parameter, *generic_parameter2, *generic_parameter3;
+    struct {
+      variable_reference_t *generic_variable;
+      expression_t *generic_parameter, *generic_parameter2, *generic_parameter3;
+    } generic;
     struct {
       variable_reference_t *var1;
       variable_reference_t *var2;
@@ -148,7 +150,7 @@ typedef struct statement_struct {
     struct {
       list_t *vars;
       int type;
-    } deftype;
+    } deftype; // used in DEFINT etc.
     list_t *dim; // list of variable definitions
     struct {
       variable_reference_t *variable;
@@ -221,7 +223,8 @@ typedef struct {
 /* this is the main state for the interpreter, largely consisting of the lines of
  code, a pointer to the first line for easy lookup, a pointer to the current
  statement, a list of variables and their values, and the runtime stack for
- GOSUB and FOR/NEXT */
+ GOSUB and FOR/NEXT. Other bits include the list of user functions, TRAP lines
+ and the current error code, the cursor column, etc. */
 typedef struct {
   list_t *lines[MAX_LINE_NUMBER]; // the lines in the program, stored as an array of statement lists
   int first_line;		              // index of the first line in the lines array, often 10

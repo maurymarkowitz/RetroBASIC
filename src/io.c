@@ -59,7 +59,7 @@ char* path_for_channel(int channel)
 }
 
 /*
- * Returns is the file can be read or written, work method for following.
+ * Returns whether the file can be read or written, a private method for the following public functions.
  */
 bool test_channel(int channel, int how)
 {
@@ -68,7 +68,7 @@ bool test_channel(int channel, int how)
     return false;
   }
   
-  // test that we can get to that file, which should never fail because we already did it on open
+  // test that we can get to that file, which should never fail because we tested it on open
   char *path = path_for_channel(channel);
   char temp_path[PATH_MAX];
   if (realpath(temp_path, path) == NULL)
@@ -82,7 +82,7 @@ bool test_channel(int channel, int how)
 }
 
 /*
- * Returns is the file is readable for a given channel.
+ * Returns if the file is readable for a given channel.
  */
 bool channel_is_readable(int channel)
 {
@@ -90,7 +90,7 @@ bool channel_is_readable(int channel)
 }
 
 /*
- * Returns is the file is writable for a given channel.
+ * Returns if the file is writable for a given channel.
  */
 bool channel_is_writable(int channel)
 {
@@ -148,7 +148,7 @@ void close_all_files(void)
  * open the file. If it is successfully opened, it is recorded
  * in the file_handle_map and the number of open files is ++ed.
  */
-bool open_file(const int channel, const char *name, const char mode)
+bool open_file(const int channel, const char *name, const char *mode)
 {
   // see if this channel is already being used
   if (file_handle_map[channel] != 0) {
@@ -172,7 +172,7 @@ bool open_file(const int channel, const char *name, const char mode)
   extract_path(name, path, file);
   
   // see if there is a path, if so, see if it exists
-  // it is OK to have no path, this means the working directory
+  //  - it is OK to have no path, this means to use the working directory
   if (strlen(path) > 0) {
     if (!exists(path)) {
       handle_error(ern_DEV_NOT_FOUND, "Attempt to open a file with an invalid path");
@@ -195,7 +195,7 @@ bool open_file(const int channel, const char *name, const char mode)
   }
   
   // if the mode is "r" or "a", the file needs to exist already
-  if (mode == 'r' || mode == 'a') {
+  if (tolower(mode[0]) == 'r' || tolower(mode[0]) == 'a') {
     if (!exists(name)) {
       handle_error(ern_FILE_NOT_FOUND, "Attempt to open a file for reading but it does not exist");
       return false;
@@ -203,14 +203,14 @@ bool open_file(const int channel, const char *name, const char mode)
   }
   
   // if the mode is "w", the file *cannot* already exist
-  if (mode == 'w' && exists(name)) {
+  if (tolower(mode[0]) == 'w' && exists(name)) {
     // FIXME: this should be "FILE EXISTS"
     handle_error(ern_FILE_NOT_FOUND, "Attempt to open a file for write or append but it already exists");
     return false;
   }
   
   // all the inputs are valid, try to open the file
-  FILE* fp = fopen(name, &mode);
+  FILE* fp = fopen(name, mode);
   if (fp == NULL) {
     handle_error(ern_FILE_OPEN, "Attempt to open a file failed for unknown reason");
     return false;
