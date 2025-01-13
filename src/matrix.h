@@ -41,8 +41,8 @@ Boston, MA 02111-1307, USA.  */
  *
  */
 
-#ifndef matrix_h
-#define matrix_h
+#ifndef __MATRIX_H__
+#define __MATRIX_H__
 
 #include "retrobasic.h"
 

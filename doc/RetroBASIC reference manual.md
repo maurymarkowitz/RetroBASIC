@@ -1942,7 +1942,7 @@ In RetroBASIC, the functionality of `NUM` has been expanded to also work with co
 
 The value of `NUM` is reset at the start of every `INPUT` or `MAT INPUT`, as well as when running a `CLEAR`/`CLR` statement.
 
-The other use of `NUM` is to support the dialect-specific funtion found in Digital Group BASICs, where it is the equivalent of `VAL`. This version will be called if a string expression is provided in *sexp*.
+The other use of `NUM` is to support the dialect-specific function found in Digital Group BASICs, where it is the equivalent of `VAL`. This version will be called if a string expression is provided in *sexp*.
 
 #### Availability:
 
@@ -2075,7 +2075,7 @@ When a file is `OPEN`ed, it is assigned a number. The name for these also varies
 
 Opens a channel with the number *aexp*, attached to the physical file at path/file *sexp1* with access mode *sexp2*. *aexp* must be between 0 and 255, and an error will be returned if that channel is already open or if there are too many files opened already.
 
-The file name in *sexp1* can be simply the name of a file, or contain a path as well. If there is no path, the file will be opened in the current directory, normally the same location as the RetroBASIC executable. If a path is provided, it will be expanded into a complete path and checked to ensure that the user can access the resulting file. Any given path/file can only be opened once, you cannot, for instance, open a file for writing in one channel and reading in another.
+The file name in *sexp1* can be the name of a file alone, or contain a path as well. If there is no path, the file will be opened in the current directory, normally the same location as the RetroBASIC executable. If a path is provided, it will be expanded into a complete path and checked to ensure that the user can access the resulting file. Any given path/file can only be opened once, you cannot, for instance, open a file for writing in one channel and reading in another.
 
 The mode in *sexp2* is one of three single-character values, "r" for reading, "w" for writing, and "a" for appending, that is, writing to the end of an existing file. If the mode is "r" or "a", the file must already exist and will return an error otherwise. If the mode is "w" the file *cannot* already exist, and will return an error if it does.
 
@@ -2087,20 +2087,21 @@ The vast majority of dialects use `OPEN` without a following `#`, but Atari BASI
 
 Closes the channel *aexp* and removes it from the list of active channels. Will return an error if that channel number is not currently open.
 
-The `LOAD`, `CLEAR`/`CLR`, `NEW` and `RUN` statements close all files. The `CHAIN` command (currently unsupported) does *not* close files.
+The `LOAD`, `CLEAR`/`CLR`, `NEW` and `RUN` statements close all files. The `CHAIN` command (not currently supported) does *not* close files.
 
 #### Variations:
 
-As with `OPEN`, most dialects use `CLOSE` without a following `#`, with Atari BASIC being an exception. Apple Business BASIC allows the # to be optional, in which case it can be any expression that returns a number. RetroBASIC allows either format.
+As with `OPEN`, most dialects use `CLOSE` without a following `#`, with Atari BASIC being an exception. RetroBASIC allows either format.
+
+Apple Business BASIC has two separate statements, `CLOSE#` closes a given channel, while `CLOSE` closes all open files. The second variation is not supported in RetroBASIC. 
 
 ### `PRINT#` *aexp*,[*exp*{|[;|,]},...]
 
 `PRINT#` works exactly like the standard `PRINT` statement, but directs the output to channel *aexp*. If the channel is not open, or it is opened only for read access, RetroBASIC will return an error.
 
-### `INPUT#` *aexp*,[*exp*{|[;|,]},...]
+### `INPUT#` *aexp*,[*var*{|[;|,]},...]
 
-`INPUT#` works in a fashion similar to the standard `INPUT` statement, but does not print any user-supplied prompt strings or the question mark. It reads one line from the file and then parses it using the same logic as a normal `INPUT`, meaning that if there are fewer values in the read line than there are variables in the list, the next line of input will be read until the variables all have values or the end of the file is reached.
-
+`INPUT#` works in a fashion similar to the standard `INPUT` statement, but does not print any user-supplied prompt strings or the question mark. It reads one line from the file and then parses it using the same logic as a normal `INPUT`, meaning that if there are more items on the line than in the number of variables a `EXTRA IGNORED` error will be raised, while if there are more variables than items the extra variables will retain their previous values.
 
 <!-- TOC --><a name="matrix-statements-operators-and-functions"></a>
 ## Matrix statements, operators and functions

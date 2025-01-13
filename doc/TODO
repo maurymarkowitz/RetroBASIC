@@ -11,9 +11,9 @@ PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
 - add CHAIN, LOAD and RUN (and APPEND?)
-  and COMMON
+- and COMMON
 
-- add CMD?/OUTPUT
+- add CMD/OUTPUT#?
 
 - add clear_variables and change CLEAR
 

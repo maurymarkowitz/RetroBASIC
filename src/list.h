@@ -63,8 +63,8 @@ Boston, MA 02111-1307, USA.  */
  *
  */
 
-#ifndef lst_h
-#define lst_h
+#ifndef __LST_H__
+#define __LST_H__
 
 #include "stdint.h"
 #include "stdhdr.h"

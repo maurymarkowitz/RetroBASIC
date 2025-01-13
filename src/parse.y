@@ -489,6 +489,14 @@ statement:
     $$ = new;
   }
   |
+  GET_FILE expression ',' expression
+  {
+    statement_t *new = make_statement(GET_FILE);
+    new->parms.generic.generic_parameter = $2;
+    new->parms.generic.generic_parameter2 = $4;
+    $$ = new;
+  }
+  |
   GOSUB NUMBER
   {
     statement_t *new = make_statement(GOSUB);
@@ -597,6 +605,14 @@ statement:
   {
     statement_t *new = make_statement(INPUT);
     new->parms.input = $2;
+    $$ = new;
+  }
+  |
+  INPUT_FILE expression ',' printlist
+  {
+    statement_t *new = make_statement(INPUT);
+    new->parms.generic.generic_parameter = $2;
+    new->parms.input = $4;
     $$ = new;
   }
   |
@@ -818,6 +834,14 @@ statement:
   {
     statement_t *new = make_statement(PUT);
     new->parms.generic.generic_parameter = $2;
+    $$ = new;
+  }
+  |
+  PUT_FILE expression ',' expression
+  {
+    statement_t *new = make_statement(GET_FILE);
+    new->parms.generic.generic_parameter = $2;
+    new->parms.generic.generic_parameter2 = $4;
     $$ = new;
   }
   |
