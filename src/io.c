@@ -197,7 +197,7 @@ bool open_file(const int channel, const char *name, const char *mode)
   // if the mode is "r" or "a", the file needs to exist already
   if (tolower(mode[0]) == 'r' || tolower(mode[0]) == 'a') {
     if (!exists(name)) {
-      handle_error(ern_FILE_NOT_FOUND, "Attempt to open a file for reading but it does not exist");
+      handle_error(ern_FILE_NOT_FOUND, "Attempt to open a file for read or append but it does not exist");
       return false;
     }
   }
@@ -205,7 +205,7 @@ bool open_file(const int channel, const char *name, const char *mode)
   // if the mode is "w", the file *cannot* already exist
   if (tolower(mode[0]) == 'w' && exists(name)) {
     // FIXME: this should be "FILE EXISTS"
-    handle_error(ern_FILE_NOT_FOUND, "Attempt to open a file for write or append but it already exists");
+    handle_error(ern_FILE_NOT_FOUND, "Attempt to open a file for write but it already exists");
     return false;
   }
   
