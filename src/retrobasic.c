@@ -2072,9 +2072,9 @@ static void perform_statement(list_t *statement_entry)
   if (statement) {
     switch (statement->type) {
 			case BASE:
-				if (statement->parms.generic_parameter != NULL) {
+				if (statement->parms.generic.generic_parameter != NULL) {
 					value_t baseval;
-					baseval = evaluate_expression(statement->parms.generic_parameter);
+					baseval = evaluate_expression(statement->parms.generic.generic_parameter);
 					if (baseval.number == 0 || baseval.number == 1)
 						array_base = (int)baseval.number;
 					else {
@@ -2186,6 +2186,7 @@ static void perform_statement(list_t *statement_entry)
       {
         // FIXME: we need a clear_variables, delete actually drops them which we don't want
         //delete_variables();
+        close_all_files();
         clear_stack();
         clear_error();
         reset_data_pointer(interpreter_state.first_line);
@@ -2194,6 +2195,18 @@ static void perform_statement(list_t *statement_entry)
       }
         break;
         
+      case CLOSE:
+      {
+        value_t channel = evaluate_expression(statement->parms.generic.generic_parameter);
+        if (channel.type != NUMBER) {
+          handle_error(ern_TYPE_MISMATCH, "CLOSE with non-numeric channel number");
+          break;
+        }
+        // inputs are valid, close it
+        close_file(floor(channel.number));
+      } // open
+      break;
+
       case CLS:
 #if _WIN32
         clrscr();
@@ -2205,7 +2218,7 @@ static void perform_statement(list_t *statement_entry)
       case CMD:
         // redirects input/output to a different device. do nothing
         break;
-        
+
       case DATA:
         // basically works like a REM, so just move on, all the logic is in the READ
         break;
@@ -2374,7 +2387,7 @@ static void perform_statement(list_t *statement_entry)
         
         // get/make the storage entry for this variable
         int type = 0;
-        either_t *stored_val = variable_value(statement->parms.generic_variable, &type);
+        either_t *stored_val = variable_value(statement->parms.generic.generic_variable, &type);
         if (type == STRING)
           stored_val->string = str_new(buff);
         else
@@ -3176,6 +3189,7 @@ EXIT_MAT_INPUT:
       {
         // it's not entirely clear what this should do INSIDE a program, but...
         // wipe out any variables and functions and create new lists
+        close_all_files();
         delete_variables();
         delete_functions();
         delete_lines();
@@ -3253,18 +3267,42 @@ EXIT_MAT_INPUT:
       } // on
         break;
         
+      case OPEN:
+      {
+        // ensure the three values are present and vali
+        value_t channel = evaluate_expression(statement->parms.generic.generic_parameter);
+        if (channel.type != NUMBER) {
+          handle_error(ern_TYPE_MISMATCH, "OPEN with non-numeric channel number");
+          break;
+        }
+        value_t path = evaluate_expression(statement->parms.generic.generic_parameter2);
+        if (path.type != STRING || strlen(path.string) == 0) {
+          handle_error(ern_TYPE_MISMATCH, "OPEN with missing or invalid path");
+          break;
+        }
+        value_t mode = evaluate_expression(statement->parms.generic.generic_parameter3);
+        if (mode.type != STRING || strlen(mode.string) == 0) {
+          handle_error(ern_TYPE_MISMATCH, "OPEN with missing or invalid mode");
+          break;
+        }
+        
+        // inputs are valid, open it
+        open_file(floor(channel.number), path.string, mode.string);
+      } // open
+      break;
+        
         // two different things here, if there are no paramters it pauses until
         // a key is hit, otherwise the parameter is the number of jiffies, which
         // we assume to be 1/6ths of a second
       case PAUSE:
       {
-        if (statement->parms.generic_parameter == NULL) {
+        if (statement->parms.generic.generic_parameter == NULL) {
           // only pause if we're not reading from a file
           if (strcmp(input_file,"")) {
             getchar();
           }
         } else {
-          value_t sleep_value = evaluate_expression(statement->parms.generic_parameter);
+          value_t sleep_value = evaluate_expression(statement->parms.generic.generic_parameter);
           if (sleep_value.type == STRING) {
             handle_error(ern_TYPE_MISMATCH, "PAUSE being called with string value");
             break;
@@ -3364,14 +3402,14 @@ EXIT_MAT_INPUT:
         
       case RAISE:
       {
-        handle_error(statement->parms.generic_parameter->parms.number, "");
+        handle_error(statement->parms.generic.generic_parameter->parms.number, "");
       }
         break;
         
       case PUT:
       {
         // PUT could have any expression, not just a variable like GET
-        value_t v = evaluate_expression(statement->parms.generic_parameter);
+        value_t v = evaluate_expression(statement->parms.generic.generic_parameter);
         
         if (v.type == STRING) {
           if (v.string) // avoid the "(null)" issue
@@ -3390,10 +3428,10 @@ EXIT_MAT_INPUT:
         // which is even more odd.
         
         // see if there's a parameter, if not, seed time
-        if (statement->parms.generic_parameter == NULL)
+        if (statement->parms.generic.generic_parameter == NULL)
           srand((unsigned int)time(NULL));
         else {
-          value_t seed_value = evaluate_expression(statement->parms.generic_parameter);
+          value_t seed_value = evaluate_expression(statement->parms.generic.generic_parameter);
           if (seed_value.type == NUMBER) {
             srand(seed_value.number);
           }
@@ -3453,13 +3491,13 @@ EXIT_MAT_INPUT:
         // resets the DATA pointer
       {
         int linenum;
-        if (statement->parms.generic_parameter != NULL) {
-          value_t line = evaluate_expression(statement->parms.generic_parameter);
+        if (statement->parms.generic.generic_parameter != NULL) {
+          value_t line = evaluate_expression(statement->parms.generic.generic_parameter);
           if (line.type == STRING) {
             handle_error(ern_TYPE_MISMATCH, "RESTORE being called with string value");
             break;
           }
-          linenum = (int)floor(evaluate_expression(statement->parms.generic_parameter).number);
+          linenum = (int)floor(evaluate_expression(statement->parms.generic.generic_parameter).number);
         } else
           linenum = interpreter_state.first_line;
         
@@ -3477,14 +3515,14 @@ EXIT_MAT_INPUT:
         }
         
         // if there is no parameter, we resume at the last error line
-        expression_t *ret = statement->parms.generic_parameter;
+        expression_t *ret = statement->parms.generic.generic_parameter;
         if (ret == NULL)
           interpreter_state.next_statement = find_line(interpreter_state.error_line);
         
         // there is a value, so...
         else {
           // get the number
-          value_t line_val = evaluate_expression(statement->parms.generic_parameter);
+          value_t line_val = evaluate_expression(statement->parms.generic.generic_parameter);
           int linenum = (int)floor(line_val.number);
 
           // if the line is -ve, that's because it was NEXT in the source
@@ -3527,9 +3565,9 @@ EXIT_MAT_INPUT:
         }
         
         // see if we have a parameter, which happens in the MSX variation which takes a line number
-        if (statement->parms.generic_parameter != NULL) {
+        if (statement->parms.generic.generic_parameter != NULL) {
           // if so, get the value
-          value_t line = evaluate_expression(statement->parms.generic_parameter);
+          value_t line = evaluate_expression(statement->parms.generic.generic_parameter);
           if (line.type == STRING) {
             handle_error(ern_TYPE_MISMATCH, "RETURN being called with string value");
             break;
@@ -3556,7 +3594,7 @@ EXIT_MAT_INPUT:
         // same as PAUSE but with seconds
       case SLEEP:
       {
-        value_t sleep_value = evaluate_expression(statement->parms.generic_parameter);
+        value_t sleep_value = evaluate_expression(statement->parms.generic.generic_parameter);
         if (sleep_value.type == STRING) {
           handle_error(ern_TYPE_MISMATCH, "SLEEP called with a string parameter");
           break;
@@ -3567,8 +3605,8 @@ EXIT_MAT_INPUT:
 
       case STOP:
       {
-        if (statement->parms.generic_parameter != NULL) {
-          value_t message = evaluate_expression(statement->parms.generic_parameter);
+        if (statement->parms.generic.generic_parameter != NULL) {
+          value_t message = evaluate_expression(statement->parms.generic.generic_parameter);
           printf("STOP: %s\n", message.string);
         } else {
           printf("STOPped at line: %d\n", current_line());
@@ -3580,8 +3618,8 @@ EXIT_MAT_INPUT:
         // this is Integer BASIC's TAB, which is a statement, not a function
       case TAB:
       {
-        if (statement->parms.generic_parameter != NULL) {
-          value_t tab_value = evaluate_expression(statement->parms.generic_parameter);
+        if (statement->parms.generic.generic_parameter != NULL) {
+          value_t tab_value = evaluate_expression(statement->parms.generic.generic_parameter);
           if (tab_value.type == STRING) {
             handle_error(ern_TYPE_MISMATCH, "TAB being called with string value");
             break;
@@ -3606,9 +3644,9 @@ EXIT_MAT_INPUT:
 				// is really a statement
 			case TIME_STR:
 			{
-				if (statement->parms.generic_parameter != NULL) {
+				if (statement->parms.generic.generic_parameter != NULL) {
 					// value is in HMS format, so make sure we got a string
-					value_t hms = evaluate_expression(statement->parms.generic_parameter);
+					value_t hms = evaluate_expression(statement->parms.generic.generic_parameter);
 					if (hms.type != STRING) {
 						handle_error(ern_TYPE_MISMATCH, "TIME$ being set with numeric value");
 						break;
@@ -3654,13 +3692,13 @@ EXIT_MAT_INPUT:
       case TRAP:
       {
         // see if there is a parameter, if not, turn it off and exit
-        if (statement->parms.generic_parameter == NULL) {
+        if (statement->parms.generic.generic_parameter == NULL) {
           interpreter_state.trap_line = 0;
           break;
         }
           
         // get the target line and floor it
-        value_t line_val = evaluate_expression(statement->parms.generic_parameter);
+        value_t line_val = evaluate_expression(statement->parms.generic.generic_parameter);
         int linenum = (int)floor(line_val.number);
         
         // in Commodore BASIC, a null target turns off TRAP, in other BASICs,

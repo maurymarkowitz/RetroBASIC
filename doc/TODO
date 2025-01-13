@@ -10,7 +10,10 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
-- add CMD?
+- add CHAIN, LOAD and RUN (and APPEND?)
+  and COMMON
+
+- add CMD?/OUTPUT
 
 - add clear_variables and change CLEAR
 
@@ -29,8 +32,6 @@ BP - DEC BASIC-PLUS
 - GW BASIC string formatters in PRINT USING, but number formats work
 
 - PA allows # to define field widths in PRINT, so PRINT A,#3,B,C will print B and C in 3-character widths. All expressions following the format use that format until reset by another # or another PRINT
-
-- CHAIN and COMMON (and APPEND?)
 
 - add parameter checking to functions, currently most of them don't check that they were passed a string/number
 

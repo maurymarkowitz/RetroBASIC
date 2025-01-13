@@ -2081,11 +2081,17 @@ The mode in *sexp2* is one of three single-character values, "r" for reading, "w
 
 #### Variations:
 
-The vast majority of dialects use `OPEN` without a following `#`, but Atari demands it. RetroBASIC allows either format.
+The vast majority of dialects use `OPEN` without a following `#`, but Atari BASIC and Apple Business BASIC demand it. RetroBASIC allows either format.
 
 ### `CLOSE`[`#`] *aexp*
 
 Closes the channel *aexp* and removes it from the list of active channels. Will return an error if that channel number is not currently open.
+
+The `LOAD`, `CLEAR`/`CLR`, `NEW` and `RUN` statements close all files. The `CHAIN` command (currently unsupported) does *not* close files.
+
+#### Variations:
+
+As with `OPEN`, most dialects use `CLOSE` without a following `#`, with Atari BASIC being an exception. Apple Business BASIC allows the # to be optional, in which case it can be any expression that returns a number. RetroBASIC allows either format.
 
 ### `PRINT#` *aexp*,[*exp*{|[;|,]},...]
 
@@ -2093,9 +2099,7 @@ Closes the channel *aexp* and removes it from the list of active channels. Will 
 
 ### `INPUT#` *aexp*,[*exp*{|[;|,]},...]
 
-`INPUT#` works in a fashion like the standard `INPUT` statement, but does not print any user-supplied prompt strings or the question mark. It reads one line from the file and then parses it using the same logic as a normal `INPUT`, meaning that if there are fewer values in the read line than there are variables in the list, the next line of input
-
-directs the output to channel *aexp*. If the channel is not open, or it is opened only for read access, RetroBASIC will return an error.
+`INPUT#` works in a fashion similar to the standard `INPUT` statement, but does not print any user-supplied prompt strings or the question mark. It reads one line from the file and then parses it using the same logic as a normal `INPUT`, meaning that if there are fewer values in the read line than there are variables in the list, the next line of input will be read until the variables all have values or the end of the file is reached.
 
 
 <!-- TOC --><a name="matrix-statements-operators-and-functions"></a>
