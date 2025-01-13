@@ -18,8 +18,8 @@ along with RetroBASIC; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#ifndef str_h
-#define str_h
+#ifndef __STR_H__
+#define __STR_H__
 
 #include "stdhdr.h"
 

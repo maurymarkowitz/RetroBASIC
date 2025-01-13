@@ -18,8 +18,8 @@
  the Free Software Foundation, 59 Temple Place - Suite 330,
  Boston, MA 02111-1307, USA.  */
 
-#ifndef errors_h
-#define errors_h
+#ifndef __ERRORS_H__
+#define __ERRORS_H__
 
 /**
  * @file errors.h

@@ -112,8 +112,9 @@ void handle_error(const int errnum, const char *message)
   if (interpreter_state.trap_line > 0) {
     if (interpreter_state.lines[interpreter_state.trap_line] == NULL) {
       fprintf(stderr, "%s at line %d (%s)\n", error_messages[ern_NO_SUCH_LINE], interpreter_state.trap_line, "TRAP/ON ERROR set to non-existent line");
-      return;
+      exit(errnum); // that one is fatal
     }
+    // if the line exists, continue there
     interpreter_state.next_statement = find_line(interpreter_state.trap_line);
     return;
   }
@@ -2436,7 +2437,6 @@ static void perform_statement(list_t *statement_entry)
         break;
         
       case INPUT:
-      case INPUT_FILE:
       {
         // INPUT takes a list of one or more variables and then scans the line
         // to parse them. Numbers and strings can be mixed in a single INPUT,
@@ -2455,16 +2455,6 @@ static void perform_statement(list_t *statement_entry)
 				//    simply press return on the computer command input it
 				//    will run the last command again.
         int type;
-        
-        // default to stdin unless it's a a INPUT_FILE
-        FILE* fp = stdin;
-        if (statement->type == INPUT_FILE) {
-          int channel = floor(evaluate_expression(statement->parms.print.channel).number);
-          fp = handle_for_channel(channel);
-          if (fp == NULL) {
-            handle_error(ern_FILE_NOT_OPEN, "Attempt to INPUT from a file that has not been OPENed");
-          }
-        }
         
         // start at the front of the list
         list_t *current_item = statement->parms.input;
@@ -2597,6 +2587,25 @@ REDO_INPUT:
       }
         break;
         
+        // in contrast to PRINT#, INPUT# has enough differences to warrant putting it here
+      case INPUT_FILE:
+      {
+        int type;
+
+        // default to stdin unless it's a a INPUT_FILE
+        FILE* fp = stdin;
+        if (statement->type == INPUT_FILE) {
+          int channel = floor(evaluate_expression(statement->parms.print.channel).number);
+          fp = handle_for_channel(channel);
+          if (fp == NULL) {
+            handle_error(ern_FILE_NOT_OPEN, "Attempt to INPUT from a file that has not been OPENed");
+          }
+        }
+        
+        
+      }
+        break;
+
         // LABEL doesn't do anything at run time, everything has already
         // been set up at parse time
       case LABEL:
