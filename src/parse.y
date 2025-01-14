@@ -839,7 +839,7 @@ statement:
   |
   PUT_FILE expression ',' expression
   {
-    statement_t *new = make_statement(GET_FILE);
+    statement_t *new = make_statement(PUT_FILE);
     new->parms.generic.generic_parameter = $2;
     new->parms.generic.generic_parameter2 = $4;
     $$ = new;

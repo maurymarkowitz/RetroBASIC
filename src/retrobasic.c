@@ -1205,7 +1205,7 @@ value_t evaluate_expression(const expression_t *expression)
             // currently being pressed. it relies on the terminal settings having
             // buffering turned of when this code is entered.
             char buff[2];
-            int key = getkey(STDIN_FILENO);
+            int key = getkey();
             
             if (key > 0) {
               buff[0] = (char)key;
@@ -2363,26 +2363,45 @@ static void perform_statement(list_t *statement_entry)
         break;
         
       case GET:
+      case GET_FILE:
       {
-        // currently this works exactly like INKEY
-        char buff[2];
-        int key = getkey(STDIN_FILENO);
-        
-        // put into a string and null terminate
-        if (key > 0) {
-          buff[0] = (char)key;
-          buff[1] = '\0';
-        } else {
-          buff[0] = '\0';
+        // default to STDIN unless this is a GET_FILE
+        FILE* fp = stdin;
+        if (statement->type == GET_FILE) {
+          int channel = floor(evaluate_expression(statement->parms.generic.generic_parameter).number);
+          fp = handle_for_channel(channel);
+          if (fp == NULL) {
+            handle_error(ern_FILE_NOT_OPEN, "Attempt to GET from a file that has not been OPENed");
+          }
         }
         
-        // convert to upper if needed
-        if (upper_case) {
-          char *c = buff;
-          while (*c) {
-            c = str_toupper(c);
-            c++;
+        // read a single character from the keyboard or file
+        char buff[2];
+        if (fp == NULL) {
+          int key = getkey();
+          
+          // put into a string and null terminate
+          if (key > 0) {
+            buff[0] = (char)key;
+            buff[1] = '\0';
+          } else {
+            buff[0] = '\0';
           }
+          
+          // convert to upper if needed
+          if (upper_case) {
+            char *c = buff;
+            while (*c) {
+              c = str_toupper(c);
+              c++;
+            }
+          }
+        }
+        else {
+          fflush(fp);
+          if (fgets(buff, 1, fp) != buff)
+            exit(EXIT_FAILURE);
+          buff[1] = '\0';
         }
         
         // get/make the storage entry for this variable
@@ -3488,15 +3507,35 @@ EXIT_MAT_INPUT:
         break;
         
       case PUT:
+      case PUT_FILE:
       {
+        // default to STDOUT unless this is a PUT_FILE
+        FILE* fp = stdout;
+        if (statement->type == PUT_FILE) {
+          int channel = floor(evaluate_expression(statement->parms.generic.generic_parameter).number);
+          fp = handle_for_channel(channel);
+          if (fp == NULL) {
+            handle_error(ern_FILE_NOT_OPEN, "Attempt to PUT to a file that has not been OPENed");
+          }
+        }
+
         // PUT could have any expression, not just a variable like GET
         value_t v = evaluate_expression(statement->parms.generic.generic_parameter);
         
-        if (v.type == STRING) {
-          if (v.string) // avoid the "(null)" issue
-            interpreter_state.cursor_column += printf("%-c", v.string[0]);
-        } else
-            interpreter_state.cursor_column += printf("%-c", (char)floor(v.number));
+        // put a single char to the file or screen
+        if (fp == stdout) {
+          if (v.type == STRING) {
+            if (v.string) // avoid the "(null)" issue
+              interpreter_state.cursor_column += printf("%-c", v.string[0]);
+          } else
+              interpreter_state.cursor_column += printf("%-c", (char)floor(v.number));
+        }
+        else {
+          if (v.type == STRING)
+            fputc(v.string[0], fp);
+          else
+            fprintf(fp, "%-c", (char)floor(v.number));
+        }
       } // put
         break;
         
