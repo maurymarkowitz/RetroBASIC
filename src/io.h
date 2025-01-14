@@ -76,11 +76,6 @@ bool channel_is_readable(int channel);
 bool channel_is_writable(int channel);
 
 /**
- * Closes all open files and resets the file number map.
- */
-void close_all_files(void);
-
-/**
  * Opens a new or existing file, checking that the path and name are valid.
  *
  * @param channel, the channel number, from basic.
@@ -99,6 +94,19 @@ bool open_file(const int channel, const char *name, const char *mode);
  *
  */
 bool close_file(const int channel);
+
+/**
+ * Closes all open files and resets the file number map.
+ */
+void close_all_files(void);
+
+/**
+ * Deletes the file if it is not open and the user has permission.
+ *
+ * @param name, the file name, optionally including a path, to delete.
+ *
+ */
+bool delete_file(const char *file);
 
 /**
  * Waits for a single character. Used for GET.

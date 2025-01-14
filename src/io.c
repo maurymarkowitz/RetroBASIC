@@ -29,17 +29,17 @@
 #define access _access
 #endif
 
-#define max_open_files 16 //!< the maximum number of files that can be open at once
-#define max_file_num 256 //!< the maximum file handle number
-FILE* file_handle_map[max_file_num]; //!< maps the file numbers to C handles
-char file_name_map[max_file_num][PATH_MAX]; //!< maps the file numbers to C handles
+#define MAX_OPEN_FILES 16 //!< the maximum number of files that can be open at once
+#define MAX_FILE_NUM 256 //!< the maximum file handle number
+FILE* file_handle_map[MAX_FILE_NUM]; //!< maps the file numbers to C handles
+char file_name_map[MAX_FILE_NUM][PATH_MAX]; //!< maps the file numbers to C handles
 
 /*
  * Returns the file pointer for a given channel.
  */
 FILE* handle_for_channel(int channel)
 {
-  if (channel < 0 || channel >= max_file_num) {
+  if (channel < 0 || channel >= MAX_FILE_NUM) {
     handle_error(ern_BAD_SUBSCRIPT, "Attempt to use a file channel that is outside the allowed range");
     return NULL;
   }
@@ -51,7 +51,7 @@ FILE* handle_for_channel(int channel)
  */
 char* path_for_channel(int channel)
 {
-  if (channel < 0 || channel >= max_file_num) {
+  if (channel < 1 || channel >= MAX_FILE_NUM) {
     handle_error(ern_BAD_SUBSCRIPT, "Attempt to use a file channel that is outside the allowed range");
     return NULL;
   }
@@ -63,7 +63,7 @@ char* path_for_channel(int channel)
  */
 bool test_channel(int channel, int how)
 {
-  if (channel < 0 || channel >= max_file_num) {
+  if (channel < 1 || channel >= MAX_FILE_NUM) {
     handle_error(ern_BAD_SUBSCRIPT, "Attempt to use a file channel that is outside the allowed range");
     return false;
   }
@@ -134,7 +134,7 @@ bool extract_path(const char *input, char *path, char *file) {
  */
 void close_all_files(void)
 {
-  for (int i = 0; i < max_file_num; i++) {
+  for (int i = 0; i < MAX_FILE_NUM; i++) {
     if (file_handle_map[i] != 0) {
       fclose(file_handle_map[i]);
       file_handle_map[i] = 0;
@@ -158,11 +158,11 @@ bool open_file(const int channel, const char *name, const char *mode)
   
   // don't allow too many files to be open
   int num_open = 0;
-  for (int i = 0; i < max_file_num; i++) {
+  for (int i = 0; i < MAX_FILE_NUM; i++) {
     if (file_handle_map[i] != 0)
       num_open++;
   }
-  if (num_open >= max_open_files) {
+  if (num_open >= MAX_OPEN_FILES) {
     handle_error(ern_TOO_MANY_FILES, "Attempt to open a file with too many files already open");
     return false;
   }
@@ -187,15 +187,20 @@ bool open_file(const int channel, const char *name, const char *mode)
   }
   
   // if all of that is valid, check the file list to see if it's open
-  for (int i = 0; i < max_file_num; i++) {
+  for (int i = 0; i < MAX_FILE_NUM; i++) {
     if (strcmp(file_name_map[i], file) == 0) {
       handle_error(ern_FILE_OPEN, "Attempt to open a file that is already open");
       return false;
     }
   }
   
+  // force the mode to lower, which Unix demands
+  char lmode[2];
+  lmode[0] = tolower(mode[0]);
+  lmode[1] = '\0';
+  
   // if the mode is "r" or "a", the file needs to exist already
-  if (tolower(mode[0]) == 'r' || tolower(mode[0]) == 'a') {
+  if (lmode[0] == 'r' || lmode[0] == 'a') {
     if (!exists(name)) {
       handle_error(ern_FILE_NOT_FOUND, "Attempt to open a file for read or append but it does not exist");
       return false;
@@ -203,14 +208,14 @@ bool open_file(const int channel, const char *name, const char *mode)
   }
   
   // if the mode is "w", the file *cannot* already exist
-  if (tolower(mode[0]) == 'w' && exists(name)) {
+  if (lmode[0] == 'w' && exists(name)) {
     // FIXME: this should be "FILE EXISTS"
     handle_error(ern_FILE_NOT_FOUND, "Attempt to open a file for write but it already exists");
     return false;
   }
   
   // all the inputs are valid, try to open the file
-  FILE* fp = fopen(name, mode);
+  FILE* fp = fopen(name, lmode);
   if (fp == NULL) {
     handle_error(ern_FILE_OPEN, "Attempt to open a file failed for unknown reason");
     return false;
@@ -244,6 +249,34 @@ bool close_file(const int channel)
   
   file_handle_map[channel] = 0;
   file_name_map[channel][0] = '\0';
+  return true;
+}
+
+/*
+ * Tests that the file is not open and then attempts to delete it.
+ */
+bool delete_file(const char *file)
+{
+  // see if the file is open
+  for (int i = 0; i < MAX_FILE_NUM; i++) {
+    if (strcmp(file_name_map[i], file) == 0) {
+      handle_error(ern_FILE_OPEN, "Attempt to delete a file that is open");
+      return false;
+    }
+  }
+  
+  // see if it exists
+  if (access(file, F_OK) == 0) {
+    handle_error(ern_FILE_NOT_FOUND, "Attempt to delete file failed because the file doesn't exist");
+    return false;
+  }
+  
+  // delete it if we can
+  if (remove(file) != 0) {
+    handle_error(ern_FILE_NOT_FOUND, "Attempt to delete file failed for unknown reason");
+    return false;
+  }
+  
   return true;
 }
 
