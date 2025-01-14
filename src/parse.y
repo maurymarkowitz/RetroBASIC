@@ -610,7 +610,7 @@ statement:
   |
   INPUT_FILE expression ',' printlist
   {
-    statement_t *new = make_statement(INPUT);
+    statement_t *new = make_statement(INPUT_FILE);
     new->parms.generic.generic_parameter = $2;
     new->parms.input = $4;
     $$ = new;

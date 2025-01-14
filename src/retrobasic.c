@@ -426,7 +426,7 @@ void insert_typed_variable(const variable_reference_t *variable, int type)
  * The main purpose of this function is to modify @p start and @p end
  * so they lie within the actual string boundaries. So, for instance,
  * if the BASIC code calls for A$(1,10) and the string is only 5 chars
- * long, start will be left at 1 and end will be changed to 5.
+ * long, @p start will be left at 1 and @p end will be changed to 5.
  *
  * ANSI BASIC demands two parameters in all slices, in contrast to most
  * dialects. If ANSI slicing is turned on (when the slicing flag is OFF)
@@ -585,7 +585,6 @@ static value_t either_to_value(either_t e, int type)
  * @param v A double.
  * @return A value_t with the value and its type.
  */
-/* converts a number to a new value_t */
 static value_t double_to_value(const double v)
 {
   value_t r;
@@ -2590,19 +2589,92 @@ REDO_INPUT:
         // in contrast to PRINT#, INPUT# has enough differences to warrant putting it here
       case INPUT_FILE:
       {
+        char buffer[MAX_INPUT_LENGTH];
         int type;
-
-        // default to stdin unless it's a a INPUT_FILE
-        FILE* fp = stdin;
-        if (statement->type == INPUT_FILE) {
-          int channel = floor(evaluate_expression(statement->parms.print.channel).number);
-          fp = handle_for_channel(channel);
-          if (fp == NULL) {
-            handle_error(ern_FILE_NOT_OPEN, "Attempt to INPUT from a file that has not been OPENed");
-          }
+        
+        // get the stream
+        int channel = floor(evaluate_expression(statement->parms.generic.generic_parameter).number);
+        FILE* fp = handle_for_channel(channel);
+        if (fp == NULL) {
+          handle_error(ern_FILE_NOT_OPEN, "Attempt to INPUT from a file that has not been OPENed");
         }
         
+        // read one line from the file, if it's empty, warn and return
+        if (fgets(buffer, sizeof buffer, fp) == NULL) {
+          handle_error(ern_OUT_OF_DATA, "Reached the end-of-file while performing INPUT");
+          return;
+        }
+        long len = strlen(buffer);
         
+        // the last item on the fgets is likely a newline, if so remove it
+        if (buffer[len -1] == '\n')
+          buffer[len -1] = '\0';
+        
+        // NOTE: unlike INPUT, this does *not* optionally force the text to upper case
+        //   we assume that the file represents the correct casing and if it was on an
+        //   upper-case-only machine the file would already be upper case
+
+        // loop over the items and try to parse out each one
+        list_t *current_item = lst_first_node(statement->parms.input);
+        char *start = buffer;
+        char *end = buffer;
+        bool done = false;
+        while (!done) {
+          // try to parse one item from the line, if there is nothing left to parse, exit
+          // loop over the results until we run out of input
+          while (end - buffer < len) {
+            // the next item might be a separator, skip those
+            while (current_item) {
+              if (((printitem_t *)current_item->data)->expression == NULL)
+                current_item = lst_next(current_item);
+              else
+                break;
+            }
+            // did we roll off the end?
+            if (current_item == NULL)
+              break;
+            
+            // get the variable
+            printitem_t *ppi = current_item->data;
+            either_t *value = variable_value(ppi->expression->parms.variable, &type);
+            
+            // read one value based on the type of the variable
+            if (type >= NUMBER) {
+              value->number = strtod(start, &end);
+              
+              // check to make sure that is a number
+              // in this case we can't as for a redo so we fail the app
+              if (value->number == 0.0 && start == end) {
+                handle_error(ern_INPUT_REDO, "String in numeric INPUT");
+              }
+              num_input++;
+
+              // strtod leaves us on the separator, so...
+              if (*end == ',' || *end == ' ')
+                end++;
+            } else {
+              value->string = strtostr(end, &end);
+              num_input++;
+            }
+            
+            // move up the string
+            start = end;
+            
+            // move to the next INPUT item
+            current_item = lst_next(current_item);
+            
+            // if there are no more items, exit
+            if (current_item == NULL) {
+              done = true;
+              break;
+            }
+          }
+        } // notdone
+        
+        // did we read all the way to the end of the input?
+        // or is there still data in the string we didn't use?
+        if (end - buffer < len)
+          handle_warning(ern_INPUT_EXTRA, "");
       }
         break;
 
