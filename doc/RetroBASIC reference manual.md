@@ -3,7 +3,7 @@ RetroBASIC Language Reference Manual
 
 **Copyright © 2023 Maury Markowitz**
 
-Version 2.0.2
+Version 2.1.0
 
 [![GPL license](http://img.shields.io/badge/license-GPL-brightgreen.svg)](https://opensource.org/licenses/gpl-license)
 
@@ -903,7 +903,7 @@ This section describes the input/output statements that are used to access and d
 <!-- TOC --><a name="get-var"></a>
 ### `GET` *var*
 
-Reads a single byte from the keyboard and puts the value into *var*. If *var* is a numeric value it receives the ASCII value, if it is a string, it becomes a one-character string. `GET` is very similar to `INKEY$`, and was used instead of that function in MS BASIC. It's counterpart for output is `PUT`.
+Reads a single byte from the keyboard and puts the value into *var*. If *var* is a numeric value it receives the ASCII value, if it is a string, it becomes a one-character string. `GET` is very similar to `INKEY$`, and was used instead of that function in Commodore BASIC. It's counterpart for output is `PUT`, but this was not included in Commodore BASIC.
 
 #### Variations:
 
@@ -2065,11 +2065,11 @@ DEC's BASIC-PLUS, on TOPS at least, used `USR$` to return a listing of the files
 
 ## File handling
 
-Most versions of BASIC include some form of file handling based on the `OPEN` and `CLOSE` statements. Unfortunately, that is where the commonality ends. Devices on early computers varied widely in their underlying concepts as well as their implementations, such that sending data to one device, like a tape drive, would have entirely different syntax as sending the same data to a printer. Even those dialects that had the same underlying code, like Commodore BASIC and AppleSoft, vary too much to allow code to be portable, and often differ even between models from the same company, like the PET vs. C64.
+Most versions of BASIC include some form of file handling based on the `OPEN` and `CLOSE` statements. Unfortunately, that is where the commonality ends. Devices on early computers varied widely in their underlying concepts as well as their implementations, such that sending data to a device like a tape drive would have entirely different syntax than sending the same data to a printer. Even those dialects that had the same underlying code, like Commodore BASIC and AppleSoft, vary too much to allow code to be portable, and often differ even between models from the same company, like the PET vs. C64.
 
 One of the goals for RetroBASIC is to run known-good programs with few or no changes to the original code. In the case of file handling this is simply not possible. One could choose a target platform and copy that syntax, say the C64, but this would force every other platform to be changed to that style. Instead, RetroBASIC implements the same basic set of file statements as most BASICs, but uses Unix-like syntax to refer to the files and devices. All file input/output takes place through a filename and uses Unix-like modes for access, "r" for read, "w" for write, and "a" for append. The filename may contain a path, which can include path elements like `.`, `..` and `~`, which will be correctly expanded into complete paths.
 
-When a file is `OPEN`ed, it is assigned a number. The name for these numbers also varies, MS calls these *logical file numbers* while Atari called them *IOCB numbers* and Unix calls them *streams* or *file handles*. RetroBASIC refers to these as *channels*. Once a channel is opened, any input or output to that device is handled using that channel number. RetroBASIC allows channel numbers between 1 and 255 and allows a maximum of 16 channels to be open at a time. Although these limits are arbitrary and much less than any modern machine can handle, a BASIC program that runs outside these limits is likely doing so due to an error in the code, so breaking either limit returns an error in RetroBASIC.
+When a file is `OPEN`ed, it is assigned a number. The name for these numbers varies, MS called these *logical file numbers* while Atari called them *IOCB numbers* and Unix calls them *file descriptors*. RetroBASIC refers to these as *channels*. Any input or output to a device is handled by `OPEN`ing the channel and then using that number in the input/output statements. RetroBASIC allows channel numbers between 1 and 255 and allows a maximum of 16 channels to be open at a time. Although these limits are arbitrary and much less than any modern machine can handle, a BASIC program that runs outside these limits is likely doing so due to an error in the code, so breaking either limit returns an error in RetroBASIC.
 
 Files always have an internal "position" or "file pointer" where the next read or write will take place, this is normally set to the first byte in the file when it is `OPEN`ed, but can be set to the end instead using the "a"ppend flag. During write operations, the pointer continues to move to the end of any data that is being added, so it always points to the end of the file. During reads, the pointer will move through the file with each read item or line. When the pointer reaches the end of the file and any reading takes place, the `OUT OF DATA` error will be raised. This can be `TRAP`ped as normal.
 
@@ -2080,6 +2080,10 @@ A number of BASICs, including later versions of Commodore BASIC and Apple Busine
 Business BASIC requires you to `CREATE` a file before writing to it, but this is not required in RetroBASIC, and `CREATE` is not supported.
 
 To ease the `ON ERR` trapping end-of-file errors, Business BASIC offered the `ON EOF#` statement, which watched for EOFs on the given channel and then performed the following statements. Unlike the `ON ERR` or even the normal `ON` statements, the item following `ON EOF#` was treated like an `IF`, not a branch. For instance, `ON EOF#5 PRINT"End of file in file 5"` will watch for the EOF error on channel 5 and then print a message, after which execution continues on the next statement in the program. To further confuse things, EOF trapping was turned off not by setting the ON to a certain value, but using the `OFF EOF#` statement instead.
+
+#### Availability:
+
+Basic file handling functionality was added in 2.1.0.
 
 ### `OPEN`{`#`} *aexp*,*sexp1*,*sexp2*
 
@@ -2113,10 +2117,13 @@ Apple Business BASIC has two separate statements, `CLOSE#` with a channel number
 
 `INPUT#` works in a fashion similar to the standard `INPUT` statement, but does not print any user-supplied prompt strings or the question mark. It reads one line from the file and then parses it using the same logic as a normal `INPUT`, meaning that if there are more items on the line than in the number of variables an `EXTRA IGNORED` error will be raised, while if there are more variables than items, the extra variables will retain their previous values. If the file is empty or everything has been read from it previously, a `OUT OF DATA` error will be raised.
 
-### `GET#` *aexp*,[*var*{,...}]
+### `GET#` *aexp*,*var*
 
-`GET#` works in the same fashion as `GET`, reading in the values of each of the variables in the parameter list. It differs from `INPUT#` primarily in that it reads item by item, not one whole line at a time.
+`GET#` works in the same fashion as `GET`, reading in a single value from the channel in *aexp*. If *var* is a string variable it will return a single character, if *var* is a numeric variable it will return the ASCII value of the next character.
 
+### `PUT#` *aexp*,*var*
+
+`PUT#` works in the same fashion as `PUT`, writing a single character to *aexp*. If *var* is a string variable it will write the first character, if *var* is a numeric variable it will write the ASCII character with that value.
 
 <!-- TOC --><a name="matrix-statements-operators-and-functions"></a>
 ## Matrix statements, operators and functions

@@ -283,7 +283,7 @@ bool delete_file(const char *file)
 /*
  * Waits for a single character. Used for GET.
  */
-int getbyte(int fd)
+int getbyte(void)
 {
   int ch;
   struct termios old_attrs, new_attrs;
@@ -301,7 +301,7 @@ int getbyte(int fd)
 /*
  * Gets a single keystroke, or null if no key is pressed. Used for INKEY$.
  */
-int getkey(int fd)
+int getkey(void)
 {
 #if _WIN32
   if (kbhit) {

@@ -13,7 +13,7 @@ BP - DEC BASIC-PLUS
 - add CHAIN, LOAD and RUN (and APPEND?)
 - and COMMON
 
-- add CMD/OUTPUT#?
+- CMD/OUTPUT# to redirect to a file
 
 - add clear_variables and change CLEAR
 
@@ -90,8 +90,6 @@ Debatable:
 - backslash for statement separators seen in Multics and BASIC-PLUS. The later requires spaces on either side. Easy to convert to colons, although the formatting in BASIC-PLUS documentation is nice.
 
 - option for INT to be trunc instead of floor? it's this way in early Dartmouth and a few later versions like Benton Harbour, but very rare.
-
-- RANDOMIZE TIMER for GW support?
 
 - add Wang style AND function, AND(string, hex mask), masks string and returns it.
 

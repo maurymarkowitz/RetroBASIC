@@ -114,7 +114,7 @@ bool delete_file(const char *file);
  * @param fd, the file descriptor, typically STDIN_FILENO.
  * @return the keycode, NULL if an error occurred.
  */
-int getbyte(int fd);
+int getbyte(void);
 
 /**
  * Gets a single keystroke, or null if no key is pressed. Used for INKEY$.
@@ -124,6 +124,6 @@ int getbyte(int fd);
  *
  * See: https://stackoverflow.com/questions/1798511/how-to-avoid-pressing-enter-with-getchar-for-reading-a-single-character-only
  */
-int getkey(int fd);
+int getkey(void);
 
 #endif /* io_h */

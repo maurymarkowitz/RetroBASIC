@@ -73,7 +73,7 @@
 		550D54A2288DB6950062DF12 /* strng.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.c.h; path = strng.h; sourceTree = "<group>"; tabWidth = 2; };
 		550D54A4289BF9670062DF12 /* list.h */ = {isa = PBXFileReference; indentWidth = 2; lastKnownFileType = sourcecode.c.h; path = list.h; sourceTree = "<group>"; tabWidth = 2; };
 		550D54A5289BF9670062DF12 /* list.c */ = {isa = PBXFileReference; indentWidth = 2; lastKnownFileType = sourcecode.c.c; path = list.c; sourceTree = "<group>"; tabWidth = 2; };
-		550EED6E257AC4F300FE6D78 /* VERSIONS */ = {isa = PBXFileReference; lastKnownFileType = text; path = VERSIONS; sourceTree = "<group>"; };
+		550EED6E257AC4F300FE6D78 /* VERSIONS */ = {isa = PBXFileReference; indentWidth = 2; lastKnownFileType = text; path = VERSIONS; sourceTree = "<group>"; tabWidth = 2; };
 		550EED702580071200FE6D78 /* ahl.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = ahl.bas; sourceTree = "<group>"; };
 		550EED7425800B8A00FE6D78 /* sieve.bas */ = {isa = PBXFileReference; lastKnownFileType = text; path = sieve.bas; sourceTree = "<group>"; };
 		553CD36F2CBDAF2B002C7FC6 /* input.bas */ = {isa = PBXFileReference; indentWidth = 2; lastKnownFileType = text; path = input.bas; sourceTree = "<group>"; tabWidth = 2; usesTabs = 0; };
