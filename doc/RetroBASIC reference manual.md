@@ -107,7 +107,7 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
    * [`RND`([*aexp*])](#rndaexp)
    * [`SGN`(*aexp*)](#sgnaexp)
    * [`SQR`(*aexp*)](#sqraexp)
-   * [`UBOUND`(*avar*{,*aexp*}) and `LBOUND`(*avar*{,*aexp*})](#uboundavaraexp-and-lboundavaraexp)
+   * [`LBOUND`(*avar*{,*aexp*}) and `UBOUND`(*avar*{,*aexp*})](#lboundavaraexp-and-uboundavaraexp)
 - [Numeric string functions](#numeric-string-functions)
    * [`BIN`(*sexp*) and `BIN$`(*aexp*)](#binsexp-and-binaexp)
    * [`OCT`(*sexp*) and `OCT$`(*aexp*)](#octsexp-and-octaexp)
@@ -116,22 +116,22 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
    * [`ACS`(*aexp*)](#acsaexp)
    * [`ASN`(*aexp*)](#asnaexp)
    * [`ATN`(*aexp*)](#atnaexp)
-   * [[`CSH`|`COSH`]`(*aexp*)](#cshcoshaexp)
+   * [\`CSH`|`COSH`\](#cshcosh)
    * [`COS`(*aexp*)](#cosaexp)
    * [`SIN`(*aexp*)](#sinaexp)
-   * [`SNH`|`SINH`](#snhsinh)
+   * [\`SNH`|`SINH`\](#snhsinh)
    * [`TAN`(*aexp*)](#tanaexp)
-   * [`TNH`|`TANH`](#tnhtanh)
+   * [\`TNH`|`TANH`\](#tnhtanh)
 - [String functions](#string-functions)
    * [`ASC`(*sexp*)](#ascsexp)
    * [`CHR$`(*aexp*)](#chraexp)
    * [`INKEY$`(*dexp*)](#inkeydexp)
-   * [`INSTR`|`INDEX`|`POS`](#instrindexpos)
+   * [\`INSTR`|`INDEX`|`POS`\](#instrindexpos)
    * [`LEN`(*sexp*)](#lensexp)
    * [`LEFT$`(*sexp*,*aexp*)](#leftsexpaexp)
-   * [`MID$`|`SEG$`|`SUBSTR$`|`SUBSTRING$`](#midsegsubstrsubstring)
+   * [\`MID$`|`SEG$`|`SUBSTR$`|`SUBSTRING$`\](#midsegsubstrsubstring)
    * [`RIGHT$`(*sexp*,*aexp*)](#rightsexpaexp)
-   * \[`SPC`|`SPA`|`SPACE$`\](#spcspaspace)
+   * [\`SPC`|`SPA`|`SPACE$`\](#spcspaspace)
    * [{`STRING$`|`REPEAT$`} (*aexp*,[*sexp*|*aexp2*])](#stringrepeat-aexpsexpaexp2)
    * [`STR$`(*aexp*)](#straexp)
    * [`VAL`(*sexp*)](#valsexp)
@@ -140,6 +140,7 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
    * [*svar*{(|[}*aexp*[{,|:|TO}*aexp*]{)|]}](#svaraexptoaexp)
 - [System functions](#system-functions)
    * [`FRE`(*dexp*)](#fredexp)
+   * [`NUM`[(*sexp*)]](#numsexp)
    * [`PEEK`(*aexp*)](#peekaexp)
    * [`POS`(*dexp*)](#posdexp)
    * [`LIN`(*aexp*)](#linaexp)
@@ -147,6 +148,13 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
    * [`TIME`[(*dexp*)] and `TIME=`*aexp*](#timedexp-and-timeaexp)
    * [`TIME$`(*dexp*) and `CLK$`](#timedexp-and-clk)
    * [`USR`(*aexp*)](#usraexp)
+- [File handling](#file-handling)
+   * [`OPEN`{`#`} *aexp*,*sexp1*,*sexp2*](#open-aexpsexp1sexp2)
+   * [`CLOSE`{`#`} *aexp*](#close-aexp)
+   * [`PRINT#` *aexp*,[*exp*{|[;|,]}...]](#print-aexpexp)
+   * [`INPUT#` *aexp*,[*var*{,},...*var*]](#input-aexpvarvar)
+   * [`GET#` *aexp*,*var*](#get-aexpvar)
+   * [`PUT#` *aexp*,*var*](#put-aexpvar)
 - [Matrix statements, operators and functions](#matrix-statements-operators-and-functions)
    * [Matrix statements](#matrix-statements)
    * [`MAT` [`LET`] *var1*[`(`*aexp*,*aexp*`)`]`=[`*var2*[`(`*aexp*,*aexp*`)`] | `(` *exp* `)`]](#mat-let-var1aexpaexpvar2aexpaexp-exp-)
@@ -158,6 +166,7 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
    * [`MAT` *avar1*`=INV(`*avar2*`)[`,`*nvar*]](#mat-avar1invavar2nvar)
    * [`MAT` *var1*`=TRN(`*var2*`)`](#mat-var1trnvar2)
    * [`MAT` *var*`=ZER`[(*aexp*,...)]](#mat-varzeraexp)
+   * [`DET`[(*aexp*)]](#detaexp)
 - [Error handling](#error-handling)
    * [{`TRAP`|`ON ERROR GOTO`|`ONERR GOTO`} [*aexp*]](#trapon-error-gotoonerr-goto-aexp)
    * [{`ERROR`|`RAISE`} *aexp*](#errorraise-aexp)
@@ -1525,7 +1534,7 @@ Early Dartmouth dialects returned 1 for all positive numbers, including 0. Almos
 
 Returns the square root of the *aexp* which must be positive. If *aexp* is negative, an error will be raised.
 
-<!-- TOC --><a name="uboundavaraexp-and-lboundavaraexp"></a>
+<!-- TOC --><a name="lboundavaraexp-and-uboundavaraexp"></a>
 ### `LBOUND`(*avar*{,*aexp*}) and `UBOUND`(*avar*{,*aexp*})
 
 Returns the lower and upper bounds of the array in *avar*, respectively. In RetroBASIC, the lower bound is normally zero, but will be 1 if `OPTION BASE 1` has been encountered. The upper bound is normally the value in the associated `DIM` statement, or 10 if the variable has not been `DIM`ensioned.
@@ -1622,7 +1631,7 @@ Returns the arctangent of the variable or expression in parentheses.
 
 Sinclair QL BASIC uses `ATAN`, which is not used on any other of the Sinclair dialects. Most Sinclair's use `ARCTAN`.
 
-<!-- TOC --><a name="cshcoshaexp"></a>
+<!-- TOC --><a name="cshcosh"></a>
 ### \[`CSH`|`COSH`\](*aexp*)
 
 Returns the hyperbolic cosine of the expression in parentheses.
@@ -1932,6 +1941,7 @@ Those dialects that allow the program to reserve space in memory for strings, ty
 
 The TRS-80 II and Genie/Color Genie uses `MEM` for this function, while `FRE` returns string space. The Dragon 32 uses `SIZE`.
 
+<!-- TOC --><a name="numsexp"></a>
 ### `NUM`[(*sexp*)]
 
 `NUM` is a function with two completely different uses.
@@ -2063,6 +2073,7 @@ In RetroBASIC, `USR` always returns zero.
 
 DEC's BASIC-PLUS, on TOPS at least, used `USR$` to return a listing of the files in the user's directory.
 
+<!-- TOC --><a name="file-handling"></a>
 ## File handling
 
 Most versions of BASIC include some form of file handling based on the `OPEN` and `CLOSE` statements. Unfortunately, that is where the commonality ends. Devices on early computers varied widely in their underlying concepts as well as their implementations, such that sending data to a device like a tape drive would have entirely different syntax than sending the same data to a printer. Even those dialects that had the same underlying code, like Commodore BASIC and AppleSoft, vary too much to allow code to be portable, and often differ even between models from the same company, like the PET vs. C64.
@@ -2085,6 +2096,7 @@ To ease the `ON ERR` trapping end-of-file errors, Business BASIC offered the `ON
 
 Basic file handling functionality was added in 2.1.0.
 
+<!-- TOC --><a name="open-aexpsexp1sexp2"></a>
 ### `OPEN`{`#`} *aexp*,*sexp1*,*sexp2*
 
 Opens a channel with the number *aexp*, attached to the physical file at path/file *sexp1* with access mode *sexp2*. *aexp* must be between 0 and 255, and an error will be returned if that channel is already open or if there are too many files opened already.
@@ -2097,6 +2109,7 @@ The mode in *sexp2* is one of three single-character values, "r" for reading, "w
 
 The vast majority of dialects use `OPEN` without a following `#`, but Atari BASIC and Apple Business BASIC demand it. RetroBASIC allows either format.
 
+<!-- TOC --><a name="close-aexp"></a>
 ### `CLOSE`{`#`} *aexp*
 
 Closes the channel *aexp* and removes it from the list of active channels. Will return an error if that channel number is not currently open.
@@ -2109,18 +2122,22 @@ As with `OPEN`, most dialects use `CLOSE` without a following `#`, with Atari BA
 
 Apple Business BASIC has two separate statements, `CLOSE#` with a channel number closes a given file, while `CLOSE` closes all open files. The second variation is not supported in RetroBASIC. 
 
+<!-- TOC --><a name="print-aexpexp"></a>
 ### `PRINT#` *aexp*,[*exp*{|[;|,]}...]
 
 `PRINT#` works exactly like the standard `PRINT` statement, but directs the output to channel *aexp*. If the channel is not open, or it is opened only for read access, RetroBASIC will return an error.
 
+<!-- TOC --><a name="input-aexpvarvar"></a>
 ### `INPUT#` *aexp*,[*var*{,},...*var*]
 
 `INPUT#` works in a fashion similar to the standard `INPUT` statement, but does not print any user-supplied prompt strings or the question mark. It reads one line from the file and then parses it using the same logic as a normal `INPUT`, meaning that if there are more items on the line than in the number of variables an `EXTRA IGNORED` error will be raised, while if there are more variables than items, the extra variables will retain their previous values. If the file is empty or everything has been read from it previously, a `OUT OF DATA` error will be raised. If the channel is not open, or it is opened only for write access, RetroBASIC will return an error.
 
+<!-- TOC --><a name="get-aexpvar"></a>
 ### `GET#` *aexp*,*var*
 
 `GET#` works in the same fashion as `GET`, reading in a single value from the channel in *aexp*. If *var* is a string variable it will return a single character, if *var* is a numeric variable it will return the ASCII value of the next character. If the channel is not open, or it is opened only for write access, RetroBASIC will return an error.
 
+<!-- TOC --><a name="put-aexpvar"></a>
 ### `PUT#` *aexp*,*var*
 
 `PUT#` works in the same fashion as `PUT`, writing a single character to *aexp*. If *var* is a string variable it will write the first character, if *var* is a numeric variable it will write the ASCII character with that value. If the channel is not open, or it is opened only for read access, RetroBASIC will return an error.
@@ -2297,6 +2314,7 @@ Changes all of the slots in *avar* to 0, or if the optional *aexp*s are provided
 
 `ZER` can also be used with string arrays, which sets all values to the empty string.
 
+<!-- TOC --><a name="detaexp"></a>
 ### `DET`[(*aexp*)]
 
 `DET` is a scalar function that returns the determinant calculated on the last call of `INV`. It is reset to zero when the program is run or `CLEAR`ed. Very small values, under 0.01, should generally be considered a sign that the inversion failed and the resulting matrix should not be used.
