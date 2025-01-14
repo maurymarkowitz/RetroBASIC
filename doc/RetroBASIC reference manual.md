@@ -2069,13 +2069,23 @@ Most versions of BASIC include some form of file handling based on the `OPEN` an
 
 One of the goals for RetroBASIC is to run known-good programs with few or no changes to the original code. In the case of file handling this is simply not possible. One could choose a target platform and copy that syntax, say the C64, but this would force every other platform to be changed to that style. Instead, RetroBASIC implements the same basic set of file statements as most BASICs, but uses Unix-like syntax to refer to the files and devices. All file input/output takes place through a filename and uses Unix-like modes for access, "r" for read, "w" for write, and "a" for append. The filename may contain a path, which can include path elements like `.`, `..` and `~`, which will be correctly expanded into complete paths.
 
-When a file is `OPEN`ed, it is assigned a number. The name for these also varies, MS calls these "logical file numbers" while Atari called them "IOCB numbers". RetroBASIC refers to these as "channels". Once a channel is opened, any input or output to that device is handled using that channel number. RetroBASIC allows channel numbers between 0 and 255 and allows a maximum of 16 channels to be open at a time. Although these limits are arbitrary and much less than any modern machine can handle, a BASIC program that runs outside these limits is likely doing so due to an error in the code, so breaking either limit returns an error in RetroBASIC.
+When a file is `OPEN`ed, it is assigned a number. The name for these numbers also varies, MS calls these *logical file numbers* while Atari called them *IOCB numbers* and Unix calls them *streams* or *file handles*. RetroBASIC refers to these as *channels*. Once a channel is opened, any input or output to that device is handled using that channel number. RetroBASIC allows channel numbers between 1 and 255 and allows a maximum of 16 channels to be open at a time. Although these limits are arbitrary and much less than any modern machine can handle, a BASIC program that runs outside these limits is likely doing so due to an error in the code, so breaking either limit returns an error in RetroBASIC.
 
-### `OPEN`[`#`] *aexp*,*sexp1*,*sexp2*
+Files always have an internal "position" or "file pointer" where the next read or write will take place, this is normally set to the first byte in the file when it is `OPEN`ed, but can be set to the end instead using the "a"ppend flag. During write operations, the pointer continues to move to the end of any data that is being added, so it always points to the end of the file. During reads, the pointer will move through the file with each read item or line. When the pointer reaches the end of the file and any reading takes place, the `OUT OF DATA` error will be raised. This can be `TRAP`ped as normal.
+
+#### Variations:
+
+A number of BASICs, including later versions of Commodore BASIC and Apple Business BASIC, have functionality to read and write data in blocks, or *records*. This functionality is not currently supported in RetroBASIC.
+
+Business BASIC requires you to `CREATE` a file before writing to it, but this is not required in RetroBASIC, and `CREATE` is not supported.
+
+To ease the `ON ERR` trapping end-of-file errors, Business BASIC offered the `ON EOF#` statement, which watched for EOFs on the given channel and then performed the following statements. Unlike the `ON ERR` or even the normal `ON` statements, the item following `ON EOF#` was treated like an `IF`, not a branch. For instance, `ON EOF#5 PRINT"End of file in file 5"` will watch for the EOF error on channel 5 and then print a message, after which execution continues on the next statement in the program. To further confuse things, EOF trapping was turned off not by setting the ON to a certain value, but using the `OFF EOF#` statement instead.
+
+### `OPEN`{`#`} *aexp*,*sexp1*,*sexp2*
 
 Opens a channel with the number *aexp*, attached to the physical file at path/file *sexp1* with access mode *sexp2*. *aexp* must be between 0 and 255, and an error will be returned if that channel is already open or if there are too many files opened already.
 
-The file name in *sexp1* can be the name of a file alone, or contain a path as well. If there is no path, the file will be opened in the current directory, normally the same location as the RetroBASIC executable. If a path is provided, it will be expanded into a complete path and checked to ensure that the user can access the resulting file. Any given path/file can only be opened once, you cannot, for instance, open a file for writing in one channel and reading in another.
+The file name in *sexp1* can be the name of a file alone, or contain a path as well. If there is no path, the file will be opened in the current directory, normally the same location as the RetroBASIC executable. If a partial path is provided, it will be expanded into a complete path and checked to ensure that the user can access the resulting file. Any given path/file can only be opened once, you cannot, for instance, open a file for writing in one channel and reading in another.
 
 The mode in *sexp2* is one of three single-character values, "r" for reading, "w" for writing, and "a" for appending, that is, writing to the end of an existing file. If the mode is "r" or "a", the file must already exist and will return an error otherwise. If the mode is "w" the file *cannot* already exist, and will return an error if it does.
 
@@ -2083,7 +2093,7 @@ The mode in *sexp2* is one of three single-character values, "r" for reading, "w
 
 The vast majority of dialects use `OPEN` without a following `#`, but Atari BASIC and Apple Business BASIC demand it. RetroBASIC allows either format.
 
-### `CLOSE`[`#`] *aexp*
+### `CLOSE`{`#`} *aexp*
 
 Closes the channel *aexp* and removes it from the list of active channels. Will return an error if that channel number is not currently open.
 
@@ -2093,15 +2103,20 @@ The `LOAD`, `CLEAR`/`CLR`, `NEW` and `RUN` statements close all files. The `CHAI
 
 As with `OPEN`, most dialects use `CLOSE` without a following `#`, with Atari BASIC being an exception. RetroBASIC allows either format.
 
-Apple Business BASIC has two separate statements, `CLOSE#` closes a given channel, while `CLOSE` closes all open files. The second variation is not supported in RetroBASIC. 
+Apple Business BASIC has two separate statements, `CLOSE#` with a channel number closes a given file, while `CLOSE` closes all open files. The second variation is not supported in RetroBASIC. 
 
-### `PRINT#` *aexp*,[*exp*{|[;|,]},...]
+### `PRINT#` *aexp*,[*exp*{|[;|,]}...]
 
 `PRINT#` works exactly like the standard `PRINT` statement, but directs the output to channel *aexp*. If the channel is not open, or it is opened only for read access, RetroBASIC will return an error.
 
-### `INPUT#` *aexp*,[*var*{|[;|,]},...]
+### `INPUT#` *aexp*,[*var*{,},...*var*]
 
-`INPUT#` works in a fashion similar to the standard `INPUT` statement, but does not print any user-supplied prompt strings or the question mark. It reads one line from the file and then parses it using the same logic as a normal `INPUT`, meaning that if there are more items on the line than in the number of variables a `EXTRA IGNORED` error will be raised, while if there are more variables than items the extra variables will retain their previous values.
+`INPUT#` works in a fashion similar to the standard `INPUT` statement, but does not print any user-supplied prompt strings or the question mark. It reads one line from the file and then parses it using the same logic as a normal `INPUT`, meaning that if there are more items on the line than in the number of variables an `EXTRA IGNORED` error will be raised, while if there are more variables than items, the extra variables will retain their previous values. If the file is empty or everything has been read from it previously, a `OUT OF DATA` error will be raised.
+
+### `GET#` *aexp*,[*var*{,...}]
+
+`GET#` works in the same fashion as `GET`, reading in the values of each of the variables in the parameter list. It differs from `INPUT#` primarily in that it reads item by item, not one whole line at a time.
+
 
 <!-- TOC --><a name="matrix-statements-operators-and-functions"></a>
 ## Matrix statements, operators and functions
@@ -2359,7 +2374,7 @@ This program starts by setting a trap and then raising a syntax error, error 21.
 <!-- TOC --><a name="error-codes"></a>
 ## Error codes
 
-RetroBASIC's error codes are mostly modelled on Commodore BASIC 3.5 seen on the Commodore 128, as their list is fairly generic. A few additional errors have been added to handle new functionality. Others have been left out as they apply to specific tasks like operating the cassette tape. Not all of these codes can occur in RetroBASIC, but have been added for completeness.
+RetroBASIC's error codes are mostly modelled on Commodore BASIC 3.5 seen on the Commodore 128, as their list is fairly generic. A few additional errors have been added to handle new functionality. Others are not used as they apply to specific tasks like operating the cassette tape. Not all of these codes can occur in RetroBASIC, but have been added for completeness.
 
 <!-- This simulates a definition list by placing two spaces behind the first two lines of each entry. Be careful with edits! -->
 0  
