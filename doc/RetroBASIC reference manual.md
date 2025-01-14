@@ -2115,15 +2115,15 @@ Apple Business BASIC has two separate statements, `CLOSE#` with a channel number
 
 ### `INPUT#` *aexp*,[*var*{,},...*var*]
 
-`INPUT#` works in a fashion similar to the standard `INPUT` statement, but does not print any user-supplied prompt strings or the question mark. It reads one line from the file and then parses it using the same logic as a normal `INPUT`, meaning that if there are more items on the line than in the number of variables an `EXTRA IGNORED` error will be raised, while if there are more variables than items, the extra variables will retain their previous values. If the file is empty or everything has been read from it previously, a `OUT OF DATA` error will be raised.
+`INPUT#` works in a fashion similar to the standard `INPUT` statement, but does not print any user-supplied prompt strings or the question mark. It reads one line from the file and then parses it using the same logic as a normal `INPUT`, meaning that if there are more items on the line than in the number of variables an `EXTRA IGNORED` error will be raised, while if there are more variables than items, the extra variables will retain their previous values. If the file is empty or everything has been read from it previously, a `OUT OF DATA` error will be raised. If the channel is not open, or it is opened only for write access, RetroBASIC will return an error.
 
 ### `GET#` *aexp*,*var*
 
-`GET#` works in the same fashion as `GET`, reading in a single value from the channel in *aexp*. If *var* is a string variable it will return a single character, if *var* is a numeric variable it will return the ASCII value of the next character.
+`GET#` works in the same fashion as `GET`, reading in a single value from the channel in *aexp*. If *var* is a string variable it will return a single character, if *var* is a numeric variable it will return the ASCII value of the next character. If the channel is not open, or it is opened only for write access, RetroBASIC will return an error.
 
 ### `PUT#` *aexp*,*var*
 
-`PUT#` works in the same fashion as `PUT`, writing a single character to *aexp*. If *var* is a string variable it will write the first character, if *var* is a numeric variable it will write the ASCII character with that value.
+`PUT#` works in the same fashion as `PUT`, writing a single character to *aexp*. If *var* is a string variable it will write the first character, if *var* is a numeric variable it will write the ASCII character with that value. If the channel is not open, or it is opened only for read access, RetroBASIC will return an error.
 
 <!-- TOC --><a name="matrix-statements-operators-and-functions"></a>
 ## Matrix statements, operators and functions
