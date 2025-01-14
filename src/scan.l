@@ -96,8 +96,6 @@ CMD       { return CMD; }     // redirects output of PRINT to another device
 EXEC      { return CALL; }    //
 GET       { return GET; }
 PUT       { return PUT; }
-INPUT#    { return INPUT_FILE; }
-PRINT#    { return PRINT_FILE; }
 OPTION    { return OPTION; }
 BASE      { return BASE; }
 RANDOMIZE { return RANDOMIZE; }
