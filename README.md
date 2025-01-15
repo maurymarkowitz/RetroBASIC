@@ -66,5 +66,3 @@ A complete list is maintained in the TODO file, but here are some important limi
 * Variable names are currently limited to two characters, which is needed to support "crunched" statements without spaces in MS style.
 * The system does not support "immediate mode" (command line) input. It is not supposed to, but could potentially do so.
 * LIST, LOAD and SAVE are currently not implemented, in keeping with the use-case.
-* File I/O is not supported, commands like OPEN will be parsed but have no effect.
-* POKE does nothing, PEEK returns zero.
