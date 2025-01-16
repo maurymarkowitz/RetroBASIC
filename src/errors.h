@@ -46,7 +46,7 @@
 #define ern_FILENAME_MISSING  8      // attempt to OPEN a file with no filename
 #define ern_BAD_DEVICE_NUM    9      // attempt to OPEN a device that is invalid
 #define ern_ARE_YOU_SURE      10     // causes "are you sure" message before writing, unused in RetroBASIC
-#define ern_BAD_DISK          11     // unused in RetroBASIC
+#define ern_FILE_EXISTS       11     // originally ern_BAD_DISK, repurposed as exiting file
 
 #define ern_READY             12     // no error but paused in ready state
 #define ern_IN                13     // not an error, this points to the string " IN ". unused in RetroBASIC
@@ -91,6 +91,7 @@
 #define ers_FILE_NOT_OUTPUT   "NOT OUTPUT FILE"
 #define ers_FILENAME_MISSING  "MISSING FILENAME"
 #define ers_BAD_DEVICE_NUM    "ILLEGAL DEVICE NUMBER"
+#define ers_FILE_EXISTS       "FILE EXISTS"
 #define ers_READY             "READY"
 #define ers_BREAK             "BREAK"
 #define ers_INPUT_EXTRA       "EXTRA IGNORED"

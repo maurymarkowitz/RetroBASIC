@@ -1287,6 +1287,15 @@ value_t evaluate_expression(const expression_t *expression)
           case CLOG:
             result.number = log10(a);
             break;
+          case _EOF:
+          {
+            FILE *fp = handle_for_channel(a);
+            if (feof(fp))
+              result.number = 1;
+            else
+              result.number = 0;
+          }
+            break;
           case EXP:
             result.number = exp(a);
             break;
@@ -2373,6 +2382,9 @@ static void perform_statement(list_t *statement_entry)
           if (fp == NULL) {
             handle_error(ern_FILE_NOT_OPEN, "Attempt to GET from a file that has not been OPENed");
           }
+          if (!channel_is_readable(channel)) {
+            handle_error(ern_FILE_NOT_INPUT, "Attempt to GET from a file that is write-only");
+          }
         }
         
         // read a single character from the keyboard or file
@@ -2398,8 +2410,7 @@ static void perform_statement(list_t *statement_entry)
           }
         }
         else {
-          fflush(fp);
-          if (fgets(buff, 1, fp) != buff)
+          if (fgets(buff, 2, fp) != buff)
             exit(EXIT_FAILURE);
           buff[1] = '\0';
         }
@@ -2616,6 +2627,10 @@ REDO_INPUT:
         FILE* fp = handle_for_channel(channel);
         if (fp == NULL) {
           handle_error(ern_FILE_NOT_OPEN, "Attempt to INPUT from a file that has not been OPENed");
+          // and make sure we can read it
+          if (!channel_is_readable(channel)) {
+            handle_error(ern_FILE_NOT_INPUT, "Attempt to INPUT from a file that is read-only");
+          }
         }
         
         // read one line from the file, if it's empty, warn and return
@@ -3450,6 +3465,10 @@ EXIT_MAT_INPUT:
           if (fp == NULL) {
             handle_error(ern_FILE_NOT_OPEN, "Attempt to PRINT to a file that has not been OPENed");
           }
+          // and make sure we can read it
+          if (!channel_is_writable(channel)) {
+            handle_error(ern_FILE_NOT_OUTPUT, "Attempt to PRINT to a file that is read-only");
+          }
         }
 				
 				// see if the list has a formatter, and set up the format string or set it to default
@@ -3516,6 +3535,9 @@ EXIT_MAT_INPUT:
           fp = handle_for_channel(channel);
           if (fp == NULL) {
             handle_error(ern_FILE_NOT_OPEN, "Attempt to PUT to a file that has not been OPENed");
+          }
+          if (!channel_is_writable(channel)) {
+            handle_error(ern_FILE_NOT_OUTPUT, "Attempt to PUT to a file that is read-only");
           }
         }
 
