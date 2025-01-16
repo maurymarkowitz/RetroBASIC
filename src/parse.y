@@ -143,6 +143,7 @@ static expression_t *make_operator(int arity, int o)
 %token INPUT_FILE
 %token GET_FILE
 %token PUT_FILE
+%token _EOF // and this is a function, but is part of file handling
 
  /* some later additions and custom stuff */
 %token CALL
@@ -489,11 +490,11 @@ statement:
     $$ = new;
   }
   |
-  GET_FILE expression ',' expression
+  GET_FILE expression ',' variable
   {
     statement_t *new = make_statement(GET_FILE);
     new->parms.generic.generic_parameter = $2;
-    new->parms.generic.generic_parameter2 = $4;
+    new->parms.generic.generic_variable = $4;
     $$ = new;
   }
   |
@@ -1459,6 +1460,7 @@ fn_1:
   CHR  { $$ = CHR; } |
   CLOG { $$ = CLOG;} |
   COS  { $$ = COS; } |
+  _EOF  { $$ = _EOF; } |
   EXP  { $$ = EXP; } |
   FIX  { $$ = FIX; } |
   FRAC  { $$ = FRAC; } |

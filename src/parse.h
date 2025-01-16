@@ -90,123 +90,124 @@
      INPUT_FILE = 306,
      GET_FILE = 307,
      PUT_FILE = 308,
-     CALL = 309,
-     CLS = 310,
-     CMD = 311,
-     OPTION = 312,
-     BASE = 313,
-     PEEK = 314,
-     POKE = 315,
-     POP = 316,
-     RANDOMIZE = 317,
-     SYS = 318,
-     VARLIST = 319,
-     PAUSE = 320,
-     SLEEP = 321,
-     RESTORE = 322,
-     ABS = 323,
-     SGN = 324,
-     CLOG = 325,
-     EXP = 326,
-     LOG = 327,
-     SQR = 328,
-     PI = 329,
-     RND = 330,
-     INT = 331,
-     FIX = 332,
-     FRAC = 333,
-     ROUND = 334,
-     CINT = 335,
-     CSNG = 336,
-     CDBL = 337,
-     MOD = 338,
-     MOD_INT = 339,
-     DIV = 340,
-     MAX = 341,
-     MIN = 342,
-     COS = 343,
-     SIN = 344,
-     ATN = 345,
-     ACS = 346,
-     ASN = 347,
-     TAN = 348,
-     COSH = 349,
-     SINH = 350,
-     TANH = 351,
-     ASC = 352,
-     LEFT = 353,
-     MID = 354,
-     RIGHT = 355,
-     LEN = 356,
-     STR = 357,
-     VAL = 358,
-     CHR = 359,
-     SEG = 360,
-     SUBSTR = 361,
-     INSTR = 362,
-     INKEY = 363,
-     AND = 364,
-     OR = 365,
-     NOT = 366,
-     XOR = 367,
-     EQV = 368,
-     IMP = 369,
-     CMP_LE = 370,
-     CMP_GE = 371,
-     CMP_NE = 372,
-     CMP_HASH = 373,
-     ADR = 374,
-     FRE = 375,
-     SPC = 376,
-     TAB = 377,
-     POS = 378,
-     USR = 379,
-     LIN = 380,
-     TRAP = 381,
-     RESUME = 382,
-     ERROR = 383,
-     RAISE = 384,
-     ERR = 385,
-     EL = 386,
-     ER = 387,
-     DEFSTR = 388,
-     DEFINT = 389,
-     DEFSNG = 390,
-     DEFDBL = 391,
-     CHANGE = 392,
-     CONVERT = 393,
-     UCASE = 394,
-     LCASE = 395,
-     STRNG = 396,
-     TIME = 397,
-     TIME_STR = 398,
-     HEX = 399,
-     OCT = 400,
-     BIN = 401,
-     HEXSTR = 402,
-     OCTSTR = 403,
-     BINSTR = 404,
-     UBOUND = 405,
-     LBOUND = 406,
-     LABEL = 407,
-     MAT = 408,
-     MATPRINT = 409,
-     MATINPUT = 410,
-     MATREAD = 411,
-     MATGET = 412,
-     MATPUT = 413,
-     MATZER = 414,
-     MATCON = 415,
-     MATIDN = 416,
-     MATTRN = 417,
-     MATINV = 418,
-     MATDET = 419,
-     MATADD = 420,
-     MATSUB = 421,
-     MATMUL = 422,
-     MATSCA = 423,
-     MATFIL = 424,
-     NUM = 425
+     _EOF = 309,
+     CALL = 310,
+     CLS = 311,
+     CMD = 312,
+     OPTION = 313,
+     BASE = 314,
+     PEEK = 315,
+     POKE = 316,
+     POP = 317,
+     RANDOMIZE = 318,
+     SYS = 319,
+     VARLIST = 320,
+     PAUSE = 321,
+     SLEEP = 322,
+     RESTORE = 323,
+     ABS = 324,
+     SGN = 325,
+     CLOG = 326,
+     EXP = 327,
+     LOG = 328,
+     SQR = 329,
+     PI = 330,
+     RND = 331,
+     INT = 332,
+     FIX = 333,
+     FRAC = 334,
+     ROUND = 335,
+     CINT = 336,
+     CSNG = 337,
+     CDBL = 338,
+     MOD = 339,
+     MOD_INT = 340,
+     DIV = 341,
+     MAX = 342,
+     MIN = 343,
+     COS = 344,
+     SIN = 345,
+     ATN = 346,
+     ACS = 347,
+     ASN = 348,
+     TAN = 349,
+     COSH = 350,
+     SINH = 351,
+     TANH = 352,
+     ASC = 353,
+     LEFT = 354,
+     MID = 355,
+     RIGHT = 356,
+     LEN = 357,
+     STR = 358,
+     VAL = 359,
+     CHR = 360,
+     SEG = 361,
+     SUBSTR = 362,
+     INSTR = 363,
+     INKEY = 364,
+     AND = 365,
+     OR = 366,
+     NOT = 367,
+     XOR = 368,
+     EQV = 369,
+     IMP = 370,
+     CMP_LE = 371,
+     CMP_GE = 372,
+     CMP_NE = 373,
+     CMP_HASH = 374,
+     ADR = 375,
+     FRE = 376,
+     SPC = 377,
+     TAB = 378,
+     POS = 379,
+     USR = 380,
+     LIN = 381,
+     TRAP = 382,
+     RESUME = 383,
+     ERROR = 384,
+     RAISE = 385,
+     ERR = 386,
+     EL = 387,
+     ER = 388,
+     DEFSTR = 389,
+     DEFINT = 390,
+     DEFSNG = 391,
+     DEFDBL = 392,
+     CHANGE = 393,
+     CONVERT = 394,
+     UCASE = 395,
+     LCASE = 396,
+     STRNG = 397,
+     TIME = 398,
+     TIME_STR = 399,
+     HEX = 400,
+     OCT = 401,
+     BIN = 402,
+     HEXSTR = 403,
+     OCTSTR = 404,
+     BINSTR = 405,
+     UBOUND = 406,
+     LBOUND = 407,
+     LABEL = 408,
+     MAT = 409,
+     MATPRINT = 410,
+     MATINPUT = 411,
+     MATREAD = 412,
+     MATGET = 413,
+     MATPUT = 414,
+     MATZER = 415,
+     MATCON = 416,
+     MATIDN = 417,
+     MATTRN = 418,
+     MATINV = 419,
+     MATDET = 420,
+     MATADD = 421,
+     MATSUB = 422,
+     MATMUL = 423,
+     MATSCA = 424,
+     MATFIL = 425,
+     NUM = 426
    };
 #endif
 /* Tokens.  */
@@ -261,123 +262,125 @@
 #define INPUT_FILE 306
 #define GET_FILE 307
 #define PUT_FILE 308
-#define CALL 309
-#define CLS 310
-#define CMD 311
-#define OPTION 312
-#define BASE 313
-#define PEEK 314
-#define POKE 315
-#define POP 316
-#define RANDOMIZE 317
-#define SYS 318
-#define VARLIST 319
-#define PAUSE 320
-#define SLEEP 321
-#define RESTORE 322
-#define ABS 323
-#define SGN 324
-#define CLOG 325
-#define EXP 326
-#define LOG 327
-#define SQR 328
-#define PI 329
-#define RND 330
-#define INT 331
-#define FIX 332
-#define FRAC 333
-#define ROUND 334
-#define CINT 335
-#define CSNG 336
-#define CDBL 337
-#define MOD 338
-#define MOD_INT 339
-#define DIV 340
-#define MAX 341
-#define MIN 342
-#define COS 343
-#define SIN 344
-#define ATN 345
-#define ACS 346
-#define ASN 347
-#define TAN 348
-#define COSH 349
-#define SINH 350
-#define TANH 351
-#define ASC 352
-#define LEFT 353
-#define MID 354
-#define RIGHT 355
-#define LEN 356
-#define STR 357
-#define VAL 358
-#define CHR 359
-#define SEG 360
-#define SUBSTR 361
-#define INSTR 362
-#define INKEY 363
-#define AND 364
-#define OR 365
-#define NOT 366
-#define XOR 367
-#define EQV 368
-#define IMP 369
-#define CMP_LE 370
-#define CMP_GE 371
-#define CMP_NE 372
-#define CMP_HASH 373
-#define ADR 374
-#define FRE 375
-#define SPC 376
-#define TAB 377
-#define POS 378
-#define USR 379
-#define LIN 380
-#define TRAP 381
-#define RESUME 382
-#define ERROR 383
-#define RAISE 384
-#define ERR 385
-#define EL 386
-#define ER 387
-#define DEFSTR 388
-#define DEFINT 389
-#define DEFSNG 390
-#define DEFDBL 391
-#define CHANGE 392
-#define CONVERT 393
-#define UCASE 394
-#define LCASE 395
-#define STRNG 396
-#define TIME 397
-#define TIME_STR 398
-#define HEX 399
-#define OCT 400
-#define BIN 401
-#define HEXSTR 402
-#define OCTSTR 403
-#define BINSTR 404
-#define UBOUND 405
-#define LBOUND 406
-#define LABEL 407
-#define MAT 408
-#define MATPRINT 409
-#define MATINPUT 410
-#define MATREAD 411
-#define MATGET 412
-#define MATPUT 413
-#define MATZER 414
-#define MATCON 415
-#define MATIDN 416
-#define MATTRN 417
-#define MATINV 418
-#define MATDET 419
-#define MATADD 420
-#define MATSUB 421
-#define MATMUL 422
-#define MATSCA 423
-#define MATFIL 424
-#define NUM 425
+#define _EOF 309
+#define CALL 310
+#define CLS 311
+#define CMD 312
+#define OPTION 313
+#define BASE 314
+#define PEEK 315
+#define POKE 316
+#define POP 317
+#define RANDOMIZE 318
+#define SYS 319
+#define VARLIST 320
+#define PAUSE 321
+#define SLEEP 322
+#define RESTORE 323
+#define ABS 324
+#define SGN 325
+#define CLOG 326
+#define EXP 327
+#define LOG 328
+#define SQR 329
+#define PI 330
+#define RND 331
+#define INT 332
+#define FIX 333
+#define FRAC 334
+#define ROUND 335
+#define CINT 336
+#define CSNG 337
+#define CDBL 338
+#define MOD 339
+#define MOD_INT 340
+#define DIV 341
+#define MAX 342
+#define MIN 343
+#define COS 344
+#define SIN 345
+#define ATN 346
+#define ACS 347
+#define ASN 348
+#define TAN 349
+#define COSH 350
+#define SINH 351
+#define TANH 352
+#define ASC 353
+#define LEFT 354
+#define MID 355
+#define RIGHT 356
+#define LEN 357
+#define STR 358
+#define VAL 359
+#define CHR 360
+#define SEG 361
+#define SUBSTR 362
+#define INSTR 363
+#define INKEY 364
+#define AND 365
+#define OR 366
+#define NOT 367
+#define XOR 368
+#define EQV 369
+#define IMP 370
+#define CMP_LE 371
+#define CMP_GE 372
+#define CMP_NE 373
+#define CMP_HASH 374
+#define ADR 375
+#define FRE 376
+#define SPC 377
+#define TAB 378
+#define POS 379
+#define USR 380
+#define LIN 381
+#define TRAP 382
+#define RESUME 383
+#define ERROR 384
+#define RAISE 385
+#define ERR 386
+#define EL 387
+#define ER 388
+#define DEFSTR 389
+#define DEFINT 390
+#define DEFSNG 391
+#define DEFDBL 392
+#define CHANGE 393
+#define CONVERT 394
+#define UCASE 395
+#define LCASE 396
+#define STRNG 397
+#define TIME 398
+#define TIME_STR 399
+#define HEX 400
+#define OCT 401
+#define BIN 402
+#define HEXSTR 403
+#define OCTSTR 404
+#define BINSTR 405
+#define UBOUND 406
+#define LBOUND 407
+#define LABEL 408
+#define MAT 409
+#define MATPRINT 410
+#define MATINPUT 411
+#define MATREAD 412
+#define MATGET 413
+#define MATPUT 414
+#define MATZER 415
+#define MATCON 416
+#define MATIDN 417
+#define MATTRN 418
+#define MATINV 419
+#define MATDET 420
+#define MATADD 421
+#define MATSUB 422
+#define MATMUL 423
+#define MATSCA 424
+#define MATFIL 425
+#define NUM 426
+
 
 
 
@@ -394,7 +397,7 @@ typedef union YYSTYPE
   variable_reference_t *variable;
 }
 /* Line 1529 of yacc.c.  */
-#line 397 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/obj/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
+#line 401 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/DerivedData/RetroBASIC/Build/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
     YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

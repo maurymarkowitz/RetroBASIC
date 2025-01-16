@@ -250,6 +250,7 @@ PRINT#    { return PRINT_FILE; }
 INPUT#    { return INPUT_FILE; }
 GET#      { return GET_FILE; }
 PUT#      { return PUT_FILE; }
+EOF       { return _EOF; }
 
  /* matrix commands and functions */
 MAT       { return MAT; }     // assignments
