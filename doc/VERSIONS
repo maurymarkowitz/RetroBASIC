@@ -179,3 +179,10 @@ Added basic file support, based mostly on Commodore BASIC but folding in options
 - added OPEN/OPEN#/CLOSE/CLOSE#
 - added PRINT#/INPUT#/PUT#/GET#
 - NUM works with INPUT#
+
+Version 2.1.1 - 16 January 2025
+
+- added EOF function for working with files
+- correctly check for read/write status when reading and writing
+- added FILE EXISTS error, returned when attempt to open an existing file for writing (as opposed to NOT FOUND)
+

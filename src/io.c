@@ -71,7 +71,7 @@ bool test_channel(int channel, int how)
   // test that we can get to that file, which should never fail because we tested it on open
   char *path = path_for_channel(channel);
   char temp_path[PATH_MAX];
-  if (realpath(temp_path, path) == NULL)
+  if (realpath(path, temp_path) == NULL)
     return false;
 
   // now test it
@@ -210,7 +210,7 @@ bool open_file(const int channel, const char *name, const char *mode)
   // if the mode is "w", the file *cannot* already exist
   if (lmode[0] == 'w' && exists(name)) {
     // FIXME: this should be "FILE EXISTS"
-    handle_error(ern_FILE_NOT_FOUND, "Attempt to open a file for write but it already exists");
+    handle_error(ern_FILE_EXISTS, "Attempt to open a file for write but it already exists");
     return false;
   }
   
