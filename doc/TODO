@@ -21,8 +21,6 @@ BP - DEC BASIC-PLUS
 
 - add REDIM?
 
-- EXCHANGE/SWAP that swaps the values of two variables
-
 - MAT INPUT should allow multi-input on a single line
 
 - LINPUT/LINE INPUT/INPUT LINE
@@ -69,6 +67,8 @@ BP - DEC BASIC-PLUS
 
 Debatable:
 
+- EXCHANGE/SWAP that swaps the values of two variables, seems almost useless
+
 - EQ, GT, GE and similar alternatives to =, >, >= etc.
 
 - option base 1 should return error on accessing 0
@@ -109,6 +109,6 @@ Will not be done:
 
 - WB uses CONVERT for ASC, which steps on HPs CONVERT.
 
-- NUM, which is Digital Group's version of VAL, or NUM$ which is the same as STR$.
+- NUM, which is Digital Group's version of VAL, or NUM$ which is the same as STR$. overlaps with INPUT's NUM function
 
 - NODATA statement from BASIC-PLUS. This is simply an ON ERROR that traps the no-more-data error. You can do this with a normal TRAP.
