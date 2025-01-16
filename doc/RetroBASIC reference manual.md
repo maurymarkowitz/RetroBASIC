@@ -3,7 +3,7 @@ RetroBASIC Language Reference Manual
 
 **Copyright © 2023 Maury Markowitz**
 
-Version 2.1.0
+Version 2.1.1
 
 [![GPL license](http://img.shields.io/badge/license-GPL-brightgreen.svg)](https://opensource.org/licenses/gpl-license)
 
@@ -2147,13 +2147,17 @@ Apple Business BASIC has two separate statements, `CLOSE#` with a channel number
 
 #### Examples:
 
-This program prints out the ASCII values of the characters in a text file, by looping until the EOF is reached.
+This program prints out the ASCII values of the characters in a text file, by looping over GET until the EOF is reached.
 
     10 OPEN#1,"testfile.txt","r"
     20 GET#1,A
     30 PRINT#1,A
     40 IF EOF(1)=0 THEN 20
     50 CLOSE#1
+
+#### Availability:
+
+EOF was added in 2.1.0.
 
 <!-- TOC --><a name="matrix-statements-operators-and-functions"></a>
 ## Matrix statements, operators and functions
