@@ -684,6 +684,7 @@ static char* strtostr(char* restrict line, char** restrict end)
       break;
     }
     
+    // try the next char
     (*end)++;
   }
   
@@ -692,7 +693,7 @@ static char* strtostr(char* restrict line, char** restrict end)
     (*end)--;
     
   // make a substring
-  strncpy(str, start, *end - start);
+  strncpy(str, start, *end - start + 1);
   
   // end should point to the next item, not the end of this one
   (*end)++;
