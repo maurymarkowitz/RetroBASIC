@@ -209,7 +209,6 @@ bool open_file(const int channel, const char *name, const char *mode)
   
   // if the mode is "w", the file *cannot* already exist
   if (lmode[0] == 'w' && exists(name)) {
-    // FIXME: this should be "FILE EXISTS"
     handle_error(ern_FILE_EXISTS, "Attempt to open a file for write but it already exists");
     return false;
   }

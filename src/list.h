@@ -35,7 +35,8 @@ Boston, MA 02111-1307, USA.  */
  * of a single node. The empty list is NULL, not a single empty node.
  *
  * The list normally contains data via a void* pointer which the user has to allocate
- * as appropriate. They may also be used to store integers by casting them to void*.
+ * as appropriate. They may also be used to store integers by casting them to void*
+ * using the macros INT_TO_POINTER and POINTER_TO_INT.
  *
  * When traversing the list, the functions below will always check to see if the passed
  * node is at the start (or end) of the list and rewind to the front (or forward to the
@@ -52,8 +53,8 @@ Boston, MA 02111-1307, USA.  */
  * turned out to be more annoying that writing the code to perform these relatively
  * simple tasks. Over time, the API began to diverge to make certain calls more obvious.
  * A good example is lst_first_node, formerly lst_first, as it is not clear in the API
- * that this returned a node, as opposed to the data, and it was possible to cast the
- * returned value to a void* without warning.
+ * that this returned a node, as opposed to the data in that node, and it was possible
+ * to cast the returned value to a void* without warning.
  *
  * gnbasic also used GTree to store sorted lists, notably for variable values. This is
  * instead implemented here as a list through the addition of the (optional) char* "key"
