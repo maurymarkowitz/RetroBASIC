@@ -199,7 +199,7 @@ IMP       { return IMP; }
 =\>       { return CMP_GE; }
 \<\>      { return CMP_NE; }
 \>\<      { return CMP_NE; }
-#         { return CMP_HASH; } // use a separate token here to preserve it in LIST
+#         { return HASH; } // use a separate token here to preserve it in LIST
 
  /* defs added in Extended BASIC */
  /* FIXME: these are actually easy to do, simply run them as DIMs so they get entered into the var list */
@@ -242,14 +242,8 @@ LABEL     { return LABEL; }
 
  /* file handling */
 OPEN      { return OPEN; }
-OPEN#     { return OPEN; }
 CLOSE     { return CLOSE; }
-CLOSE#    { return CLOSE; }
 STATUS    { return STATUS; }
-PRINT#    { return PRINT_FILE; }
-INPUT#    { return INPUT_FILE; }
-GET#      { return GET_FILE; }
-PUT#      { return PUT_FILE; }
 EOF       { return _EOF; }
 
  /* matrix commands and functions */

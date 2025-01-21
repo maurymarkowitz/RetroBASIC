@@ -1633,7 +1633,7 @@ value_t evaluate_expression(const expression_t *expression)
 							result = double_to_value(strcmp(parameters[0].string, parameters[1].string) >= 0 ? -1 : 0);
 						break;
           case CMP_NE:
-          case CMP_HASH:
+          case HASH:
 						if (parameters[0].type >= NUMBER)
 							result = double_to_value(-(a != b));
 						else
