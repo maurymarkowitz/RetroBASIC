@@ -29,9 +29,16 @@
  *
  * The numbers are mostly taken from Commodore BASIC B, and will provide
  * some level of compatibility. A number of these are not used by RetroBASIC,
- * like STRING TO LONG, which simply can't occur. The numbers for these are
- * defined for completeness, but the corresponding message text is not
- * defined and there is no entry in the mapping array.
+ * like STRING TO LONG, which simply can't occur. The numbers for these
+ * unused codes are defined for completeness, but the corresponding message
+ * text is not defined and there is no entry in the mapping array.
+ *
+ * A small number of codes have beed added or re-purposed. For example,
+ * code 11 was previously BAD DISK, but is now FILE EXISTS, which can
+ * occur when someone attempts to OPEN a file for writing that already
+ * exists (they should open it for appending in that case). Codes 42
+ * and 44 are new entries, as this functionality did not exist in MS.
+ *
  */
 
 #define ern_NO_ERROR          0      // no error
@@ -126,13 +133,13 @@ extern char *error_messages[];
 /**
  * Handles runtime errors.
  *
- * If trap_line is set to 0, there is no error handling turned on,
- * in which case it simply reports the error and exits. If trap_line
- * is +ve, it does not report the error and instead moves to the trap.
+ * If trap_line is set to 0, there is no error handling turned on, in which
+ * icase it simply reports the error and exits. If trap_line is +ve, it does
+ * not report the error and instead branches to the trap.
  *
- * If there is no trap and the error is going to be reported, it will
- * always report the error string and the line where it occurred. If
- * @p message is not empty, it will be printed in parens at the end.
+ * If there is no trap and the error is going to be reported, it will always
+ * report the error string and the line where it occurred. If @p message is
+ * not empty, it will be printed in parens at the end.
  *
  * @param errnum error number, see errors.h for a list
  * @param message optional message string for extra information
@@ -142,8 +149,8 @@ void handle_error(const int errnum, const char *message);
 /**
  * Handles runtime warnings.
  *
- * Similar to handle_error, but does not trigger a trap, and does not
- * exit the program. Examples include REDO FROM START.
+ * Similar to handle_error, but does not trigger a trap, and does not exit the
+ * program. Examples include REDO FROM START and EXTRA IGNORED.
 *
  * @param errnum error number, see errors.h for a list
  * @param message optional message string for extra information
