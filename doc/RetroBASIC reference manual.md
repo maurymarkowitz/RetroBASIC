@@ -2146,9 +2146,9 @@ This program illustrates a "gotcha" in the use of `INPUT#`:
 The program starts by creating a new text file containing the string `Hello, World!` and then reads it back in using `INPUT#`. The result is unexpected:
 
     Hello
-    ?EXTRA IGNORED
+    ?EXTRA IGNORED at line 50
 
-This is because, like the normal `INPUT`, the comma is considered to be a separator between two values, `Hello` and `World!`. The system is expecting two variables to be used to read the two strings, but only one is present so the warning is printed.
+The error is returned because, like the normal `INPUT`, the comma is considered to be a separator between two values, `Hello` and `World!`. The system is expecting two variables to be used to read the two strings, but only one is present so the warning is printed. This can be addressed by changing the file to contain `"Hello, World!"`, or simply removing the comma.
 
 <!-- TOC --><a name="get-aexpvar"></a>
 ### `GET#` *aexp*,*var*
@@ -2170,7 +2170,7 @@ This program prints out the ASCII values of the characters in a text file, by lo
 
     10 OPEN#1,"testfile.txt","r"
     20 GET#1,A
-    30 PRINT#1,A
+    30 PRINT A
     40 IF EOF(1)=0 THEN 20
     50 CLOSE#1
 
