@@ -187,7 +187,8 @@ static expression_t *make_operator(int arity, int o)
 
  /* boolean operations and comparisons */
 %token AND OR NOT XOR EQV IMP
-%token CMP_LE CMP_GE CMP_NE CMP_HASH /* we keep hash separate for LISTing purposes */
+%token CMP_LE CMP_GE CMP_NE
+%token HASH /* we keep hash separate for LISTing purposes */
 
  /* system functions */
 %token ADR
@@ -371,6 +372,13 @@ statement:
     $$ = new;
   }
   |
+  CLOSE HASH expression
+  {
+    statement_t *new = make_statement(CLOSE);
+    new->parms.generic.generic_parameter = $3;
+    $$ = new;
+  }
+  |
   CLS
   {
     statement_t *new = make_statement(CLS);
@@ -490,11 +498,11 @@ statement:
     $$ = new;
   }
   |
-  GET_FILE expression ',' variable
+  GET HASH expression ',' variable
   {
     statement_t *new = make_statement(GET_FILE);
-    new->parms.generic.generic_parameter = $2;
-    new->parms.generic.generic_variable = $4;
+    new->parms.generic.generic_parameter = $3;
+    new->parms.generic.generic_variable = $5;
     $$ = new;
   }
   |
@@ -609,11 +617,11 @@ statement:
     $$ = new;
   }
   |
-  INPUT_FILE expression ',' printlist
+  INPUT HASH expression ',' printlist
   {
     statement_t *new = make_statement(INPUT_FILE);
-    new->parms.generic.generic_parameter = $2;
-    new->parms.input = $4;
+    new->parms.generic.generic_parameter = $3;
+    new->parms.input = $5;
     $$ = new;
   }
   |
@@ -763,6 +771,15 @@ statement:
     $$ = new;
   }
   |
+  OPEN HASH expression ',' expression ',' expression
+  {
+    statement_t *new = make_statement(OPEN);
+    new->parms.generic.generic_parameter = $3;
+    new->parms.generic.generic_parameter2 = $5;
+    new->parms.generic.generic_parameter3 = $7;
+    $$ = new;
+  }
+  |
   OPTION BASE expression
   {
     statement_t *new = make_statement(OPTION);
@@ -805,12 +822,12 @@ statement:
     $$ = new;
   }
   |
-  PRINT_FILE expression ',' printlist
+  PRINT HASH expression ',' printlist
   {
     statement_t *new = make_statement(PRINT_FILE);
-    new->parms.print.channel = $2;
+    new->parms.print.channel = $3;
     new->parms.print.format = NULL;
-    new->parms.print.item_list = $4;
+    new->parms.print.item_list = $5;
     $$ = new;
   }
   |
@@ -822,12 +839,12 @@ statement:
     $$ = new;
   }
   |
-  PRINT_FILE expression USING expression ';' printlist
+  PRINT HASH expression USING expression ';' printlist
   {
     statement_t *new = make_statement(PRINT_FILE);
-    new->parms.print.channel = $2;
-    new->parms.print.format = $4;
-    new->parms.print.item_list = $6;
+    new->parms.print.channel = $3;
+    new->parms.print.format = $5;
+    new->parms.print.item_list = $7;
     $$ = new;
   }
   |
@@ -838,11 +855,11 @@ statement:
     $$ = new;
   }
   |
-  PUT_FILE expression ',' expression
+  PUT HASH expression ',' expression
   {
     statement_t *new = make_statement(PUT_FILE);
-    new->parms.generic.generic_parameter = $2;
-    new->parms.generic.generic_parameter2 = $4;
+    new->parms.generic.generic_parameter = $3;
+    new->parms.generic.generic_parameter2 = $5;
     $$ = new;
   }
   |
@@ -1296,7 +1313,7 @@ comparison_op:
     CMP_LE { $$ = CMP_LE; } |
     CMP_GE { $$ = CMP_GE; } |
     CMP_NE { $$ = CMP_NE; } |
-    CMP_HASH { $$ = CMP_HASH; }
+    HASH { $$ = HASH; }
   ;
 
 expression2:
