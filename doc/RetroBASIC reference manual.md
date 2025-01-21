@@ -2129,7 +2129,7 @@ Apple Business BASIC has two separate statements, `CLOSE#` with a channel number
 <!-- TOC --><a name="input-aexpvarvar"></a>
 ### `INPUT#` *aexp*,[*var*{,},...*var*]
 
-`INPUT#` works in a fashion similar to the standard `INPUT` statement, but does not print any user-supplied prompt strings or the question mark. It reads one line from the file and then parses it using the same logic as a normal `INPUT`, meaning that if there are more items on the line than in the number of variables an `EXTRA IGNORED` error will be raised, while if there are more variables than items, the extra variables will retain their previous values. If the file is empty or everything has been read from it previously, a `OUT OF DATA` error will be raised. If the channel is not open, or it is opened only for write access, RetroBASIC will return an error.
+`INPUT#` works in a fashion similar to the standard `INPUT` statement, but does not print any user-supplied prompt strings or the question mark. It reads one line from the file and then parses it using the same logic as a normal `INPUT`, meaning that if there are more items on the line than in the number of variables an `EXTRA IGNORED` warning will be printed, while if there are more variables than items, the extra variables will retain their previous values. If the file is empty or everything has been read from it previously, a `OUT OF DATA` error will be raised. If the channel is not open, or it is opened only for write access, RetroBASIC will return an error.
 
 #### Examples:
 
@@ -2148,7 +2148,7 @@ The program starts by creating a new text file containing the string `Hello, Wor
     Hello
     ?EXTRA IGNORED at line 50
 
-The error is returned because, like the normal `INPUT`, the comma is considered to be a separator between two values, `Hello` and `World!`. The system is expecting two variables to be used to read the two strings, but only one is present so the warning is printed. This can be addressed by changing the file to contain `"Hello, World!"`, or simply removing the comma.
+The warning is returned because, like the normal `INPUT`, the comma is considered to be a separator between two values, `Hello` and `World!`. The system is expecting two variables to be used to read the two strings, but only one is present in the parameter list, so the warning is printed. This can be addressed by changing the file to contain `"Hello, World!"`, or simply removing the comma.
 
 <!-- TOC --><a name="get-aexpvar"></a>
 ### `GET#` *aexp*,*var*

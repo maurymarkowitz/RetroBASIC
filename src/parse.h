@@ -155,7 +155,7 @@
      CMP_LE = 371,
      CMP_GE = 372,
      CMP_NE = 373,
-     CMP_HASH = 374,
+     HASH = 374,
      ADR = 375,
      FRE = 376,
      SPC = 377,
@@ -327,7 +327,7 @@
 #define CMP_LE 371
 #define CMP_GE 372
 #define CMP_NE 373
-#define CMP_HASH 374
+#define HASH 374
 #define ADR 375
 #define FRE 376
 #define SPC 377
