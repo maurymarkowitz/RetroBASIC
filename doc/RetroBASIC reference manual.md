@@ -2131,10 +2131,29 @@ Apple Business BASIC has two separate statements, `CLOSE#` with a channel number
 
 `INPUT#` works in a fashion similar to the standard `INPUT` statement, but does not print any user-supplied prompt strings or the question mark. It reads one line from the file and then parses it using the same logic as a normal `INPUT`, meaning that if there are more items on the line than in the number of variables an `EXTRA IGNORED` error will be raised, while if there are more variables than items, the extra variables will retain their previous values. If the file is empty or everything has been read from it previously, a `OUT OF DATA` error will be raised. If the channel is not open, or it is opened only for write access, RetroBASIC will return an error.
 
+#### Examples:
+
+This program illustrates a "gotcha" in the use of `INPUT#`:
+
+    10 OPEN 1,"TEXTFILE.TXT","w"
+    20 PRINT#1,"Hello, World!"
+    30 CLOSE#1
+    40 OPEN# 1,"TEXTFILE.TXT","r"
+    50 INPUT#1,A$
+    60 PRINT A$
+    70 CLOSE 1
+
+The program starts by creating a new text file containing the string `Hello, World!` and then reads it back in using `INPUT#`. The result is unexpected:
+
+    Hello
+    ?EXTRA IGNORED
+
+This is because, like the normal `INPUT`, the comma is considered to be a separator between two values, `Hello` and `World!`. The system is expecting two variables to be used to read the two strings, but only one is present so the warning is printed.
+
 <!-- TOC --><a name="get-aexpvar"></a>
 ### `GET#` *aexp*,*var*
 
-`GET#` works in the same fashion as `GET`, reading in a single value from the channel in *aexp*. If *var* is a string variable it will return a single character, if *var* is a numeric variable it will return the ASCII value of the next character. If the channel is not open, or it is opened only for write access, RetroBASIC will return an error.
+`GET#` works in the same fashion as `GET`, reading in a single value from the channel in *aexp*. If *var* is a string variable it will return a single character, if *var* is a numeric variable it will return the ASCII value of that character. If the channel is not open, or it is opened only for write access, RetroBASIC will return an error.
 
 <!-- TOC --><a name="put-aexpvar"></a>
 ### `PUT#` *aexp*,*var*

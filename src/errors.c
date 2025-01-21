@@ -16,6 +16,7 @@ char *error_messages[] = {
   [ern_FILE_NOT_INPUT] = ers_FILE_NOT_INPUT,
   [ern_FILE_NOT_OUTPUT] = ers_FILE_NOT_OUTPUT,
   [ern_FILENAME_MISSING] = ers_FILENAME_MISSING,
+  [ern_FILE_EXISTS] = ers_FILE_EXISTS,
   [ern_READY] = ers_READY,
   [ern_BREAK] = ers_BREAK,
   [ern_INPUT_EXTRA] = ers_INPUT_EXTRA,
