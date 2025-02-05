@@ -423,10 +423,10 @@ void insert_typed_variable(const variable_reference_t *variable, int type)
  * - there is a slice applied to it
  * - the slice is valid within the limits of the string
  *
- * The main purpose of this function is to modify @p start and @p end
- * so they lie within the actual string boundaries. So, for instance,
- * if the BASIC code calls for A$(1,10) and the string is only 5 chars
- * long, @p start will be left at 1 and @p end will be changed to 5.
+ * The main purpose of this function is to modify @p start and @p end so they
+ * lie within the actual string boundaries. So, for instance, if the BASIC
+ * code calls for A$(1,10) and the string is only 5 chars long, @p start will
+ * be left at 1 and @p end will be changed to 5.
  *
  * ANSI BASIC demands two parameters in all slices, in contrast to most
  * dialects. If ANSI slicing is turned on (when the slicing flag is OFF)

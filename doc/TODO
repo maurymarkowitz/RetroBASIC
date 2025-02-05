@@ -10,6 +10,8 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
+- add CLK from Univac
+
 - add CHAIN, LOAD and RUN (and APPEND?)
 - and COMMON
 
@@ -49,15 +51,11 @@ BP - DEC BASIC-PLUS
 
 - PA allows multiple assignments in a LET, separated by commas, see assignlist.
 
-- BP (and HP?) allows multiple assignments with equals, A=B=C=10
-
 - PA and BP allow single or double quotes around strings
 
 - PA prints a colon after INPUTs, not ?, and prints the variable name if no prompt is given. So "INPUT A" prints "A:", while INPUT "TYPE A NUMBER"A prints "TYPE A NUMBER:"
 
 - LPOS, LPRINT, etc. from AB, GW and others
-
-- file handling, OPEN, PRINT# etc.
 
 - CINT CSNG CDBL are not implemented
 
@@ -66,6 +64,8 @@ BP - DEC BASIC-PLUS
 - ERASE, clears variables (IBM Advanced BASIC)
 
 Debatable:
+
+- BP (and HP?) allows multiple assignments with equals, A=B=C=10
 
 - EXCHANGE/SWAP that swaps the values of two variables, seems almost useless
 
