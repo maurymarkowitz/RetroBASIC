@@ -153,21 +153,82 @@ void handle_warning(const int errnum, const char *message)
  */
 int variable_type(const variable_reference_t *variable)
 {
-	int type;
-	
-	char trailer = variable->name[strlen(variable->name) - 1];
-	if (trailer == '$')
-		type = STRING;
-	else if (trailer == '%')
-		type = INTEGER;
-	else if (trailer == '!')
-		type = SINGLE;
-	else if (trailer == '#')
-		type = DOUBLE;
-	else
-		type = NUMBER; // this works for all of them, int, dbl, etc.
+  int type;
+  
+  char trailer = variable->name[strlen(variable->name) - 1];
+  if (trailer == '$')
+    type = STRING;
+  else if (trailer == '%')
+    type = INTEGER;
+  else if (trailer == '!')
+    type = SINGLE;
+  else if (trailer == '#')
+    type = DOUBLE;
+  else
+    type = NUMBER; // this works for all of them, int, dbl, etc.
 
-	return type;
+  return type;
+}
+
+/** Inserts a variable if it does not already exist. Sets the type based
+ * on the integer that is passed in.
+ *
+ * @param variable A variable_reference_t with the variable name
+ * @param type An integer with the variable type
+ */
+void insert_typed_variable(const variable_reference_t *variable, int type)
+{
+  variable_storage_t *storage;
+
+  // see if we can find the entry in the symbol list
+  storage = lst_data_with_key(interpreter_state.variable_values, variable->name);
+
+  // if not, make a new variable slot in values and set it up
+  if (storage == NULL) {
+    // calloc the object for insertion into the variable list
+    storage = calloc(1, sizeof(*storage));
+    
+    // the type is normally set as part of the variable name, like $
+    // however, there is an exception to this in later MS dialects,
+    // they include the DEFSTR/SNG/DBL/INT, in which case the variable
+    // names do not have the trailer. To handle this case, we pass in
+    // the type when encountering those statements
+    storage->type = variable_type(variable);
+    
+    // setting these to NULL indicates they have not been DIMmed
+    storage->actual_dimensions = NULL;
+    storage->dimed_dimensions = NULL;
+    
+    // now calloc the storage for the value itself
+    storage->value = calloc(1, sizeof(storage->value[0]));
+    
+    // and insert it into the values tree
+    interpreter_state.variable_values = lst_insert_with_key_sorted(interpreter_state.variable_values, storage, variable->name);
+  }
+}
+
+/** Inserts a variable if it does not already exist. Sets the type based
+ * on the name, so A is a number and A$ is a string. This is used for the
+ * majority of real-world cases, but DEFINT (etc) use the version below.
+ *
+ * @param variable A variable_reference_t with the variable name
+ */
+void insert_variable(const variable_reference_t *variable)
+{
+  // get the type
+  int type = variable_type(variable);
+  insert_typed_variable(variable, type);
+}
+
+/** Returns the storage record for a given variable.
+ *
+ * @param variable A variable_reference_t with the variable name
+ * @return A variable_storage_t or NULL if the variable does not exist
+ */
+variable_storage_t* variable_storage(const variable_reference_t *variable)
+{
+  variable_storage_t *storage = lst_data_with_key(interpreter_state.variable_values, variable->name);
+  return storage;
 }
 
 /**
@@ -217,33 +278,33 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
 	// see if we can find the entry in the symbol list
   storage = lst_data_with_key(interpreter_state.variable_values, variable->name);
 
-  // if not, make a new variable slot in values and set it up
-  if (storage == NULL) {
-    // calloc the object for insertion into the variable list
-    storage = calloc(1, sizeof(*storage));
-    
-		// the type is normally set as part of the variable name, like $
-		// however, there is an exception to this in later MS dialects,
-		// they include the DEFSTR/SNG/DBL/INT, in which case the variable
-		// names do not have the trailer. To handle this case, we pass in
-		// the type when encountering those statements
-		storage->type = variable_type(variable);
-    
-    // setting these to NULL indicates they have not been DIMmed
-    storage->actual_dimensions = NULL;
-    storage->dimed_dimensions = NULL;
-    
-    // now calloc the storage for the value itself
-    storage->value = calloc(1, sizeof(storage->value[0]));
-    
-    // and insert it into the values tree
-		interpreter_state.variable_values = lst_insert_with_key_sorted(interpreter_state.variable_values, storage, variable->name);
-  }
-  
-  // if we haven't started running yet, we were being called during parsing to
-  // populate the variable table. In that case, we don't need the value, so...
-  if (interpreter_state.running_state == 0)
-    return NULL;
+//  // if not, make a new variable slot in values and set it up
+//  if (storage == NULL) {
+//    // calloc the object for insertion into the variable list
+//    storage = calloc(1, sizeof(*storage));
+//    
+//		// the type is normally set as part of the variable name, like $
+//		// however, there is an exception to this in later MS dialects,
+//		// they include the DEFSTR/SNG/DBL/INT, in which case the variable
+//		// names do not have the trailer. To handle this case, we pass in
+//		// the type when encountering those statements
+//		storage->type = variable_type(variable);
+//    
+//    // setting these to NULL indicates they have not been DIMmed
+//    storage->actual_dimensions = NULL;
+//    storage->dimed_dimensions = NULL;
+//    
+//    // now calloc the storage for the value itself
+//    storage->value = calloc(1, sizeof(storage->value[0]));
+//    
+//    // and insert it into the values tree
+//		interpreter_state.variable_values = lst_insert_with_key_sorted(interpreter_state.variable_values, storage, variable->name);
+//  }
+//  
+//  // if we haven't started running yet, we were being called during parsing to
+//  // populate the variable table. In that case, we don't need the value, so...
+//  if (interpreter_state.running_state == 0)
+//    return NULL;
   
   // at this point we have either found or created the variable, so...
   
@@ -387,33 +448,6 @@ either_t* variable_value(const variable_reference_t *variable, int *type)
     return &storage->array[index];
   else
     return &storage->value[0];
-}
-
-/** Returns the storage record for a given variable.
- *
- * @param variable A variable_reference_t with the variable name
- * @return A variable_storage_t or NULL if the variable does not exist
- */
-variable_storage_t* variable_storage(const variable_reference_t *variable)
-{
-  int ignore = 0;
-  variable_value(variable, &ignore); // this makes sure the variable is set up
-  return lst_data_with_key(interpreter_state.variable_values, variable->name);
-}
-
-/* cover method for variable_value, allows it to be exported to the parser
- without it having to know about either_t, which is private.
- */
-void insert_variable(const variable_reference_t *variable)
-{
-  int ignore = 0;
-  variable_value(variable, &ignore);
-}
-
-/* and another version which takes the type for use with DEFINT etc. */
-void insert_typed_variable(const variable_reference_t *variable, int type)
-{
-  variable_value(variable, &type);
 }
 
 /**
