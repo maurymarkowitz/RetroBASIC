@@ -2662,12 +2662,14 @@ REDO_INPUT:
         FILE* fp = handle_for_channel(channel);
         if (fp == NULL) {
           handle_error(ern_FILE_NOT_OPEN, "Attempt to INPUT from a file that has not been OPENed");
-          // and make sure we can read it
-          if (!channel_is_readable(channel)) {
-            handle_error(ern_FILE_NOT_INPUT, "Attempt to INPUT from a file that is read-only");
-          }
+          break;
         }
-        
+        // and make sure we can read it
+        if (!channel_is_readable(channel)) {
+          handle_error(ern_FILE_NOT_INPUT, "Attempt to INPUT from a file that is read-only");
+          break;
+        }
+
         // read one line from the file, if it's empty, warn and return
         if (fgets(buffer, sizeof buffer, fp) == NULL) {
           handle_error(ern_OUT_OF_DATA, "Reached the end-of-file while performing INPUT");
