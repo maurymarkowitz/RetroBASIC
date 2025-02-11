@@ -109,6 +109,8 @@
 		55CFD0BD2A23CC7700DC9896 /* letter.hpb */ = {isa = PBXFileReference; lastKnownFileType = text; path = letter.hpb; sourceTree = "<group>"; };
 		55DEE88128A6A6B800270949 /* RetroBASIC design.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "RetroBASIC design.md"; sourceTree = "<group>"; };
 		55E12DB82904279A0005D17F /* RetroBASIC build notes.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "RetroBASIC build notes.md"; sourceTree = "<group>"; };
+		55E1EDDE2D5661FD00277189 /* AUTHORS */ = {isa = PBXFileReference; lastKnownFileType = text; path = AUTHORS; sourceTree = "<group>"; };
+		55E1EDDF2D5661FD00277189 /* COPYING */ = {isa = PBXFileReference; lastKnownFileType = text; path = COPYING; sourceTree = "<group>"; };
 		55EADEA32D0A68750000CE5D /* errors.c */ = {isa = PBXFileReference; indentWidth = 2; lastKnownFileType = sourcecode.c.c; path = errors.c; sourceTree = "<group>"; tabWidth = 2; };
 /* End PBXFileReference section */
 
@@ -177,6 +179,8 @@
 		55B3D41F238E1B4500E6054E /* doc */ = {
 			isa = PBXGroup;
 			children = (
+				55E1EDDE2D5661FD00277189 /* AUTHORS */,
+				55E1EDDF2D5661FD00277189 /* COPYING */,
 				550EED6E257AC4F300FE6D78 /* VERSIONS */,
 				55B3D428238EB43100E6054E /* TODO */,
 				55B3D427238EB43100E6054E /* pass-fail.txt */,
