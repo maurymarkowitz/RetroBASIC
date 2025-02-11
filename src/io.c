@@ -152,7 +152,7 @@ bool open_file(const int channel, const char *name, const char *mode)
 {
   // see if this channel is already being used
   if (file_handle_map[channel] != 0) {
-    handle_error(ern_FILE_OPEN, "Attempt to open a file but that channel is already in use");
+    handle_error(ern_FILE_OPEN, "Attempt to open a file in a channel that is already open");
     return false;
   }
   
@@ -199,7 +199,7 @@ bool open_file(const int channel, const char *name, const char *mode)
   lmode[0] = tolower(mode[0]);
   lmode[1] = '\0';
   
-  // if the mode is "r" or "a", the file needs to exist already
+  // if the mode is "r"ead or "a"ppent, the file needs to exist already
   if (lmode[0] == 'r' || lmode[0] == 'a') {
     if (!exists(name)) {
       handle_error(ern_FILE_NOT_FOUND, "Attempt to open a file for read or append but it does not exist");
@@ -207,19 +207,23 @@ bool open_file(const int channel, const char *name, const char *mode)
     }
   }
   
-  // if the mode is "w", the file *cannot* already exist
-  if (lmode[0] == 'w' && exists(name)) {
+  // if the mode is "n"ew, the file *cannot* already exist
+  if (lmode[0] == 'n' && exists(name)) {
     handle_error(ern_FILE_EXISTS, "Attempt to open a file for write but it already exists");
     return false;
   }
   
+  // "n"ew is the same as "w"rite from C's perspective
+  if (lmode[0] == 'n')
+    lmode[0] = 'w';
+
   // all the inputs are valid, try to open the file
   FILE* fp = fopen(name, lmode);
   if (fp == NULL) {
     handle_error(ern_FILE_OPEN, "Attempt to open a file failed for unknown reason");
     return false;
   }
-  
+    
   // is it now open, so record it
   file_handle_map[channel] = fp;
   strcpy(file_name_map[channel], name);
@@ -248,6 +252,36 @@ bool close_file(const int channel)
   
   file_handle_map[channel] = 0;
   file_name_map[channel][0] = '\0';
+  return true;
+}
+
+/*
+ * Tests that the file is not open and then attempts to create it.
+ */
+bool create_file(const char *file)
+{
+  // see if the file is open
+  for (int i = 0; i < MAX_FILE_NUM; i++) {
+    if (strcmp(file_name_map[i], file) == 0) {
+      handle_error(ern_FILE_OPEN, "Attempt to create a file that is open");
+      return false;
+    }
+  }
+  
+  // see if it exists
+  if (access(file, F_OK) == 0) {
+    handle_error(ern_FILE_NOT_FOUND, "Attempt to create file failed because it already exists");
+    return false;
+  }
+  
+  // create it if we can
+  FILE* fp = fopen("textFile.txt" ,"a");
+  if (fp == NULL) {
+    handle_error(ern_FILE_NOT_FOUND, "Attempt to create file failed for unknown reason");
+    return false;
+  }
+
+  fclose(fp);
   return true;
 }
 
