@@ -3,7 +3,7 @@ RetroBASIC Language Reference Manual
 
 **Copyright © 2023 Maury Markowitz**
 
-Version 2.1.1
+Version 2.1.2
 
 [![GPL license](http://img.shields.io/badge/license-GPL-brightgreen.svg)](https://opensource.org/licenses/gpl-license)
 
@@ -2135,11 +2135,17 @@ Opens a channel with the number *aexp*, attached to the physical file at path/fi
 
 The file name in *sexp1* can be the name of a file alone, or contain a path as well. If there is no path, the file will be opened in the current directory, normally the same location as the RetroBASIC executable. If a partial path is provided, it will be expanded into a complete path and checked to ensure that the user can access the resulting file. Any given path/file can only be opened once, you cannot, for instance, open a file for writing in one channel and reading in another.
 
-The mode in *sexp2* is one of three single-character values, "r" for reading, "w" for writing, and "a" for appending, that is, writing to the end of an existing file. If the mode is "r" or "a", the file must already exist and will return an error otherwise. If the mode is "w" the file *cannot* already exist, and will return an error if it does.
+The mode in *sexp2* is one of four single-character values, "r" for reading, "n" to create a new file, ""w" for writing a file, and "a" for appending, that is, writing to the end of an existing file. If the mode is "r" or "a", the file must already exist and will return an error otherwise. If the mode is "n" the file *cannot* already exist, and will return an error if it does. If the mode is "w" and the file already exists, 
 
 #### Variations:
 
 The vast majority of dialects use `OPEN` without a following `#`, but Atari BASIC and Apple Business BASIC demand it. RetroBASIC allows either format.
+
+Most BASICs, including the MS dialects, implement "w"rite such that it will erase the contents of an existing file. An exception was Apple Business BASIC, which would instead raise an error and required one to `CREATE` the file first. This second style prevents the system from overwriting possibly useful data. RetroBASIC defaults "w" to overwrite, and uses "n" to support the Apple concept.
+
+#### Versions:
+
+The separate "n" and "w" modes were added in 2.1.2
 
 <!-- TOC --><a name="close-aexp"></a>
 ### `CLOSE`{`#`} *aexp*
