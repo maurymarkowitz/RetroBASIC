@@ -1,0 +1,23 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "D192A452714206BED9EC0C29BBEE83FC0003A540",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "D192A452714206BED9EC0C29BBEE83FC0003A540" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "E16EA39F-8CC3-40DD-A4C2-9D75689F40BD",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "D192A452714206BED9EC0C29BBEE83FC0003A540" : "RetroBASIC\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "RetroBASIC",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "RetroBASIC.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/maurymarkowitz\/RetroBASIC",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "D192A452714206BED9EC0C29BBEE83FC0003A540"
+    }
+  ]
+}

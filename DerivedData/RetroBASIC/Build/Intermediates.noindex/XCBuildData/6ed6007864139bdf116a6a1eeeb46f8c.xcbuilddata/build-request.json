@@ -1,0 +1,59 @@
+{
+  "buildCommand" : {
+    "command" : "build",
+    "skipDependencies" : false,
+    "style" : "buildOnly"
+  },
+  "configuredTargets" : [
+    {
+      "guid" : "d3db205332c6e51ab3242da37a92701cf25a0d9bd09c89b7787310a826881d91"
+    }
+  ],
+  "containerPath" : "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/RetroBASIC.xcodeproj",
+  "continueBuildingAfterErrors" : true,
+  "dependencyScope" : "workspace",
+  "enableIndexBuildArena" : false,
+  "hideShellScriptEnvironment" : false,
+  "parameters" : {
+    "action" : "build",
+    "activeArchitecture" : "arm64",
+    "activeRunDestination" : {
+      "disableOnlyActiveArch" : false,
+      "platform" : "macosx",
+      "sdk" : "macosx15.2",
+      "sdkVariant" : "macos",
+      "supportedArchitectures" : [
+        "arm64e",
+        "arm64",
+        "x86_64"
+      ],
+      "targetArchitecture" : "arm64"
+    },
+    "arenaInfo" : {
+      "buildIntermediatesPath" : "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/DerivedData/RetroBASIC/Build/Intermediates.noindex",
+      "buildProductsPath" : "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/DerivedData/RetroBASIC/Build/Products",
+      "derivedDataPath" : "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/DerivedData",
+      "indexDataStoreFolderPath" : "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/DerivedData/RetroBASIC/Index.noindex/DataStore",
+      "indexEnableDataStore" : true,
+      "indexPCHPath" : "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/DerivedData/RetroBASIC/Index.noindex/PrecompiledHeaders",
+      "pchPath" : "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/DerivedData/RetroBASIC/Build/Intermediates.noindex/PrecompiledHeaders"
+    },
+    "configurationName" : "Debug",
+    "overrides" : {
+      "synthesized" : {
+        "table" : {
+          "CLANG_STATIC_ANALYZER_MODE" : "$(CLANG_STATIC_ANALYZER_MODE_ON_ANALYZE_ACTION)",
+          "ENABLE_PREVIEWS" : "NO",
+          "ENABLE_XOJIT_PREVIEWS" : "YES",
+          "RUN_CLANG_STATIC_ANALYZER" : "YES"
+        }
+      }
+    }
+  },
+  "schemeCommand" : "launch",
+  "showNonLoggedProgress" : true,
+  "useDryRun" : false,
+  "useImplicitDependencies" : true,
+  "useLegacyBuildLocations" : false,
+  "useParallelTargets" : true
+}
