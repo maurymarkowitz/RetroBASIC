@@ -10,8 +10,6 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
-- add CLK from Univac
-
 - add CHAIN, LOAD and RUN (and APPEND?)
 - and COMMON
 
@@ -64,6 +62,8 @@ BP - DEC BASIC-PLUS
 - ERASE, clears variables (IBM Advanced BASIC)
 
 Debatable:
+
+- add CLK from Univac
 
 - BP (and HP?) allows multiple assignments with equals, A=B=C=10
 
