@@ -658,6 +658,8 @@ This causes the program to repeatedly add 1 to the current value of A, print the
 
 <!-- TOC --><a name="on-aexpr-gotogosub-linenoaexprlinenoaexpr"></a>
 ### `ON` *aexpr* {`GOTO`|`GOSUB`} [*lineno*|*aexpr*]{,[*lineno*|*aexpr*],...}
+### {`GOTO`|`GOSUB`} *aexpr* `OF` [*lineno*|*aexpr*]{,[*lineno*|*aexpr*],...}
+
 
 The `ON` statement, also known as the **computed branch**, combines a series of `IF...THEN` statements into a single instruction. `ON` is often used to respond to user input that selects among a number of options.
 
@@ -678,7 +680,7 @@ This program will print a `A IS 1`, `2` or `3` depending on the value in the num
 
 #### Variations:
 
-Some dialects use the alternate syntax `GOTO` *aexpr* `ON` and `GOSUB` *aexpr* `ON`, reversing the normal format. RetroBASIC supports this format as well.
+Some dialects, including HP use the alternate syntax `GOTO` *aexpr* `OF` and `GOSUB` *aexpr* `OF`, reversing the normal format. RetroBASIC supports this format as well.
 
 #### See also:
 
