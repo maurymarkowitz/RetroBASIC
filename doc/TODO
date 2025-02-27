@@ -10,12 +10,16 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
+- add NUL$ from Dartmouth, used to clear string arrays in MAT A$=NUL$
+
 - add CHAIN, LOAD and RUN (and APPEND?)
 - and COMMON
 
 - CMD/OUTPUT# to redirect to a file
 
 - add clear_variables and change CLEAR
+
+- Dartmouth allows empty lines
 
 - word wrap at a given column
 
@@ -67,7 +71,7 @@ Debatable:
 
 - BP (and HP?) allows multiple assignments with equals, A=B=C=10
 
-- EXCHANGE/SWAP that swaps the values of two variables, seems almost useless
+- EXCHANGE/SWAP that swaps the values of two variables, seems almost useless - USED FOR SORTING
 
 - EQ, GT, GE and similar alternatives to =, >, >= etc.
 

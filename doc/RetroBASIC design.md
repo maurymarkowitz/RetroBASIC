@@ -13,7 +13,7 @@ This document explains some of the design goals, coding decisions and style sele
 
 RetroBASIC started in 2020 as a project to collect statistics from classic BASIC programs in an effort to find ways to improve the notoriously slow Atari BASIC. The goal was to find changes that would offer the most significant improvements for the least amount of changes to the original code. For this I needed useful statistics on what sorts of things programs of the era actually did.
 
-Initially this led to some regex-like work in Python, but it quickly became clear that the complexity of the code was daunting. For instance, one of the statistics that I wanted to collect was the number and distribution of numeric constants in a typical program. These took up lots of memory in Atari BASIC and I felt that there were possible savings here. But it was also useful to know the difference between constants and line numbers, and the distribution of each. When one considers all of the places such numbers appear - in formulas, array indexes, line numbers, etc. - separating out the cases was annoying.
+Initially this led to some regex-like work in Python, but it quickly became clear that the complexity of the code was daunting. For instance, one of the statistics that I wanted to collect was the number and distribution of numeric constants in a typical program. These took up lots of memory in Atari BASIC and I felt that there were possible savings here. But it was also important to know the difference between constants and line numbers, like in GOTOs, and the distribution of each. When one considers all of the places constants appear - in formulas, array indexes, line numbers, etc. - separating out the cases became annoying.
 
 So I decided the best solution was to use an actual BASIC interpreter and collect statistics from the tokenized code. Desiring a solution that would run on practically any system with a minimum of external software, I went with lex/yacc, as it has existed for decades and is available everywhere. While it is no longer as widely used as it once was, there's lots of example code out there and still a lot of experience available to help on the 'net.
 
@@ -29,9 +29,9 @@ Today we think of "classic BASIC" as synonymous with MS BASIC, which was the sta
 
 ### Dartmouth
 
-The original BASIC is Dartmouth BASIC, released in 1964. Almost everything you can think of comes from this version, with the exception of string handling. That's because the original version only allowed string *constants*, in things like `PRINT "Hello, World!"` and such. There were no string *variables* and no way to manipulate the string constants.
+The original BASIC is Dartmouth BASIC, released in 1964. Almost everything you can think of comes from this version, with the exception of string handling. That's because the original version only allowed string *constants*, in things like `PRINT "Hello, World!"` and such. There were no string *variables*, like `PRINT A$`, and no way to manipulate the string constants.
 
-Dartmouth released a series of updates to the original version. String variables appeared in the fourth version, in 1968. This also added a single way to manipulate string data, the `CHANGE` command, which converted a string into an array of ASCII values or vice versa. So, for instance, to concatenate two strings you would first use `CHANGE A$ TO D` and `CHANGE B$ TO E`, then loop over E and copy the values one by one into D, assuming the array D is long enough, and then finally `CHANGE D TO C$`. Yikes!
+Dartmouth released a series of updates to the original version. String variables appeared in the fourth version, in 1968, which introduced the dollar-sign string indicator. This also added a single way to manipulate string data, the `CHANGE` command, which converted a string into an array of ASCII values or vice versa. So, for instance, to concatenate two strings you would first use `CHANGE A$ TO D` and `CHANGE B$ TO E`, then loop over E and copy the values one by one into D, assuming the array D is long enough, and then finally `CHANGE D TO C$`. Yikes!
 
 Dartmouth was developed on a mainframe and they chose to implement the language as a compiler. Compilers generally require a fair amount of temporary memory, which smaller computers didn't have. Smaller machines normally used an interpreter, developed from scratch. So while versions of the Dartmouth code were found on almost all mainframes by 1970, it saw little use outside that market. Even large minis generally didn't use the Dartmouth dialect.
 
@@ -45,7 +45,9 @@ Largely lost to history today, the HP2000s were *extremely* influential. That's 
 
 ### DEC
 
-And then there's Digital. DEC was slow to the BASIC game because they were pushing their own language, FOCAL. At the same time that Dartmouth was creating BASIC, a team at SRI was creating JOSS. BASIC and JOSS are very similar in concept and implementation. FOCAL is a very cut-down version of JOSS that was small enough to run on the PDP-8. The result is almost identical to early versions of BASIC, lacking string variables and other features introduced in later versions, but otherwise differing mostly in the names of the keywords.
+And then there's Digital. DEC was slow to the BASIC game because they were pushing their own language, FOCAL.
+
+At the same time that Dartmouth was creating BASIC, a team at SRI was creating JOSS. BASIC and JOSS are very similar in concept and implementation. FOCAL is a very cut-down version of JOSS that was small enough to run on the PDP-8. The result is almost identical to early versions of BASIC, lacking string variables and other features introduced in later versions, but otherwise differing mostly in the names of the keywords.
 
 At DEC, David Ahl was tired of seeing people ignore their PDP-8 in favor of the HP2000 because DEC had FOCAL and HP had BASIC. Management was locked deep in  not-invented-here syndrome, and wouldn't consider BASIC. So Ahl went out and hired someone to write BASIC for the PDP-8. All interest in FOCAL immediately evaporated. He helped this process along by personally porting over many of the popular FOCAL programs to BASIC, like Lunar Lander and Hamurabi. The PDP-8 had only 4k of memory, so it was a simple dialect, but still useable for most early programs.
 
@@ -74,6 +76,7 @@ As a result, RetroBASIC is essentially a superset of MS BASIC with the following
 3) HP-style string slicing, including defaulting to considering [] separate from () allowing string arrays
 4) HP-style `GOTO..ON` and `GOSUB..ON` variations of MS's `ON..GOTO` and `ON..GOSUB`
 5) `IF..GOTO` and `IF..GOSUB` (no THEN) found in some dialects
+6) Many additional functions and a few additional statements, like MAX and MIN, TAN, etc.
 
 ## Random notes
 

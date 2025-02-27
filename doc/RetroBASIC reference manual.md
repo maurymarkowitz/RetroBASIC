@@ -1317,7 +1317,7 @@ Tymshare SUPER BASIC defines a pseudo-variable `EPS`, short for *epsilon*, which
 <!-- TOC --><a name="string-operators"></a>
 ### String operators
 
-RetroBASIC supports only two string operators, `+` and `&`, both of which perform the same operation, string concatenation. A new string is constructed that consists of the string on the right placed on the right end of the string on the left.
+RetroBASIC supports only two string operators, `+` and `&`, both of which perform the same operation, string concatenation. A new string is constructed that consists of the string on the right placed on the right end of the string on the left. The `&` originates in Dartmouth, `+` from the DEC/MS variations.
 
 String logical operators are the same as the mathematical ones: `=`, `>`, `<`, `<=`, `>=`, `<>` `#`, `=>` and `=<`.
 
@@ -1770,7 +1770,7 @@ Returns a new string containing the left-most *aexp* characters from the string 
 
 Returns a new string containing characters from *sexp* starting at *aexp1* and running to the end of the string. If the optional *aexp2* is provided, and it often is, it returns up to *aexp2* characters.
 
-`SEG$`, `SUBSTR$` and `SUBSTRING$` are aliases found in some dialects.
+`MID$` originates with Tymshare and was copied into DEC's BASIC-PLUS, which is the basis for MS BASIC. The otherwise identical `SEG$` is found in Dartmouth BASIC and its offshoots, including the TI-99. `SUBSTR$` and `SUBSTRING$` are aliases found in some early microcomputer dialects.
 
 #### Examples:
 
