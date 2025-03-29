@@ -2394,6 +2394,7 @@ static void perform_statement(list_t *statement_entry)
         //                            new_for->step = 1;
         //                        else
         //                            new_for->step = -1;
+        
         if (statement->parms._for.step)
           new_for->_for.step = evaluate_expression(statement->parms._for.step).number;
         else
@@ -2666,7 +2667,7 @@ REDO_INPUT:
         }
         // and make sure we can read it
         if (!channel_is_readable(channel)) {
-          handle_error(ern_FILE_NOT_INPUT, "Attempt to INPUT from a file that is read-only");
+          handle_error(ern_FILE_NOT_INPUT, "Attempt to INPUT from a file that is write-only");
           break;
         }
 
@@ -2746,6 +2747,81 @@ REDO_INPUT:
         // or is there still data in the string we didn't use?
         if (end - buffer < len)
           handle_warning(ern_INPUT_EXTRA, "");
+      }
+        break;
+        
+        // a simplified version of INPUT that reads an entire line into a single
+        // string variable. it does not print the ? and does not allow prompts
+        // unlike the normal INPUT, we can handle both LINPUT and LINPUT_FILE here
+      case INPUT_LINE:
+      {
+        // default to STDIN
+        FILE* fp = stdin;
+        
+        // see if there is a stream parameter, if so, set the fp to that
+        if (statement->parms.generic.generic_parameter != NULL) {
+          int channel = floor(evaluate_expression(statement->parms.generic.generic_parameter).number);
+          FILE* fp = handle_for_channel(channel);
+          if (fp == NULL) {
+            handle_error(ern_FILE_NOT_OPEN, "Attempt to LINPUT from a file that has not been OPENed");
+            break;
+          }
+          // and make sure we can read it
+          if (!channel_is_readable(channel)) {
+            handle_error(ern_FILE_NOT_INPUT, "Attempt to LINPUT from a file that is write-only");
+            break;
+          }
+        }
+        // see if we can get some data, we should at least get a return
+        char line[MAX_INPUT_LENGTH];
+        fflush(fp);
+        if (fgets(line, sizeof line, fp) == NULL) {
+          handle_error(ern_OUT_OF_DATA, "Reached the end-of-file while performing LINPUT");
+          return;
+        }
+        
+        // test to see if the input is zero length or is a newline, if so,
+        // exit INPUT and continue running the program with the old values
+        if (strlen(line) == 0 || *line == '\r' || *line == '\n')
+          break;
+        
+        // null-terminate the string and remove any newline
+        line[strlen(line) - 1] = '\0';
+        
+        // optionally convert to upper case
+        if (upper_case) {
+          char *c = line;
+          c = str_toupper(c);
+        }
+        
+        // now assign the result to the first variable, which is the only one
+        list_t *current_item = lst_first_node(statement->parms.input);
+        printitem_t *ppi = current_item->data;
+        char *start = line;
+        char *end = line;
+        int type;
+        either_t *value = variable_value(ppi->expression->parms.variable, &type);
+        
+        // read one value based on the type of the variable
+        if (type >= NUMBER) {
+          value->number = strtod(start, &end);
+          
+          // check to make sure that is a number
+          // in this case we can't ask for a redo so we fail the app
+          if (value->number == 0.0 && start == end) {
+            handle_error(ern_INPUT_REDO, "String in numeric INPUT");
+          }
+          num_input++;
+
+          // strtod leaves us on the separator, so...
+          if (*end == ',' || *end == ' ')
+            end++;
+        } else {
+          // strings are pretty easy in this case
+          value->string = str_new(line);
+          num_input++;
+        }
+
       }
         break;
 

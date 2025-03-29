@@ -10,6 +10,10 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
+- DELETE file... but also DELETE lines? UNSAVE on DEC
+
+- BP (and HP?) allows multiple assignments with equals, A=B=C=10 - so does Tiny
+
 - add NUL$ from Dartmouth, used to clear string arrays in MAT A$=NUL$
 
 - add CHAIN, LOAD and RUN (and APPEND?)
@@ -18,8 +22,6 @@ BP - DEC BASIC-PLUS
 - CMD/OUTPUT# to redirect to a file
 
 - add clear_variables and change CLEAR
-
-- Dartmouth allows empty lines
 
 - word wrap at a given column
 
@@ -51,8 +53,6 @@ BP - DEC BASIC-PLUS
 
 - support AB's DEG and RAD modes? WB also had gradians; SELECT G, Commodore 3.5 has similar?
 
-- PA allows multiple assignments in a LET, separated by commas, see assignlist.
-
 - PA and BP allow single or double quotes around strings
 
 - PA prints a colon after INPUTs, not ?, and prints the variable name if no prompt is given. So "INPUT A" prints "A:", while INPUT "TYPE A NUMBER"A prints "TYPE A NUMBER:"
@@ -67,9 +67,13 @@ BP - DEC BASIC-PLUS
 
 Debatable:
 
-- add CLK from Univac
+- add SLEEP from DEC?
 
-- BP (and HP?) allows multiple assignments with equals, A=B=C=10
+- EduSystem BASIC uses & as the short-form for print
+
+- SDS BASIC allows semicolons as the short form for PRINT. This could be supported as it can only be the first statement, otherwise it's a normal semi
+
+- add CLK from Univac
 
 - EXCHANGE/SWAP that swaps the values of two variables, seems almost useless - USED FOR SORTING
 
