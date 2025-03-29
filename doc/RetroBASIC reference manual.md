@@ -510,6 +510,10 @@ The keyword `LET` was made optional in later versions of Dartmouth BASIC, and mo
 
 Line 10 calculates the value of `10+10^2`, 110, and then copies that value into the numeric variable `A`. Line 20 copies the string constant "Hello, World!" into the string variable `B$`.
 
+#### Variations:
+
+A number of dialects allow multiple assignments in a single statement, like `10 A=B=C=100`. Examples include DEC's BASIC-PLUS and even some of the Tiny BASIC varieties. These statements can be typed into other dialects, like MS BASICs, but in that case they interpret it as "A=B" and no assignment occurs to the other variables. In this particular example, all three variables will hold zero, as B would start with value 0 which would be assigned to A, and then B and C will be ignored.
+
 <!-- TOC --><a name="dim-varnexpnexpvarnexpnexp"></a>
 ### `DIM` *var*(*nexp*[,*nexp*...])[,*var*(*nexp*[,*nexp*...])...]
 
@@ -855,6 +859,10 @@ In this example, there are two entries on the stack during the execution of the 
 #### Notes:
 
 The definition of a jiffy varies widely across platforms, so a `PAUSE` statement found in existing code may not pause for the same amount of time. See details in `TIME`.
+
+#### Variations:
+
+DEC EduSystem BASIC uses `SLEEP` and a time in seconds.
 
 #### See also:
 
@@ -1242,6 +1250,8 @@ Wang BASIC interpreted the optional *aexp* not as a line number but an ordinal, 
 
 Univac 1100 BASIC included `RESTORE*` and `RESTORE$`, which restored only the numeric or string values. This worked hand-in-hand with the way it read values in the `READ`, which would skip values of the "wrong" type. For instance if you had `DATA 10,20,"a string"` and performed `READ A$`, it would skip the two numbers and read the string. While interesting, the value of this functionality is questionable and it is entirely incompatible with any other dialect.
 
+DEC BASIC on the EduSystem 50, and likely other EduSystems, worked like the Univac and allowed `RESTORE*` and `RESTORE$`.
+
 <!-- TOC --><a name="other-statements"></a>
 ## Other statements
 
@@ -1258,7 +1268,7 @@ Digital Group Opus BASIC used `STUFF` for this role, this is not supported in Re
 
 North Star BASIC used `FILL` for this role, this is not supported in RetroBASIC.
 
-A number of later BASICs added a variation on `POKE` that allowed a 16-bit value to be written in a single statement, an example is the `DPOKE` statement in Turbo-BASIC XL on the Atari.
+A number of later BASICs added a variation on `POKE` that allowed a 16-bit value to be written in a single statement, an example is the `DPOKE` statement in Turbo-BASIC XL on the Atari. These are not supported in RetroBASIC.
 
 #### See also:
 
@@ -1279,7 +1289,7 @@ Later dialects, those developed for home computers, often lack the `RANDOMIZE` s
 
 Sinclair BASICs use `RAND` as a short form for `RANDOMIZE`.
 
-GW-BASIC has the additional oddity that if the *aexp* is left out, it will pause and ask the user for a seed value similar to an `INPUT` statement. This is not supported in RetroBASIC. In GW, to get the same behavior as other dialects that use the clock as a seed, one uses the `RANDOMIZE TIMER` variation. This is almost always found in GW programs. This is supported in RetroBASIC.
+GW-BASIC has the additional oddity that if the *aexp* is left out, it will pause and ask the user for a seed value in a fashion similar to an `INPUT` statement. This is not supported in RetroBASIC. In GW, to get the same behavior as other dialects that use the clock as a seed, one uses the `RANDOMIZE TIMER` variation. This is almost always found in GW programs. This is supported in RetroBASIC.
 
 #### Notes:
 
@@ -1296,7 +1306,7 @@ Because `RANDOMIZE` is so useful for debugging and many programs do not include 
 <!-- TOC --><a name="changeconvert-avarsvar-to-svaravar"></a>
 ### [`CHANGE`|`CONVERT`] {*avar*|*svar*} `TO` {*svar*|*avar*}
 
-The primary difference between the three main families of BASIC is the way they manipulate strings. In Dartmouth versions, this is accomplished with the `CHANGE` statement, which takes a string and converts it a series of ASCII values in a numeric array, or takes a numeric array and converts it to a string. The length of the string is stored in the array's zero slot. `CONVERT` is the identical operation found in HP dialects.
+The primary difference between the three main families of BASIC is the way they manipulate strings. In Dartmouth versions, this is accomplished with the `CHANGE` statement, which takes a string and converts it a series of ASCII values in a numeric array, or takes a numeric array and converts it to a string. The length of the string is stored in the array's zero slot. DEC EduSystem BASICs also supported this statement. `CONVERT` is the identical operation found in HP dialects.
 
 #### Examples:
 
@@ -2243,6 +2253,10 @@ In this case, we get the output we expect:
 ### `GET#` *aexp*,*var*
 
 `GET#` works in the same fashion as `GET`, reading in a single value from the channel in *aexp*. If *var* is a string variable it will return a single character, if *var* is a numeric variable it will return the ASCII value of that character. If the channel is not open, or it is opened only for write access, RetroBASIC will return an error.
+
+#### Variations
+
+DEC's EduSystem BASIC used `GET` and `PUT` with a `RECORD` statement to read a block of data in a single operation. This is not supported in RetroBASIC.
 
 <!-- TOC --><a name="put-aexpvar"></a>
 ### `PUT#` *aexp*,*var*
