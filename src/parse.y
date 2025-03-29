@@ -119,6 +119,7 @@ static expression_t *make_operator(int arity, int o)
 %token GOTO
 %token IF
 %token INPUT
+%token INPUT_LINE
 %token LET
 %token LIST
 %token NEXT
@@ -620,6 +621,22 @@ statement:
   INPUT HASH expression ',' printlist
   {
     statement_t *new = make_statement(INPUT_FILE);
+    new->parms.generic.generic_parameter = $3;
+    new->parms.input = $5;
+    $$ = new;
+  }
+  |
+  INPUT_LINE printlist
+  {
+    statement_t *new = make_statement(INPUT_LINE);
+    new->parms.input = $2;
+    $$ = new;
+  }
+  |
+  INPUT_LINE HASH expression ',' printlist
+  {
+    // in contrast to INPUT_FILE, LINPUT FILE is pretty much identical to LINPUT
+    statement_t *new = make_statement(INPUT_LINE);
     new->parms.generic.generic_parameter = $3;
     new->parms.input = $5;
     $$ = new;

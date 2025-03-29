@@ -13,3 +13,6 @@
 90 PRINT "input a number and a string"
 100 INPUT "number",A,"string",A$
 110 PRINT A,A$
+120 PRINT "LINPUT test, enter weird things";
+130 LINPUT B$
+140 PRINT B$

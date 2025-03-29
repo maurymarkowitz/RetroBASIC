@@ -496,6 +496,10 @@ This section explains the statements associated with loops, conditional and unco
     20 PRINT "Hello";:REM "World" will not be printed:PRINT "World"
     30 PRINT "!"
 
+#### Variations:
+
+DEC EduSystem BASICs did allow statements to follow the remark; if a `\` was encountered within a remark it was considered to be a statement separator and the text following it was a new statement. The manual is not clear whether this applies to `REM` or only `'` remarks.
+
 <!-- TOC --><a name="let-varexpr"></a>
 ### [`LET`] *var*`=`*expr*
 
@@ -894,9 +898,9 @@ A number of dialects included a `LABEL`-like feature, but there was no standard 
 `LABEL` was added in 1.8.3.
 
 <!-- TOC --><a name="call-aexpaexp-exec-system-and-sys"></a>
-### `CALL` *aexp*[,*aexp*...], `EXEC`, `SYSTEM` and `SYS`
+### [`CALL`|`EXEC`|`SYSTEM`|`SYS`] *aexp*{,*aexp*...} 
 
-`CALL` is two of the common ways that BASIC interpreters supported machine language code being called from a BASIC program. This was often used to access operating system routines and sound and graphics commands. The required *aexp* represents a memory address where execution should begin. The machine language code is expected to call that platform's equivalent of a `RETURN` at the end of the code. When these `CALL`s are encountered in RetroBASIC, they perform no action.
+`CALL` is one of the two common ways that BASIC supported machine language code being called from a BASIC program. This was often used to access operating system routines and sound and graphics commands. The required *aexp* represents a memory address where execution should begin. The machine language code is expected to call that platform's equivalent of a `RETURN` at the end of the code. When these `CALL`s are encountered in RetroBASIC, they perform no action.
 
 In some dialects, `CALL` is also used to run user-written subroutines in BASIC. The difference between `CALL` and `GOSUB` is that the `CALL`ed routine is referenced by name, not a line number. This is paired with another statement keyword that indicates the start of the named routine, like `SUB` or `FUNCTION`. This variation of `CALL` is not (currently) supported in RetroBASIC.
 
@@ -904,7 +908,7 @@ In some dialects, `CALL` is also used to run user-written subroutines in BASIC. 
 
 Most platforms used `CALL`, the notable exception being Commodore BASIC which used `SYS`, which they took from BASIC-PLUS on the DEC-10. Sperry Univac System/9 also used `SYS`. The Dragon-32 used `EXEC`.
 
-The Color Genie required the address to be passed in hex format. All number constants in RetroBASIC can be entered in hex format, so this will work properly as long as the `&` prefix is placed on the constant.
+The Color Genie required the address to be passed in hex format. All number constants in RetroBASIC can be entered in hex format, so this will work properly as long as the `0h` prefix is placed on the constant.
 
 Some dialects allowed parameters to be passed in after the address. Amstrad CPC allowed a single parameter, BBC BASIC allowed a list.
 
@@ -927,7 +931,7 @@ RetroBASIC supports this function, but it has no real effect. Memory constraints
 
 Control Data BASIC uses `BASE` in place of `OPTION BASE`.
 
-MAXBASIC allowed any number, not just 0 or 1. For instance `OPTION BASE 5` would make arrays start at index 5.
+MAXBASIC allowed any number, not just 0 or 1. For instance `OPTION BASE 5` would make arrays start at index 5. The utility of this feature seems non-existent.
 
 <!-- TOC --><a name="inputoutput-statements"></a>
 ## Input/Output Statements
@@ -937,11 +941,11 @@ This section describes the input/output statements that are used to access and d
 <!-- TOC --><a name="get-var"></a>
 ### `GET` *var*
 
-Reads a single byte from the keyboard and puts the value into *var*. If *var* is a numeric value it receives the ASCII value, if it is a string, it becomes a one-character string. `GET` is very similar to `INKEY$`, and was used instead of that function in Commodore BASIC. It's counterpart for output is `PUT`, but this was not included in Commodore BASIC.
+Reads a single byte from the keyboard and puts the value into *var*. If *var* is a numeric value it receives the ASCII value, if it is a string, it becomes a one-character string.
+
+On Commodore systems, `GET` is very similar to `INKEY$`, it returns nothing if there is no key held down when the statement is called. In AppleSoft and Atari BASIC, `GET` waits for a key to be pressed before continuing. In this respect it is more like a single-character `INPUT` than a replacement for `INKEY$`. On those platforms the only way to simulate the `INKEY$`-like behaviour was to use a `PEEK` of the keyboard buffer.
 
 #### Variations:
-
-In AppleSoft and Atari BASIC, `GET` waits for a key to be pressed before continuing. In this respect it is more like a single-character `INPUT` than a replacement for `INKEY$`. On both platforms the only way to simulate the `INKEY$`-like behaviour was to use a `PEEK`.
 
 A few dialects, NEC's N-BASIC, TRS-80 Extended Color BASIC, and Microsoft Level III BASIC, use `GET@` to produce an array of the character data within a given rectangular area on the screen.
 
@@ -1306,7 +1310,7 @@ Because `RANDOMIZE` is so useful for debugging and many programs do not include 
 <!-- TOC --><a name="changeconvert-avarsvar-to-svaravar"></a>
 ### [`CHANGE`|`CONVERT`] {*avar*|*svar*} `TO` {*svar*|*avar*}
 
-The primary difference between the three main families of BASIC is the way they manipulate strings. In Dartmouth versions, this is accomplished with the `CHANGE` statement, which takes a string and converts it a series of ASCII values in a numeric array, or takes a numeric array and converts it to a string. The length of the string is stored in the array's zero slot. DEC EduSystem BASICs also supported this statement. `CONVERT` is the identical operation found in HP dialects.
+The primary difference between the three main families of BASIC is the way they manipulate strings. In Dartmouth versions, this is accomplished with the `CHANGE` statement, which takes a string and converts it a series of ASCII values in a numeric array, or takes a numeric array and converts it to a string. The length of the string is stored in the array's zero slot. DEC's' EduSystem BASICs and BASIC-PLUS also supported this statement. `CONVERT` is the identical operation found in HP dialects.
 
 #### Examples:
 
@@ -2256,7 +2260,7 @@ In this case, we get the output we expect:
 
 #### Variations
 
-DEC's EduSystem BASIC used `GET` and `PUT` with a `RECORD` statement to read a block of data in a single operation. This is not supported in RetroBASIC.
+DEC's EduSystem BASIC used `GET#` and `PUT#` with a `RECORD` statement to read a block of data in a single operation. This is not supported in RetroBASIC.
 
 <!-- TOC --><a name="put-aexpvar"></a>
 ### `PUT#` *aexp*,*var*

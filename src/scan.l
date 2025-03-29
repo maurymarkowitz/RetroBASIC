@@ -73,6 +73,9 @@ GO" "?SUB { return GOSUB; }
 GO" "?TO  { return GOTO; }
 IF        { return IF; }
 INPUT     { return INPUT; }
+LINPUT    { return INPUT_LINE; }
+LINE" "?INPUT    { return INPUT_LINE; }
+INPUT" "?LINE    { return INPUT_LINE; }
 LET       { return LET; }
 NEXT      { return NEXT; }
 NEW       { return NEW; }   // also CLEAR (sometimes with options), ERASE and SCRATCH
