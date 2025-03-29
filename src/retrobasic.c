@@ -3290,6 +3290,7 @@ EXIT_MAT_INPUT:
         break;
         
       case MATZER:
+      case MATNUL:
       {
         // NOTE: BASIC-PLUS uses NUL& for the equivalent of setting a string array to zero,
         //       but the Dartmouth manual doesn't say anything either way. so we'll allow it

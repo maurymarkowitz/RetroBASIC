@@ -239,6 +239,7 @@ static expression_t *make_operator(int arity, int o)
 %token MATGET /* GET and PUT not currently supported */
 %token MATPUT
 %token MATZER
+%token MATNUL
 %token MATCON
 %token MATIDN
 %token MATTRN
@@ -1210,6 +1211,21 @@ statement:
   MAT variable '=' MATZER '(' exprlist ')'
   {
     statement_t *new = make_statement(MATZER);
+    new->parms.mat.variable = $2;
+    new->parms.mat.variable->subscripts = $6;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATNUL
+  {
+    statement_t *new = make_statement(MATNUL);
+    new->parms.mat.variable = $2;
+    $$ = new;
+  }
+  |
+  MAT variable '=' MATNUL '(' exprlist ')'
+  {
+    statement_t *new = make_statement(MATNUL);
     new->parms.mat.variable = $2;
     new->parms.mat.variable->subscripts = $6;
     $$ = new;
