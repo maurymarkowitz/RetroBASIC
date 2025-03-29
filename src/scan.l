@@ -252,6 +252,7 @@ EOF       { return _EOF; }
  /* matrix commands and functions */
 MAT       { return MAT; }     // assignments
 ZER       { return MATZER; }  // all-0 matrix
+NUL\$     { return MATNUL; }  // all empty string matrix
 CON       { return MATCON; }  // all-1 matrix
 IDN       { return MATIDN; }  // identity matrix
 INV       { return MATINV; }  // invert
