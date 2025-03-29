@@ -198,17 +198,18 @@
      MATGET = 414,
      MATPUT = 415,
      MATZER = 416,
-     MATCON = 417,
-     MATIDN = 418,
-     MATTRN = 419,
-     MATINV = 420,
-     MATDET = 421,
-     MATADD = 422,
-     MATSUB = 423,
-     MATMUL = 424,
-     MATSCA = 425,
-     MATFIL = 426,
-     NUM = 427
+     MATNUL = 417,
+     MATCON = 418,
+     MATIDN = 419,
+     MATTRN = 420,
+     MATINV = 421,
+     MATDET = 422,
+     MATADD = 423,
+     MATSUB = 424,
+     MATMUL = 425,
+     MATSCA = 426,
+     MATFIL = 427,
+     NUM = 428
    };
 #endif
 /* Tokens.  */
@@ -371,17 +372,18 @@
 #define MATGET 414
 #define MATPUT 415
 #define MATZER 416
-#define MATCON 417
-#define MATIDN 418
-#define MATTRN 419
-#define MATINV 420
-#define MATDET 421
-#define MATADD 422
-#define MATSUB 423
-#define MATMUL 424
-#define MATSCA 425
-#define MATFIL 426
-#define NUM 427
+#define MATNUL 417
+#define MATCON 418
+#define MATIDN 419
+#define MATTRN 420
+#define MATINV 421
+#define MATDET 422
+#define MATADD 423
+#define MATSUB 424
+#define MATMUL 425
+#define MATSCA 426
+#define MATFIL 427
+#define NUM 428
 
 
 
@@ -399,7 +401,7 @@ typedef union YYSTYPE
   variable_reference_t *variable;
 }
 /* Line 1529 of yacc.c.  */
-#line 403 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/DerivedData/RetroBASIC/Build/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
+#line 405 "/Volumes/Bigger/Users/maury/Desktop/RetroBASIC/DerivedData/RetroBASIC/Build/Intermediates.noindex/RetroBASIC.build/Debug/retrobasic.build/DerivedSources/y.tab.h"
     YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

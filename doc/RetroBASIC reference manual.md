@@ -898,7 +898,7 @@ A number of dialects included a `LABEL`-like feature, but there was no standard 
 `LABEL` was added in 1.8.3.
 
 <!-- TOC --><a name="call-aexpaexp-exec-system-and-sys"></a>
-### [`CALL`|`EXEC`|`SYSTEM`|`SYS`] *aexp*{,*aexp*...} 
+### {`CALL`|`EXEC`|`SYSTEM`|`SYS`} *aexp*{,*aexp*...} 
 
 `CALL` is one of the two common ways that BASIC supported machine language code being called from a BASIC program. This was often used to access operating system routines and sound and graphics commands. The required *aexp* represents a memory address where execution should begin. The machine language code is expected to call that platform's equivalent of a `RETURN` at the end of the code. When these `CALL`s are encountered in RetroBASIC, they perform no action.
 
@@ -921,7 +921,7 @@ Dartmouth BASIC used `SYSTEM` to load a language, either BASIC or ALGOL. It was 
 * `USR`
 
 <!-- TOC --><a name="option-base-01"></a>
-### `OPTION BASE` [0|1]
+### `OPTION BASE` {0|1}
 
 `OPTION BASE` was introduced in Dartmouth BASIC version 4. It allows you to select whether arrays start at index 0, or 1. Earlier versions used base 1, and when base 0 was introduced in later version that meant that all arrays ended up with additional unused elements. For those programs that used a base index of 1, which is many of them, using `OPTION BASE 1` before using `DIM` statements would eliminate this wasted memory.
 
@@ -1137,7 +1137,7 @@ Neither of these is currently supported in RetroBASIC, although `PRINT USING` ca
 * `POS`
 
 <!-- TOC --><a name="print-using-expexp"></a>
-### `PRINT USING` [*exp*][,|;][*exp*{|[;|,]},...]]
+### `PRINT USING` [*exp*]{,|;}*exp*[{|[;|,]},...]]
 
 `PRINT USING` is a variation of the `PRINT` statement that adds a "format string" to define how the following expressions should be formatted. This can define, for instance, how floating point numbers should be printed, including the number of digits after the decimal point, or to add a dollar sign at the front. There are a wide variety of formatting strings supported by various dialects, as well as different ways to specify them in the statement. RetroBASIC does its best to support as many of these as possible.
 
@@ -1308,7 +1308,7 @@ Because `RANDOMIZE` is so useful for debugging and many programs do not include 
 `RANDOMIZE TIMER` was added in 2.0.0.
 
 <!-- TOC --><a name="changeconvert-avarsvar-to-svaravar"></a>
-### [`CHANGE`|`CONVERT`] {*avar*|*svar*} `TO` {*svar*|*avar*}
+### {`CHANGE`|`CONVERT`} {*avar*|*svar*} `TO` {*svar*|*avar*}
 
 The primary difference between the three main families of BASIC is the way they manipulate strings. In Dartmouth versions, this is accomplished with the `CHANGE` statement, which takes a string and converts it a series of ASCII values in a numeric array, or takes a numeric array and converts it to a string. The length of the string is stored in the array's zero slot. DEC's' EduSystem BASICs and BASIC-PLUS also supported this statement. `CONVERT` is the identical operation found in HP dialects.
 
@@ -1458,7 +1458,7 @@ RetroBASIC currently implements `INT` only as a floor, and users should be aware
 * `ROUND`
 
 <!-- TOC --><a name="logln-aexp"></a>
-### [`LOG`|`LN`] (*aexp*)
+### {`LOG`|`LN`}(*aexp*)
 
 Returns the natural logarithm of the number or expression. `LOG(0)` gives an error, and `LOG(1)` equals 0.
 
@@ -1850,7 +1850,7 @@ Produces:
     Hello          World
 
 <!-- TOC --><a name="stringrepeat-aexpsexpaexp2"></a>
-### {`STRING$`|`REPEAT$`} (*aexp*,[*sexp*|*aexp2*])
+### {`STRING$`|`REPEAT$`} (*aexp*,[{*sexp*|*aexp2*}])
 
 `STRING$` makes a new string containing *aexp* copies of the second parameter. The second parameter can be any string if it is provided as *sexp*, or it can be a single ASCII value if it is an *aexp*. `STRING$` can be used to provide the same functionality as `SPC` if *sexp* contains a single space or *aexp2* produces the value 32.
 
@@ -2306,7 +2306,7 @@ Dartmouth BASIC did not allow the same matrix to appear on both sides of most op
 
 And finally, like Dartmouth's `CHANGE` statement, `MAT` instructions always look for an array variable with the given name, even if there are no parentheses. This means that `MAT PRINT A` will *not* find the variable named `A`, but will look for the *array* `A`, in effect, `A()`. This means you can `LET A=5:DIM A(5,5):A(3,3)=10` and only the 10 will appear in a `MAT PRINT A`, the 5 is in a different non-array variable.
 
-According to Lien's *The BASIC Handbook*, "Some computers allow the word MAT to be optional", and suggests these allow `A=B` to perform what would normally be `MAT A=B`. However, no particular variant is mentioned, nor has one been found. Given most dialects treat A and A() as two different variables, it is not clear how they would understand the difference between normal statements and matrix statements. RetroBASIC does not allow the `MAT` to be left off.
+According to Lien's *The BASIC Handbook*, "Some computers allow the word MAT to be optional", and suggests these allow `A=B` to perform what would normally be `MAT A=B`. However, no particular variant is mentioned, nor has one been found. Given most dialects treat A and A() as two different variables, it is not clear how they would understand the difference between normal statements and matrix statements. It may be a typo, RetroBASIC does not allow the `MAT` to be left off.
 
 <!-- TOC --><a name="matrix-statements"></a>
 ### Matrix statements
@@ -2314,7 +2314,7 @@ According to Lien's *The BASIC Handbook*, "Some computers allow the word MAT to 
 There are only four matrix statements; assignment [`LET`], `PRINT`, `INPUT` and `READ`. All of these loop over the list of variables and then perform their normal actions on all of the elements in the array or the selected subarray. For instance, `MAT READ A` will read one value from the program's `DATA` statements for each slot in the matrix A, ignoring the zero slots. Thus a `MAT READ A` on a variable defined `DIM A(3,3)` will read nine values.
 
 <!-- TOC --><a name="mat-let-var1aexpaexpvar2aexpaexp-exp-"></a>
-### `MAT` [`LET`] *var1*[`(`*aexp*,*aexp*`)`]`=[`*var2*[`(`*aexp*,*aexp*`)`] | `(` *exp* `)`]
+### `MAT` [`LET`] *var1*[`(`*aexp*,*aexp*`)`]`={`*var2*[`(`*aexp*,*aexp*`)`]|`(`*exp*`)`}
 
 Assigns the values in *var2* to the corresponding slots in *var1*, or the value of *exp* into all the slots of *var1*,. Works with both numbers and strings.
 
@@ -2336,7 +2336,9 @@ McD DATA/BASIC allowed you to use assignment to assign a numeric value to all th
     110 MAT A=C
     120 MAT C=B(2,3)
     130 MAT C=B
-    200 DATA ...
+    200 DATA 1,2,3,4,5,6,7,8,9,10,11,12
+    210 DATA 20,21,22,23,24,25,26,27,28,29,30,31
+    220 DATA 40,41,42,43,44,45
 
 In this example, line 100 will overwrite the values in A with those in B. The dimensions are the same so A remains otherwise unchanged. Line 110 will redimension A to (2,3) to match the dimensions of C, and then copy the values. Line 120 copies only the (2,3) elements from B, so C does not have to be redimensioned. Line 140 will cause a `?BAD SUBSCRIPT` error as C is not large enough to hold all the values in B.
 
@@ -2457,6 +2459,10 @@ Changes all of the slots in *avar* to 0, or if the optional *aexp*s are provided
 
 `ZER` can also be used with string arrays, which sets all values to the empty string.
 
+### `MAT` *var*`=NUL$`[(*aexp*,...)]
+
+An alternative form of `MAT A$=ZER` used in Dartmouth and DEC dialects to set all entries to the empty string.
+
 <!-- TOC --><a name="detaexp"></a>
 ### `DET`[(*dexp*)]
 
@@ -2472,7 +2478,7 @@ Changes all of the slots in *avar* to 0, or if the optional *aexp*s are provided
 <!-- TOC --><a name="error-handling"></a>
 ## Error handling
 
-Some versions of BASIC provide rudimentary error handling using the `TRAP` or `ON ERROR` statements. These will both be referred to here as *traps*. When a trap is turned on and an error occurs, or is *raised*, instead of printing the error message and stopping the program, the system branches to the indicated line and execution continues.
+Some versions of BASIC provide rudimentary error handling using the `TRAP` or `ON ERROR` statements. These will both be referred to here as *traps*. When a trap is turned on and an error occurs, or is *raised*, instead of printing the error message and stopping the program, the tem branches to the indicated line and execution continues.
 
 The code at this line is known as an *error handler*. When an error occurs, the error number and line number are placed in memory and then the system performs a `GOTO` into the handler. The handler allows the program to examine the error and decide how to continue. Most dialects allow the error number to be examined, as well as the line number where the error occurred. Jumping into the handler does not clear these values out, as one will generally want to examine them in the handler code. This is the purpose of the `RESUME` statement seen in some dialects, which clears the error codes and returns to the point where the error occurred. A `NEW`, `CLR` and `RUN` also clear out these values.
 
