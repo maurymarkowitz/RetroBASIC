@@ -1066,7 +1066,7 @@ A typical run might look like this:
 
 `PRINT` is used to produce output on the user's console. It is one of the most common statements found in most BASIC programs. The statement is designed to be very flexible, able to output values from any type of expression. In the case of string expressions, the output is sent unchanged to the console. For numeric values, the values are formatted to ensure very large or small numbers do not fill the screen.
 
-`PRINT` can accept any number of subsequent expressions, including zero. These expressions are separated with one of the three "print separators", the comma, the semicolon, or if the preceding expression is a string constant, nothing. The comma, the only separator in early versions of Dartmouth, adds a variable number of spaces between items so that they line up vertically. This made it easy to print tables. The semicolon, added later, leaves no space between values.
+`PRINT` can accept any number of subsequent expressions, including zero. These expressions are separated with one of the three "print separators", the comma, the semicolon, or if the preceding expression is a string constant, nothing. The comma, the only separator in early versions of Dartmouth, adds a variable number of spaces between items so that they line up vertically. This made it easy to print tables. The semicolon, added later, leaves no space between values. Prior to adding the semicolon, to tight-print one would put an empty string constant between expressions.
 
 `PRINT` normally outputs a newline after the last expression. It is not uncommon to see a "bare" `PRINT` statement with no expressions as a way to print a newline and leave blank vertical space. The newline is not output if the line ends with the semicolon or comma. In that case, any following `PRINT` will start on the same line.
 
@@ -1121,6 +1121,8 @@ produces:
 The column widths for commas vary across platforms; Dartmouth used 15 but the most common setting is 10 spaces, which is used by MS BASIC. RetroBASIC defaults to 10, but this can be changed with the `--tabs` command line switch.
 
 #### Variations:
+
+BASIC-PLUS on the PDP-11 used `&` as a short-form for `PRINT`, instead of `?`. This is seen in a number of programs in *101 BASIC Computer Games*. This is not currently supported in RetroBASIC.
 
 The SDS dialect seen on the Sigma 7 used the semicolon, `;`, as a short-form for `PRINT`, instead of `?`. It also used the semicolon in the more typical fashion as a print separator. This makes the action of the semicolon depend on its exact usage, for instance, `100 ;\;` prints two blank lines, as `\` is the statement separator, instead of `:`. `100 ;'HELLO';' prints a single line and leaves the cursor at the end of the O. This usage makes it incompatible with other dialects, and is not currently supported.
 

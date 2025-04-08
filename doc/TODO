@@ -10,11 +10,11 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
-- DELETE file... but also DELETE lines? UNSAVE on DEC
+- EduSystem basic allows multiple variables per LINPUT
+
+- Add & FROM BP as short form for print, if it is first char in statement?
 
 - BP (and HP?) allows multiple assignments with equals, A=B=C=10 - so does Tiny
-
-- add NUL$ from Dartmouth, used to clear string arrays in MAT A$=NUL$
 
 - add CHAIN, LOAD and RUN (and APPEND?)
 - and COMMON
@@ -28,8 +28,6 @@ BP - DEC BASIC-PLUS
 - add REDIM?
 
 - MAT INPUT should allow multi-input on a single line
-
-- LINPUT/LINE INPUT/INPUT LINE
 
 - IMAGE (etc) for PRINT USING with HP specifiers, and colon for image for other dialects
 
@@ -66,6 +64,8 @@ BP - DEC BASIC-PLUS
 - ERASE, clears variables (IBM Advanced BASIC)
 
 Debatable:
+
+- DELETE file... but also DELETE lines? UNSAVE on DEC
 
 - add SLEEP from DEC?
 
