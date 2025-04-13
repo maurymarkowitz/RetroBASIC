@@ -1251,11 +1251,7 @@ value_t evaluate_expression(const expression_t *expression)
             
             // convert to upper if needed
             if (upper_case) {
-              char *c = buff;
-              while (*c) {
-                c = str_toupper(c);
-                c++;
-              }
+              str_toupper(buff);
             }
 
             result.type = STRING;
@@ -2388,8 +2384,10 @@ static void perform_statement(list_t *statement_entry)
         new_for->_for.begin = evaluate_expression(statement->parms._for.begin).number;
         new_for->_for.end = evaluate_expression(statement->parms._for.end).number;
         
-        // the original gnbasic code did this, which is definitely non-standard and caused problems in SST
-        // is this perhaps ANSI? UPDATE: nope, ANSI actually uses this as an example of a no-body loop
+        // the original gnbasic code would set the step to -1 if the second parameter was smaller
+        // than the first. This is definitely NOT standard and caused problems in SST. The ANSI
+        // standard uses this as an example of a loop that should not run at all. So the code
+        // below does not have the -1 case and will exit after one loop.
         //                        if (new_for->begin < new_for->end)
         //                            new_for->step = 1;
         //                        else
@@ -2438,11 +2436,7 @@ static void perform_statement(list_t *statement_entry)
           
           // convert to upper if needed
           if (upper_case) {
-            char *c = buff;
-            while (*c) {
-              c = str_toupper(c);
-              c++;
-            }
+            str_toupper(buff);
           }
         }
         else {
@@ -2580,11 +2574,7 @@ REDO_INPUT:
           
           // optionally convert to upper case
           if (upper_case) {
-            char *c = line;
-            while (*c) {
-              c = str_toupper(c);
-              c++;
-            }
+            str_toupper(line);
           }
           
           // loop over the results until we run out of input
@@ -2772,56 +2762,69 @@ REDO_INPUT:
             break;
           }
         }
-        // see if we can get some data, we should at least get a return
-        char line[MAX_INPUT_LENGTH];
-        fflush(fp);
-        if (fgets(line, sizeof line, fp) == NULL) {
-          handle_error(ern_OUT_OF_DATA, "Reached the end-of-file while performing LINPUT");
-          return;
-        }
         
-        // test to see if the input is zero length or is a newline, if so,
-        // exit INPUT and continue running the program with the old values
-        if (strlen(line) == 0 || *line == '\r' || *line == '\n')
-          break;
-        
-        // null-terminate the string and remove any newline
-        line[strlen(line) - 1] = '\0';
-        
-        // optionally convert to upper case
-        if (upper_case) {
-          char *c = line;
-          c = str_toupper(c);
-        }
-        
-        // now assign the result to the first variable, which is the only one
-        list_t *current_item = lst_first_node(statement->parms.input);
-        printitem_t *ppi = current_item->data;
-        char *start = line;
-        char *end = line;
-        int type;
-        either_t *value = variable_value(ppi->expression->parms.variable, &type);
-        
-        // read one value based on the type of the variable
-        if (type >= NUMBER) {
-          value->number = strtod(start, &end);
-          
-          // check to make sure that is a number
-          // in this case we can't ask for a redo so we fail the app
-          if (value->number == 0.0 && start == end) {
-            handle_error(ern_INPUT_REDO, "String in numeric INPUT");
+        // BASIC-PLUS and EduSystem 50 allow more than one variable, most don't
+        // EduSystem 25 allows only one variable, and mostly uses it to enter strings longer than 6 chars,
+        //  in which case it produces an array of strings, 6 chars long each. This is not supported
+        for (list_t *current_item = lst_first_node(statement->parms.input); current_item != NULL; current_item = lst_next(current_item)) {
+          // the next item might be a separator or a prompt, skip those
+          while (current_item) {
+            if (((printitem_t *)current_item->data)->expression == NULL)
+              current_item = lst_next(current_item);
+            else if (((printitem_t *)current_item->data)->expression->type == string)
+              current_item = lst_next(current_item);
+            else
+              break;
           }
-          num_input++;
+          // did we roll off the end? maybe a trailing prompt?
+          if (current_item == NULL)
+            break;
+          
+          // get the name of this variable and munge it to an array if appropriate
+          printitem_t *ppi = current_item->data;
+          int type = 0;
+          either_t *value = variable_value(ppi->expression->parms.variable, &type);
+          
+          // see if we can get some data, we should at least get a return
+          char line[MAX_INPUT_LENGTH];
+          fflush(fp);
+          if (fgets(line, sizeof line, fp) == NULL) {
+            handle_error(ern_OUT_OF_DATA, "Reached the end-of-file while performing LINPUT");
+            return;
+          }
+          
+          // test to see if the input is zero length or is a newline, if so,
+          // exit INPUT and continue running the program with the old values
+          if (strlen(line) == 0 || *line == '\r' || *line == '\n')
+            break;
+          
+          // null-terminate the string and remove any newline
+          line[strlen(line) - 1] = '\0';
+          
+          // optionally convert to upper case
+          if (upper_case)
+            str_toupper(line);
+          
+          // read one value based on the type of the variable
+          char *end = line;
+          if (type >= NUMBER) {
+            value->number = strtod(line, &end);
+            
+            // check to make sure that is a number
+            // in this case we can't as for a redo so we fail the app
+            if (value->number == 0.0 && line == end) {
+              handle_error(ern_INPUT_REDO, "String in numeric INPUT");
+            }
+            num_input++;
 
-          // strtod leaves us on the separator, so...
-          if (*end == ',' || *end == ' ')
-            end++;
-        } else {
-          // strings are pretty easy in this case
-          value->string = str_new(line);
-          num_input++;
-        }
-
+            // strtod leaves us on the separator, so...
+            if (*end == ',' || *end == ' ')
+              end++;
+          } else {
+            value->string = strtostr(end, &end);
+            num_input++;
+          }
+        } // go to next variable
       }
         break;
 
@@ -3679,7 +3682,7 @@ EXIT_MAT_INPUT:
       {
         // GW BASIC and Dartmouth work differently. In Dartmouth, RANDOMIZE with no
         // parameter is supposed to select a random seed, which is what happens here.
-        // in GW, that should display a prompt asking for the value, which seems
+        // in GW, it will display a prompt asking for the value, which seems
         // odd. To get the Dartmouth behaviour in GW, one uses RANDOMIZE TIMER
         // which is even more odd.
         
