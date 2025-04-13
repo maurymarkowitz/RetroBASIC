@@ -10,11 +10,9 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
-- EduSystem basic allows multiple variables per LINPUT
-
 - Add & FROM BP as short form for print, if it is first char in statement?
 
-- BP (and HP?) allows multiple assignments with equals, A=B=C=10 - so does Tiny
+- BP (and HP?) allows multiple assignments with equals, A=B=C=10 - so does Tiny, BP also allows A,B,C=0
 
 - add CHAIN, LOAD and RUN (and APPEND?)
 - and COMMON

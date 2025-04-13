@@ -24,7 +24,7 @@ RetroBASIC is based on gnbasic by James Bowman.
  
 ## Running RetroBASIC
 
-RetroBASIC is meant to be used with an existing program source file, not interactively. To run it, use:
+RetroBASIC is meant to be used with an existing program source file, not interactively. To run it, use a command similar to this example, replacing the "program.bas" with the name of the text file containing the BASIC program you wish to run:
 
 ```./retrobasic program.bas```
 
