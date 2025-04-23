@@ -103,6 +103,8 @@ Will not be done:
 
 - it would not be difficult to allow any variable to hold a string, but in most dialects that is an error.
 
+- EduSystem 25 BASIC has a weird LINPUT that is just "longer string INPUT", and does not work like LINPUT in BP or others
+
 - STORE and RECALL from Applesoft, which writes and reads all the values in an array to cassette.
 
 - RESTORE* and RESTORE$ from Dartmouth, which reset the numeric vs. string DATA pointers.
