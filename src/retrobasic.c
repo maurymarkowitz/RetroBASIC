@@ -2615,8 +2615,11 @@ REDO_INPUT:
               if (*end == ',' || *end == ' ')
                 end++;
             } else {
+              // get rid of any previous string
+              if (value->string)
+                free(value->string);
               // our code strips the separator
-              value->string = strtostr(end, &end);
+              value->string = str_new(strtostr(end, &end));
               num_input++;
             }
             
@@ -2715,7 +2718,10 @@ REDO_INPUT:
               if (*end == ',' || *end == ' ')
                 end++;
             } else {
-              value->string = strtostr(end, &end);
+              if (value->string)
+                free(value->string);
+              // our code strips the separator
+              value->string = str_new(strtostr(end, &end));
               num_input++;
             }
             
@@ -2821,7 +2827,10 @@ REDO_INPUT:
             if (*end == ',' || *end == ' ')
               end++;
           } else {
-            value->string = strtostr(end, &end);
+            if (value->string)
+              free(value->string);
+            // our code strips the separator
+            value->string = str_new(strtostr(end, &end));
             num_input++;
           }
         } // go to next variable
