@@ -1141,9 +1141,9 @@ Neither of these is currently supported in RetroBASIC, although `PRINT USING` ca
 <!-- TOC --><a name="print-using-expexp"></a>
 ### `PRINT USING` [*exp*]{,|;}*exp*[{|[;|,]},...]]
 
-`PRINT USING` is a variation of the `PRINT` statement that adds a "format string" to define how the following expressions should be formatted. This can define, for instance, how floating point numbers should be printed, including the number of digits after the decimal point, or to add a dollar sign at the front. There are a wide variety of formatting strings supported by various dialects, as well as different ways to specify them in the statement. RetroBASIC does its best to support as many of these as possible.
+`PRINT USING` is a variation of the `PRINT` statement that adds a *format string* that defines how the following expressions should be formatted. This can define, for instance, how floating point numbers should be printed, including the number of digits after the decimal point, or to add a dollar sign at the front. There are a wide variety of formatting strings supported by various dialects, as well as different ways to specify them in the statement. RetroBASIC does its best to support as many of these as possible.
 
-The most common variations allow a string constant to be placed directly after the `USING`, known as the "image" or "format string". The image contains special characters that indicate what should be printed at that location. Other characters found in the image are output as-is. One of the most commonly used special characters is the hash, `#`, which indicates a digit should be printed in that location. Values can be forced to integer format using an image string like `"####`" or currency format with `"###.##"`. Because other characters are output as-is, a typical image mixes the two, for instance, `"The price is $####.## per pound."`
+The most common variations allow a string constant to be placed directly after the `USING`, sometimes known as the *image*. The image contains special characters that indicate what should be printed at that location. Other characters found in the image are output as-is. One of the most commonly used special characters is the hash, `#`, which indicates a digit should be printed in that location. Values can be forced to integer format using an image string like `"####`" or currency format with `"###.##"`. Because other characters are output as-is, a typical image mixes the two, for instance, `"The price is $####.## per pound."`
 
 While a number of dialects require the image to be specified as a string constant, some allow the image to be stored in a string variable. Additionally, most dialects supported some way to specify the image explicitly on a separate line, as was the case in Fortran where this feature originates. The most common syntax was to place a colon directly after a line number, and then refer to that in the `USING` clause by that line number. HP BASIC used the `IMAGE` statement which worked in a similar fashion, but used different format characters.
 
@@ -1850,6 +1850,10 @@ Returns a new string containing the right-most *aexp* characters from the string
 Produces:
 
     Hello          World
+    
+#### See also: 
+
+* `TAB`
 
 <!-- TOC --><a name="stringrepeat-aexpsexpaexp2"></a>
 ### {`STRING$`|`REPEAT$`} (*aexp*,[{*sexp*|*aexp2*}])
@@ -1868,7 +1872,7 @@ Produces:
 
 Early instances of `STRING$`, in BASIC-PLUS for instance, only support a single ASCII character value in the second parameter. The ability to use a string parameter appeared later; it was available on the TRS-80, but it is unlikely that was the first example.
 
-`REPEAT$` is an alternative listed in Lien's *The BASIC Handbook*, but it does not mention which dialects use it.
+`REPEAT$` is an alternative listed in Lien's *The BASIC Handbook*, but it does not mention which dialects use it. RetroBASIC supports this in case it ever turns up.
 
 #### Availability:
 
@@ -1877,7 +1881,11 @@ Early instances of `STRING$`, in BASIC-PLUS for instance, only support a single 
 <!-- TOC --><a name="straexp"></a>
 ### `STR$`(*aexp*)
 
-This function returns a string that represents the ASCII representation of the number in *aexp*. For instance, if the *aexp* evaluates to 25, this function returns the string "25". The `PRINT` statement performs this conversion automatically, so `STR$` is normally used when constructing strings from multiple parts, like `A$="Hello, "+STR$(25)+" times."`, which produces "Hello, 25 times.".
+This function returns a string that represents the ASCII decimal representation of the number in *aexp*. For instance, if the *aexp* evaluates to 25, this function returns the string "25". The `PRINT` statement performs this conversion automatically, so `STR$` is normally used when constructing strings from multiple parts, like `A$="Hello, "+STR$(25)+" times."`, which produces "Hello, 25 times.".
+
+#### Variations:
+
+The text adventure game Survival found in the January 1982 issue of *Creative Computing* has a dialect that uses `STR`, with no `$`, which works like `MID$`. The dialect appears to be one the author himself wrote, and this version is not supported in RetroBASIC.
 
 <!-- TOC --><a name="valsexp"></a>
 ### {`VAL`|`NUM`}(*sexp*)
@@ -2376,16 +2384,16 @@ This code reads a vector of 5 values, then a 3 by 3 matrix. It then prints:
 
 #### Variations:
 
-According to *Illustrating BASIC*, some, or many, versions of MAT PRINT add an empty line between the rows of a matrix. RetroBASIC does not do this, as most printed examples do not appear to actually do this.
+According to *Illustrating BASIC*, some, or many, versions of MAT PRINT add an empty line between the rows of a matrix. Actual printed examples of code using this statement do not appear to actually do this, so RetroBASIC doesn't either.
 
 <!-- TOC --><a name="mat-input-avaravar"></a>
 ### `MAT INPUT` *avar*[,*avar*,...]]
 
 `MAT INPUT` reads multiple values from the command line, filling the vector or matrix by column and then row. Unlike a normal `INPUT`, no prompt is allowed, and only array variables can be used.
 
-`MAT INPUT` normally reads a value for every slot in the array, similar to `MAT READ`. However, it parses this data from a single input line, which may not contain enough values to fully populate the array. In this case, no error is reported, and the remaining slots are simply ignored and will contain any value they did before. It sets the pseudo-variable `NUM` to the number of items read, so you can check for this case in code.
+`MAT INPUT` normally reads a value for every slot in the array, similar to `MAT READ`. However, it parses this data from a single input line, which may not contain enough values to fully populate the array. This would occur, for instance, if you `DIM A(5):MAT INPUT A` and the user types in three values. In this case, no error is reported, and the remaining slots are simply ignored and will contain any value they did before. It sets the pseudo-variable `NUM` to the number of items read, so you can check for this case in code.
 
-*Illustrating BASIC* suggests you should *not* use `MAT INPUT`. This is because the command does not allow a prompt and there is no chance to print anything between each value being input. Worse, there is no way to test the results one-by-one, you will only know there is an issue after all of the values have been typed in and will now have to be re-entered from the start if there was a problem. Using an `INPUT` in a `FOR` loop allows the values to be tested and re-typed individually.
+*Illustrating BASIC* suggests you should *not* use `MAT INPUT`. This is because the command does not allow a prompt and there is no chance to print anything between each value being input. Worse, there is no way to test the results one-by-one, you will only know there is an issue after all of the values have been typed in, in which case you will now have to re-enter everything from the start. Using an `INPUT` in a `FOR` loop allows the values to be tested and re-typed individually.
 
 There is also the issue that terminals of the era did not allow you to type more values than could fit on a single line, generally 80 to 132 characters. Different implementations offered different solutions to this problem, or none at all. Dartmouth BASIC, for instance, allowed you to type an ampersand to indicate more data would follow on the next line, but this was not universal across implementations. For all of these reasons *Illustrating BASIC* concludes "So for the sake of portability, if nothing else, don't use 'MAT INPUT' for demanding data from the keyboard."
 
@@ -2406,15 +2414,17 @@ Assigns the values in B to the corresponding slot in A, making a copy of B. A mu
 
     MAT A=B(5,5)
 
-Which assigns the values of B(1,1) through B(5,5) into A. A will now be a 5x5 matrix. RetroBASIC also allows you to use the IBM 5100 version of the subarray specification:
+Which assigns the values of B(1,1) through B(5,5) into A. A will now be a 5x5 matrix.
+
+RetroBASIC also allows you to use the IBM 5100 version of the subarray specification:
 
     MAT A(5,5)=B
 
-Also following the 5100 models, RetroBASIC also allows the right-hand-side to be an expression that returns a value instead of a second array. In this case, the value will be assigned to all of the slots in the destination array. To indicate this you have to place the expression in parens:
+Also following the 5100 model, RetroBASIC allows the right-hand-side to be an expression that returns a value instead of a second array. In this case, the value will be assigned to all of the slots in the destination array. To indicate this you have to place the expression in parens:
 
     MAT A=(5)
 
-Will assign the value "5" to every slot in A. This syntax can be used to replace calls to ZER and CON, but this should be avoided for compatibility reasons.
+This will assign the value "5" to every slot in A. This syntax can be used to replace calls to ZER and CON, but this should be avoided for compatibility reasons.
 
     MAT A=B+C
 
@@ -2431,12 +2441,12 @@ Scalar multiplication; calculates the value of the expression on the left, in th
 <!-- TOC --><a name="mat-avarconaexp"></a>
 ### `MAT` *avar*`=CON`[(*aexp*,...)]
 
-Changes all of the slots in *avar* to 1, or the slots in the subarray. Works for both 1-d vectors and 2-d matrixes. Cannot be used with string arrays.
+Changes all of the slots in *avar* to 1, or the slots in the subarray if one is defined. Works for both 1-d vectors and 2-d matrixes. Cannot be used with string arrays.
 
 <!-- TOC --><a name="mat-avaridnaexp"></a>
 ### `MAT` *avar*`=IDN`[(*aexp*,...)]
 
-Places 1's in the diagonal of a 2-d matrix, creating an *identity matrix*. A runtime error will occur if *avar* is a vector or scalar, and the array must be square. Cannot be used with string arrays.
+Places 1's in the diagonal of a 2-d matrix, creating an *identity matrix*. A runtime error will occur if *avar* is a vector or scalar, or if the array is not square. Cannot be used with string arrays.
 
 <!-- TOC --><a name="mat-avar1invavar2nvar"></a>
 ### `MAT` *avar1*`=INV(`*avar2*`)[`,`*nvar*]
@@ -2480,13 +2490,13 @@ An alternative form of `MAT A$=ZER` used in Dartmouth and DEC dialects to set al
 <!-- TOC --><a name="error-handling"></a>
 ## Error handling
 
-Some versions of BASIC provide rudimentary error handling using the `TRAP` or `ON ERROR` statements. These will both be referred to here as *traps*. When a trap is turned on and an error occurs, or is *raised*, instead of printing the error message and stopping the program, the tem branches to the indicated line and execution continues.
+Some versions of BASIC provide rudimentary error handling using the `TRAP` or `ON ERROR` statements. These will both be referred to here as *traps*. When a trap is turned on and an error occurs, or is *raised*, instead of printing the error message and stopping the program, the system branches to the indicated line and execution continues.
 
-The code at this line is known as an *error handler*. When an error occurs, the error number and line number are placed in memory and then the system performs a `GOTO` into the handler. The handler allows the program to examine the error and decide how to continue. Most dialects allow the error number to be examined, as well as the line number where the error occurred. Jumping into the handler does not clear these values out, as one will generally want to examine them in the handler code. This is the purpose of the `RESUME` statement seen in some dialects, which clears the error codes and returns to the point where the error occurred. A `NEW`, `CLR` and `RUN` also clear out these values.
+The code at this line is known as an *error handler*. When an error occurs, the error number and line number are saved in memory and then the system performs a `GOTO` into the handler. The handler allows the program to examine the error and decide how to continue. Most dialects save the values in system variables, which allow the error number line number where the error occurred to be examined. Jumping into the handler does not clear these values out, and they generally cannot be set directly using a `LET`. This is the purpose of the `RESUME` statement seen in some dialects, which clears the error codes and returns to the point where the error occurred. A `NEW`, `CLR` and `RUN` also clear out these values.
 
 Dialects differ significantly on the details of how these features are turned on and off, and how the error can be examined and recovered. For instance, in Applesoft BASIC, which supports the `ONERR` statement, the error number is discovered using `PEEK(222)`. On the Atari, which uses `TRAP` to turn them on, you use `PEEK(195)` to get the number. One of the few contemporary dialects that directly supported reading the error number were the later versions of Commodore BASIC, which used a system variable `ER` that was set to the error number, and `EL` which held the line number. Attempting to assign a value to either would cause an error. Unfortunately, these are valid variable names, which meant that programs that used these as normal variables would cause errors when run under 3.5. RetroBASIC implements these as functions instead of variables, `ERR()` for error number and `ERL()` for error line, which avoids this problem.
 
-The simple trap concept used in BASIC is subject to a number of problems. Among these is that if an error occurs *in* the handler, then it can trap back into itself and cause an infinite loop. Additionally, few, if any, dialects allow only specific errors to be trapped, it's normally all or nothing, which means the handler has to be very generic as it might receive any error, not just the ones it was written to handle.
+The simple trap concept used in BASIC is subject to a number of problems. Among these is that if an error occurs *in* the handler, then it can trap back into itself and cause an infinite loop. Additionally, few, if any, dialects allow specific errors to be trapped, it's normally all or nothing. This means the handler has to be very generic as it might receive any error, not just the ones it was written to handle.
 
 <!-- TOC --><a name="trapon-error-gotoonerr-goto-aexp"></a>
 ### {`TRAP`|`ON ERROR GOTO`|`ONERR GOTO`} [*aexp*]
@@ -2500,7 +2510,7 @@ Note that `ON ERROR` can only be used with a `GOTO`, in contrast to a normal `ON
 <!-- TOC --><a name="errorraise-aexp"></a>
 ### {`ERROR`|`RAISE`} *aexp*
 
-Causes an error to be raised with the error number *aexp*. Generally used for testing purposes.
+Causes an error to be raised with the error number *aexp*. This is mostly used within error handlers that cannot handle a particular error. For instance, if you have an error handler that is written to handle `FILE NOT FOUND` errors, it is possible that it will receive any other error, say `SYNTAX ERROR`. In this case the error would be suppressed, so the error handler can add a `RAISE` if the error number is not expected, causing the error to be reported to user as expected. This statement is also useful for testing the error handling by inserting a `RAISE` near the start of the program.
 
 <!-- TOC --><a name="resume-next-aexp"></a>
 ### `RESUME` {`NEXT`|*aexp*}
