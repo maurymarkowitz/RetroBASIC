@@ -29,7 +29,7 @@
  *
  * The numbers are mostly taken from Commodore BASIC B, and will provide
  * some level of compatibility. A number of these are not used by RetroBASIC,
- * like STRING TO LONG, which simply can't occur. The numbers for these
+ * like STRING TOO LONG, which simply can't occur. The numbers for these
  * unused codes are defined for completeness, but the corresponding message
  * text is not defined and there is no entry in the mapping array.
  *
@@ -47,19 +47,19 @@
 #define ern_FILE_OPEN         2      // attempt to OPEN a file that's already OPEN
 #define ern_FILE_NOT_OPEN     3      // attempt to use a file that's not OPEN
 #define ern_FILE_NOT_FOUND    4      // attempt to OPEN a non-existent file
-#define ern_DEV_NOT_FOUND     5      // attempt to OPEN a non-existent device - used for paths
+#define ern_DEV_NOT_FOUND     5      // attempt to OPEN a non-existent device. in RetroBASIC this is used for non-existent paths
 #define ern_FILE_NOT_INPUT    6      // attempt to INPUT/GET from a file opened for writing
 #define ern_FILE_NOT_OUTPUT   7      // attempt to PRINT/PUT to a file opened for reading
 #define ern_FILENAME_MISSING  8      // attempt to OPEN a file with no filename
-#define ern_BAD_DEVICE_NUM    9      // attempt to OPEN a device that is invalid
-#define ern_ARE_YOU_SURE      10     // causes "are you sure" message before writing, unused in RetroBASIC
+#define ern_BAD_DEVICE_NUM    9      // attempt to OPEN a device that is invalid. unused in RetroBASIC, it uses ern_DEV_NOT_FOUND instead
+#define ern_ARE_YOU_SURE      10     // causes "are you sure" message before writing. unused in RetroBASIC
 #define ern_FILE_EXISTS       11     // originally ern_BAD_DISK, repurposed as exiting file
 
 #define ern_READY             12     // no error but paused in ready state
-#define ern_IN                13     // not an error, this points to the string " IN ". unused in RetroBASIC
+#define ern_IN                13     // not an error, this points to the string " IN " used during error reporting. unused in RetroBASIC
 #define ern_BREAK             14     // the user has pressed the BREAK key
 #define ern_INPUT_EXTRA       15     // too many items in the input line, extras ignored
-#define ern_INPUT_REDO        16     // input character data for a numeric variable
+#define ern_INPUT_REDO        16     // input contains character data for a numeric variable
 #define ern_LAST_NUMBER       17     // not an error, returns last number parsed. unused in RetroBASIC
 #define ern_MORE              18     // not an error, this points to the string "MORE". unused in RetroBASIC
 #define ern_POWER_ON_MSG      19     // not an error, prints a startup message. unused in RetroBASIC
@@ -68,16 +68,16 @@
 #define ern_RET_NO_GOSUB      22     // RETURN without a GOSUB on the stack
 #define ern_OUT_OF_DATA       23     // READ with no remaining data
 #define ern_ILLEGAL_VALUE     24     // any parameter out-of-range, like a MID with a start parameter outside the string
-#define ern_OVERFLOW          25     // result of calculation is out-of-range - unused in RetroBASIC
+#define ern_OVERFLOW          25     // result of calculation is out-of-range. unused in RetroBASIC
 #define ern_OUT_OF_MEMORY     26     // unused in RetroBASIC
 #define ern_NO_SUCH_LINE      27     // branch to a non-existing line, aka UNDEFINED STATEMENT
 #define ern_BAD_SUBSCRIPT     28     // array access outside DIMed range
 #define ern_REDIM_ARRAY       29     // DIM being called on an already DIMed variable
 #define ern_DIV_BY_ZERO       30     // any division by zero, including integer division
-#define ern_DIRECT_MODE       31     // INPUT/GET cannot be used in direct mode - unused in RetroBASIC
+#define ern_DIRECT_MODE       31     // INPUT/GET cannot be used in direct mode. unused in RetroBASIC
 #define ern_TYPE_MISMATCH     32     // number provided to string operation or vice versa
 #define ern_STRING_TO_LONG    33     // unused in RetroBASIC
-#define ern_FILE_DATA         34     // attempt to read a number from a file but get a non-number. unused in RetroBASIC, returns 32 instead
+#define ern_FILE_DATA         34     // attempt to read a number from a file but got a non-number. unused in RetroBASIC, returns 32 instead
 #define ern_FORMULA_TOO_LONG  35     // unused in RetroBASIC
 // no definition for 36 can be found
 #define ern_DEF_UNKNOWN       37     // call to user-defined function that doesn't exist
