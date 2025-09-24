@@ -10,7 +10,7 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
-- Add & FROM BP as short form for print, if it is first char in statement?
+- CLK should insert colons?
 
 - BP (and HP?) allows multiple assignments with equals, A=B=C=10 - so does Tiny, BP also allows A,B,C=0
 
@@ -25,7 +25,11 @@ BP - DEC BASIC-PLUS
 
 - add REDIM?
 
+- ON BREAK GOTO from NewBrain and similar statements from others?
+
 - MAT INPUT should allow multi-input on a single line
+
+- OPTION VERSION from ByWater might be useful
 
 - IMAGE (etc) for PRINT USING with HP specifiers, and colon for image for other dialects
 
@@ -63,11 +67,11 @@ BP - DEC BASIC-PLUS
 
 Debatable:
 
+- @(x,y) and POS(x,y) which work similar to TAB but position vertically as well
+
+- Add & FROM BP and EduSystem BASIC as short form for print, if it is first char in statement? And maybe ; and nothing but a leading quote?
+
 - DELETE file... but also DELETE lines? UNSAVE on DEC
-
-- add SLEEP from DEC?
-
-- EduSystem BASIC uses & as the short-form for print
 
 - SDS BASIC allows semicolons as the short form for PRINT. This could be supported as it can only be the first statement, otherwise it's a normal semi
 
@@ -88,6 +92,8 @@ Debatable:
 - add TEN function, alias for HEX found in Apple Business BASIC?
 
 - UK BASICs generally use LN for LOG and LOG for CLOG. Add a switch for this?
+
+- WB uses CONVERT for ASC, which steps on HPs CONVERT. This could be supported by looking at the parameter type.
 
 - cotan etc?
 
@@ -114,8 +120,6 @@ Will not be done:
 - IP and FP, aliases for FIX and FRAC, too easily overlap with variable names.
 
 - EXAM and FETCH aliases to PEEK from North Star and Opus and similar. No point, this returns 0 anyway.
-
-- WB uses CONVERT for ASC, which steps on HPs CONVERT.
 
 - NUM, which is Digital Group's version of VAL, or NUM$ which is the same as STR$. overlaps with INPUT's NUM function
 
