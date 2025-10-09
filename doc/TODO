@@ -21,6 +21,8 @@ BP - DEC BASIC-PLUS
 
 - add clear_variables and change CLEAR
 
+- if OPTION BASE 1, should matrix commands work differently?
+
 - word wrap at a given column
 
 - add REDIM?
@@ -104,6 +106,10 @@ Debatable:
 - option for INT to be trunc instead of floor? it's this way in early Dartmouth and a few later versions like Benton Harbour, but very rare.
 
 - add Wang style AND function, AND(string, hex mask), masks string and returns it.
+
+- SUSPEND from DG and BASIC75, identical to DEC SLEEP
+
+- WAIT from BASIC-PLUS, and/or ENTER from BASIC75, and similar features from others.
 
 Will not be done:
 
