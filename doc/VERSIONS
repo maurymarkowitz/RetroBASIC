@@ -170,7 +170,7 @@ Version 2.0.2 - 31 December 2024
 - added NUM, which returns the number of items entered in MAT INPUT, and in RetroBASIC, normal INPUT as well
 - MAT INPUT now works with both string and number arrays
 - fixed issue in MAT INPUT which raised an error if the input was empty
-- separated out input/output routines for file handling
+- separated out input/output routines for file handling, for code clarity
 
 Version 2.1.0 - 14 January 2025
 
@@ -183,6 +183,9 @@ Added basic file support, based mostly on Commodore BASIC but folding in options
 Version 2.1.1 - 16 January 2025
 
 - added EOF function for working with files
-- correctly check for read/write status when reading and writing
+- correctly check for read/write status on the file when reading and writing
 - added FILE EXISTS error, returned when attempt to open an existing file for writing (as opposed to NOT FOUND)
 
+Version 2.1.2 - 16 September 2025
+
+- added a new statistic that determines if a decimal number can be exactly represented in binary
