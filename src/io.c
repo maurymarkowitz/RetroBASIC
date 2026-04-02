@@ -22,11 +22,18 @@
 
 #include "errors.h" // we do error reporting in this module
 #include <sys/stat.h> // various unix file utilities
+#include <limits.h>
 
 #ifdef WIN32
 #include <io.h>
+#include <conio.h>
+#include <direct.h>
+
 #define F_OK 0
+#define R_OK 4
+#define W_OK 2
 #define access _access
+#define realpath(path, resolved) _fullpath((resolved), (path), PATH_MAX)
 #endif
 
 #define MAX_OPEN_FILES 16 //!< the maximum number of files that can be open at once
@@ -318,6 +325,9 @@ bool delete_file(const char *file)
  */
 int getbyte(void)
 {
+#if defined(_WIN32) || defined(WIN32)
+  return _getch();
+#else
   int ch;
   struct termios old_attrs, new_attrs;
   tcgetattr(STDIN_FILENO, &old_attrs);
@@ -329,6 +339,7 @@ int getbyte(void)
   system("stty echo");
   tcsetattr(STDIN_FILENO, TCSANOW, &old_attrs);
   return ch;
+#endif
 }
 
 /*
