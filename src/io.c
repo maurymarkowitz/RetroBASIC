@@ -24,7 +24,7 @@
 #include <sys/stat.h> // various unix file utilities
 #include <limits.h>
 
-#ifdef WIN32
+#if defined(WIN32) || defined(_WIN32)
 #include <io.h>
 #include <conio.h>
 #include <direct.h>
