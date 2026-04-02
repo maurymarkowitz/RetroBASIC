@@ -1,0 +1,23 @@
+# Xcode user and build artifacts
+RetroBASIC.xcodeproj/project.xcworkspace
+RetroBASIC.xcodeproj/xcshareddata
+RetroBASIC.xcodeproj/xcuserdata
+DerivedData/
+
+# macOS filesystem and debug artifacts
+.DS_Store
+*.dSYM
+*.xcuserdata
+*.xcuserstate
+*.xcscmblueprint
+
+# build artifacts
+retrobasic
+*.o
+*.out
+parse.tab.c
+parse.tab.h
+lex.yy.c
+parse.output
+*/.obj
+

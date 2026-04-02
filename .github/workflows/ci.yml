@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential flex bison zip
+      - name: Build
+        run: |
+          make clean
+          make
+      - name: Smoke test
+        run: |
+          ./retrobasic --help
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: retrobasic-linux
+          path: retrobasic
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build deps
+        run: |
+          brew update
+          brew install flex bison
+      - name: Build
+        run: |
+          make clean
+          make
+      - name: Smoke test
+        run: |
+          ./retrobasic --help
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: retrobasic-macos
+          path: retrobasic
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup MSYS2 / MINGW64
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: |
+            mingw-w64-x86_64-toolchain
+            pkgconf
+            make
+            flex
+            bison
+      - name: Build (MINGW64)
+        shell: msys2 {0}
+        run: |
+          make clean RM="rm -f" || true
+          make CC=x86_64-w64-mingw32-gcc
+      - name: Smoke test (MINGW64)
+        shell: msys2 {0}
+        run: |
+          ./retrobasic.exe --help
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: retrobasic-windows
+          path: retrobasic.exe
