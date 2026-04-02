@@ -28,6 +28,9 @@
 #include <io.h>
 #include <conio.h>
 #include <direct.h>
+#if !defined(_MSC_VER)
+#include <unistd.h>  /* MinGW: access(), isatty() */
+#endif
 
 #define F_OK 0
 #define R_OK 4
@@ -35,9 +38,6 @@
 
 #if defined(_MSC_VER)
   #define access _access
-#else
-  /* MinGW has access() directly; avoid aliasing existing behavior */
-  #define access access
 #endif
 
 #define realpath(path, resolved) _fullpath((resolved), (path), PATH_MAX)
