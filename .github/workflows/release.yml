@@ -1,0 +1,143 @@
+name: Release builds
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag to upload assets to (e.g. v2.1.2)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux-x86_64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build deps
+        run: sudo apt-get update && sudo apt-get install -y build-essential flex bison zip
+      - name: Build (x86_64)
+        run: |
+          make clean
+          make
+      - name: Package
+        run: |
+          mkdir -p dist/retrobasic-linux-x86_64/bin
+          cp retrobasic dist/retrobasic-linux-x86_64/bin/
+          cp README.md dist/retrobasic-linux-x86_64/
+          cp -r bas dist/retrobasic-linux-x86_64/
+          cd dist && zip -r retrobasic-linux-x86_64.zip retrobasic-linux-x86_64/
+      - name: Upload to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ github.event.release.tag_name || inputs.tag_name }}" dist/retrobasic-linux-x86_64.zip --clobber
+
+  build-macos-x86_64:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build deps
+        run: brew update && brew install flex bison zip
+      - name: Build (x86_64)
+        run: |
+          make clean
+          make
+      - name: Package
+        run: |
+          mkdir -p dist/retrobasic-macos-x86_64/bin
+          cp retrobasic dist/retrobasic-macos-x86_64/bin/
+          cp README.md dist/retrobasic-macos-x86_64/
+          cp -r bas dist/retrobasic-macos-x86_64/
+          cd dist && zip -r retrobasic-macos-x86_64.zip retrobasic-macos-x86_64/
+      - name: Upload to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ github.event.release.tag_name || inputs.tag_name }}" dist/retrobasic-macos-x86_64.zip --clobber
+
+  build-macos-arm64:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build deps
+        run: brew update && brew install flex bison zip
+      - name: Build (arm64)
+        run: |
+          make clean
+          make
+      - name: Package
+        run: |
+          mkdir -p dist/retrobasic-macos-arm64/bin
+          cp retrobasic dist/retrobasic-macos-arm64/bin/
+          cp README.md dist/retrobasic-macos-arm64/
+          cp -r bas dist/retrobasic-macos-arm64/
+          cd dist && zip -r retrobasic-macos-arm64.zip retrobasic-macos-arm64/
+      - name: Upload to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ github.event.release.tag_name || inputs.tag_name }}" dist/retrobasic-macos-arm64.zip --clobber
+
+  build-linux-aarch64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build deps
+        run: sudo apt-get update && sudo apt-get install -y build-essential flex bison zip gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+      - name: Build (aarch64)
+        run: |
+          make clean
+          make CC=aarch64-linux-gnu-gcc
+      - name: Package
+        run: |
+          mkdir -p dist/retrobasic-linux-aarch64/bin
+          cp retrobasic dist/retrobasic-linux-aarch64/bin/
+          cp README.md dist/retrobasic-linux-aarch64/
+          cp -r bas dist/retrobasic-linux-aarch64/
+          cd dist && zip -r retrobasic-linux-aarch64.zip retrobasic-linux-aarch64/
+      - name: Upload to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ github.event.release.tag_name || inputs.tag_name }}" dist/retrobasic-linux-aarch64.zip --clobber
+
+  build-windows-x86_64:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup MSYS2 / MINGW64 and install deps
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: |
+            mingw-w64-x86_64-toolchain
+            pkgconf
+            make
+            flex
+            bison
+            zip
+      - name: Build (MINGW64)
+        shell: msys2 {0}
+        run: |
+          make clean RM="rm -f" || true
+          make CC=x86_64-w64-mingw32-gcc
+      - name: Package (MINGW64)
+        shell: msys2 {0}
+        run: |
+          mkdir -p dist/retrobasic-windows-x86_64/bin
+          cp retrobasic.exe dist/retrobasic-windows-x86_64/bin/
+          cp README.md dist/retrobasic-windows-x86_64/
+          cp -r bas dist/retrobasic-windows-x86_64/
+          cd dist && zip -r retrobasic-windows-x86_64.zip retrobasic-windows-x86_64/
+      - name: Upload to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          gh release upload "${{ github.event.release.tag_name || inputs.tag_name }}" dist/retrobasic-windows-x86_64.zip --clobber

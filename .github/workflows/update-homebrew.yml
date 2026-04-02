@@ -1,0 +1,40 @@
+name: Update Homebrew Tap
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Download release tarball
+        run: |
+          curl -L -o source.tar.gz "${{ github.event.release.tarball_url }}"
+
+      - name: Compute SHA256
+        id: sha
+        run: |
+          echo "sha=$(sha256sum source.tar.gz | cut -d ' ' -f1)" >> $GITHUB_OUTPUT
+
+      - name: Clone homebrew tap
+        run: |
+          git clone https://x-access-token:${{ secrets.HOMEBREW_TAP_TOKEN }}@github.com/maurymarkowitz/homebrew-tap.git
+          cd homebrew-tap
+
+          url="https://github.com/maurymarkowitz/RetroBASIC/archive/refs/tags/${{ github.event.release.tag_name }}.tar.gz"
+          sha="${{ steps.sha.outputs.sha }}"
+
+          sed -i "s|^  url \".*\"|  url \"${url}\"|" Formula/retrobasic.rb
+          sed -i "s|^  sha256 \".*\"|  sha256 \"${sha}\"|" Formula/retrobasic.rb
+
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+
+          git add Formula/retrobasic.rb
+          git commit -m "Update retrobasic to ${{ github.event.release.tag_name }}"
+          git push
