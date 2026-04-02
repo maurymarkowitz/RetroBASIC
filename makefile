@@ -23,11 +23,11 @@ $(TARGET): $(wildcard src/*.c) parse.tab.c lex.yy.c
 
 # if the lex or .tab.h file is changed, run lex again
 lex.yy.c: src/scan.l parse.tab.h
-	$(LEX) $(LEXFLAGS) $<
+	$(LEX) -o $@ $<
 
 # If the yacc file is changed, run yacc again.
 parse.tab.c parse.tab.h: src/parse.y
-	$(YAC) $(YFLAGS) $<
+	$(YAC) $(YFLAGS) -o $@ $<
 
 clean:
 	$(rm) $(TARGET) $(TARGET).o
