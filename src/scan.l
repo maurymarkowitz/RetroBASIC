@@ -35,11 +35,11 @@ Boston, MA 02111-1307, USA.  */
 
 #if defined(WIN32) || defined(_WIN32)
 #include <io.h>
+#if !defined(_MSC_VER)
+#include <unistd.h>  /* MinGW: isatty() */
+#endif
 #if defined(_MSC_VER)
 #define isatty _isatty
-#else
-/* MinGW uses isatty directly */
-#define isatty isatty
 #endif
 #endif
 
