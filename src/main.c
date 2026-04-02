@@ -175,17 +175,17 @@ void parse_options(int argc, char *argv[])
     }
   } // while
   
+  // if help or version was printed, exit early without requiring a file
+  if (printed_help)
+    exit(EXIT_SUCCESS);
+  
   // now see if there's a filename
   if (optind <= argc && argc > 1)
     source_file = argv[argc - 1];
-  else
-    // not always a failure, we might have just been asked for usage
-    if (printed_help)
-      exit(EXIT_SUCCESS);
-    else {
-      print_usage(argv);
-      exit(EXIT_FAILURE);
-    }
+  else {
+    print_usage(argv);
+    exit(EXIT_FAILURE);
+  }
 }
 
 int main(int argc, char *argv[])
