@@ -21,7 +21,61 @@ RetroBASIC can redirect the output from `PRINT` statements and `INPUT` prompts t
 RetroBASIC also includes a simple static analyzer that (optionally) prints statistics for the program after it completes. This includes the length of the program and its line number range, the number and types of variables used, and similar details. The original impetus for RetroBASIC was to collect statistics on common programs to provide hints to the retrocomputing field, where new BASICs continue to be developed.
 
 RetroBASIC is based on gnbasic by James Bowman.
- 
+
+## Installing RetroBASIC
+
+The latest source code and any prebuilt binaries are available at:
+
+https://github.com/maurymarkowitz/RetroBASIC/releases
+
+Binary packages may be provided for macOS, Linux, and Windows.
+
+On macOS and Linux, you can use Homebrew (where available):
+
+```sh
+brew tap maurymarkowitz/tap https://github.com/maurymarkowitz/homebrew-tap
+brew install maurymarkowitz/tap/retrobasic
+```
+
+On Windows, you can use Scoop (where available):
+
+```powershell
+scoop bucket add maurymarkowitz https://github.com/maurymarkowitz/scoop-bucket
+scoop install retrobasic
+```
+
+## Building RetroBASIC
+
+The RetroBASIC interpreter is written in ANSI C using Flex/Bison for lexer/parser generation. It has no external dependencies beyond standard C libraries and build tools.
+
+Requirements:
+
+- `gcc` or `clang`
+- `make`
+- `flex`
+- `bison`
+
+Build steps:
+
+```sh
+make clean
+make all
+```
+
+Optional install:
+
+```sh
+make install
+```
+
+Optional uninstall:
+
+```sh
+make uninstall
+```
+
+`make install` defaults to `/usr/local`; override with `PREFIX` if needed (for example `make PREFIX=/opt/retrobasic install`).
+
 ## Running RetroBASIC
 
 RetroBASIC is meant to be used with an existing program source file, not interactively. To run it, use a command similar to this example, replacing the "program.bas" with the name of the text file containing the BASIC program you wish to run:
@@ -50,16 +104,6 @@ Command-line options include:
 If you wish to use RetroBASIC to simply check syntax or collect statistics, use the `-n` and `-p` switches.
 
 Short options with no parameters can be ganged, for instance, `-unp`.
-
-## Building RetroBASIC
-
-The RetroBASIC interpreter is written for lex/yacc/c and is normally compiled with flex/bison. It has no external dependancies, although cygwin is required for compiling on Windows. A makefile is included that should run on almost any Unix-like system, including macOS. In your terminal, navigate to the RetroBASIC folder you downloaded and extracted, and:
-
-```make all```
-
-An Xcode project is also included, which is the primary building method during testing. It has one drawback (currently), the bison build rule in Xcode does not properly build `parse.h` into the `src` folder, but follows yacc-like rules and builds `y.tab.h` file in the `../DerivedSources` folder. If you make changes to `parse.y`, be sure to copy the new `y.tab.h` to `/src/parse.h` for those changes to be visible.
-
-If anyone would like to contribute a VS.net project, it would be greatly appreciated.
 
 ## Missing features and Errata
 
