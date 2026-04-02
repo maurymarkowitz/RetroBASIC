@@ -29,6 +29,10 @@
 #include <conio.h>
 #include <direct.h>
 
+/* Declare Windows functions for cross-compiler compatibility */
+int _access(const char *path, int mode);
+int _isatty(int fd);
+
 #define F_OK 0
 #define R_OK 4
 #define W_OK 2

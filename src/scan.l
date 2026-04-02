@@ -35,6 +35,8 @@ Boston, MA 02111-1307, USA.  */
 
 #if defined(WIN32) || defined(_WIN32)
 #include <io.h>
+/* Declare Windows functions for cross-compiler compatibility */
+int _isatty(int fd);
 #define isatty _isatty
 #endif
 
