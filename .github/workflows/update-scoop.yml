@@ -1,0 +1,45 @@
+name: Update Scoop Manifest
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout scoop bucket
+        uses: actions/checkout@v4
+        with:
+          repository: maurymarkowitz/scoop-bucket
+          token: ${{ secrets.SCOOP_TOKEN }}
+          path: scoop-bucket
+
+      - name: Download Windows release asset
+        run: |
+          VERSION=${{ github.event.release.tag_name }}
+          RELEASE_URL="${{ github.server_url }}/${{ github.repository }}/releases/download/${VERSION}/retrobasic-windows-x86_64.zip"
+          curl -L -o retrobasic-windows-x86_64.zip "$RELEASE_URL"
+
+      - name: Compute SHA256
+        run: |
+          HASH=$(sha256sum retrobasic-windows-x86_64.zip | cut -d ' ' -f1)
+          echo "HASH=$HASH" >> $GITHUB_ENV
+
+      - name: Update scoop manifest
+        run: |
+          VERSION=${{ github.event.release.tag_name }}
+          VERSION=${VERSION#v}
+          sed -i "s/\"version\": \".*\"/\"version\": \"${VERSION}\"/" scoop-bucket/bucket/retrobasic.json
+          sed -i "s/\"hash\": \".*\"/\"hash\": \"${HASH}\"/" scoop-bucket/bucket/retrobasic.json
+          sed -i "s|releases/download/.*/retrobasic-windows-x86_64.zip|releases/download/${{ github.event.release.tag_name }}/retrobasic-windows-x86_64.zip|" scoop-bucket/bucket/retrobasic.json
+
+      - name: Commit & push updates
+        run: |
+          cd scoop-bucket
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add bucket/retrobasic.json
+          git commit -m "Update scoop manifest for ${{ github.event.release.tag_name }}"
+          git push
