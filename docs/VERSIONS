@@ -1,0 +1,191 @@
+RetroBASIC version history
+
+Version 2.1.2 - 16 September 2025
+
+- added a new statistic that determines if a decimal number can be exactly represented in binary
+
+Version 2.1.1 - 16 January 2025
+
+- added EOF function for working with files
+- correctly check for read/write status on the file when reading and writing
+- added FILE EXISTS error, returned when attempt to open an existing file for writing (as opposed to NOT FOUND)
+
+Version 2.1.0 - 14 January 2025
+
+Added basic file support, based mostly on Commodore BASIC but folding in options from Atari and Apple's Business BASIC.
+
+- added OPEN/OPEN#/CLOSE/CLOSE#
+- added PRINT#/INPUT#/PUT#/GET#
+- NUM works with INPUT#
+
+Version 2.0.2 - 31 December 2024
+
+- added NUM, which returns the number of items entered in MAT INPUT, and in RetroBASIC, normal INPUT as well
+- MAT INPUT now works with both string and number arrays
+- fixed issue in MAT INPUT which raised an error if the input was empty
+- separated out input/output routines for file handling, for code clarity
+
+Version 2.0.1 - 12 December 2024
+
+Fixing major problems with the GitHub repo. Some very minor changes as well.
+
+Version 2.0.0 - 8 December 2024
+
+Major update. See the reference manual for details on the many changes.
+
+- added -t/--trace option to turn on line tracing, which means -t is no longer short for --tabs
+- added MAT matrix statements and functions from Dartmouth BASIC V4 with additions from IBM 5100 and others
+- added error handling in the form of TRAP, ON ERROR and RESUME statements, and ERR and ERL functions
+- added GET and PUT, which read or print a single character
+- INPUT properly handles multiple variables on a single line, no need to press <return> between them
+- DATA statements now allow unquoted strings and properly handle whitespace
+- GO SUB and GO TO are now working properly
+- fixed PRINT to get rid of the `(null)` that appeared in some cases
+- added dummy version of ADR, returns 0
+- added DISPOSE, the Commodore version of POP (from late model machines)
+- added EQV and IMP logical operators, seen in IBM and some other versions
+- added RETURN with a line number, seen in MSX. equivalent to doing a POP and then GOTO
+- fixed MOD and DIV operators
+- added MOD and DIV *functions*
+- added MAX and MIN as both functions and operators
+- added ASCII, DEC's version of ASC
+- added SLEEP, DEC's version of PAUSE
+- ON properly falls to next statement after the ON if the index is greater than number of items (instead of error)
+- NEW properly clears the runtime stack for RETURN and NEXT
+- slicing now checks against DIMmed bounds in non-ANSI dialects
+- added RANDOMIZE TIMER from GW
+
+Version 1.9.1 - 13 February 2024
+
+- added DIV operator, for integer division. 7 DIV 3 returns 2
+- negative parameter values in RND() now perform a RANDOMIZE, as is the case in MS BASICs
+- added Integer BASIC's variation on TAB, which is a statement, not a pseudo-function
+- fix minor issue in RND that caused issues in SST
+
+Version 1.9.0 - 1 January 2024
+
+- switched order of parameters in STRING$, can't find any dialects with string first
+- added LN, the version of LOG seen in many UK dialects like Sinclair and BBC
+- reset the DATA pointer on CLEAR
+- reset the runtime stack on CLEAR
+
+Version 1.8.9 - 23 December 2023
+
+- added Sinclair-style slicing, A$(1 TO 5)
+
+Version 1.8.8 - 12 December 2023
+
+- first draft of a reference manual
+- added ACS, ASN, TAN, COSH/CSH, SINH/SNH, TANH/THN functions
+- add INKEY$ function
+- added PI pseudo-function/variable
+- added MOD operator
+- added XOR operator
+- added ROUND function, 1-arity rounds to integer, 2-arity rounds to a given decimal point
+- properly implemented CLR/CLEAR to clear variables
+- implemented CLS for clear screen
+- properly cast calculated values to the underlying type, single/double/integer, on assignment
+- added case where string constant is "closed" by a newline, instead of a quote
+
+Version 1.8.7 - 10 December 2023
+
+- add INSTR string function, and the INDEX alias
+
+Version 1.8.6 - 23 November 2023
+
+- fix problem in array initialization that was causing amazing.bas to fail
+
+Version 1.8.5 - 16 November 2023
+
+- added floor() during the calculation of array indexes, the lack of which caused
+  SST to fail when entering directions >8 but <9.
+
+Version 1.8.4 - 15 November 2023
+
+- merged FOR and GOSUB stacks so that a RETURN correctly pops off any local FORs
+- added POP for manual stack pops
+- fixed an error in octal constants that caused SST to fail to parse
+
+Version 1.8.3 - 9 November 2023
+
+- added LABEL statement, which allows branches to named lines
+- fixed a problem setting up array sizes at runtime that caused amazing to fail at 2x2
+
+Version 1.8.2 - 7 November 2023
+
+- add UBOUND and LBOUND (mostly for testing purposes)
+- added PAUSE statement, used to wait for input or pause for a given time
+- added hex, oct and bin constants, for instance, &FFFF, or 0b10101010
+
+Version 1.8.1 - 2 November 2023
+
+- added amazing.bas, which led to...
+- refactored setup of arrays so that you can pass in variables - DIM A(X,Y)
+
+Version 1.8.0 - 3 October 2023
+
+- added array-slicing for string assignments - LET A$(4:5)="B"
+- refactored some of the code to support that, added slice_limits and variable_storage funcs
+- renamed variable_t to variable_value_t for clarity
+- added HEX, OCT, BIN, HEX$, OCT$, BIN$ functions
+- fixed bug in STRING$ when passing ASCII numbers
+
+Version 1.7.2 - 16 July 2023
+
+- added statistic for average number of digits in a line number
+
+Version 1.7.0 - 30 May 2023
+
+- initial support for string slicing dialects like HP and Atari, use -s flag
+- added missing comparison operators for strings, <, >, <=, >=
+
+Version 1.6.3 - 2 January 2023
+
+- fix SEG, which uses start and end positions, not a length
+
+Version 1.6.2 - 2 January 2023
+
+- added SEG and SUBSTR, aliases for MID found in PDP-8 and others
+
+Version 1.6 - 31 December 2022
+
+- added code to check real DIM limits even if defaulted to 11
+
+Version 1.5 - 22 October 2022
+
+- using stdbool instead of rolling my own boolean enum
+- added CLR, the MS analog of CLEAR
+- added TIME, TIME$, and the ability to reset the clock
+- added unDIMed variables, all subscripts now have a minimum dimension of 11 (0 to 10)
+
+Version 1.4 - 2 September 2022
+
+- removing POSIX and GNU calls to make it more compatible with MSVC
+
+Version 1.3 - 18 August 2022
+
+- removed GList, GTree and the GLib library itself
+- added UCASE and LCASE
+- added CHANGE command from Dartmouth v4, which required...
+- arrays/matrices now have an index 0 no matter the value of OPTION BASE.
+    this is because the length of the string is placed in index 0.
+    a 1-based system that accesses 0 will no longer cause an error but
+    this should not occur in known-good code
+- added several changes to allow building using the makefile (thanks SK!)
+
+Version 1.2 - 19 July 2022
+
+- removed GString and replaced them with normal C char-based strings
+
+Version 1.1 - 2 June 2022
+
+- added support for ANSI and HP style string slicing
+- user defined functions correctly use local variables and expressions
+- refactored code into a more canonical C form
+
+Version 1.0 - initial release, 2020
+
+- basic functionality needed to run all games in BASIC Computer Games
+- limited to the syntax and features of early MS BASICS like Commodore BASIC 1.x
+- user defined functions do not substitute parameter values, they calculate
+    based on the value of the same named global variable (**bug**)
