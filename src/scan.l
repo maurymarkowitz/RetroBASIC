@@ -33,7 +33,7 @@ Boston, MA 02111-1307, USA.  */
 #include "strng.h"
 #include "parse.h"
 
-#ifdef _WIN32
+#if defined(WIN32) || defined(_WIN32)
 #include <io.h>
 #define isatty _isatty
 #endif
