@@ -24,6 +24,19 @@
 #include <sys/time.h> // for run timers
 #include <unistd.h>   // used for sleep
 
+#ifdef _WIN32
+// timersub is a BSD helper; on Windows we replicate as needed
+static void timersub(const struct timeval *a, const struct timeval *b, struct timeval *result)
+{
+    result->tv_sec = a->tv_sec - b->tv_sec;
+    result->tv_usec = a->tv_usec - b->tv_usec;
+    if (result->tv_usec < 0) {
+        result->tv_sec -= 1;
+        result->tv_usec += 1000000;
+    }
+}
+#endif
+
 #include "retrobasic.h"
 #include "parse.h"
 #include "io.h"
@@ -2249,7 +2262,7 @@ static void perform_statement(list_t *statement_entry)
 
       case CLS:
 #if _WIN32
-        clrscr();
+        system("cls");
 #else
         printf("\e[2J\e[H"); // ANSI escapes, should work in most consoles
 #endif
