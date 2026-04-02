@@ -32,7 +32,14 @@
 #define F_OK 0
 #define R_OK 4
 #define W_OK 2
-#define access _access
+
+#if defined(_MSC_VER)
+  #define access _access
+#else
+  /* MinGW has access() directly; avoid aliasing existing behavior */
+  #define access access
+#endif
+
 #define realpath(path, resolved) _fullpath((resolved), (path), PATH_MAX)
 #endif
 
