@@ -19,8 +19,6 @@ BP - DEC BASIC-PLUS
 
 - word wrap at a given column
 
-- add REDIM?
-
 - ON BREAK GOTO from NewBrain and similar statements from others?
 
 - MAT INPUT should allow multi-input on a single line

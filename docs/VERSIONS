@@ -5,7 +5,10 @@ Version 2.2.0 - 6 April 2026
 - multi-input MAX and MIN, eg MAX(1,2,3,4)
 - string MAX and MIN, eg MAX("Hello", "World)
 - added REDIM and REDIM PRESERVE
+- CLEAR/CLR works propertly now
 - added install to make that installs the documentation
+- various fixes to get MinGW working properly on CI
+- add homebrew and scoop support for easy installs
 
 Version 2.1.2 - 16 September 2025
 
