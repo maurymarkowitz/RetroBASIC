@@ -15,14 +15,7 @@ RetroBASIC should build on any system with a working makefile system. It uses st
 
 ## macOS / Unix-like
 
-RetroBASIC now uses a standard Makefile build (no Xcode required).
-
-Dependencies:
-
-- `gcc` or `clang`
-- `make`
-- `flex`
-- `bison`
+RetroBASIC uses a standard Makefile that would build out-of-the-box on any Unix-like system, including macOS and Linux.
 
 Build steps:
 
@@ -31,7 +24,7 @@ make clean
 make all
 ```
 
-Optional install:
+Optional install, which adds documentation, examples and the man entry:
 
 ```sh
 make install

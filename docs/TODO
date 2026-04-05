@@ -10,18 +10,12 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
-- CLK should insert colons?
-
 - BP (and HP?) allows multiple assignments with equals, A=B=C=10 - so does Tiny, BP also allows A,B,C=0
 
 - add CHAIN, LOAD and RUN (and APPEND?)
 - and COMMON
 
 - CMD/OUTPUT# to redirect to a file
-
-- add clear_variables and change CLEAR
-
-- if OPTION BASE 1, should matrix commands work differently?
 
 - word wrap at a given column
 
@@ -30,8 +24,6 @@ BP - DEC BASIC-PLUS
 - ON BREAK GOTO from NewBrain and similar statements from others?
 
 - MAT INPUT should allow multi-input on a single line
-
-- OPTION VERSION from ByWater might be useful
 
 - IMAGE (etc) for PRINT USING with HP specifiers, and colon for image for other dialects
 
@@ -68,6 +60,9 @@ BP - DEC BASIC-PLUS
 - ERASE, clears variables (IBM Advanced BASIC)
 
 Debatable:
+
+
+- OPTION VERSION from ByWater might be useful, it sets the version of basic and what it supports
 
 - @(x,y) and POS(x,y) which work similar to TAB but position vertically as well
 
@@ -112,6 +107,8 @@ Debatable:
 - WAIT from BASIC-PLUS, and/or ENTER from BASIC75, and similar features from others.
 
 Will not be done:
+
+- CLK should insert colons, seen on some dialects
 
 - it would not be difficult to allow any variable to hold a string, but in most dialects that is an error.
 
