@@ -1540,8 +1540,6 @@ fn_1:
 fn_2:
   DIV  { $$ = DIV; } |
   MOD  { $$ = MOD; } |
-  MAX  { $$ = MAX; } |
-  MIN  { $$ = MIN; } |
   LEFT { $$ = LEFT; } |
   RIGHT { $$ = RIGHT; } |
   STRNG { $$ = STRNG; }
@@ -1558,6 +1556,8 @@ fn_x:
   UBOUND { $$ = UBOUND; } |
   LBOUND { $$ = LBOUND; } |
   MATCON { $$ = MATCON; } |
+  MAX { $$ = MAX; } |
+  MIN { $$ = MIN; } |
   MATIDN { $$ = MATIDN; } |
   MATINV { $$ = MATINV; } |
   MATTRN { $$ = MATTRN; } |
