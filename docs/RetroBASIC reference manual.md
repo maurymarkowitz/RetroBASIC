@@ -136,6 +136,7 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
    * [`STR$`(*aexp*)](#straexp)
    * [`VAL`(*sexp*)](#valsexp)
    * [`UCASE$`(*sexp*) and `LCASE$`(*sexp*)](#ucasesexp-and-lcasesexp)
+   * [`USING$`](#usingdollar)
 - [String slicing](#string-slicing)
    * [*svar*{(|[}*aexp*[{,|:|TO}*aexp*]{)|]}](#svaraexptoaexp)
 - [System functions](#system-functions)
@@ -475,7 +476,7 @@ Clears the screen. On modern machines with scrollback buffers in the console, th
 
 #### See also:
 
-* `STOP`
+* [`STOP`](#stop-sexp)
 
 <!-- TOC --><a name="new-erase-and-scratch"></a>
 ### `NEW`, `ERASE` and `SCRATCH`
@@ -516,7 +517,7 @@ Harris BASIC-V added the `BREAK` statement, which allowed one to place multiple 
 
 #### See also:
 
-* `END`
+* [`END`](#end)
 
 <!-- TOC --><a name="unsupported-commands"></a>
 ### Unsupported commands
@@ -586,8 +587,8 @@ Enterprise IS-BASIC allows the `TO` keyword to define the upper and lower limits
 
 #### See also:
 
-* `OPTION BASE`
-* String slicing
+* [`OPTION BASE`](#option-base-01)
+* [`String slicing`](#string-slicing)
 
 <!-- TOC --><a name="goto-aexp-and-go-to-aexp"></a>
 ### `GOTO` *aexp* and `GO TO` *aexp*
@@ -615,7 +616,7 @@ Cyber BASIC from the CDC mainframe line included a `JUMP` statement that was sim
 
 #### See also:
 
-* `LABEL`
+* [`LABEL`](#label-nvar)
 
 <!-- TOC --><a name="gosub-go-sub-and-return-linenoaexp"></a>
 ### [`GOSUB`|`GO SUB`] {*lineno*|*aexp*} and `RETURN` [{*lineno*|*aexp*}]
@@ -645,9 +646,9 @@ BASIC75 has a `USING` statement that works like a one-line `GOSUB` with no `RETU
 
 #### See also:
 
-* `LABEL`
-* `POP`
-* `EXIT`
+* [`LABEL`](#label-nvar)
+* [`POP`](#pop-or-dispose)
+* [`EXIT`](#exit)
 
 #### Availability:
 
@@ -711,7 +712,7 @@ Some versions of Tiny BASIC do not use `THEN`, so you do things like `IF X<5 LET
 
 #### See also:
 
-* `LABEL`
+* [`LABEL`](#label-nvar)
 
 <!-- TOC --><a name="on-aexpr-gotogosub-linenoaexprlinenoaexpr"></a>
 ### `ON` *aexpr* {`GOTO`|`GOSUB`} [*lineno*|*aexpr*]{,[*lineno*|*aexpr*],...}
@@ -739,7 +740,7 @@ This program will print a `A IS 1`, `2` or `3` depending on the value in the num
 
 #### See also:
 
-* `ON ERROR`
+* [`ON ERROR`](#trapon-error-gotoonerr-goto-aexp)
 
 <!-- TOC --><a name="label-nvar"></a>
 ### `LABEL` *nvar*
@@ -894,8 +895,8 @@ Univac 1100 BASIC allows an alternate form with single statement following the `
 
 #### See also:
 
-* `POP`
-* `EXIT`
+* [`POP`](#pop-or-dispose)
+* [`EXIT`](#exit)
 
 <!-- TOC --><a name="pop-or-dispose"></a>
 ### `POP` or `DISPOSE`
@@ -935,8 +936,8 @@ Commodore BASIC 3.5 and later added `DISPOSE` which works exactly like POP.
 
 #### See also:
 
-* `RETURN`
-* `EXIT`
+* [`RETURN`](#gosub-go-sub-and-return-linenoaexp)
+* [`EXIT`](#exit)
 
 <!-- TOC --><a name="exit"></a>
 ### `EXIT`
@@ -954,7 +955,7 @@ In this example, there are two entries on the stack during the execution of the 
 
 #### See also:
 
-* `POP`
+* [`POP`](#pop-or-dispose)
 
 <!-- TOC --><a name="pause-aexp"></a>
 ### {`PAUSE`|`SLEEP`} *aexp*
@@ -973,7 +974,7 @@ DG BASIC and BASIC75 uses `SUSPEND` using seconds, and allows other programs to 
 
 #### See also:
 
-* `TIME`
+* [`TIME`](#timedexp-and-timeaexp)
 
 #### Availability:
 
@@ -1003,7 +1004,7 @@ Dartmouth BASIC used `SYSTEM` to load a language, either BASIC or ALGOL. It was 
 
 #### See also:
 
-* `USR`
+* [`USR`](#usraexp)
 
 <!-- TOC --><a name="option-base-01"></a>
 ### `OPTION BASE` {0|1}
@@ -1038,8 +1039,8 @@ HP BASICs use `GET` as a synonym for `LOAD`, with an additional optional express
 
 #### See also:
 
-* `PUT`
-* `INKEY$`
+* [`PUT`](#put-var)
+* [`INKEY$`](#inkeydexp)
 
 <!-- TOC --><a name="input-sexpvarsexpvar"></a>
 ### `INPUT` [{*sexp*}{[;|,]}]*var*[,{*sexp*{[;|,]}}*var*,...]
@@ -1238,7 +1239,7 @@ Neither of these is currently supported in RetroBASIC, although `PRINT USING` ca
 
 #### See also:
 
-* `POS`
+* [`POS`](#posdexp)
 
 <!-- TOC --><a name="print-using-expexp"></a>
 ### `PRINT USING` [*exp*]{,|;}*exp*[{|[;|,]},...]]
@@ -1276,8 +1277,8 @@ BASIC75 contains a very different `USING` keyword statement. It acts like a `GOS
 
 #### See also:
 
-* `IMAGE`
-* `USING$`
+* [`IMAGE`](#image-statement)
+* [`USING$`](#usingdollar)
 
 <!-- TOC --><a name="image-statement"></a>
 ### `IMAGE` *lineno*
@@ -1301,8 +1302,8 @@ This prints:
 
 #### See also:
 
-* `PRINT USING`
-* `USING$`
+* [`PRINT USING`](#print-using-expexp)
+* [`USING$`](#usingdollar)
 
 <!-- TOC --><a name="put-var"></a>
 ### `PUT` *var*
@@ -1311,8 +1312,8 @@ Writes a single byte from *var* to the screen. If *var* is a numeric variable it
 
 #### See also:
 
-* `GET`
-* `PRINT`
+* [`GET`](#get-var)
+* [`PRINT`](#print-exp)
 
 <!-- TOC --><a name="data-read-and-restore"></a>
 ## `DATA`, `READ` and `RESTORE`
@@ -1418,7 +1419,7 @@ A number of later BASICs added a variation on `POKE` that allowed a 16-bit value
 
 #### See also:
 
-* `PEEK`
+* [`PEEK`](#peekaexp)
 
 <!-- TOC --><a name="randomize-aexptimer"></a>
 ### `RANDOMIZE` [{*aexp*|`TIMER`}]
@@ -1445,7 +1446,7 @@ Because `RANDOMIZE` is so useful for debugging, and many programs do not include
 
 #### See also:
 
-* `RND`
+* [`RND`](#rndaexp)
 
 #### Versions:
 
@@ -1539,8 +1540,8 @@ In RetroBASIC, `ADR` always returns zero.
 
 #### See also:
 
-* `PEEK`
-* `POKE`
+* [`PEEK`](#peekaexp)
+* [`POKE`](#pokeraexp)
 
 #### Availability:
 
@@ -1562,7 +1563,7 @@ A number of BASICs provide `DIV` as an operator rather than a function. In these
 
 #### See also:
 
-* `MOD`
+* [`MOD`](#modaexp1aexp2-and-modaexp1aexp2)
 
 #### Availability:
 
@@ -1584,8 +1585,8 @@ Early Dartmouth versions performed the equivalent of `FIX` for `INT`. It was cha
 
 #### See also:
 
-* `FRAC`
-* `INT`
+* [`FRAC`](#fracaexp)
+* [`INT`](#intaexp)
 
 <!-- TOC --><a name="fracaexp"></a>
 ### `FRAC`(*aexp*)
@@ -1594,8 +1595,8 @@ Returns the fractional part of the value of *aexp*. `FRAC(-3.445)` returns -0.44
 
 #### See also:
 
-* `FIX`
-* `INT`
+* [`FIX`](#fixaexp)
+* [`INT`](#intaexp)
 
 <!-- TOC --><a name="intaexp"></a>
 ### `INT`(*aexp*)
@@ -1608,9 +1609,9 @@ RetroBASIC currently implements `INT` only as a floor, and users should be aware
 
 #### See also:
 
-* `FIX`
-* `FRAC`
-* `ROUND`
+* [`FIX`](#fixaexp)
+* [`FRAC`](#fracaexp)
+* [`ROUND`](#roundaexpaexp)
 
 <!-- TOC --><a name="logln-aexp"></a>
 ### {`LOG`|`LN`}(*aexp*)
@@ -1649,7 +1650,7 @@ According to Lien, some dialects allowed a single variable to be used if it was 
 
 #### See also:
 
-* `MIN`
+* [`MIN`](#minaexp)
 
 #### Availability:
 
@@ -1670,7 +1671,7 @@ Tymshare SUPER BASIC and Wang BASIC allow any number of expressions in the param
 
 #### See also:
 
-* `MAX`
+* [`MAX`](#maxaexp)
 
 #### Availability:
 
@@ -1691,7 +1692,7 @@ This "functional" style of `MOD` was used in Harris BASIC-V and DEC BASIC-PLUS. 
 
 #### See also:
 
-* `DIV`
+* [`DIV`](#divaexp1aexp2)
 
 #### Availability:
 
@@ -1737,7 +1738,7 @@ BBC BASIC supports the integer value syntax for *aexp* larger than zero, and thi
 
 #### See also:
 
-* `RANDOMIZE`
+* [`RANDOMIZE`](#randomize-aexptimer)
 
 #### Availability:
 
@@ -1780,7 +1781,7 @@ Produces:
 
 #### See also:
 
-* `OPTION BASE`
+* [`OPTION BASE`](#option-base-01)
 
 <!-- TOC --><a name="numeric-string-functions"></a>
 ## Numeric string functions
@@ -1939,8 +1940,8 @@ A number of BASICs, including AppleSoft, Apple Business, Atari, BBC, etc., used 
 
 #### See also:
 
-* INPUT
-* GET
+* [`INPUT`](#input-sexpvarsexpvar)
+* [`GET`](#get-var)
 
 <!-- TOC --><a name="instrindexpos"></a>
 ### {`INSTR`|`INDEX`|`POS`}(*sexp1*,*sexp2*[,*aexp*])
@@ -1964,7 +1965,7 @@ Univac 1100 BASIC adds the associated `CNT` function, which returns the number o
 
 #### See also:
 
-* `POS`
+* [`POS`](#posdexp)
 
 <!-- TOC --><a name="lensexp"></a>
 ### `LEN`(*sexp*)
@@ -2078,8 +2079,8 @@ Produces:
 
     HELLO WORLD         hello world
 
+<!-- TOC --><a name="usingdollar"></a>
 ### `USING$`(*sexp*, *exp*[,*exp*...])
-
 `USING$`, introduced in BASIC-PLUS, uses DEC/MS style format strings to format output. This offers an alternative way to perform complex formatting for output, and allows the formatted output to be used in an other statement. For instance, one might use this to format the prompt string for an `INPUT`, which would otherwise not support this feature.
 
 For a complete description of the formatting strings that `USING$` supports, see the section on [format strings](#format-strings).
@@ -2093,7 +2094,7 @@ This will print "H", as the "!" format string means "return first character only
 
 #### See also:
 
-* `PRINT USING`
+* [`PRINT USING`](#print-using-expexp)
 
 <!-- TOC --><a name="string-slicing"></a>
 ## String slicing
@@ -2241,7 +2242,7 @@ A number of later BASICs added a variation of `PEEK` that allowed a 16-bit value
 
 #### See also:
 
-* `POKE`
+* [`POKE`](#pokeraexp)
 
 <!-- TOC --><a name="posdexp"></a>
 ### `POS`(*dexp*)
@@ -2351,7 +2352,7 @@ DEC's BASIC-PLUS, on TOPS at least, used `USR$` to return a listing of the files
 
 #### See also:
 
-* `CALL`
+* [`CALL`](#call-aexpaexp-exec-system-and-sys)
 
 <!-- TOC --><a name="file-handling"></a>
 ## File handling
@@ -2595,7 +2596,7 @@ There is also the issue that terminals of the era did not allow you to type more
 
 #### See also:
 
-* `NUM`
+* [`NUM`](#numsexp)
 
 <!-- TOC --><a name="matrix-operators"></a>
 ### Matrix operators
