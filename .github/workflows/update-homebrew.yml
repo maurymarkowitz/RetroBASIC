@@ -21,9 +21,15 @@ jobs:
         run: |
           echo "sha=$(sha256sum source.tar.gz | cut -d ' ' -f1)" >> $GITHUB_OUTPUT
 
-      - name: Clone homebrew tap
+      - name: Checkout homebrew tap
+        uses: actions/checkout@v4
+        with:
+          repository: maurymarkowitz/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+
+      - name: Update Homebrew formula
         run: |
-          git clone https://x-access-token:${{ secrets.HOMEBREW_TAP_TOKEN }}@github.com/maurymarkowitz/homebrew-tap.git
           cd homebrew-tap
 
           url="https://github.com/maurymarkowitz/RetroBASIC/archive/refs/tags/${{ github.event.release.tag_name }}.tar.gz"
