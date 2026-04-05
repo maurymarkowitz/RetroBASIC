@@ -10,6 +10,10 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
+- add parameter checking to functions, currently most of them don't check that they were passed a string/number
+
+- test and error on incorrect nesting of FOR loops, which we currently ignore
+
 - BP (and HP?) allows multiple assignments with equals, A=B=C=10 - so does Tiny, BP also allows A,B,C=0
 
 - add CHAIN, LOAD and RUN (and APPEND?)
@@ -23,11 +27,7 @@ BP - DEC BASIC-PLUS
 
 - MAT INPUT should allow multi-input on a single line
 
-- add parameter checking to functions, currently most of them don't check that they were passed a string/number
-
 - WHILE...WEND, LOOP...UNTIL, but so many variations...
-
-- test and error on incorrect nesting of FOR loops, which we currently ignore
 
 - add longer variable names
 
