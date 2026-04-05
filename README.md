@@ -18,7 +18,7 @@ RetroBASIC is an interpreter for programs written using 1970s/80s variations of 
 
 RetroBASIC also includes a simple static analyzer that (optionally) prints statistics for the program after it completes. This includes the length of the program and its line number range, the number and types of variables used, and similar details. The original impetus for RetroBASIC was to collect statistics on common programs to provide hints to the retrocomputing field, where new BASICs continue to be developed.
 
-The installation also includes a very extensive reference manual which includes a complete list of the language and how it differs across various platforms. This is likely very useful on its own to the community, it is essentially an updated version of *The BASIC Book* by Lien, in Markdown format for easy searching.
+The installation also includes an extensive reference manual which includes a complete list of the BASIC language and how it differs across various platforms. This can be used both as a reference for RetroBASIC as well as a general guide to the many dialects of BASIC and a useful guide to porting older programs between platforms.
 
 RetroBASIC is based on gnbasic by James Bowman.
 
@@ -28,7 +28,7 @@ The latest source code and any prebuilt binaries are available at:
 
 https://github.com/maurymarkowitz/RetroBASIC/releases
 
-Binary packages may be provided for macOS, Linux, and Windows.
+Binary packages are be provided for macOS, Linux, and Windows.
 
 On macOS and Linux, you can use Homebrew (where available):
 
