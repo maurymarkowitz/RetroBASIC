@@ -87,6 +87,7 @@ static void print_variables(void);
 static void delete_variables(void);
 static void delete_functions(void);
 static void delete_lines(void);
+static void clear_variables(void);
 static void clear_stack(void);
 static void clear_error(void);
 static void reset_data_pointer(int line);
@@ -1918,7 +1919,7 @@ value_t evaluate_expression(const expression_t *expression)
             }
             break;
 
-case MAX:
+          case MAX:
           {
             if (parameters[0].type == STRING && parameters[1].type == STRING && parameters[2].type == STRING) {
               result.type = STRING;
@@ -2312,8 +2313,7 @@ static void perform_statement(list_t *statement_entry)
       case CLEAR:
         // wipe out any variables and other program state, reset to un-run condition
       {
-        // FIXME: we need a clear_variables, delete actually drops them which we don't want
-        //delete_variables();
+        clear_variables();
         close_all_files();
         clear_stack();
         clear_error();
@@ -4122,6 +4122,61 @@ static void delete_lines(void) {
     }
   }
 }
+
+/* callback for clearing variable values during CLEAR/CLR */
+static void reset_variable_value(void *key, void *value, void *unused)
+{
+  variable_storage_t *storage = (variable_storage_t *)value;
+  
+  // if this variable has not been initialized yet, skip it
+  if (storage == NULL)
+    return;
+  
+  // check if this is an array variable
+  if (storage->actual_dimensions != NULL) {
+    // calculate total number of array elements
+    int total_elements = 1;
+    list_t *dim = lst_first_node(storage->actual_dimensions);
+    while (dim != NULL) {
+      total_elements *= (POINTER_TO_INT(dim->data) + 1);
+      dim = dim->next;
+    }
+    
+    // clear all array elements
+    if (storage->array != NULL) {
+      for (int i = 0; i < total_elements; i++) {
+        if (storage->type == STRING) {
+          // free the old string and allocate an empty one
+          if (storage->array[i].string != NULL)
+            free(storage->array[i].string);
+          storage->array[i].string = str_new("");
+        } else {
+          // numeric array element
+          storage->array[i].number = 0.0;
+        }
+      }
+    }
+  }
+  
+  // clear the simple value
+  if (storage->value != NULL) {
+    if (storage->type == STRING) {
+      // free the old string and allocate an empty one
+      if (storage->value->string != NULL)
+        free(storage->value->string);
+      storage->value->string = str_new("");
+    } else {
+      // numeric variable
+      storage->value->number = 0.0;
+    }
+  }
+}
+
+/* reset all variable values to their defaults (0 for numeric, "" for string) */
+static void clear_variables(void) {
+  lst_foreach(interpreter_state.variable_values, reset_variable_value, NULL);
+}
+
 /* clear the runtime stack on CLEAR */
 static void clear_stack(void) {
   lst_free(interpreter_state.runtime_stack);
