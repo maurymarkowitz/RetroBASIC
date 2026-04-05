@@ -36,6 +36,10 @@
  * lex/yacc, cleaning up the resulting tokenized code, and then running it.
  */
 
+
+/** current version string */
+#define VERSION_STRING "2.2.0"
+
 /** retrobasic allows line numbers up to FF */
 #define MAX_LINE_NUMBER 65535
 
