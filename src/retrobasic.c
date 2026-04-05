@@ -1895,6 +1895,58 @@ value_t evaluate_expression(const expression_t *expression)
             }
             break;
 
+case MAX:
+          {
+            if (parameters[0].type == STRING && parameters[1].type == STRING && parameters[2].type == STRING) {
+              result.type = STRING;
+              result.string = str_new(parameters[0].string ? parameters[0].string : "");
+              if (strcmp(parameters[1].string ? parameters[1].string : "", result.string) > 0) {
+                free(result.string);
+                result.string = str_new(parameters[1].string);
+              }
+              if (strcmp(parameters[2].string ? parameters[2].string : "", result.string) > 0) {
+                free(result.string);
+                result.string = str_new(parameters[2].string);
+              }
+            } else if (parameters[0].type >= NUMBER && parameters[1].type >= NUMBER && parameters[2].type >= NUMBER) {
+              double max_val = parameters[0].number;
+              if (parameters[1].number > max_val)
+                max_val = parameters[1].number;
+              if (parameters[2].number > max_val)
+                max_val = parameters[2].number;
+              result = double_to_value(max_val);
+            } else {
+              result.number = 0;
+              handle_error(ern_TYPE_MISMATCH, "Type mismatch in MAX call");
+            }
+          }
+            break;
+          case MIN:
+          {
+            if (parameters[0].type == STRING && parameters[1].type == STRING && parameters[2].type == STRING) {
+              result.type = STRING;
+              result.string = str_new(parameters[0].string ? parameters[0].string : "");
+              if (strcmp(parameters[1].string ? parameters[1].string : "", result.string) < 0) {
+                free(result.string);
+                result.string = str_new(parameters[1].string);
+              }
+              if (strcmp(parameters[2].string ? parameters[2].string : "", result.string) < 0) {
+                free(result.string);
+                result.string = str_new(parameters[2].string);
+              }
+            } else if (parameters[0].type >= NUMBER && parameters[1].type >= NUMBER && parameters[2].type >= NUMBER) {
+              double min_val = parameters[0].number;
+              if (parameters[1].number < min_val)
+                min_val = parameters[1].number;
+              if (parameters[2].number < min_val)
+                min_val = parameters[2].number;
+              result = double_to_value(min_val);
+            } else {
+              result.number = 0;
+              handle_error(ern_TYPE_MISMATCH, "Type mismatch in MIN call");
+            }
+          }
+            break;
           case MID:
 					case SEG:
 					case SUBSTR:

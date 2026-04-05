@@ -18,6 +18,7 @@ retrobasic
 parse.tab.c
 parse.tab.h
 lex.yy.c
+plans/
 parse.output
 */.obj
 
