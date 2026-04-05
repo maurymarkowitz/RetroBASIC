@@ -1617,17 +1617,40 @@ value_t evaluate_expression(const expression_t *expression)
             result = double_to_value(pow(a, b));
             break;
           case MAX:
-            // this is the operator version, the function version is below
-            if (a >= b)
-              result = double_to_value(a);
-            else
-              result = double_to_value(b);
+            if (parameters[0].type == STRING && parameters[1].type == STRING) {
+              result.type = STRING;
+              result.string = str_new(parameters[0].string ? parameters[0].string : "");
+              if (strcmp(parameters[1].string ? parameters[1].string : "", result.string) > 0) {
+                free(result.string);
+                result.string = str_new(parameters[1].string);
+              }
+            } else if (parameters[0].type >= NUMBER && parameters[1].type >= NUMBER) {
+              if (a >= b)
+                result = double_to_value(a);
+              else
+                result = double_to_value(b);
+            } else {
+              result.number = 0;
+              handle_error(ern_TYPE_MISMATCH, "Type mismatch in MAX call");
+            }
             break;
           case MIN:
-            if (a <= b)
-              result = double_to_value(a);
-            else
-              result = double_to_value(b);
+            if (parameters[0].type == STRING && parameters[1].type == STRING) {
+              result.type = STRING;
+              result.string = str_new(parameters[0].string ? parameters[0].string : "");
+              if (strcmp(parameters[1].string ? parameters[1].string : "", result.string) < 0) {
+                free(result.string);
+                result.string = str_new(parameters[1].string);
+              }
+            } else if (parameters[0].type >= NUMBER && parameters[1].type >= NUMBER) {
+              if (a <= b)
+                result = double_to_value(a);
+              else
+                result = double_to_value(b);
+            } else {
+              result.number = 0;
+              handle_error(ern_TYPE_MISMATCH, "Type mismatch in MIN call");
+            }
             break;
           case MOD:
             if (b == 0)
