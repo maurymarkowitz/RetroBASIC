@@ -1226,7 +1226,7 @@ The SDS dialect seen on the Sigma 7 used the semicolon, `;`, as a short-form for
 
 BASIC on the Datapoint 2200 took this short form one step further and made the statement keyword entirely optional, like `LET`. On this platform, any statement that starts with a quote is a print statement. This also works with files, so one might see `100#4;"HELLO, WORLD!"`, meaning that it should `PRINT`` to device 4, the line printer. This cannot be easily supported as it is the same syntax as...
 
-Tiny BASIC (at least some versions) allow the width of a field to be defined by placing a hash and then number of digits, like `PRINT #3,A`, which will print out only three digits of A. These can be placed at any point in the list of expressions so a single `PRINT` can have multiple formats, like `PRINT #3,A,#4,B,C,D`. The last format seen remains in effect until the end of the statement, where it is reset to "standard format"."
+In Tiny BASIC (at least some versions) allow the width of a field to be defined by placing a hash and then number of digits, like `PRINT #3,A`, which will print out only three digits of A. These can be placed at any point in the list of expressions so a single `PRINT` can have multiple formats, like `PRINT #3,A,#4,B,C,D`. The last format seen remains in effect until the end of the statement, where it is reset to "standard format"."
 
 Digital Group Opus BASIC uses a similar system but uses the percent sign as the indicator instead of the hash, and offers a number of different formats like dollars, commas, and field widths in a Fortran-like format. This includes things like `%$10F2`, which means that the values will be printed in a floating-point format with up to 10 characters in total, including a leading dollar sign and a maximum of two decimal places.
 
@@ -1247,7 +1247,7 @@ While a number of dialects require the image to be specified as a string constan
 
 One curiosity to note is that `PRINT USING` *always* prints a \<return\> at the end of the line, ignoring the normal behaviour when a comma or semicolon is found at the end of the expression list.
 
-RetroBASIC currently only supports the hash for numeric definitions. A more full treatment will follow in the future.
+For a complete description of the formatting strings and especially the complex possibilities of the HP style, see the section on Format Strings.
 
 #### Examples:
 
