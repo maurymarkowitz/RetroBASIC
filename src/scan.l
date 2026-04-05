@@ -99,6 +99,7 @@ STEP      { return STEP; }
 STOP      { return STOP; }
 THEN      { return THEN; }
 TO        { return TO; }
+USING     { return USING; }
 
  /* extended statements found in some versions*/
 CALL      { return CALL; }    // used to call system functions in TI-99 and some other BASICs

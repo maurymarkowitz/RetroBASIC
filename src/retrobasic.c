@@ -42,6 +42,7 @@ static void timersub(const struct timeval *a, const struct timeval *b, struct ti
 #include "io.h"
 #include "errors.h"
 #include "matrix.h"
+#include "format.h"
 
 /* here's the actual definition of the interpreter state which is extern in the header */
 interpreterstate_t interpreter_state;
@@ -3901,43 +3902,93 @@ EXIT_MAT_INPUT:
 				else
 					format_string.string = NULL;
 				
-        // now loop over the items in the print list
-				for (list_t *I = statement->parms.print.item_list; I != NULL; I = lst_next(I)) {
-					pp = I->data;
-					
-					// if this is a printsep, there will only be the separator and no expression
-					// but the separator itself will be handled below, so for now we just need
-					// to see if there is an expression to print
-					if (pp->expression != NULL) {
-						print_expression(pp->expression, format_string.string, fp);
+				// if there's a format string, use the format.c library to handle it
+				if (format_string.string != NULL && strlen(format_string.string) > 0) {
+					// Parse the format string
+					format_string_t *fmt = format_parse(format_string.string, DIALECT_HP);
+					if (fmt == NULL) {
+						handle_error(ern_SYNTAX_ERROR, "Invalid format string in PRINT USING");
 					}
 					
-					// for each item in the list, look at the separator, if there is one
-					// and it's a comma, advance the cursor to the next tab column
-					if (pp->separator == ',')
-						//FIXME: this should wrap at 80 columns
-						while (interpreter_state.cursor_column % tab_columns != 0) {
-							fprintf(fp, " ");
-							interpreter_state.cursor_column++;
+					// Collect all values from the print list
+					int num_values = 0;
+					format_value_t *values = (format_value_t*)malloc(sizeof(format_value_t) * lst_length(statement->parms.print.item_list));
+					if (!values) {
+						format_free(fmt);
+						handle_error(ern_OUT_OF_MEMORY, "Not enough memory for formatted output");
+					}
+					
+					// Evaluate each expression in the print list
+					for (list_t *I = statement->parms.print.item_list; I != NULL; I = lst_next(I)) {
+						pp = I->data;
+						if (pp->expression != NULL) {
+							value_t val = evaluate_expression(pp->expression);
+							values[num_values].type = (val.type == STRING) ? 1 : 0;
+							if (val.type == STRING) {
+								values[num_values].value.string = val.string;
+							} else {
+								values[num_values].value.numeric = val.number;
+							}
+							num_values++;
 						}
+					}
+					
+					// Apply format and get the result
+					char *formatted = format_apply_values(fmt, values, num_values);
+					if (formatted) {
+						fprintf(fp, "%s", formatted);
+						interpreter_state.cursor_column += strlen(formatted);
+						free(formatted);
+					}
+					
+					free(values);
+					format_free(fmt);
+					
+					// Handle carriage control - check for suppression flags
+					// For now, always add newline unless the format ended with + or -
+					fprintf(fp, "\n");
+					interpreter_state.cursor_column = 0;
 				}
-        
-        // now get the last item in the list so we can see if it's a ; or ,
-        if (lst_last_node(statement->parms.print.item_list))
-          pp = (printitem_t *)(lst_last_node(statement->parms.print.item_list)->data);
-        else
-          pp = NULL;
-        
-				// if the last item is SPC or TAB, fake a trailing semi, which is the way PET does it
-				if (pp != NULL && pp->expression != NULL && pp->expression->type == op)
-					if (pp->expression->parms.op.opcode == SPC || pp->expression->parms.op.opcode == TAB)
-						pp->separator = ';';
-        
-        // if there are no more items, or it's NOT a separator, do a CR
-        if (pp == NULL || pp->separator == 0) {
-          fprintf(fp, "\n");
-          interpreter_state.cursor_column = 0; // and reset this!
-        }
+				// No format string, use traditional PRINT behavior
+				else {
+					// now loop over the items in the print list
+					for (list_t *I = statement->parms.print.item_list; I != NULL; I = lst_next(I)) {
+						pp = I->data;
+						
+						// if this is a printsep, there will only be the separator and no expression
+						// but the separator itself will be handled below, so for now we just need
+						// to see if there is an expression to print
+						if (pp->expression != NULL) {
+							print_expression(pp->expression, NULL, fp);
+						}
+						
+						// for each item in the list, look at the separator, if there is one
+						// and it's a comma, advance the cursor to the next tab column
+						if (pp->separator == ',')
+							//FIXME: this should wrap at 80 columns
+							while (interpreter_state.cursor_column % tab_columns != 0) {
+								fprintf(fp, " ");
+								interpreter_state.cursor_column++;
+							}
+					}
+					
+					// now get the last item in the list so we can see if it's a ; or ,
+					if (lst_last_node(statement->parms.print.item_list))
+						pp = (printitem_t *)(lst_last_node(statement->parms.print.item_list)->data);
+					else
+						pp = NULL;
+					
+					// if the last item is SPC or TAB, fake a trailing semi, which is the way PET does it
+					if (pp != NULL && pp->expression != NULL && pp->expression->type == op)
+						if (pp->expression->parms.op.opcode == SPC || pp->expression->parms.op.opcode == TAB)
+							pp->separator = ';';
+					
+					// if there are no more items, or it's NOT a separator, do a CR
+					if (pp == NULL || pp->separator == 0) {
+						fprintf(fp, "\n");
+						interpreter_state.cursor_column = 0; // and reset this!
+					}
+				}
       } //print
         break;
         
