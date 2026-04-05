@@ -1,9 +1,51 @@
+/* Format specification handling for RetroBASIC
+ Copyright (C) 2024 Maury Markowitz
+
+ This file is part of RetroBASIC.
+ 
+ RetroBASIC is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2, or (at your option)
+ any later version.
+ 
+ RetroBASIC is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with RetroBASIC; see the file COPYING.  If not, write to
+ the Free Software Foundation, 59 Temple Place - Suite 330,
+ Boston, MA 02111-1307, USA.  */
+
+/**
+ * @file format.c
+ * @author Maury Markowitz
+ * @date 5 April 2024
+ * @brief Implementation of BASIC format specification parsing and application
+ *
+ * This file implements the core formatting engine for RetroBASIC, supporting PRINT USING
+ * and USING$ functions across multiple BASIC dialects. It includes:
+ *
+ * - Dialect detection (HP, MS-BASIC-80, QBasic) based on format characteristics
+ * - Parsing of format strings into structured format_spec_t arrays
+ * - Application of format specifications to numeric and string values
+ * - Dynamic buffer management for output string generation
+ * - Support for all standard BASIC format codes and modifiers
+ *
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
 #include "format.h"
+
+/**
+ * @defgroup FormatHelpers Format Parsing Helper Functions
+ * @{
+ */
 
 /* Helper functions for parsing */
 static int parse_integer(const char *str, int *pos);
@@ -13,20 +55,70 @@ static int is_format_terminator(char c);
 
 /* HP format parsing helpers */
 static format_string_t* parse_hp_format(const char *format_str);
+/**
+ * @brief Parse HP numeric specification: [rep]D[.D][E][S]
+ * Examples: "D", "5D", "5D.2D", "S4D", "5D.2DE"
+ * @param str Format string
+ * @param pos Current position (updated on return)
+ * @return Parsed format_spec_t (SPEC_TYPE_INTEGER, FIXED, or FLOAT)
+ */
 static format_spec_t parse_hp_numeric_spec(const char *str, int *pos);
+/**
+ * @brief Parse HP string specification: [rep]A or [rep]X
+ * Examples: "A", "5A", "10X"
+ * @param str Format string
+ * @param pos Current position (updated on return)
+ * @return Parsed format_spec_t (SPEC_TYPE_STRING or SPACING)
+ */
 static format_spec_t parse_hp_string_spec(const char *str, int *pos);
 
 /* MS-BASIC-80 format parsing helpers */
+/**
+ * @brief Parse MS-BASIC-80 format string (placeholder - TODO)
+ * @param format_str Format string
+ * @return Parsed format_string_t structure
+ */
 static format_string_t* parse_msbasic80_format(const char *format_str);
 
 /* QBasic format parsing helpers */
+/**
+ * @brief Parse QBasic format string (placeholder - TODO)
+ * @param format_str Format string
+ * @return Parsed format_string_t structure
+ */
 static format_string_t* parse_qbasic_format(const char *format_str);
 
 /* Value formatting helpers */
+/**
+ * @brief Format a string value according to string format specification
+ * @param spec Format specification (SPEC_TYPE_STRING)
+ * @param value String value to format
+ * @return Malloc'd formatted string (caller must free)
+ */
 static char* format_string_value(const format_spec_t *spec, const char *value);
+/**
+ * @brief Format an integer value according to integer format specification
+ * @param spec Format specification (SPEC_TYPE_INTEGER)
+ * @param value Numeric value to format as integer
+ * @return Malloc'd formatted string (caller must free)
+ */
 static char* format_integer_value(const format_spec_t *spec, double value);
+/**
+ * @brief Format a fixed-point value according to fixed format specification
+ * @param spec Format specification (SPEC_TYPE_FIXED)
+ * @param value Numeric value to format with fixed decimals
+ * @return Malloc'd formatted string (caller must free)
+ */
 static char* format_fixed_value(const format_spec_t *spec, double value);
+/**
+ * @brief Format a floating-point value according to float format specification
+ * @param spec Format specification (SPEC_TYPE_FLOAT)
+ * @param value Numeric value to format as exponential
+ * @return Malloc'd formatted string (caller must free)
+ */
 static char* format_float_value(const format_spec_t *spec, double value);
+
+/** @} */
 
 /* Utility macros */
 #define ALLOC_SPECS(n) ((format_spec_t*)malloc(sizeof(format_spec_t) * (n)))
@@ -36,6 +128,17 @@ static char* format_float_value(const format_spec_t *spec, double value);
  * Public API Functions
  * ========================================================================== */
 
+/**
+ * Detect BASIC dialect from format string characteristics.
+ *
+ * Examines the format string for dialect-specific markers:
+ * - HP: D, A, S modifiers for numeric/string specs
+ * - QBasic: !, &, ^, **, $$, *** operators or backslash strings
+ * - MS-BASIC-80: Default if no specific markers found
+ *
+ * @param format_str The format string to analyze
+ * @return Detected format_dialect_t value
+ */
 format_dialect_t format_detect_dialect(const char *format_str)
 {
     if (!format_str || *format_str == '\0')
@@ -83,6 +186,17 @@ format_dialect_t format_detect_dialect(const char *format_str)
     return DIALECT_MSBASIC80;
 }
 
+/**
+ * Parse a format string into a format_string_t structure.
+ *
+ * Automatically detects the BASIC dialect from the format string characteristics
+ * and dispatches to the appropriate dialect-specific parser. The returned structure
+ * contains an array of format_spec_t entries that can be applied to values.
+ *
+ * @param format_str The format string to parse (e.g., "5D.2D" for HP)
+ * @param dialect_hint Suggested dialect (can be overridden by format detection)
+ * @return Allocated format_string_t structure on success, NULL on parse error
+ */
 format_string_t* format_parse(const char *format_str, format_dialect_t dialect_hint)
 {
     if (!format_str) {
@@ -105,6 +219,16 @@ format_string_t* format_parse(const char *format_str, format_dialect_t dialect_h
     }
 }
 
+/**
+ * Create a single format_value_t from a numeric value.
+ *
+ * Convenience function for building format_value_t arrays to pass to
+ * format_apply_values(). Sets the type field to 0 (numeric) and stores
+ * the double precision floating point value.
+ *
+ * @param num The numeric value to store (double precision)
+ * @return format_value_t with numeric type and value set
+ */
 format_value_t format_value_numeric(double num)
 {
     format_value_t v;
@@ -113,6 +237,16 @@ format_value_t format_value_numeric(double num)
     return v;
 }
 
+/**
+ * Create a single format_value_t from a string value.
+ *
+ * Convenience function for building format_value_t arrays to pass to
+ * format_apply_values(). Sets the type field to 1 (string) and stores
+ * a pointer to the string value. The string is referenced, not copied.
+ *
+ * @param str The string value to reference (pointer not copied)
+ * @return format_value_t with string type and value set
+ */
 format_value_t format_value_string(const char *str)
 {
     format_value_t v;
@@ -121,6 +255,15 @@ format_value_t format_value_string(const char *str)
     return v;
 }
 
+/**
+ * Free a parsed format string structure and all allocated memory.
+ *
+ * Safely deallocates a format_string_t and all nested allocations, including
+ * the specs array, literal strings within specs, and group tracking arrays.
+ * Safe to call with NULL pointer.
+ *
+ * @param fmt Format string structure to free
+ */
 void format_free(format_string_t *fmt)
 {
     if (!fmt) return;
@@ -140,6 +283,22 @@ void format_free(format_string_t *fmt)
     free(fmt);
 }
 
+/**
+ * Apply format specifications to a list of values, producing formatted output.
+ *
+ * Iterates through format specifications in the parsed format string and applies
+ * each specification to the corresponding value. Handles format cycling (if more
+ * values than specs, wraps back to the beginning of the spec list). Manages
+ * dynamic buffer allocation and reallocation as output grows.
+ *
+ * The returned string is malloc'd and must be freed by the caller.
+ *
+ * @param fmt   Parsed format string structure
+ * @param values Array of format_value_t values to format
+ * @param num_values Number of values in the array
+ * @return Malloc'd output string containing formatted result (caller must free),
+ *         or NULL on error (invalid parameters or memory allocation failure)
+ */
 char* format_apply_values(const format_string_t *fmt,
                          const format_value_t *values,
                          int num_values)
@@ -275,8 +434,18 @@ char* format_apply_values(const format_string_t *fmt,
  * ========================================================================== */
 
 /**
- * Parse HP TimeShare BASIC IMAGE FORMAT
- * Format: nA, nX, nD, nD.mD, nD.mDE, with S for sign, literals in quotes
+ * Parse HP TimeShare BASIC IMAGE format string.
+ *
+ * Supports the complete HP IMAGE format specification including:
+ * - Carriage control modifiers: +, (suppress LF), -, (suppress CR), #, (suppress both)
+ * - Numeric specs: [S]nD[.mD][E][S] for integer, fixed, and floating formats
+ * - String specs: nA for character fields, nX for spacing
+ * - Literals: quoted strings in double quotes
+ * - Separators: commas for format grouping
+ * - Line breaks: forward slash (/) for CR/LF
+ *
+ * @param format_str The HP IMAGE format string to parse
+ * @return Allocated format_string_t structure, or NULL on parse error
  */
 static format_string_t* parse_hp_format(const char *format_str)
 {
@@ -442,8 +611,23 @@ static format_string_t* parse_hp_format(const char *format_str)
 }
 
 /**
- * Parse HP numeric specification: [repetition_factor]D[.D][E] with optional S modifiers  
- * Examples: "D" (1 digit), "5D" (5 digits), "5D.2D" (5 before, 2 after decimal), "S4D" (sign + 4)
+ * Parse HP numeric specification: [S]nD[.mD][E][S]
+ *
+ * Parses HP numeric format specifications where:
+ * - S (optional, leading): Sign modifier (floating left)
+ * - n (optional): Repetition factor (field width for D's)
+ * - D (required): Digit placeholder character
+ * - .mD (optional): Decimal point with repetition factor m and D's
+ * - E (optional): Exponential notation indicator
+ * - S (optional, trailing): Sign modifier (fixed right)
+ *
+ * Examples: "D", "5D", "5D.2D", "S4D", "5D.2DE"
+ *
+ * Creates format_spec_t of type: SPEC_TYPE_INTEGER, FIXED, or FLOAT
+ *
+ * @param str The format string
+ * @param pos Pointer to current position (updated on return)
+ * @return Populated format_spec_t with appropriate type and detail fields
  */
 static format_spec_t parse_hp_numeric_spec(const char *str, int *pos)
 {
@@ -570,7 +754,20 @@ static format_spec_t parse_hp_numeric_spec(const char *str, int *pos)
 }
 
 /**
- * Parse HP string specification: nA or nX
+ * Parse HP string specification: [n]A or [n]X
+ *
+ * Parses HP string format specifications where:
+ * - [n] (optional): Repetition factor (number of characters)
+ * - A: Character field (outputs string left-justified, padded with spaces)
+ * - X: Spacing/blank field (outputs n spaces)
+ *
+ * Examples: "A", "5A", "10X"
+ *
+ * Creates format_spec_t of type: SPEC_TYPE_STRING (for A) or SPEC_TYPE_SPACING (for X)
+ *
+ * @param str The format string
+ * @param pos Pointer to current position (updated on return)
+ * @return Populated format_spec_t with STRING or SPACING type
  */
 static format_spec_t parse_hp_string_spec(const char *str, int *pos)
 {
@@ -604,8 +801,22 @@ static format_spec_t parse_hp_string_spec(const char *str, int *pos)
 }
 
 /**
- * Parse MS-BASIC-80 format string 
- * (Placeholder - basic implementation)
+ * Parse MS-BASIC-80 format string.
+ *
+ * This is a placeholder function for MS-BASIC-80 format support.
+ * MS-BASIC-80 format specifications include:
+ * - #: Digit placeholder
+ * - .: Decimal point
+ * - +/-: Sign indicators
+ * - $: Currency symbol
+ * - *: Asterisk fill
+ * - &/^^^: String and exponential formats
+ * - %, _: Overflow and spacing
+ *
+ * TODO: Implement full MS-BASIC-80 parsing
+ *
+ * @param format_str The MS-BASIC-80 format string
+ * @return Empty format_string_t structure (not yet implemented)
  */
 static format_string_t* parse_msbasic80_format(const char *format_str)
 {
@@ -631,8 +842,25 @@ static format_string_t* parse_msbasic80_format(const char *format_str)
 }
 
 /**
- * Parse QBasic format string
- * (Placeholder - basic implementation)
+ * Parse QBasic format string.
+ *
+ * This is a placeholder function for QBasic format support.
+ * QBasic format specifications include:
+ * - !: First character only (string)
+ * - \...\: Fixed-width string field
+ * - &: Variable-width string field
+ * - #: Digit placeholder
+ * - **: Asterisk fill
+ * - $$: Dollar prefix currency
+ * - ****$: Asterisk fill with dollar
+ * - ^^^^: Exponential format (4 carets)
+ * - _: Underscore (literal output)
+ * - %: Percent separator
+ *
+ * TODO: Implement full QBasic parsing
+ *
+ * @param format_str The QBasic format string
+ * @return Empty format_string_t structure (not yet implemented)
  */
 static format_string_t* parse_qbasic_format(const char *format_str)
 {
@@ -661,6 +889,19 @@ static format_string_t* parse_qbasic_format(const char *format_str)
  * VALUE FORMATTING FUNCTIONS
  * ========================================================================== */
 
+/**
+ * Format a string value according to format specification.
+ *
+ * Formats a string value using the SPEC_TYPE_STRING specification,
+ * implementing the HP nA format: outputs the string left-justified in a
+ * field of specified width, padded with spaces on the right.
+ *
+ * Allocates and returns a malloc'd string that must be freed by the caller.
+ *
+ * @param spec Format specification (must have type SPEC_TYPE_STRING)
+ * @param value String value to format
+ * @return Malloc'd formatted string (caller must free), or NULL on error
+ */
 static char* format_string_value(const format_spec_t *spec, const char *value)
 {
     if (!spec || !value) return NULL;
@@ -689,6 +930,19 @@ static char* format_string_value(const format_spec_t *spec, const char *value)
     return result;
 }
 
+/**
+ * Format an integer value according to format specification.
+ *
+ * Formats a numeric value as an integer using the SPEC_TYPE_INTEGER specification,
+ * with support for field width and optional sign display. Uses snprintf with
+ * appropriate format string based on width and sign requirements.
+ *
+ * Allocates and returns a malloc'd string that must be freed by the caller.
+ *
+ * @param spec Format specification (must have type SPEC_TYPE_INTEGER)
+ * @param value Numeric value to convert and format
+ * @return Malloc'd formatted string (caller must free), or NULL on error
+ */
 static char* format_integer_value(const format_spec_t *spec, double value)
 {
     if (!spec) return NULL;
@@ -708,6 +962,19 @@ static char* format_integer_value(const format_spec_t *spec, double value)
     return result;
 }
 
+/**
+ * Format a fixed-point value according to format specification.
+ *
+ * Formats a numeric value with fixed decimal places using the SPEC_TYPE_FIXED
+ * specification (e.g., HP nD.mD format). Displays the specified number of digits
+ * before and after the decimal point, with optional sign display.
+ *
+ * Allocates and returns a malloc'd string that must be freed by the caller.
+ *
+ * @param spec Format specification (must have type SPEC_TYPE_FIXED)
+ * @param value Numeric value to format with fixed decimals
+ * @return Malloc'd formatted string (caller must free), or NULL on error
+ */
 static char* format_fixed_value(const format_spec_t *spec, double value)
 {
     if (!spec) return NULL;
@@ -728,6 +995,19 @@ static char* format_fixed_value(const format_spec_t *spec, double value)
     return result;
 }
 
+/**
+ * Format a floating-point value according to format specification.
+ *
+ * Formats a numeric value in exponential notation using the SPEC_TYPE_FLOAT
+ * specification (e.g., HP nD.mDE format). Displays the value in scientific notation
+ * with the specified number of significant digits and optional sign display.
+ *
+ * Allocates and returns a malloc'd string that must be freed by the caller.
+ *
+ * @param spec Format specification (must have type SPEC_TYPE_FLOAT)
+ * @param value Numeric value to format in exponential notation
+ * @return Malloc'd formatted string (caller must free), or NULL on error
+ */
 static char* format_float_value(const format_spec_t *spec, double value)
 {
     if (!spec) return NULL;

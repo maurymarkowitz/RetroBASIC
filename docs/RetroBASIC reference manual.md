@@ -75,6 +75,7 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
    * [`INPUT` [{*sexp*}{[;|,]}]*var*[,{*sexp*{[;|,]}}*var*,...]](#input-sexpvarsexpvar)
    * [`PRINT` [*exp*{|[;|,]},...]](#print-exp)
    * [`PRINT USING` [*exp*][,|;][*exp*{|[;|,]},...]]](#print-using-expexp)
+   * [`IMAGE` *lineno*](#image-statement)
    * [`PUT` *var*](#put-var)
 - [`DATA`, `READ` and `RESTORE`](#data-read-and-restore)
    * [`DATA` *con*[,*con*...]](#data-concon)
@@ -166,6 +167,9 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
    * [`MAT` *var1*`=TRN(`*var2*`)`](#mat-var1trnvar2)
    * [`MAT` *var*`=ZER`[(*aexp*,...)]](#mat-varzeraexp)
    * [`DET`[(*aexp*)]](#detaexp)
+- [Format strings](#format-strings)
+   * [MS-BASIC-80 format](#ms-basic-80-format)
+   * [HP TimeShare format](#hp-timeshare-format)
 - [Error handling](#error-handling)
    * [{`TRAP`|`ON ERROR GOTO`|`ONERR GOTO`} [*aexp*]](#trapon-error-gotoonerr-goto-aexp)
    * [{`ERROR`|`RAISE`} *aexp*](#errorraise-aexp)
@@ -1247,7 +1251,7 @@ While a number of dialects require the image to be specified as a string constan
 
 One curiosity to note is that `PRINT USING` *always* prints a \<return\> at the end of the line, ignoring the normal behaviour when a comma or semicolon is found at the end of the expression list.
 
-For a complete description of the formatting strings and especially the complex possibilities of the HP style, see the section on Format Strings.
+For a complete description of the formatting strings and especially the complex possibilities of the HP style, see the section on [Format strings](#format-strings).
 
 #### Examples:
 
@@ -1269,6 +1273,36 @@ MAI Basic Four does not use the `USING` keyword, instead, any `PRINT` statement 
 *Illustrating BASIC* notes that "one BASIC uses % not :" for specifying an `IMAGE` line, but the book does not specify which BASIC that is. It also notes that "N.C.C Standard BASIC" suggests the separator between the image specification and expression list is a colon, although no dialect that actually followed that rule can be found. N.C.C likely refers to the UK's National Curriculum Council, which may mean this was a suggested standard that was never implemented in actual code.
 
 BASIC75 contains a very different `USING` keyword statement. It acts like a `GOSUB` that returns after that single line is complete, in a fashion similar to JOSS and FOCAL's `Do line` statement. This appears to be used to make a `SELECT CASE...` like statement, but why one would not just use `ON...GOSUB...` for this is not clear.
+
+#### See also:
+
+* `IMAGE`
+* `USING$`
+
+<!-- TOC --><a name="image-statement"></a>
+### `IMAGE` *lineno*
+
+The `IMAGE` statement defines a format string separately from the `PRINT` statement, allowing the format to be reused or separated from the output logic. The line number given by *lineno* identifies a later line containing the format image, and `PRINT USING` can refer back to it.
+
+This style comes from HP TimeShare BASIC and some other dialects. In RetroBASIC, the `IMAGE` statement is primarily used with HP-style `PRINT USING` formats, where the image line contains the HP IMAGE directives such as `D`, `A`, `X`, `S`, and literal text. RetroBASIC allows `IMAGE` to also be used for MS-style format strings, although these would be unlikely to be found in the wild.
+
+For a complete description of the formatting strings that `IMAGE` supports, see the section on [format strings](#format-strings).
+
+#### Examples:
+
+    100 IMAGE 200
+    110 X = 123.45
+    120 PRINT USING 200; X
+    200 "Value: "5D.2D
+
+This prints:
+
+    Value:   123.45
+
+#### See also:
+
+* `PRINT USING`
+* `USING$`
 
 <!-- TOC --><a name="put-var"></a>
 ### `PUT` *var*
@@ -2043,7 +2077,24 @@ Digital Group BASIC uses `NUM` instead of `VAL` for this functionality. In diale
 Produces:
 
     HELLO WORLD         hello world
-    
+
+### `USING$`(*sexp*, *exp*[,*exp*...])
+
+`USING$`, introduced in BASIC-PLUS, uses DEC/MS style format strings to format output. This offers an alternative way to perform complex formatting for output, and allows the formatted output to be used in an other statement. For instance, one might use this to format the prompt string for an `INPUT`, which would otherwise not support this feature.
+
+For a complete description of the formatting strings that `USING$` supports, see the section on [format strings](#format-strings).
+
+#### Examples:
+
+    10 A$=USING("!", "HELLO, WORLD")
+    20 PRINT A$
+
+This will print "H", as the "!" format string means "return first character only". A$ is set to "H" and then PRINTed.
+
+#### See also:
+
+* `PRINT USING`
+
 <!-- TOC --><a name="string-slicing"></a>
 ## String slicing
 
@@ -2631,6 +2682,158 @@ An alternative form of `MAT A$=ZER` used in Dartmouth and DEC dialects to set al
    110 MAT READ A
    120 MAT B=INV(A)
    130 IF ABS(DET)<0.01 THEN PRINT "MATRIX INVERSION FAILED"
+
+<!-- TOC --><a name="format-strings"></a>
+## Format strings
+
+Format strings, or "images", are used with the `PRINT USING` statement and `USING$` function to control how numeric and string values are displayed. Different BASIC dialects developed different format specification systems, and RetroBASIC supports the two most common, HP TimeShare BASIC format and MS-BASIC-80 format.
+
+<!-- TOC --><a name="ms-basic-80-format"></a>
+### MS-BASIC-80 format
+
+MS-BASIC-80 and most modern BASIC variants use a common set of characters to build up format strings.
+
+#### Numeric format codes
+
+- **#** — Digit position (blank for leading zeros unless using `*` fill)
+- **0** — Force leading zeros (unlike `#`, which blanks them)
+- **.** — Decimal point position (in the format string, shows where decimal will appear)
+- **,** — Thousands separator (appears in formatted output every 3 digits)
+- **+** — Force sign display (appears before positive numbers)
+- **-** — Force trailing sign (sign after the number)
+- **$** — Currency symbol prefix
+- **e** or **E** — Exponential notation
+- **\...\ ** — String delimiters (everything between backslashes is literal)
+
+#### Special numeric decorators
+
+- **\*\*** — Asterisk fill (pads with asterisks instead of blanks, typically for dollar amounts)
+- **\*\*$** — Asterisk fill with currency symbol
+- **^^^** or **^^^^** — Exponential format (alternate to E)
+- **%** — Percent sign (placed at end for percentage format)
+- **_** — Underscore (forces literal output of next character)
+
+#### String format codes
+
+- **!** — First character only of the string, the rest is ignored
+- **&** — Full variable-length string with no padding
+- **@** — Fixed-width centered string (implementation-dependent)
+
+#### MS-BASIC-80 format examples
+
+```
+10 X = 1234.5
+20 PRINT USING "####.##"; X        ! Output: "1234.50"
+30 PRINT USING "+###"; 42          ! Output: "+42"
+40 PRINT USING "$###.##"; 99.9     ! Output: "$99.90"
+50 PRINT USING "**###"; 7          ! Output: "****7" (asterisk fill)
+60 PRINT USING "###,###"; 1000     ! Output: "1,000"
+70 PRINT USING "!"; "HELLO"        ! Output: "H" (first character only)
+80 PRINT USING "\\ITEM:\\"; "XYZ"  ! Output: "ITEM:XYZ"
+```
+
+#### Common usage patterns
+
+**Right-aligned integers:**
+```
+PRINT USING "####"; 42             ! Output: "  42"
+PRINT USING "####"; 1234           ! Output: "1234"
+```
+
+**Money formatting:**
+```
+PRINT USING "$###.##"; 99.9        ! Output: "$99.90"
+PRINT USING "$###.##"; 1234.56     ! Output: "$1234.56"
+PRINT USING "**$###.##"; 42.5      ! Output: "**$42.50"
+```
+
+**Scientific notation:**
+```
+PRINT USING "#.##e+##"; 1234.5     ! Output: "1.23e+03"
+```
+
+**Mixing strings and numbers:**
+```
+PRINT USING "\TOTAL: \$###.##"; 15.75    ! Output: "TOTAL: $15.75"
+```
+
+**Column-aligned output:**
+```
+10 FOR I = 1 TO 3
+20   PRINT USING "###"; I; USING "  $###.##"; I * 10.5
+30 NEXT I
+!  Output:
+!    1    $10.50
+!    2    $21.00
+!    3    $31.50
+```
+
+<!-- TOC --><a name="hp-timeshare-format"></a>
+### HP TimeShare format
+
+HP BASIC uses a more complex and powerful format specification system that includes things like recursive definitions and other advanced features.
+
+#### Numeric format codes
+
+- **D** — Digit position (represents a single digit; leading positions are often blank)
+- **nD** — Multiple digit positions (e.g., `5D` specifies 5 digit positions)
+- **nD.mD** — Fixed-point format with decimal places (e.g., `5D.2D` specifies 5 digits before the decimal and 2 after)
+- **nD.mDE** — Exponential notation (e.g., `5D.2DE` displays 5 digits before decimal, 2 after, plus E notation)
+- **S** — Sign indicator; can appear before the number (`S4D`) for a floating sign or after (`4DS`) for a trailing sign
+
+#### String format codes
+
+- **nA** — String field with fixed width (n characters, left-justified with space padding)
+- **nX** — Spacing (n blank spaces in output)
+
+#### Parenthesized patterns
+
+HP also supports parenthesized pattern groups, which allow you to write longer format strings in a more compact format. A group can be enclosed in parentheses and followed by a repetition count to repeat the entire sub-format multiple times.
+
+- **(pattern)n** — Repeat the grouped format n times
+
+Examples:
+
+```
+PRINT USING "(2D)3"; 12, 34, 56    ! Equivalent to "2D2D2D"
+PRINT USING "(3A,2X)2"; "HI","BY"  ! Output: "HI BY  " followed by the second group
+PRINT USING "(S4D,1X)3"; -1, 2, -3 ! Repeats a signed 4-digit field plus a blank three times
+```
+
+#### Literals and separators
+
+- **"text"** — Literal text to be output as-is (enclosed in double quotes)
+- **,** (comma) — Format separator for grouping; usually not output
+- **/** (slash) — Line break (carriage return and line feed)
+- **+,**, **-,**, **#,** (at start) — Carriage control modifiers (suppress line feed, carriage return, or both)
+
+#### HP format examples
+
+```
+10 X = 123.456
+20 PRINT USING "5D.2D"; X          ! Output: "  123.46"
+30 PRINT USING "S4D"; -42          ! Output: "  -42"
+40 PRINT USING "5D.2DE"; 1234.5    ! Output: "1234.5E+00"
+50 PRINT USING "10A"; "HELLO"      ! Output: "HELLO     " (left-justified, padded)
+60 PRINT USING "5D,5D"; 10,20      ! Output: "   10   20" (commas group, not output)
+```
+
+#### Other systems
+
+Although MS is by far the most common system, and HP a distant second, there are other format systems worth noting.
+
+The most important is the system in some Tiny BASIC implementations. TB only had string constants, and numbers were normally integers only, so the formatting system was much simpler than the ones described above. Because the images were short, they were inserted directly in the list of parameters for the `PRINT` statement, placed directly in front of the variable they were formatting. This had the additional advantage that you can add multiple formats to a single statement. Unfortunately, the character they chose to indicate an image is `#`, which interferes with the much more common use as the indication of file output, so at this time the TB format is not supported.
+
+MAI Basic Four used a concept similar to the one in TB, allowing you to insert a format string *after* any parameter in the `PRINT` statement. Basic Four is a major example of the class of "business basics", so it's likely other dialects supported this feature as well. Once again, they chose an unfortunate character for this purpose, the colon, which interfers heavily with the more common usage as a statement separator, and again this is not supported in RetroBASIC for this reason.
+
+#### Format string dialect detection
+
+In RetroBASIC, the format dialect is automatically detected based on the characters used:
+
+- If the format contains `D`, `A`, `X`, or `S` characters, it is treated as HP TimeShare format
+- Otherwise, it is treated as MS-BASIC-80 format
+
+This means you can use whichever format you are most comfortable with, and RetroBASIC will handle it appropriately. However, for maximum compatibility with existing programs, use the format that matches your source dialect.
 
 <!-- TOC --><a name="error-handling"></a>
 ## Error handling
