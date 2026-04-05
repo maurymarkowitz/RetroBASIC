@@ -9,6 +9,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check SCOOP_TOKEN secret
+        if: ${{ !secrets.SCOOP_TOKEN }}
+        run: |
+          echo "ERROR: SCOOP_TOKEN secret is not set. Add it to the repository secrets and rerun."
+          exit 1
+
       - name: Checkout scoop bucket
         uses: actions/checkout@v4
         with:
