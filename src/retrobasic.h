@@ -157,6 +157,10 @@ typedef struct statement_struct {
     } deftype; // used in DEFINT etc.
     list_t *dim; // list of variable definitions
     struct {
+      list_t *varlist;
+      int preserve;
+    } redim; // used in REDIM and REDIM PRESERVE
+    struct {
       variable_reference_t *variable;
       expression_t *begin, *end, *step;
     } _for;

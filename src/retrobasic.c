@@ -2410,6 +2410,214 @@ static void perform_statement(list_t *statement_entry)
 					}
 				}
 				break;
+
+      case REDIM:
+        // resize an existing array dimension
+        // REDIM varlist or REDIM PRESERVE varlist
+      {
+        // loop over the variables in the redim list
+        for (list_t *variable = lst_first_node(statement->parms.redim.varlist); variable != NULL; variable = lst_next(variable)) {
+          variable_reference_t *var = variable->data;
+          
+          // look up the storage, error if it's not found
+          variable_storage_t *storage = lst_data_with_key(interpreter_state.variable_values, var->name);
+          if (storage == NULL) {
+            handle_error(ern_REDIM_ARRAY, "REDIM on unknown variable.");
+            break;
+          }
+          
+          // verify the variable has been previously DIMmed
+          if (storage->dimed_dimensions == NULL) {
+            handle_error(ern_REDIM_ARRAY, "REDIM on non-DIMmed variable.");
+            break;
+          }
+          
+          // verify the new dimension count matches the original
+          int old_dim_count = lst_length(storage->dimed_dimensions);
+          int new_dim_count = lst_length(var->subscripts);
+          if (old_dim_count != new_dim_count) {
+            handle_error(ern_REDIM_ARRAY, "REDIM with different number of dimensions.");
+            break;
+          }
+          
+          // calculate old array size
+          int old_size = 1;
+          for (list_t *old_dim = lst_first_node(storage->actual_dimensions); old_dim != NULL; old_dim = old_dim->next) {
+            old_size *= (POINTER_TO_INT(old_dim->data) + 1);
+          }
+          
+          // evaluate new dimensions
+          list_t *new_dimensions = NULL;
+          int new_size = 1;
+          for (list_t *L = var->subscripts; L != NULL; L = lst_next(L)) {
+            value_t v = evaluate_expression(L->data);
+            int dim_val = (int)v.number;
+            new_dimensions = lst_append(new_dimensions, INT_TO_POINTER(dim_val));
+            new_size *= (dim_val + 1);
+          }
+          
+          // handle PRESERVE vs non-PRESERVE
+          if (statement->parms.redim.preserve == 0) {
+            // non-PRESERVE: just free old array and allocate new one  
+            if (storage->array != NULL) {
+              // if string array, free all string data
+              if (storage->type == STRING) {
+                for (int i = 0; i < old_size; i++) {
+                  if (storage->array[i].string != NULL) {
+                    free(storage->array[i].string);
+                  }
+                }
+              }
+              free(storage->array);
+            }
+            
+            // allocate new array
+            storage->array = calloc(new_size, sizeof(storage->array[0]));
+            if (storage->array == NULL) {
+              handle_error(ern_OUT_OF_MEMORY, "REDIM failed: out of memory");
+              break;
+            }
+            
+            // initialize to defaults
+            for (int i = 0; i < new_size; i++) {
+              if (storage->type == STRING) {
+                storage->array[i].string = str_new("");
+              } else {
+                storage->array[i].number = 0.0;
+              }
+            }
+          } else {
+            // REDIM PRESERVE: copy overlapping elements
+            either_t *old_array = storage->array;
+            int old_size_check = old_size;
+            
+            // allocate new array
+            either_t *new_array = calloc(new_size, sizeof(new_array[0]));
+            if (new_array == NULL) {
+              handle_error(ern_OUT_OF_MEMORY, "REDIM PRESERVE failed: out of memory");
+              break;
+            }
+            
+            // initialize all elements to defaults
+            for (int i = 0; i < new_size; i++) {
+              if (storage->type == STRING) {
+                new_array[i].string = str_new("");
+              } else {
+                new_array[i].number = 0.0;
+              }
+            }
+            
+            // copy overlapping values using proper multidimensional indexing
+            // get dimension lists
+            list_t *old_dims_list = storage->actual_dimensions;
+            list_t *new_dims_list = new_dimensions;
+            
+            // build arrays of dimension sizes for easier access
+            int old_dim_count = lst_length(old_dims_list);
+            int new_dim_count = lst_length(new_dims_list);
+            
+            // calculate dimension boundaries (old_max[i], old_max[i]+1 = size)
+            int old_maxes[10], new_maxes[10];
+            int dim_idx = 0;
+            for (list_t *L = old_dims_list; L != NULL; L = L->next) {
+              old_maxes[dim_idx++] = POINTER_TO_INT(L->data);
+            }
+            dim_idx = 0;
+            for (list_t *L = new_dims_list; L != NULL; L = L->next) {
+              new_maxes[dim_idx++] = POINTER_TO_INT(L->data);
+            }
+            
+            // iterate through all elements in the old array
+            // using multi-dimensional indices
+            if (old_dim_count == 1) {
+              // 1D array
+              int copy_len = (old_maxes[0] < new_maxes[0]) ? old_maxes[0] : new_maxes[0];
+              for (int i = 0; i <= copy_len; i++) {  
+                if (storage->type == STRING) {
+                  if (old_array[i].string != NULL) {
+                    new_array[i].string = str_new(old_array[i].string);
+                  }
+                } else {
+                  new_array[i].number = old_array[i].number;
+                }
+              }
+            } else if (old_dim_count == 2) {
+              // 2D array
+              int old_stride = old_maxes[1] + 1;
+              int new_stride = new_maxes[1] + 1;
+              int row_limit = (old_maxes[0] < new_maxes[0]) ? old_maxes[0] : new_maxes[0];
+              int col_limit = (old_maxes[1] < new_maxes[1]) ? old_maxes[1] : new_maxes[1];
+              
+              for (int i = 0; i <= row_limit; i++) {
+                for (int j = 0; j <= col_limit; j++) {
+                  int old_idx = i * old_stride + j;
+                  int new_idx = i * new_stride + j;
+                  if (storage->type == STRING) {
+                    if (old_array[old_idx].string != NULL) {
+                      new_array[new_idx].string = str_new(old_array[old_idx].string);
+                    }
+                  } else {
+                    new_array[new_idx].number = old_array[old_idx].number;
+                  }
+                }
+              }
+            } else if (old_dim_count == 3) {
+              // 3D array
+              int old_stride2 = old_maxes[1] + 1;
+              int old_stride1 = old_stride2 * (old_maxes[2] + 1);
+              int new_stride2 = new_maxes[1] + 1;
+              int new_stride1 = new_stride2 * (new_maxes[2] + 1);
+              
+              int dim0_limit = (old_maxes[0] < new_maxes[0]) ? old_maxes[0] : new_maxes[0];
+              int dim1_limit = (old_maxes[1] < new_maxes[1]) ? old_maxes[1] : new_maxes[1];
+              int dim2_limit = (old_maxes[2] < new_maxes[2]) ? old_maxes[2] : new_maxes[2];
+              
+              for (int i = 0; i <= dim0_limit; i++) {
+                for (int j = 0; j <= dim1_limit; j++) {
+                  for (int k = 0; k <= dim2_limit; k++) {
+                    int old_idx = i * old_stride1 + j * old_stride2 + k;
+                    int new_idx = i * new_stride1 + j * new_stride2 + k;
+                    if (storage->type == STRING) {
+                      if (old_array[old_idx].string != NULL) {
+                        new_array[new_idx].string = str_new(old_array[old_idx].string);
+                      }
+                    } else {
+                      new_array[new_idx].number = old_array[old_idx].number;
+                    }
+                  }
+                }
+              }
+            }
+            
+            // free old array (including string data)
+            if (old_array != NULL) {
+              if (storage->type == STRING) {
+                for (int i = 0; i < old_size_check; i++) {
+                  if (old_array[i].string != NULL) {
+                    free(old_array[i].string);
+                  }
+                }
+              }
+              free(old_array);
+            }
+            
+            // update storage to point to new array
+            storage->array = new_array;
+          }
+          
+          // update the dimensions  
+          lst_free(storage->actual_dimensions);
+          storage->actual_dimensions = new_dimensions;
+          
+          // also update dimed_dimensions to match
+          lst_free(storage->dimed_dimensions);
+          storage->dimed_dimensions = NULL;
+          for (list_t *L = new_dimensions; L != NULL; L = L->next) {
+            storage->dimed_dimensions = lst_append(storage->dimed_dimensions, L->data);
+          }
+        }
+      }
+        break;
         
       case END:
         // set the instruction pointer to null so it exits below
