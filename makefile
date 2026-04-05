@@ -16,24 +16,27 @@ mv=/bin/mv -f
 
 # our program name
 TARGET = retrobasic
+SRC_DIR = src
 
-# the final program has three inputs, the lex/yacc and the interpreter source
-$(TARGET): $(wildcard src/*.c) parse.tab.c lex.yy.c
-	$(CC) -Isrc $^ -o $(TARGET) -lm
+# the final program has three inputs: generated lex/yacc sources and the interpreter source
+$(TARGET): $(wildcard $(SRC_DIR)/*.c) $(SRC_DIR)/parse.tab.c $(SRC_DIR)/lex.yy.c
+	$(CC) -I$(SRC_DIR) $^ -o $(TARGET) -lm
 
 # if the lex or .tab.h file is changed, run lex again
-lex.yy.c: src/scan.l parse.tab.h
+$(SRC_DIR)/lex.yy.c: $(SRC_DIR)/scan.l $(SRC_DIR)/parse.tab.h
 	$(LEX) -o $@ $<
 
 # If the yacc file is changed, run yacc again.
-parse.tab.c parse.tab.h: src/parse.y
-	$(YAC) $(YFLAGS) -o $@ $<
-	cp parse.tab.h parse.h
-	cp parse.tab.h src/parse.h
+$(SRC_DIR)/parse.tab.c $(SRC_DIR)/parse.tab.h: $(SRC_DIR)/parse.y
+	$(YAC) $(YFLAGS) -o $(SRC_DIR)/parse.tab.c $<
+	cp $(SRC_DIR)/parse.tab.h $(SRC_DIR)/parse.h
+	cp $(SRC_DIR)/parse.tab.h parse.h
 
 clean:
 	$(rm) $(TARGET) $(TARGET).o
-	$(rm) *.tab.h *.tab.c *.lex.c *.yy.c parse.output
+	$(rm) src/parse.tab.c src/parse.tab.h src/lex.yy.c
+	$(rm) parse.tab.c parse.tab.h lex.yy.c parse.h
+	$(rm) *.lex.c *.yy.c parse.output
 	$(rm) -r *.dSYM 
 
 # Detect platform for install behavior
