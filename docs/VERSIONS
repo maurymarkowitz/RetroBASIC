@@ -4,6 +4,7 @@ Version 2.2.0 - 6 April 2026
 
 - added comprehensive support for MS/DEC and HP style format strings
 - added IMAGE and USING$ for formatting
+- new section in the reference manual with examples of formatting
 - multi-input MAX and MIN, eg MAX(1,2,3,4)
 - string MAX and MIN, eg MAX("Hello", "World)
 - added REDIM and REDIM PRESERVE
