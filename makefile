@@ -28,6 +28,8 @@ lex.yy.c: src/scan.l parse.tab.h
 # If the yacc file is changed, run yacc again.
 parse.tab.c parse.tab.h: src/parse.y
 	$(YAC) $(YFLAGS) -o $@ $<
+	cp parse.tab.h parse.h
+	cp parse.tab.h src/parse.h
 
 clean:
 	$(rm) $(TARGET) $(TARGET).o
