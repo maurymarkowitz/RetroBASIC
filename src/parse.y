@@ -111,6 +111,7 @@ static expression_t *make_operator(int arity, int o)
 %token DATA
 %token DEF
 %token DIM
+%token REDIM
 %token END
 %token EXIT
 %token FOR
@@ -159,6 +160,7 @@ static expression_t *make_operator(int arity, int o)
 %token SYS
 %token VARLIST
 %token PAUSE
+%token PRESERVE
 %token SLEEP /* BASIC-PLUS variation */
 %token RESTORE
 
@@ -444,6 +446,22 @@ statement:
   {
     statement_t *new = make_statement(DIM);
     new->parms.dim = $2;
+    $$ = new;
+  }
+  |
+  REDIM varlist
+  {
+    statement_t *new = make_statement(REDIM);
+    new->parms.redim.varlist = $2;
+    new->parms.redim.preserve = 0;
+    $$ = new;
+  }
+  |
+  REDIM PRESERVE varlist
+  {
+    statement_t *new = make_statement(REDIM);
+    new->parms.redim.varlist = $3;
+    new->parms.redim.preserve = 1;
     $$ = new;
   }
   |

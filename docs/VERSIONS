@@ -1,5 +1,12 @@
 RetroBASIC version history
 
+Version 2.2.0 - 6 April 2026
+
+- multi-input MAX and MIN, eg MAX(1,2,3,4)
+- string MAX and MIN, eg MAX("Hello", "World)
+- added REDIM and REDIM PRESERVE
+- added install to make that installs the documentation
+
 Version 2.1.2 - 16 September 2025
 
 - added a new statistic that determines if a decimal number can be exactly represented in binary

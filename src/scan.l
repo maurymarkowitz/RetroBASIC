@@ -91,6 +91,7 @@ ON        { return ON; }
 POKE      { return POKE; }
 PRINT     { return PRINT; }
 READ      { return READ; }
+REDIM     { return REDIM; }
 RESTORE   { return RESTORE; }
 RETURN    { return RETURN; }
 RUN       { return RUN; }
@@ -115,6 +116,7 @@ SYSTEM    { return SYS; }     // same as CALL
 USING     { return USING; }
 VARLIST   { return VARLIST; }
 PAUSE     { return PAUSE; }
+PRESERVE  { return PRESERVE; }
 POP       { return POP; }
 DISPOSE   { return POP; }     // same as POP
 EXIT      { return EXIT; }    // slightly different than pop

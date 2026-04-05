@@ -49,18 +49,18 @@ BP - DEC BASIC-PLUS
 
 - PA and BP allow single or double quotes around strings
 
-- PA prints a colon after INPUTs, not ?, and prints the variable name if no prompt is given. So "INPUT A" prints "A:", while INPUT "TYPE A NUMBER"A prints "TYPE A NUMBER:"
-
 - LPOS, LPRINT, etc. from AB, GW and others
 
 - CINT CSNG CDBL are not implemented
 
 - IF..LET, another alternative format for IF
 
-- ERASE, clears variables (IBM Advanced BASIC)
 
 Debatable:
 
+- ERASE, clears variables (IBM Advanced BASIC), used as CLR in other dialects
+
+- PA prints a colon after INPUTs, not ?, and prints the variable name if no prompt is given. So "INPUT A" prints "A:", while INPUT "TYPE A NUMBER"A prints "TYPE A NUMBER:"
 
 - OPTION VERSION from ByWater might be useful, it sets the version of basic and what it supports
 
