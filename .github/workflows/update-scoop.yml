@@ -44,6 +44,7 @@ jobs:
           TAG="${{ github.event.release.tag_name || github.event.inputs.tag_name }}"
           VERSION=${TAG}
           VERSION=${VERSION#v}
+          HASH=$(sha256sum retrobasic-windows-x86_64.zip | cut -d ' ' -f1)
           MANIFEST="scoop-bucket/bucket/retrobasic.json"
           if [ ! -f "$MANIFEST" ]; then
             echo "ERROR: Manifest not found at $MANIFEST"
@@ -51,9 +52,13 @@ jobs:
             exit 1
           fi
           echo "Updating: $MANIFEST"
+          echo "VERSION: $VERSION"
+          echo "HASH: $HASH"
           sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" "$MANIFEST"
+          sed -i "s|\"url\": \"[^\"]*\"|\"url\": \"https://github.com/maurymarkowitz/RetroBASIC/releases/download/${TAG}/retrobasic-windows-x86_64.zip\"|" "$MANIFEST"
           sed -i "s/\"hash\": \"[^\"]*\"/\"hash\": \"${HASH}\"/" "$MANIFEST"
-          sed -i "s|releases/download/[^/]*/retrobasic-windows-x86_64.zip|releases/download/${TAG}/retrobasic-windows-x86_64.zip|" "$MANIFEST"
+          echo "Updated manifest:"
+          cat "$MANIFEST"
 
       - name: Commit & push updates
         env:
