@@ -55,6 +55,7 @@ jobs:
           cd scoop-bucket
           git config user.name github-actions
           git config user.email github-actions@github.com
+          git remote set-url origin "https://x-access-token:${{ secrets.HOMEBREW_AND_SCOOP_TOKEN }}@github.com/maurymarkowitz/scoop-bucket.git"
           git add bucket/retrobasic.json
-          git commit -m "Update scoop manifest for ${{ github.event.release.tag_name }}"
+          git commit -m "Update scoop manifest for ${{ github.event.release.tag_name || github.event.inputs.tag_name }}"
           git push
