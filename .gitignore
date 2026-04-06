@@ -22,4 +22,5 @@ lex.yy.c
 plans/
 parse.output
 */.obj
+tests/
 
