@@ -44,33 +44,26 @@ jobs:
           TAG="${{ github.event.release.tag_name || github.event.inputs.tag_name }}"
           VERSION=${TAG}
           VERSION=${VERSION#v}
-          SCOOP_JSON=$(find scoop-bucket -type f -path '*/bucket/retrobasic.json' | head -n 1)
-          if [ -z "$SCOOP_JSON" ]; then
-            echo "ERROR: could not locate scoop-bucket/bucket/retrobasic.json"
-            find scoop-bucket -maxdepth 4 -type f | sort
+          MANIFEST="scoop-bucket/bucket/retrobasic.json"
+          if [ ! -f "$MANIFEST" ]; then
+            echo "ERROR: Manifest not found at $MANIFEST"
+            find scoop-bucket -name "*.json" -type f
             exit 1
           fi
-          echo "Found: $SCOOP_JSON"
-          SCOOP_ROOT=$(git -C "$(dirname "$SCOOP_JSON")" rev-parse --show-toplevel 2>/dev/null || dirname "$(dirname "$SCOOP_JSON")")
-          echo "SCOOP_ROOT=$SCOOP_ROOT"
-          echo "SCOOP_JSON=$SCOOP_JSON"
-          sed -i "s/\"version\": \".*\"/\"version\": \"${VERSION}\"/" "$SCOOP_JSON"
-          sed -i "s/\"hash\": \".*\"/\"hash\": \"${HASH}\"/" "$SCOOP_JSON"
-          sed -i "s|releases/download/.*/retrobasic-windows-x86_64.zip|releases/download/${TAG}/retrobasic-windows-x86_64.zip|" "$SCOOP_JSON"
-          echo "SCOOP_JSON=$SCOOP_JSON" >> $GITHUB_ENV
+          echo "Updating: $MANIFEST"
+          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" "$MANIFEST"
+          sed -i "s/\"hash\": \"[^\"]*\"/\"hash\": \"${HASH}\"/" "$MANIFEST"
+          sed -i "s|releases/download/[^/]*/retrobasic-windows-x86_64.zip|releases/download/${TAG}/retrobasic-windows-x86_64.zip|" "$MANIFEST"
 
       - name: Commit & push updates
         env:
           GH_TOKEN: ${{ secrets.HOMEBREW_AND_SCOOP_TOKEN }}
         run: |
-          SCOOP_JSON="${{ env.SCOOP_JSON }}"
-          SCOOP_DIR=$(dirname "$(dirname "$SCOOP_JSON")")
-          echo "Using SCOOP_JSON=$SCOOP_JSON"
-          echo "Using SCOOP_DIR=$SCOOP_DIR"
-          cd "$SCOOP_DIR" || exit 1
+          cd scoop-bucket
           git config user.name github-actions
           git config user.email github-actions@github.com
           git remote set-url origin "https://x-access-token:${{ secrets.HOMEBREW_AND_SCOOP_TOKEN }}@github.com/maurymarkowitz/scoop-bucket.git"
+          git diff
           git add bucket/retrobasic.json
           git commit -m "Update scoop manifest for ${{ github.event.release.tag_name || github.event.inputs.tag_name }}"
           git push
