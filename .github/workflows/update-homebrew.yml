@@ -29,6 +29,8 @@ jobs:
           path: homebrew-tap
 
       - name: Update Homebrew formula
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_AND_SCOOP_TOKEN }}
         run: |
           cd homebrew-tap
 
@@ -40,8 +42,6 @@ jobs:
 
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git config --global credential.helper store
-          echo "https://x-access-token:${{ secrets.HOMEBREW_AND_SCOOP_TOKEN }}@github.com" > ~/.git-credentials
 
           git add Formula/retrobasic.rb
           git commit -m "Update retrobasic to ${{ github.event.release.tag_name }}"

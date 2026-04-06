@@ -43,12 +43,12 @@ jobs:
           sed -i "s|releases/download/.*/retrobasic-windows-x86_64.zip|releases/download/${{ github.event.release.tag_name }}/retrobasic-windows-x86_64.zip|" scoop-bucket/bucket/retrobasic.json
 
       - name: Commit & push updates
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_AND_SCOOP_TOKEN }}
         run: |
           cd scoop-bucket
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git config --global credential.helper store
-          echo "https://x-access-token:${{ secrets.HOMEBREW_AND_SCOOP_TOKEN }}@github.com" > ~/.git-credentials
           git add bucket/retrobasic.json
           git commit -m "Update scoop manifest for ${{ github.event.release.tag_name }}"
           git push
