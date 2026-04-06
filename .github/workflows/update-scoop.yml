@@ -54,9 +54,13 @@ jobs:
           echo "Updating: $MANIFEST"
           echo "VERSION: $VERSION"
           echo "HASH: $HASH"
-          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" "$MANIFEST"
-          sed -i "s|\"url\": \"[^\"]*\"|\"url\": \"https://github.com/maurymarkowitz/RetroBASIC/releases/download/${TAG}/retrobasic-windows-x86_64.zip\"|" "$MANIFEST"
-          sed -i "s/\"hash\": \"[^\"]*\"/\"hash\": \"${HASH}\"/" "$MANIFEST"
+          TAG_WITH_V="v${VERSION}"
+          if [ "$TAG" != "$TAG_WITH_V" ]; then
+            TAG_WITH_V="$TAG"
+          fi
+          echo "TAG (for URL): $TAG_WITH_V"
+          # Use jq to reliably update JSON fields
+          jq ".version = \"${VERSION}\" | .url = \"https://github.com/maurymarkowitz/RetroBASIC/releases/download/${TAG_WITH_V}/retrobasic-windows-x86_64.zip\" | .hash = \"${HASH}\"" "$MANIFEST" > "${MANIFEST}.tmp" && mv "${MANIFEST}.tmp" "$MANIFEST"
           echo "Updated manifest:"
           cat "$MANIFEST"
 
