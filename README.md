@@ -37,7 +37,7 @@ brew tap maurymarkowitz/tap https://github.com/maurymarkowitz/homebrew-tap
 brew install maurymarkowitz/tap/retrobasic
 ```
 
-**Note for Apple Silicon (M1/M2/M3) Macs:** Homebrew installs to `/opt/homebrew/bin` instead of `/usr/local/bin`. If you don't have `/opt/homebrew/bin` in your PATH, either add it to your shell profile or run `retrobasic` with the full path: `/opt/homebrew/bin/retrobasic program.bas`
+**Note** Homebrew installs to `/opt/homebrew/bin` instead of `/usr/local/bin` on Apple Silicon Macs.
 
 On Windows, you can use Scoop:
 
