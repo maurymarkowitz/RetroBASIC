@@ -30,14 +30,16 @@ https://github.com/maurymarkowitz/RetroBASIC/releases
 
 Binary packages are be provided for macOS, Linux, and Windows.
 
-On macOS and Linux, you can use Homebrew (where available):
+On macOS and Linux, you can use Homebrew:
 
 ```sh
 brew tap maurymarkowitz/tap https://github.com/maurymarkowitz/homebrew-tap
 brew install maurymarkowitz/tap/retrobasic
 ```
 
-On Windows, you can use Scoop (where available):
+**Note for Apple Silicon (M1/M2/M3) Macs:** Homebrew installs to `/opt/homebrew/bin` instead of `/usr/local/bin`. If you don't have `/opt/homebrew/bin` in your PATH, either add it to your shell profile or run `retrobasic` with the full path: `/opt/homebrew/bin/retrobasic program.bas`
+
+On Windows, you can use Scoop:
 
 ```powershell
 scoop bucket add maurymarkowitz https://github.com/maurymarkowitz/scoop-bucket
@@ -46,35 +48,11 @@ scoop install retrobasic
 
 ## Building RetroBASIC
 
-The RetroBASIC interpreter is written in ANSI C using Flex/Bison for lexer/parser generation. It has no external dependencies beyond standard C libraries and build tools.
+You can also easily build the project from source.  It is a makefile project that does not require `autoconfig` or other steps. A simple `make` in the root directory should produce a working executable on practically any unix-like system.
 
-Requirements:
+Windows compatibility is provided using MinGW, which needs to be installed manually. The same makefile is used for both Unix and Windows, and the `make` utility supplied with MinGW works perfectly. Flex and Bison will generally have to be manually specified as most basic MinGW installs will not include them by default.
 
-- `gcc` or `clang`
-- `make`
-- `flex`
-- `bison`
-
-Build steps:
-
-```sh
-make clean
-make all
-```
-
-Optional install:
-
-```sh
-make install
-```
-
-Optional uninstall:
-
-```sh
-make uninstall
-```
-
-`make install` defaults to `/usr/local`; override with `PREFIX` if needed (for example `make PREFIX=/opt/retrobasic install`).
+Both platforms support `make install` which adds the manuals to the proper locations, and `make uninstall` to cleanly remove all the parts. `make install` defaults to `/usr/local`; override with `PREFIX` if needed (for example `make PREFIX=/opt/retrobasic install`).
 
 ## Running RetroBASIC
 
