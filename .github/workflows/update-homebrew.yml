@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: maurymarkowitz/homebrew-tap
-          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          token: ${{ secrets.HOMEBREW_AND_SCOOP_TOKEN }}
           path: homebrew-tap
 
       - name: Update Homebrew formula
