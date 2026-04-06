@@ -50,7 +50,7 @@ jobs:
             find scoop-bucket -maxdepth 3 -type d | sort
             exit 1
           fi
-          SCOOP_DIR=$(dirname "$SCOOP_ROOT")
+          SCOOP_DIR=$(dirname "$(dirname "$SCOOP_ROOT")")
           sed -i "s/\"version\": \".*\"/\"version\": \"${VERSION}\"/" "$SCOOP_ROOT"
           sed -i "s/\"hash\": \".*\"/\"hash\": \"${HASH}\"/" "$SCOOP_ROOT"
           sed -i "s|releases/download/.*/retrobasic-windows-x86_64.zip|releases/download/${TAG}/retrobasic-windows-x86_64.zip|" "$SCOOP_ROOT"
