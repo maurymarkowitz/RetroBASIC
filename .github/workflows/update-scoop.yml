@@ -9,17 +9,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check HOMEBREW_TAP_TOKEN secret
-        if: ${{ !secrets.HOMEBREW_TAP_TOKEN }}
+      - name: Check HOMEBREW_AND_SCOOP_TOKEN secret
         run: |
-          echo "ERROR: HOMEBREW_TAP_TOKEN secret is not set. Add it to the repository secrets and rerun."
-          exit 1
+          if [ -z "${{ secrets.HOMEBREW_AND_SCOOP_TOKEN }}" ]; then
+            echo "ERROR: HOMEBREW_AND_SCOOP_TOKEN secret is not set. Add it to the repository secrets and rerun."
+            exit 1
+          fi
 
       - name: Checkout scoop bucket
         uses: actions/checkout@v4
         with:
           repository: maurymarkowitz/scoop-bucket
-          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          token: ${{ secrets.HOMEBREW_AND_SCOOP_TOKEN }}
           path: scoop-bucket
 
       - name: Download Windows release asset
