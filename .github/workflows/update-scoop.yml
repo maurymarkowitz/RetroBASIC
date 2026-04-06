@@ -4,6 +4,10 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag to use (e.g. v2.2.0)'
+        required: true
 
 jobs:
   update:
@@ -26,8 +30,8 @@ jobs:
 
       - name: Download Windows release asset
         run: |
-          VERSION=${{ github.event.release.tag_name }}
-          RELEASE_URL="${{ github.server_url }}/${{ github.repository }}/releases/download/${VERSION}/retrobasic-windows-x86_64.zip"
+          TAG="${{ github.event.release.tag_name || github.event.inputs.tag_name }}"
+          RELEASE_URL="${{ github.server_url }}/${{ github.repository }}/releases/download/${TAG}/retrobasic-windows-x86_64.zip"
           curl -L -o retrobasic-windows-x86_64.zip "$RELEASE_URL"
 
       - name: Compute SHA256
@@ -37,11 +41,12 @@ jobs:
 
       - name: Update scoop manifest
         run: |
-          VERSION=${{ github.event.release.tag_name }}
+          TAG="${{ github.event.release.tag_name || github.event.inputs.tag_name }}"
+          VERSION=${TAG}
           VERSION=${VERSION#v}
           sed -i "s/\"version\": \".*\"/\"version\": \"${VERSION}\"/" scoop-bucket/bucket/retrobasic.json
           sed -i "s/\"hash\": \".*\"/\"hash\": \"${HASH}\"/" scoop-bucket/bucket/retrobasic.json
-          sed -i "s|releases/download/.*/retrobasic-windows-x86_64.zip|releases/download/${{ github.event.release.tag_name }}/retrobasic-windows-x86_64.zip|" scoop-bucket/bucket/retrobasic.json
+          sed -i "s|releases/download/.*/retrobasic-windows-x86_64.zip|releases/download/${TAG}/retrobasic-windows-x86_64.zip|" scoop-bucket/bucket/retrobasic.json
 
       - name: Commit & push updates
         env:

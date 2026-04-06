@@ -4,6 +4,10 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag to use (e.g. v2.2.0)'
+        required: true
 
 jobs:
   update:
@@ -15,7 +19,13 @@ jobs:
 
       - name: Download release tarball
         run: |
-          curl -L -o source.tar.gz "${{ github.event.release.tarball_url }}"
+          TAG="${{ github.event.release.tag_name || github.event.inputs.tag_name }}"
+          if [ -n "${{ github.event.release.tarball_url }}" ]; then
+            URL="${{ github.event.release.tarball_url }}"
+          else
+            URL="https://github.com/maurymarkowitz/RetroBASIC/archive/refs/tags/${TAG}.tar.gz"
+          fi
+          curl -L -o source.tar.gz "${URL}"
 
       - name: Compute SHA256
         id: sha
@@ -35,7 +45,8 @@ jobs:
         run: |
           cd homebrew-tap
 
-          url="https://github.com/maurymarkowitz/RetroBASIC/archive/refs/tags/${{ github.event.release.tag_name }}.tar.gz"
+          TAG="${{ github.event.release.tag_name || github.event.inputs.tag_name }}"
+          url="https://github.com/maurymarkowitz/RetroBASIC/archive/refs/tags/${TAG}.tar.gz"
           sha="${{ steps.sha.outputs.sha }}"
 
           sed -i "s|^  url \".*\"|  url \"${url}\"|" Formula/retrobasic.rb
@@ -45,5 +56,5 @@ jobs:
           git config user.email "actions@github.com"
 
           git add Formula/retrobasic.rb
-          git commit -m "Update retrobasic to ${{ github.event.release.tag_name }}"
+          git commit -m "Update retrobasic to ${TAG}"
           git push
