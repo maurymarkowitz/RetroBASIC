@@ -38,7 +38,7 @@
 
 
 /** current version string */
-#define VERSION_STRING "2.2.0"
+#define VERSION_STRING "3.0.0"
 
 /** retrobasic allows line numbers up to FF */
 #define MAX_LINE_NUMBER 65535
@@ -66,6 +66,9 @@ extern char *input_file;
 extern char *print_file;
 extern char *stats_file;
 
+extern volatile sig_atomic_t pause_requested;
+
+extern char *cli_prompt;
 extern double determinant;
 
 /** variable **references**
@@ -100,6 +103,7 @@ typedef struct {
   list_t *dimed_dimensions;     // subscript definitions, if any (from a DIM)
   either_t *value;              // actual value(s), malloced
   either_t *array;              // actual value(s), malloced
+  bool common;                  // true when this variable is DECLAREd COMMON
 } variable_storage_t;
 
 /** expression types */
@@ -249,6 +253,7 @@ typedef struct {
   int trap_line;                  // line to TRAP or ON ERROR to, -1 for none
   int cursor_column;              // current column of the output cursor
   int running_state;              // is the program running (1), paused/stopped (0), or setting up a function (-1)
+  int interactive_mode;           // 1 if started without filename, 0 if batch mode
 } interpreterstate_t;
 
 /* and here's the link to an instance of interpreterstate_t defined in the c side */
@@ -269,5 +274,9 @@ void interpreter_post_parse(void);
 
 /* the interpreter entry point */
 void interpreter_run(void);
+
+/* CLI helper functions */
+int interpreter_parse_cli_input(const char *input, list_t **statements);
+void interpreter_execute_statement_list(list_t *statement_list);
 
 #endif

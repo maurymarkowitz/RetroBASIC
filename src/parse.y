@@ -41,7 +41,6 @@ static double errline;
 void yyerror(const char *message)
 {
   fprintf(stderr, "Syntax error at line %g: %s\n", errline, message);
-  exit(1);
 }
 
 int yylex(void);
@@ -111,6 +110,7 @@ static expression_t *make_operator(int arity, int o)
 %token DATA
 %token DEF
 %token DIM
+%token COMMON
 %token REDIM
 %token END
 %token EXIT
@@ -123,6 +123,10 @@ static expression_t *make_operator(int arity, int o)
 %token INPUT_LINE
 %token LET
 %token LIST
+%token LIST_FILE
+%token LOAD
+%token CHAIN
+%token SAVE
 %token NEXT
 %token NEW
 %token OF
@@ -132,6 +136,7 @@ static expression_t *make_operator(int arity, int o)
 %token READ
 %token RETURN
 %token RUN
+%token CONT
 %token STEP
 %token STOP
 %token THEN
@@ -449,6 +454,13 @@ statement:
     $$ = new;
   }
   |
+  COMMON varlist
+  {
+    statement_t *new = make_statement(COMMON);
+    new->parms.dim = $2;
+    $$ = new;
+  }
+  |
   REDIM varlist
   {
     statement_t *new = make_statement(REDIM);
@@ -742,6 +754,159 @@ statement:
     }
   }
   |
+  LIST
+  {
+    statement_t *new = make_statement(LIST);
+    new->parms.generic.generic_parameter = NULL;
+    new->parms.generic.generic_parameter2 = NULL;
+    $$ = new;
+  }
+  |
+  LIST NUMBER
+  {
+    statement_t *new = make_statement(LIST);
+    expression_t *start = make_expression(number);
+    start->parms.number = $2;
+    new->parms.generic.generic_parameter = start;
+    new->parms.generic.generic_parameter2 = NULL;
+    $$ = new;
+  }
+  |
+  LIST NUMBER '-' NUMBER
+  {
+    statement_t *new = make_statement(LIST);
+    expression_t *start = make_expression(number);
+    expression_t *end = make_expression(number);
+    start->parms.number = $2;
+    end->parms.number = $4;
+    new->parms.generic.generic_parameter = start;
+    new->parms.generic.generic_parameter2 = end;
+    new->parms.generic.generic_parameter3 = NULL;
+    $$ = new;
+  }
+  |
+  LIST NUMBER ',' NUMBER
+  {
+    statement_t *new = make_statement(LIST);
+    expression_t *start = make_expression(number);
+    expression_t *end = make_expression(number);
+    start->parms.number = $2;
+    end->parms.number = $4;
+    new->parms.generic.generic_parameter = start;
+    new->parms.generic.generic_parameter2 = end;
+    new->parms.generic.generic_parameter3 = NULL;
+    $$ = new;
+  }
+  |
+  LIST HASH expression
+  {
+    statement_t *new = make_statement(LIST_FILE);
+    new->parms.generic.generic_parameter = $3;
+    new->parms.generic.generic_parameter2 = NULL;
+    new->parms.generic.generic_parameter3 = NULL;
+    $$ = new;
+  }
+  |
+  LIST HASH expression NUMBER
+  {
+    statement_t *new = make_statement(LIST_FILE);
+    new->parms.generic.generic_parameter = $3;
+    expression_t *start = make_expression(number);
+    start->parms.number = $4;
+    new->parms.generic.generic_parameter2 = start;
+    new->parms.generic.generic_parameter3 = NULL;
+    $$ = new;
+  }
+  |
+  LIST HASH expression NUMBER '-' NUMBER
+  {
+    statement_t *new = make_statement(LIST_FILE);
+    new->parms.generic.generic_parameter = $3;
+    expression_t *start = make_expression(number);
+    expression_t *end = make_expression(number);
+    start->parms.number = $4;
+    end->parms.number = $6;
+    new->parms.generic.generic_parameter2 = start;
+    new->parms.generic.generic_parameter3 = end;
+    $$ = new;
+  }
+  |
+  LIST HASH expression NUMBER ',' NUMBER
+  {
+    statement_t *new = make_statement(LIST_FILE);
+    new->parms.generic.generic_parameter = $3;
+    expression_t *start = make_expression(number);
+    expression_t *end = make_expression(number);
+    start->parms.number = $4;
+    end->parms.number = $6;
+    new->parms.generic.generic_parameter2 = start;
+    new->parms.generic.generic_parameter3 = end;
+    $$ = new;
+  }
+  |
+  RUN
+  {
+    statement_t *new = make_statement(RUN);
+    new->parms.generic.generic_parameter = NULL;
+    new->parms.generic.generic_parameter2 = NULL;
+    new->parms.generic.generic_parameter3 = NULL;
+    $$ = new;
+  }
+  |
+  RUN expression
+  {
+    statement_t *new = make_statement(RUN);
+    new->parms.generic.generic_parameter = $2;
+    new->parms.generic.generic_parameter2 = NULL;
+    new->parms.generic.generic_parameter3 = NULL;
+    $$ = new;
+  }
+  |
+  RUN expression ',' expression
+  {
+    statement_t *new = make_statement(RUN);
+    new->parms.generic.generic_parameter = $2;
+    new->parms.generic.generic_parameter2 = $4;
+    new->parms.generic.generic_parameter3 = NULL;
+    $$ = new;
+  }
+  |
+  SAVE expression
+  {
+    statement_t *new = make_statement(SAVE);
+    new->parms.generic.generic_parameter = $2;
+    new->parms.generic.generic_parameter2 = NULL;
+    new->parms.generic.generic_parameter3 = NULL;
+    $$ = new;
+  }
+  |
+  LOAD expression
+  {
+    statement_t *new = make_statement(LOAD);
+    new->parms.generic.generic_parameter = $2;
+    new->parms.generic.generic_parameter2 = NULL;
+    new->parms.generic.generic_parameter3 = NULL;
+    $$ = new;
+  }
+  |
+  CHAIN expression
+  {
+    statement_t *new = make_statement(CHAIN);
+    new->parms.generic.generic_parameter = $2;
+    new->parms.generic.generic_parameter2 = NULL;
+    new->parms.generic.generic_parameter3 = NULL;
+    $$ = new;
+  }
+  |
+  CHAIN expression ',' expression
+  {
+    statement_t *new = make_statement(CHAIN);
+    new->parms.generic.generic_parameter = $2;
+    new->parms.generic.generic_parameter2 = $4;
+    new->parms.generic.generic_parameter3 = NULL;
+    $$ = new;
+  }
+  |
   NEXT varlist // this handles one or more index variables, no need for a single-var case
   {
     statement_t *new = make_statement(NEXT);
@@ -967,6 +1132,12 @@ statement:
   RESUME
   {
     statement_t *new = make_statement(RESUME);
+    $$ = new;
+  }
+  |
+  CONT
+  {
+    statement_t *new = make_statement(CONT);
     $$ = new;
   }
   |

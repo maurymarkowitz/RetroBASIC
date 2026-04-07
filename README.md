@@ -56,11 +56,13 @@ Both platforms support `make install` which adds the manuals to the proper locat
 
 ## Running RetroBASIC
 
-RetroBASIC is meant to be used with an existing program source file, not interactively. To run it, use a command similar to this example, replacing the "program.bas" with the name of the text file containing the BASIC program you wish to run:
+RetroBASIC is generally used to run existing programs, you can do this using a command similar to this example, replacing the "program.bas" with the name of the text file containing the BASIC program you wish to run:
 
 ```./retrobasic program.bas```
 
 It will accept any text file as input and report (cryptic) errors if it cannot properly parse it. If parsing succeeds, the program (normally) begins running immediately.
+
+If RetroBASIC is launched without a filename, it will enter an interactive state. You can then `LOAD` programs and `RUN` them.
 
 Command-line options include:
 
@@ -73,6 +75,7 @@ Command-line options include:
 `--goto-next`, `-g`: if a branch is to a non-existent line, should it go to the next line or return an error?  
 `--random`, `-r`: seed the random number generator  
 `--slicing`, `-s`: enable string slicing like HP, Integer, Atari, etc.  
+`--prompt`: set the interactive prompt string, default is `>`  
 `--output-file`, `-o`: redirect PRINT to the named file  
 `--input-file`, `-i`: redirect INPUT from the named file, one INPUT value per line  
 `--no_run`, `-n`: do not run the BASIC program, simply read and parse it and then exit  
@@ -89,4 +92,3 @@ A complete list is maintained in the TODO file, but here are some important limi
 
 * Variable names are currently limited to two characters, which is needed to support "crunched" statements without spaces in MS style.
 * The system does not support "immediate mode" (command line) input. It is not supposed to, but could potentially do so.
-* LIST, LOAD and SAVE are currently not implemented, in keeping with the use-case.
