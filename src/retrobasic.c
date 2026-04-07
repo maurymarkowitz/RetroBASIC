@@ -2455,8 +2455,10 @@ static void perform_statement(list_t *statement_entry)
 				break;
 
       case BYE:
-        // BYE always exits RetroBASIC immediately.
-        exit(EXIT_SUCCESS);
+        // BYE exits the running program, but let main handle process exit so
+        // statistics and cleanup still occur.
+        interpreter_state.running_state = 0;
+        interpreter_state.next_statement = NULL;
         break;
         
       case CALL:
@@ -3366,13 +3368,9 @@ static void perform_statement(list_t *statement_entry)
         break;
         
       case END:
-        // in interactive mode END returns to the CLI, otherwise exit
-        if (interpreter_state.interactive_mode) {
-          interpreter_state.running_state = 0;
-          interpreter_state.next_statement = NULL;
-          break;
-        }
-        exit(EXIT_SUCCESS);
+        // in interactive mode END returns to the CLI, otherwise stop execution
+        interpreter_state.running_state = 0;
+        interpreter_state.next_statement = NULL;
         break;
         
       case EXIT:
@@ -4996,11 +4994,8 @@ EXIT_MAT_INPUT:
         } else {
           printf("STOPped at line: %d\n", current_line());
         }
-        if (interpreter_state.interactive_mode) {
-          interpreter_state.running_state = 0;
-          break;
-        }
-        exit(EXIT_SUCCESS);
+        interpreter_state.running_state = 0;
+        interpreter_state.next_statement = NULL;
       }
         break;
 				
