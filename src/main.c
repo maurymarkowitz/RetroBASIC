@@ -19,11 +19,13 @@
  Boston, MA 02111-1307, USA.  */
 
 #include <getopt.h>
+#include <signal.h>
 #include <unistd.h>   // used for getpid
 
 #include "retrobasic.h"
 #include "statistics.h"
 #include "parse.h"
+#include "cli.h"
 
 /* simple version info for --version command line option */
 static void print_version(void)
@@ -31,16 +33,22 @@ static void print_version(void)
   printf("RetroBASIC %s\n", VERSION_STRING);
 }
 
+static void sigint_handler(int sig)
+{
+  (void)sig;
+  pause_requested = 1;
+}
+
 /* usage short form, just a list of the switches */
 static void print_usage(char *argv[])
 {
-  printf("Usage: %s [-hvsngut] [-a number] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] FILE\n", argv[0]);
+  printf("Usage: %s [-hvsngut] [-a number] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] [FILE]\n", argv[0]);
 }
 
 /* full usage notes, both for the user and for documenting the code below */
 static void print_help(char *argv[])
 {
-  printf("Usage: retrobasic [-hvsngut] [-a number] [-tabs spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] FILE\n");
+  printf("Usage: retrobasic [-hvsngut] [-a number] [-tabs spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] [FILE]\n");
   puts("\nOptions:");
   puts("  -h, --help: print this description");
   puts("  -v, --version: print version info");
@@ -56,6 +64,7 @@ static void print_help(char *argv[])
   puts("  -w, --write-stats: on exit, write statistics to a file");
   puts("  -o, --output-file: redirect PRINT and PUT to the named file");
   puts("  -i, --input-file: redirect INPUT and GET from the named file");
+  puts("      --prompt: set the interactive prompt string (default is >)");
 }
 
 static struct option program_options[] =
@@ -73,6 +82,7 @@ static struct option program_options[] =
   {"output-file", required_argument,  NULL, 'o'},
   {"print-stats", no_argument, NULL, 'p'},
   {"write-stats", required_argument, NULL, 'w'},
+  {"prompt", required_argument, NULL, 501},
   {"no-run", no_argument, NULL, 'n'},
   {0, 0, 0, 0}
 };
@@ -157,6 +167,10 @@ void parse_options(int argc, char *argv[])
         write_stats = 1;
         stats_file = optarg;
         break;
+      
+      case 501:
+        cli_prompt = optarg;
+        break;
         
       case 'r':
         test = optarg;
@@ -180,12 +194,10 @@ void parse_options(int argc, char *argv[])
     exit(EXIT_SUCCESS);
   
   // now see if there's a filename
-  if (optind <= argc && argc > 1)
-    source_file = argv[argc - 1];
-  else {
-    print_usage(argv);
-    exit(EXIT_FAILURE);
-  }
+  if (optind < argc)
+    source_file = argv[optind];
+  else
+    source_file = "";
 }
 
 int main(int argc, char *argv[])
@@ -205,26 +217,24 @@ int main(int argc, char *argv[])
   // call the interpreter's setup to create the state needed to parse the file
   interpreter_setup();
   
-  // open the file and see if it exists
-  if (strlen(source_file) == 0) {
-    fprintf(stderr, "No filename provided.\n");
-    exit(EXIT_FAILURE);
-  }
-  yyin = fopen(source_file, "r");
-  if (yyin == NULL) {
-    if (errno == ENOENT) {
-      fprintf(stderr, "File not found or invalid filename provided.\n");
-      exit(EXIT_FAILURE);
-    } else {
-      fprintf(stderr, "Error %i when opening file '%s'.\n", errno, source_file);
-      exit(EXIT_FAILURE);
+  // if we have a file, open and parse it
+  if (strlen(source_file) != 0) {
+    yyin = fopen(source_file, "r");
+    if (yyin == NULL) {
+      if (errno == ENOENT) {
+        fprintf(stderr, "File not found or invalid filename provided.\n");
+        exit(EXIT_FAILURE);
+      } else {
+        fprintf(stderr, "Error %i when opening file '%s'.\n", errno, source_file);
+        exit(EXIT_FAILURE);
+      }
     }
+    if (yyparse() != 0)
+      exit(EXIT_FAILURE);
+    
+    // prepare the code for running
+    interpreter_post_parse();
   }
-  // if we were able to open the file, parse it
-  yyparse();
-  
-  // prepare the code for running
-  interpreter_post_parse();
   
   // seed the random with the provided number or randomize it
   if (random_seed > -1)
@@ -237,9 +247,15 @@ int main(int argc, char *argv[])
   (void)rand();
   (void)rand();
 
-  // and go!
-  if (run_program)
-    interpreter_run();
+  // enter CLI when no file was provided
+  if (strlen(source_file) == 0) {
+    interpreter_state.interactive_mode = 1;
+    signal(SIGINT, sigint_handler);
+    interpreter_cli();
+  } else {
+    if (run_program)
+      interpreter_run();
+  }
   
   // we're done, print/write desired stats
   if (print_stats || write_stats)

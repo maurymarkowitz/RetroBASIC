@@ -74,6 +74,8 @@ CLR       { return CLEAR; } // synonyms
 DEF       { return DEF; }
 DATA      { BEGIN(DATA_STATEMENT); return DATA; }
 DIM       { return DIM; }
+COM       { return COMMON; }
+COMMON    { return COMMON; }
 END       { return END; }
 FOR       { return FOR; }
 GO" "?SUB { return GOSUB; }
@@ -84,6 +86,10 @@ LINPUT    { return INPUT_LINE; }
 LINE" "?INPUT    { return INPUT_LINE; }
 INPUT" "?LINE    { return INPUT_LINE; }
 LET       { return LET; }
+LIST      { return LIST; }
+LOAD      { return LOAD; }
+CHAIN     { return CHAIN; }
+SAVE      { return SAVE; }
 NEXT      { return NEXT; }
 NEW       { return NEW; }   // also CLEAR (sometimes with options), ERASE and SCRATCH
 OF        { return OF; }
@@ -95,6 +101,7 @@ REDIM     { return REDIM; }
 RESTORE   { return RESTORE; }
 RETURN    { return RETURN; }
 RUN       { return RUN; }
+CONT      { return CONT; }
 STEP      { return STEP; }
 STOP      { return STOP; }
 THEN      { return THEN; }

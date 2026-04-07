@@ -21,8 +21,19 @@
  the Free Software Foundation, 59 Temple Place - Suite 330,
  Boston, MA 02111-1307, USA.  */
 
+#include <stdio.h>
+#include <signal.h>
+#include <ctype.h>
+#include <string.h>
 #include <sys/time.h> // for run timers
 #include <unistd.h>   // used for sleep
+#ifndef _WIN32
+#include <pwd.h>
+#endif
+
+extern FILE *yyin;
+extern void yyrestart(FILE *);
+extern int yyparse(void);
 
 #ifdef _WIN32
 // timersub is a BSD helper; on Windows we replicate as needed
@@ -43,6 +54,7 @@ static void timersub(const struct timeval *a, const struct timeval *b, struct ti
 #include "errors.h"
 #include "matrix.h"
 #include "format.h"
+#include "list_output.h"
 
 /* here's the actual definition of the interpreter state which is extern in the header */
 interpreterstate_t interpreter_state;
@@ -65,6 +77,12 @@ char *source_file = "";
 char *input_file = "";
 char *print_file = "";
 char *stats_file = "";
+char *cli_prompt = ">";
+
+volatile sig_atomic_t pause_requested = 0;
+static list_t *cli_run_program_copy = NULL;
+static list_t *cli_saved_continuation = NULL;
+static bool cli_program_control_changed = false;
 
 /* private types used only within the interpreter */
 
@@ -83,15 +101,22 @@ static bool slice_limits(const variable_reference_t *variable, const variable_st
 static list_t *find_line(int linenumber);
 static int line_for_statement(const list_t *s);
 static int current_line(void);
+static int compute_first_line(void);
+static void perform_statement(list_t *statement_entry);
 
 static void print_variables(void);
 static void delete_variables(void);
+static void delete_noncommon_variables(void);
+static void free_variable_storage(variable_storage_t *storage);
 static void delete_functions(void);
 static void delete_lines(void);
 static void clear_variables(void);
 static void clear_stack(void);
 static void clear_error(void);
 static void reset_data_pointer(int line);
+
+int interpreter_parse_cli_input(const char *input, list_t **statements);
+void interpreter_execute_statement_list(list_t *statement_list);
 
 /* global variable used by Dartmouth's matrix inversion routine */
 double determinant = 0.0;
@@ -140,8 +165,9 @@ void handle_error(const int errnum, const char *message)
   else
     fprintf(stderr, "\n?%s at line %d\n", error_messages[interpreter_state.error_num], interpreter_state.error_line);
   
-  // errors are fatal
-  exit(errnum);
+  // untrapped errors pause the interpreter instead of exiting the process
+  interpreter_state.running_state = 0;
+  return;
 }
 
 /* Warning handler implementation, defined in errors.h. */
@@ -156,6 +182,159 @@ void handle_warning(const int errnum, const char *message)
     fprintf(stderr, "\n?%s at line %d (%s)\n", error_messages[errnum], current_line(), message);
   else
     fprintf(stderr, "\n?%s at line %d\n", error_messages[errnum], current_line());
+}
+
+/* scanner helpers used for CLI input parsing */
+typedef struct yy_buffer_state *YY_BUFFER_STATE;
+extern YY_BUFFER_STATE yy_scan_string(const char *);
+extern void yy_delete_buffer(YY_BUFFER_STATE);
+extern void yypush_buffer_state(YY_BUFFER_STATE);
+extern void yypop_buffer_state(void);
+
+int interpreter_parse_cli_input(const char *input, list_t **statements)
+{
+  if (statements)
+    *statements = NULL;
+
+  size_t length = strlen(input);
+  size_t buffer_capacity = length + 2;
+  char *buffer = malloc(buffer_capacity);
+  if (buffer == NULL)
+    return -1;
+
+  strcpy(buffer, input);
+  if (length == 0 || buffer[length - 1] != '\n') {
+    buffer[length++] = '\n';
+    buffer[length] = '\0';
+  }
+
+  /* Detect whether the original input is a program line edit. */
+  char *line_start = buffer;
+  while (isspace((unsigned char)*line_start))
+    line_start++;
+
+  bool use_zero_line = true;
+  if (isdigit((unsigned char)*line_start)) {
+    const char *q = line_start;
+    while (isdigit((unsigned char)*q))
+      q++;
+    if (*q == '\0' || isspace((unsigned char)*q))
+      use_zero_line = false;
+  }
+
+  /* normalize ? to PRINT for immediate CLI execution */
+  char *p = buffer;
+  while (isspace((unsigned char)*p))
+    p++;
+  if (*p == '?') {
+    size_t prefix_len = p - buffer;
+    const char *rest = p + 1;
+    while (*rest == ' ' || *rest == '\t')
+      rest++;
+
+    size_t new_length = prefix_len + 5 + 1 + strlen(rest) + 1;
+    char *new_buffer = malloc(new_length);
+    if (new_buffer == NULL) {
+      free(buffer);
+      return -1;
+    }
+
+    snprintf(new_buffer, new_length, "%.*sPRINT %s", (int)prefix_len, buffer, rest);
+    free(buffer);
+    buffer = new_buffer;
+    length = strlen(buffer);
+  }
+
+  list_t *old_zero_line = NULL;
+  if (use_zero_line) {
+    old_zero_line = interpreter_state.lines[0];
+    interpreter_state.lines[0] = NULL;
+    size_t new_capacity = strlen(buffer) + 3;
+    char *new_buffer = malloc(new_capacity);
+    if (new_buffer == NULL) {
+      if (old_zero_line)
+        interpreter_state.lines[0] = old_zero_line;
+      free(buffer);
+      return -1;
+    }
+    snprintf(new_buffer, new_capacity, "0 %s", buffer);
+    free(buffer);
+    buffer = new_buffer;
+    length = strlen(buffer);
+  }
+
+  YY_BUFFER_STATE yybuf = yy_scan_string(buffer);
+  int result = yyparse();
+  yy_delete_buffer(yybuf);
+
+  if (result != 0) {
+    if (use_zero_line) {
+      if (interpreter_state.lines[0] != NULL)
+        lst_free(interpreter_state.lines[0]);
+      interpreter_state.lines[0] = old_zero_line;
+    }
+    free(buffer);
+    return -1;
+  }
+
+  if (use_zero_line && statements && interpreter_state.lines[0] != NULL) {
+    int count = lst_length(interpreter_state.lines[0]);
+  }
+
+  if (use_zero_line) {
+    if (statements)
+      *statements = interpreter_state.lines[0];
+    interpreter_state.lines[0] = old_zero_line;
+  } else if (statements) {
+    *statements = NULL;
+  }
+
+  free(buffer);
+  return 0;
+}
+
+void interpreter_execute_statement_list(list_t *statement_list)
+{
+  list_t *saved_current = interpreter_state.current_statement;
+  list_t *saved_next = interpreter_state.next_statement;
+  int saved_running_state = interpreter_state.running_state;
+  int saved_error_num = interpreter_state.error_num;
+  int saved_error_line = interpreter_state.error_line;
+  list_t *saved_error_statement = interpreter_state.error_statement;
+  cli_saved_continuation = interpreter_state.next_statement;
+  cli_program_control_changed = false;
+
+  interpreter_state.running_state = 1;
+  interpreter_state.error_num = 0;
+  interpreter_state.error_line = 0;
+  interpreter_state.error_statement = NULL;
+
+  list_t *statement_node = statement_list;
+  while (statement_node) {
+    interpreter_state.current_statement = statement_node;
+    interpreter_state.next_statement = lst_next(statement_node);
+    perform_statement(statement_node);
+    if (interpreter_state.error_num != 0 || interpreter_state.running_state == 0)
+      break;
+    statement_node = interpreter_state.next_statement;
+  }
+
+  if (saved_running_state == 0 && interpreter_state.running_state == 1)
+    interpreter_state.running_state = 0;
+
+  interpreter_state.current_statement = saved_current;
+  if (!cli_program_control_changed)
+    interpreter_state.next_statement = saved_next;
+  interpreter_state.error_num = saved_error_num;
+  interpreter_state.error_line = saved_error_line;
+  interpreter_state.error_statement = saved_error_statement;
+  cli_saved_continuation = NULL;
+  cli_program_control_changed = false;
+
+  if (cli_run_program_copy != NULL && interpreter_state.next_statement == NULL) {
+    lst_free(cli_run_program_copy);
+    cli_run_program_copy = NULL;
+  }
 }
 
 /** Returns an int containing the type of the variable based on its name
@@ -2096,31 +2275,22 @@ static void print_expression(expression_t *e, const char *format, FILE* fp)
  */
 static int line_for_statement(const list_t *statement)
 {
-  // get a pointer to the program from the first line
-  list_t *program = interpreter_state.lines[interpreter_state.first_line];
-  
-  // get the index of this statement in that list
-  int target_index = lst_index_of_data(program, statement->data);
-  
-  // loop forward through the program until we find a line who's
-  // first statement is higher than that index. That means we must
-  // be on the previous line
-  int this_index, previous_line = interpreter_state.first_line;
-  for (int i = interpreter_state.first_line; i < MAX_LINE_NUMBER; i++) {
-    // skip empty lines
-    if (interpreter_state.lines[i] == NULL) continue;
-    
-    // get the index of the first statement on that line
-    this_index = lst_index_of_data(program, interpreter_state.lines[i]->data);
-    
-    // now see if we're in this line or the previous one
-    if (this_index == target_index) return i;
-    if (this_index > target_index) return previous_line;
-    
-    // otherwise keep looking
-    previous_line = i;
+  if (statement == NULL || statement->data == NULL)
+    return -1;
+
+  statement_t *target_statement = statement->data;
+  for (int i = 0; i < MAX_LINE_NUMBER; i++) {
+    if (interpreter_state.lines[i] == NULL)
+      continue;
+
+    list_t *node = lst_first_node(interpreter_state.lines[i]);
+    while (node) {
+      if (node->data == target_statement)
+        return i;
+      node = lst_next(node);
+    }
   }
-  // didn't find it
+
   return -1;
 } //line_for_statement
 
@@ -2130,6 +2300,73 @@ static int line_for_statement(const list_t *statement)
 static int current_line(void)
 {
   return line_for_statement(interpreter_state.current_statement);
+}
+
+static list_t *build_program_copy(void);
+static list_t *find_program_copy_line(list_t *program, int linenumber);
+static void evaluate_labels_in_lines(void);
+
+static int compute_first_line(void)
+{
+  for (int i = 0; i < MAX_LINE_NUMBER; i++) {
+    if (interpreter_state.lines[i] != NULL)
+      return i;
+  }
+  return -1;
+}
+
+static list_t *build_program_copy(void)
+{
+  int first_line = compute_first_line();
+  if (first_line < 0)
+    return NULL;
+
+  list_t *program = lst_copy(interpreter_state.lines[first_line]);
+  for (int i = first_line + 1; i < MAX_LINE_NUMBER; i++) {
+    if (interpreter_state.lines[i] != NULL) {
+      list_t *line_copy = lst_copy(interpreter_state.lines[i]);
+      program = lst_concat(program, line_copy);
+    }
+  }
+
+  return program;
+}
+
+static list_t *find_program_copy_line(list_t *program, int linenumber)
+{
+  if (program == NULL || linenumber < 0 || linenumber >= MAX_LINE_NUMBER)
+    return NULL;
+
+  list_t *target = interpreter_state.lines[linenumber];
+  if (target == NULL)
+    return NULL;
+
+  list_t *node = lst_first_node(program);
+  while (node) {
+    if (node->data == target->data)
+      return node;
+    node = lst_next(node);
+  }
+
+  return NULL;
+}
+
+static void evaluate_labels_in_lines(void)
+{
+  for (int i = 0; i < MAX_LINE_NUMBER; i++) {
+    if (interpreter_state.lines[i] == NULL)
+      continue;
+
+    list_t *node = lst_first_node(interpreter_state.lines[i]);
+    while (node) {
+      statement_t *ps = node->data;
+      if (ps && ps->type == LABEL) {
+        variable_storage_t *stored_val = variable_storage(ps->parms.label.variable);
+        stored_val->value->number = (double)ps->parms.label.linenumber;
+      }
+      node = lst_next(node);
+    }
+  }
 }
 
 /**
@@ -2218,13 +2455,437 @@ static void perform_statement(list_t *statement_entry)
 				break;
 
       case BYE:
-        // unlike END, this exits BASIC entirely
+        // BYE always exits RetroBASIC immediately.
         exit(EXIT_SUCCESS);
         break;
         
       case CALL:
         // do nothing
         break;
+
+      case LIST:
+      {
+        int start_line = 0;
+        int end_line = MAX_LINE_NUMBER - 1;
+
+        if (statement->parms.generic.generic_parameter) {
+          start_line = (int)statement->parms.generic.generic_parameter->parms.number;
+        }
+        if (statement->parms.generic.generic_parameter2) {
+          end_line = (int)statement->parms.generic.generic_parameter2->parms.number;
+        }
+
+        char *output = list_output_program(start_line, end_line);
+        if (output && *output) {
+          printf("%s", output);
+        }
+        free(output);
+      }
+      break;
+      case LIST_FILE:
+      {
+        int channel = floor(evaluate_expression(statement->parms.generic.generic_parameter).number);
+        FILE* fp = handle_for_channel(channel);
+        if (fp == NULL) {
+          handle_error(ern_FILE_NOT_OPEN, "Attempt to LIST to a file that has not been OPENed");
+          break;
+        }
+        if (!channel_is_writable(channel)) {
+          handle_error(ern_FILE_NOT_OUTPUT, "Attempt to LIST to a file that is read-only");
+          break;
+        }
+
+        int start_line = 0;
+        int end_line = MAX_LINE_NUMBER - 1;
+        if (statement->parms.generic.generic_parameter2) {
+          start_line = (int)statement->parms.generic.generic_parameter2->parms.number;
+        }
+        if (statement->parms.generic.generic_parameter3) {
+          end_line = (int)statement->parms.generic.generic_parameter3->parms.number;
+        }
+
+        char *output = list_output_program(start_line, end_line);
+        if (output && *output) {
+          fprintf(fp, "%s", output);
+        }
+        free(output);
+      }
+      break;
+      case SAVE:
+      {
+        value_t filename_value = evaluate_expression(statement->parms.generic.generic_parameter);
+        if (filename_value.type != STRING || filename_value.string == NULL) {
+          handle_error(ern_TYPE_MISMATCH, "SAVE filename must be a string");
+          break;
+        }
+
+        char *path = NULL;
+        if (filename_value.string[0] == '~') {
+#ifndef _WIN32
+          const char *home = getenv("HOME");
+          if (home == NULL) {
+            struct passwd *pw = getpwuid(getuid());
+            if (pw)
+              home = pw->pw_dir;
+          }
+#else
+          const char *home = getenv("HOME");
+          if (home == NULL)
+            home = getenv("USERPROFILE");
+          if (home == NULL) {
+            const char *drive = getenv("HOMEDRIVE");
+            const char *hpath = getenv("HOMEPATH");
+            if (drive && hpath) {
+              size_t len = strlen(drive) + strlen(hpath) + 1;
+              path = malloc(len + 1);
+              sprintf(path, "%s%s", drive, hpath);
+            }
+          }
+#endif
+          if (path == NULL) {
+            if (home == NULL)
+              home = "";
+            size_t len = strlen(home) + strlen(filename_value.string);
+            path = malloc(len + 1);
+            sprintf(path, "%s%s", home, filename_value.string + 1);
+          }
+        } else {
+          path = strdup(filename_value.string);
+        }
+
+        char *output = list_output_program(0, MAX_LINE_NUMBER - 1);
+        FILE *fp = fopen(path, "w");
+        if (fp == NULL) {
+          char buffer[256];
+          snprintf(buffer, sizeof(buffer), "Unable to SAVE to %s", path);
+          free(path);
+          free(output);
+          handle_error(ern_FILE_NOT_OPEN, buffer);
+          break;
+        }
+        if (output) {
+          fprintf(fp, "%s", output);
+        }
+        fclose(fp);
+        free(output);
+        free(path);
+      }
+      break;
+      case RUN:
+      {
+        list_t *start_statement = NULL;
+      bool as_string = false;
+      char *path = NULL;
+      int start_line_number = -1;
+
+      if (statement->parms.generic.generic_parameter) {
+        value_t target = evaluate_expression(statement->parms.generic.generic_parameter);
+          if (target.type == STRING && target.string != NULL) {
+            as_string = true;
+#ifndef _WIN32
+            const char *home = getenv("HOME");
+            if (home == NULL) {
+              struct passwd *pw = getpwuid(getuid());
+              if (pw)
+                home = pw->pw_dir;
+            }
+#else
+            const char *home = getenv("HOME");
+            if (home == NULL)
+              home = getenv("USERPROFILE");
+            if (home == NULL) {
+              const char *drive = getenv("HOMEDRIVE");
+              const char *hpath = getenv("HOMEPATH");
+              if (drive && hpath) {
+                size_t len = strlen(drive) + strlen(hpath) + 1;
+                path = malloc(len + 1);
+                sprintf(path, "%s%s", drive, hpath);
+              }
+            }
+#endif
+            if (path == NULL) {
+              if (target.string[0] == '~') {
+                if (home == NULL)
+                  home = "";
+                size_t len = strlen(home) + strlen(target.string);
+                path = malloc(len + 1);
+                sprintf(path, "%s%s", home, target.string + 1);
+              } else {
+                path = strdup(target.string);
+              }
+            }
+          } else if (statement->parms.generic.generic_parameter2) {
+            handle_error(ern_ILLEGAL_VALUE, "RUN with a numeric target cannot take a second parameter");
+            break;
+          } else {
+            start_line_number = (int)floor(target.number);
+          }
+        }
+
+        if (as_string) {
+          FILE *fp = fopen(path, "r");
+          if (fp == NULL) {
+            char buffer[256];
+            snprintf(buffer, sizeof(buffer), "Unable to RUN load %s", path);
+            free(path);
+            handle_error(ern_FILE_NOT_OPEN, buffer);
+            break;
+          }
+
+          close_all_files();
+          delete_variables();
+          delete_functions();
+          delete_lines();
+          clear_stack();
+          interpreter_state.runtime_stack = NULL;
+          clear_error();
+          interpreter_state.error_statement = NULL;
+
+          FILE *saved_yyin = yyin;
+          yyin = fp;
+          yyrestart(yyin);
+          yyparse();
+          fclose(fp);
+          yyin = saved_yyin;
+
+          interpreter_post_parse();
+
+          if (statement->parms.generic.generic_parameter2) {
+            value_t line_target = evaluate_expression(statement->parms.generic.generic_parameter2);
+            if (line_target.type != NUMBER) {
+              free(path);
+              handle_error(ern_TYPE_MISMATCH, "RUN second parameter must be a line number");
+              break;
+            }
+            int start_line = (int)floor(line_target.number);
+            start_statement = find_line(start_line);
+            if (start_statement == NULL) {
+              free(path);
+              break;
+            }
+          } else {
+            if (interpreter_state.first_line < 0 || interpreter_state.lines[interpreter_state.first_line] == NULL) {
+              free(path);
+              handle_error(ern_NO_SUCH_LINE, "No program loaded to RUN");
+              break;
+            }
+            start_statement = interpreter_state.lines[interpreter_state.first_line];
+          }
+
+          free(path);
+        } else {
+          close_all_files();
+          delete_variables();
+          delete_functions();
+          clear_stack();
+          interpreter_state.runtime_stack = NULL;
+          clear_error();
+          interpreter_state.error_statement = NULL;
+          if (interpreter_state.first_line < 0 || interpreter_state.lines[interpreter_state.first_line] == NULL) {
+            interpreter_state.first_line = compute_first_line();
+          }
+          if (interpreter_state.first_line < 0 || interpreter_state.lines[interpreter_state.first_line] == NULL) {
+            handle_error(ern_NO_SUCH_LINE, "No program loaded to RUN");
+            break;
+          }
+
+          evaluate_labels_in_lines();
+          list_t *program = build_program_copy();
+          if (program == NULL) {
+            handle_error(ern_NO_SUCH_LINE, "No program loaded to RUN");
+            break;
+          }
+          cli_run_program_copy = program;
+          interpreter_state.current_data_statement = interpreter_state.lines[interpreter_state.first_line];
+          interpreter_state.current_data_element = NULL;
+          if (start_line_number >= 0) {
+            start_statement = find_program_copy_line(program, start_line_number);
+            if (start_statement == NULL) {
+              handle_error(ern_NO_SUCH_LINE, "No such starting line for RUN");
+              break;
+            }
+          } else {
+            start_statement = program;
+          }
+        }
+
+        interpreter_state.next_statement = start_statement;
+        cli_program_control_changed = true;
+      }
+      break;
+      case LOAD:
+      {
+        value_t filename_value = evaluate_expression(statement->parms.generic.generic_parameter);
+        if (filename_value.type != STRING || filename_value.string == NULL) {
+          handle_error(ern_TYPE_MISMATCH, "LOAD filename must be a string");
+          break;
+        }
+
+        char *path = NULL;
+        if (filename_value.string[0] == '~') {
+#ifndef _WIN32
+          const char *home = getenv("HOME");
+          if (home == NULL) {
+            struct passwd *pw = getpwuid(getuid());
+            if (pw)
+              home = pw->pw_dir;
+          }
+#else
+          const char *home = getenv("HOME");
+          if (home == NULL)
+            home = getenv("USERPROFILE");
+          if (home == NULL) {
+            const char *drive = getenv("HOMEDRIVE");
+            const char *hpath = getenv("HOMEPATH");
+            if (drive && hpath) {
+              size_t len = strlen(drive) + strlen(hpath) + 1;
+              path = malloc(len + 1);
+              sprintf(path, "%s%s", drive, hpath);
+            }
+          }
+#endif
+          if (path == NULL) {
+            if (home == NULL)
+              home = "";
+            size_t len = strlen(home) + strlen(filename_value.string);
+            path = malloc(len + 1);
+            sprintf(path, "%s%s", home, filename_value.string + 1);
+          }
+        } else {
+          path = strdup(filename_value.string);
+        }
+
+        close_all_files();
+
+        FILE *fp = fopen(path, "r");
+        if (fp == NULL) {
+          char buffer[256];
+          snprintf(buffer, sizeof(buffer), "Unable to LOAD from %s", path);
+          free(path);
+          handle_error(ern_FILE_NOT_OPEN, buffer);
+          break;
+        }
+
+        delete_noncommon_variables();
+        delete_functions();
+        delete_lines();
+        clear_stack();
+        interpreter_state.runtime_stack = NULL;
+        interpreter_state.next_statement = NULL;
+        interpreter_state.current_statement = NULL;
+
+        FILE *saved_yyin = yyin;
+        yyin = fp;
+        yyrestart(yyin);
+        yyparse();
+        fclose(fp);
+        yyin = saved_yyin;
+
+        interpreter_state.first_line = -1;
+        interpreter_state.next_statement = NULL;
+        free(path);
+      }
+      break;
+
+      case CHAIN:
+      {
+        value_t filename_value = evaluate_expression(statement->parms.generic.generic_parameter);
+        if (filename_value.type != STRING || filename_value.string == NULL) {
+          handle_error(ern_TYPE_MISMATCH, "CHAIN filename must be a string");
+          break;
+        }
+
+        char *path = NULL;
+        if (filename_value.string[0] == '~') {
+#ifndef _WIN32
+          const char *home = getenv("HOME");
+          if (home == NULL) {
+            struct passwd *pw = getpwuid(getuid());
+            if (pw)
+              home = pw->pw_dir;
+          }
+#else
+          const char *home = getenv("HOME");
+          if (home == NULL)
+            home = getenv("USERPROFILE");
+          if (home == NULL) {
+            const char *drive = getenv("HOMEDRIVE");
+            const char *hpath = getenv("HOMEPATH");
+            if (drive && hpath) {
+              size_t len = strlen(drive) + strlen(hpath) + 1;
+              path = malloc(len + 1);
+              sprintf(path, "%s%s", drive, hpath);
+            }
+          }
+#endif
+          if (path == NULL) {
+            if (home == NULL)
+              home = "";
+            size_t len = strlen(home) + strlen(filename_value.string);
+            path = malloc(len + 1);
+            sprintf(path, "%s%s", home, filename_value.string + 1);
+          }
+        } else {
+          path = strdup(filename_value.string);
+        }
+
+        close_all_files();
+        delete_noncommon_variables();
+        delete_functions();
+        delete_lines();
+        clear_stack();
+        interpreter_state.runtime_stack = NULL;
+        clear_error();
+        interpreter_state.error_statement = NULL;
+
+        FILE *fp = fopen(path, "r");
+        if (fp == NULL) {
+          char buffer[256];
+          snprintf(buffer, sizeof(buffer), "Unable to CHAIN from %s", path);
+          free(path);
+          handle_error(ern_FILE_NOT_OPEN, buffer);
+          break;
+        }
+
+        FILE *saved_yyin = yyin;
+        yyin = fp;
+        yyrestart(yyin);
+        yyparse();
+        fclose(fp);
+        yyin = saved_yyin;
+
+        interpreter_post_parse();
+
+        list_t *start_statement = NULL;
+        if (statement->parms.generic.generic_parameter2) {
+          value_t line_target = evaluate_expression(statement->parms.generic.generic_parameter2);
+          if (line_target.type != NUMBER) {
+            free(path);
+            handle_error(ern_TYPE_MISMATCH, "CHAIN second parameter must be a line number");
+            break;
+          }
+          int start_line = (int)floor(line_target.number);
+          start_statement = find_line(start_line);
+          if (start_statement == NULL) {
+            free(path);
+            break;
+          }
+        } else {
+          if (interpreter_state.first_line < 0 || interpreter_state.lines[interpreter_state.first_line] == NULL) {
+            free(path);
+            handle_error(ern_NO_SUCH_LINE, "No program loaded to CHAIN");
+            break;
+          }
+          start_statement = interpreter_state.lines[interpreter_state.first_line];
+        }
+
+        interpreter_state.current_statement = NULL;
+        interpreter_state.current_data_statement = interpreter_state.lines[interpreter_state.first_line];
+        interpreter_state.current_data_element = NULL;
+        interpreter_state.next_statement = start_statement;
+        free(path);
+      }
+      break;
 
 			case CHANGE:
 			case CONVERT:
@@ -2411,6 +3072,90 @@ static void perform_statement(list_t *statement_entry)
 					}
 				}
 				break;
+
+      case COMMON:
+      {
+        for (list_t *variable = lst_first_node(statement->parms.dim); variable != NULL; variable = lst_next(variable)) {
+          variable_reference_t *var = variable->data;
+          variable_storage_t *storage = lst_data_with_key(interpreter_state.variable_values, var->name);
+          if (storage == NULL) {
+            insert_variable(var);
+            storage = lst_data_with_key(interpreter_state.variable_values, var->name);
+          }
+
+          int expected_type = variable_type(var);
+          if (storage->type != expected_type) {
+            handle_error(ern_TYPE_MISMATCH, "COMMON variable type mismatch");
+            break;
+          }
+
+          if (var->subscripts == NULL) {
+            if (storage->actual_dimensions != NULL && lst_length(storage->actual_dimensions) > 0) {
+              handle_error(ern_TYPE_MISMATCH, "COMMON scalar conflicts with existing array");
+              break;
+            }
+            if (storage->dimed_dimensions != NULL) {
+              handle_error(ern_TYPE_MISMATCH, "COMMON scalar conflicts with existing array");
+              break;
+            }
+          } else {
+            int expected_dims = lst_length(var->subscripts);
+            if (storage->dimed_dimensions != NULL) {
+              if (lst_length(storage->dimed_dimensions) != expected_dims) {
+                handle_error(ern_TYPE_MISMATCH, "COMMON array dimensions mismatch");
+                break;
+              }
+              list_t *existing_dim = lst_first_node(storage->dimed_dimensions);
+              list_t *requested_dim = lst_first_node(var->subscripts);
+              while (existing_dim != NULL && requested_dim != NULL) {
+                int existing_value = POINTER_TO_INT(existing_dim->data);
+                int requested_value = (int)floor(evaluate_expression(requested_dim->data).number);
+                if (existing_value != requested_value) {
+                  handle_error(ern_TYPE_MISMATCH, "COMMON array dimensions mismatch");
+                  break;
+                }
+                existing_dim = existing_dim->next;
+                requested_dim = requested_dim->next;
+              }
+              if (interpreter_state.error_num != 0)
+                break;
+            } else if (storage->actual_dimensions != NULL) {
+              if (lst_length(storage->actual_dimensions) != expected_dims) {
+                handle_error(ern_TYPE_MISMATCH, "COMMON array dimensions mismatch");
+                break;
+              }
+              list_t *existing_dim = lst_first_node(storage->actual_dimensions);
+              list_t *requested_dim = lst_first_node(var->subscripts);
+              while (existing_dim != NULL && requested_dim != NULL) {
+                int existing_value = POINTER_TO_INT(existing_dim->data);
+                int requested_value = (int)floor(evaluate_expression(requested_dim->data).number);
+                if (existing_value != requested_value) {
+                  handle_error(ern_TYPE_MISMATCH, "COMMON array dimensions mismatch");
+                  break;
+                }
+                existing_dim = existing_dim->next;
+                requested_dim = requested_dim->next;
+              }
+              if (interpreter_state.error_num != 0)
+                break;
+            }
+
+            if (storage->dimed_dimensions == NULL) {
+              value_t v;
+              for (list_t *L = var->subscripts; L != NULL; L = lst_next(L)) {
+                v = evaluate_expression(L->data);
+                storage->dimed_dimensions = lst_append(storage->dimed_dimensions, INT_TO_POINTER(v.number));
+              }
+            }
+
+            int ignore = 0;
+            variable_value(var, &ignore);
+          }
+
+          storage->common = true;
+        }
+      }
+      break;
 
       case REDIM:
         // resize an existing array dimension
@@ -2621,8 +3366,13 @@ static void perform_statement(list_t *statement_entry)
         break;
         
       case END:
-        // set the instruction pointer to null so it exits below
-        interpreter_state.next_statement = NULL;
+        // in interactive mode END returns to the CLI, otherwise exit
+        if (interpreter_state.interactive_mode) {
+          interpreter_state.running_state = 0;
+          interpreter_state.next_statement = NULL;
+          break;
+        }
+        exit(EXIT_SUCCESS);
         break;
         
       case EXIT:
@@ -3725,19 +4475,18 @@ EXIT_MAT_INPUT:
         
       case NEW:
       {
-        // it's not entirely clear what this should do INSIDE a program, but...
-        // wipe out any variables and functions and create new lists
+        // clear all variables and program state, including COMMON
         close_all_files();
         delete_variables();
         delete_functions();
         delete_lines();
         clear_stack();
-				interpreter_state.next_statement = NULL; // stop execution, there's nothing left
+        interpreter_state.next_statement = NULL; // stop execution, there's nothing left
       } // new
         break;
-        
+      
       case ON:
-			case OF:
+      case OF:
       {
         list_t *numslist = statement->parms.on.numbers;
         
@@ -4121,6 +4870,27 @@ EXIT_MAT_INPUT:
       }
         break;
         
+      case CONT:
+      {
+        list_t *resume_statement = interpreter_state.next_statement;
+        if (resume_statement == NULL)
+          resume_statement = cli_saved_continuation;
+
+        if (interpreter_state.running_state != 0 && resume_statement == NULL)
+          break;
+
+        if (resume_statement != NULL) {
+          interpreter_state.current_statement = resume_statement;
+          interpreter_state.next_statement = NULL;
+          cli_saved_continuation = NULL;
+          cli_program_control_changed = true;
+          clear_error();
+          interpreter_state.running_state = 1;
+          interpreter_run();
+        }
+      }
+        break;
+
       case RESUME:
       {
         // check to see if there is an error, otherwise report an error
@@ -4225,6 +4995,10 @@ EXIT_MAT_INPUT:
           printf("STOP: %s\n", message.string);
         } else {
           printf("STOPped at line: %d\n", current_line());
+        }
+        if (interpreter_state.interactive_mode) {
+          interpreter_state.running_state = 0;
+          break;
         }
         exit(EXIT_SUCCESS);
       }
@@ -4370,16 +5144,86 @@ static void delete_variables(void) {
 	lst_free_everything(interpreter_state.variable_values);
 	interpreter_state.variable_values = NULL;
 }
+
+static void free_variable_storage(variable_storage_t *storage)
+{
+  if (storage == NULL)
+    return;
+
+  if (storage->value != NULL) {
+    if (storage->type == STRING && storage->value->string != NULL)
+      free(storage->value->string);
+    free(storage->value);
+  }
+
+  if (storage->array != NULL) {
+    if (storage->type == STRING) {
+      int total_elements = 1;
+      list_t *dim = lst_first_node(storage->actual_dimensions);
+      while (dim != NULL) {
+        total_elements *= (POINTER_TO_INT(dim->data) + 1);
+        dim = dim->next;
+      }
+      for (int i = 0; i < total_elements; i++) {
+        if (storage->array[i].string != NULL)
+          free(storage->array[i].string);
+      }
+    }
+    free(storage->array);
+  }
+
+  lst_free(storage->actual_dimensions);
+  lst_free(storage->dimed_dimensions);
+  free(storage);
+}
+
+static void delete_noncommon_variables(void)
+{
+  list_t *node = lst_first_node(interpreter_state.variable_values);
+  list_t *next = NULL;
+  list_t *common_list = NULL;
+
+  while (node != NULL) {
+    next = node->next;
+    variable_storage_t *storage = node->data;
+    if (storage != NULL && storage->common) {
+      common_list = lst_insert_with_key_sorted(common_list, storage, node->key);
+    } else {
+      if (node->key != NULL)
+        free(node->key);
+      free_variable_storage(storage);
+      free(node);
+    }
+    node = next;
+  }
+
+  interpreter_state.variable_values = common_list;
+}
+
 static void delete_functions(void) {
 	lst_free_everything(interpreter_state.functions);
 	interpreter_state.functions = NULL;
 }
 static void delete_lines(void) {
-  for(int i = MAX_LINE_NUMBER - 1; i >= 0; i--) {
-    if (interpreter_state.lines[i] != NULL) {
-      lst_free(interpreter_state.lines[i]);
-    }
+  bool *should_free = calloc(MAX_LINE_NUMBER, sizeof(bool));
+  if (should_free == NULL) {
+    fprintf(stderr, "Unable to allocate memory in delete_lines\n");
+    exit(EXIT_FAILURE);
   }
+
+  for (int i = 0; i < MAX_LINE_NUMBER; i++) {
+    if (interpreter_state.lines[i] != NULL && interpreter_state.lines[i]->prev == NULL)
+      should_free[i] = true;
+  }
+
+  for (int i = 0; i < MAX_LINE_NUMBER; i++) {
+    if (interpreter_state.lines[i] != NULL && should_free[i])
+      lst_free(interpreter_state.lines[i]);
+    interpreter_state.lines[i] = NULL;
+  }
+
+  free(should_free);
+  interpreter_state.first_line = -1;
 }
 
 /* callback for clearing variable values during CLEAR/CLR */
@@ -4529,6 +5373,7 @@ void interpreter_post_parse(void)
 /* the main loop for the program */
 void interpreter_run(void)
 {
+
   // the cursor starts in col 0
   interpreter_state.cursor_column = 0;
   
@@ -4559,8 +5404,23 @@ void interpreter_run(void)
     // get the next statement from the one we're about to run
     interpreter_state.next_statement = lst_next(interpreter_state.current_statement);
 
+
     // run the one we're on
     perform_statement(interpreter_state.current_statement);
+
+    // optionally pause on Ctrl+C when in interactive CLI mode
+    if (pause_requested) {
+      pause_requested = 0;
+      if (interpreter_state.interactive_mode) {
+        printf("\n[PAUSED]\n");
+        interpreter_state.running_state = 0;
+      }
+    }
+
+    // stop immediately on error or paused state
+    if (interpreter_state.error_num != 0 || interpreter_state.running_state == 0)
+      break;
+
     // and move to the next statement, which might have changed inside perform
     interpreter_state.current_statement = interpreter_state.next_statement;
     
