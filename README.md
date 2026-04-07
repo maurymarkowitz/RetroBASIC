@@ -91,4 +91,3 @@ Short options with no parameters can be ganged, for instance, `-unp`.
 A complete list is maintained in the TODO file, but here are some important limitations:
 
 * Variable names are currently limited to two characters, which is needed to support "crunched" statements without spaces in MS style.
-* The system does not support "immediate mode" (command line) input. It is not supposed to, but could potentially do so.
