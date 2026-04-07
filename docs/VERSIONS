@@ -1,5 +1,14 @@
 RetroBASIC version history
 
+Version 3.0.0 - 7 April 2026
+
+Major release. Adds an interactive line editor that gives RetroBASIC the complete functionality of most BASICs of the 1980s.
+
+- added LIST, LOAD and SAVE
+- added RUN and CONT
+- added CHAIN and COMMON
+- added --prompt to customize the CLI
+
 Version 2.2.0 - 6 April 2026
 
 - added comprehensive support for MS/DEC and HP style format strings
@@ -8,8 +17,8 @@ Version 2.2.0 - 6 April 2026
 - multi-input MAX and MIN, eg MAX(1,2,3,4)
 - string MAX and MIN, eg MAX("Hello", "World)
 - added REDIM and REDIM PRESERVE
-- CLEAR/CLR works propertly now
-- added install to make that installs the documentation
+- CLEAR/CLR works properly now
+- added make install to install the documentation
 - various fixes to get MinGW working properly on CI
 - add homebrew and scoop support for easy installs
 

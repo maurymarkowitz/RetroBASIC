@@ -3,7 +3,7 @@ RetroBASIC Language Reference Manual
 
 **Copyright © 2023 Maury Markowitz**
 
-Version 2.1.2
+Version 3.0.0
 
 [![GPL license](http://img.shields.io/badge/license-GPL-brightgreen.svg)](https://opensource.org/licenses/gpl-license)
 
@@ -23,14 +23,12 @@ The goal of RetroBASIC is to run any program written for these dialects and thei
 
 Programs must be provided in plain text, better known as "source code". Small computers, including almost all home computers, normally stored BASIC programs in a compressed binary format. RetroBASIC cannot read these binary files directly, but there are a variety of programs available that will read these files and output text, which can then be run in RetroBASIC.
 
+When starting RetroBASIC without a filename, the interpreter enters an interactive CLI. The prompt shown at each command line may be customized with the `--prompt` command line switch. Here you can enter new lines of code, run common statements, load and save the program, etc.
+
 <a name="what-retrobasic-is-not"></a>
 ### What RetroBASIC is not
 
-The goal of RetroBASIC is to allow you to run popular BASIC programs written during the language's Golden Age. As such, it is also marked by a number of deliberate limitations:
-
-- the language is intended to *run* programs, not *edit* them, and it thus lacks an interactive editor
-- you cannot `LIST` a program, `LOAD` or `SAVE` it
-- it does not include any platform-specific instructions like sound or graphics, as these are not portable
+The goal of RetroBASIC is to allow you to run popular BASIC programs written during the language's Golden Age. As such, it does not include any platform-specific instructions like sound or graphics, as these are not portable.
 
 ## Contents
 
@@ -50,9 +48,13 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
    * [`BYE`](#bye)
    * [`CLEAR` and `CLR`](#clear-and-clr)
    * [`CLS`](#cls)
-   * [`END`](#end)
+   * [`CLS`](#cls)
+   * [`CONT`](#CONT)
+   * [`LIST`](#list-command)
+   * [`LOAD`](#load-filename)
    * [`NEW`, `ERASE` and `SCRATCH`](#new-erase-and-scratch)
    * [`RUN` [*aexp*]](#run-aexp)
+   * [`SAVE`](#save-filename)
    * [`STOP` [*sexp*]](#stop-sexp)
    * [Unsupported commands](#unsupported-commands)
 - [Program statements](#program-statements)
@@ -152,6 +154,7 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
 - [File handling](#file-handling)
    * [`OPEN`{`#`} *aexp*,*sexp1*,*sexp2*](#open-aexpsexp1sexp2)
    * [`CLOSE`{`#`} *aexp*](#close-aexp)
+   * [`LIST`{`#`} *aexp*[,*aexp*{[-|,]*aexp*}}](#list-file)  
    * [`PRINT#` *aexp*,[*exp*{|[;|,]}...]](#print-aexpexp)
    * [`INPUT#` *aexp*,[*var*{,},...*var*]](#input-aexpvarvar)
    * [`GET#` *aexp*,*var*](#get-aexpvar)
@@ -438,8 +441,6 @@ Dartmouth BASIC consisted of two separate programs, the BASIC compiler and runti
 
 Commands were generally intended to work on the program as a whole, loading or saving the source code, running it, debugging it, etc. Examples include `LOAD` to read source code into memory, `RUN` to execute the program, `LIST` to print the current program to the console, and so forth. As BASIC moved from mainframes to minicomputers and micros, they often became single programs instead of two, and as this program understood both commands and statements, the line between these began to blur. Later dialects often allowed commands to be put into programs as well; for instance, Atari BASIC could `LIST` itself.
 
-RetroBASIC is intended to be used with known-good BASIC source code, which can be edited in any text editor. It is then loaded and run as part of starting up the program. Thus, there is no need for `LOAD`, `SAVE` or `LIST` as these are accomplished in the editor, and this also eliminates many of the editing statements like `RENUM` and similar. Nor is there a need for `RUN` or `CONT`, as the former occurs automatically and the latter is not needed as one cannot stop the program while it is running. It does, however, include a small number of statement keywords that are normally considered commands in most dialects and are found widely enough in source code to be useful:
-
 <!-- TOC --><a name="bye"></a>
 ### `BYE`
 
@@ -450,6 +451,17 @@ RetroBASIC is intended to be used with known-good BASIC source code, which can b
 Later IBM PC dialects used `SYSTEM` instead of `BYE`, exiting to the DOS shell.
 
 Some systems, including Dartmouth, allow `GOODBYE` in place of, or in addition to, `BYE`.
+
+<!-- TOC --><a name="chain"></a>
+### `CHAIN` *sexp*[,*aexp*]
+
+`CHAIN` replaces the current program with the contents of the named file. The filename is provided as a string expression, and `~` expansion is supported.
+
+`CHAIN` differs from `LOAD` and `RUN` in one key aspect; any variables declared `COMMON` prior to the `CHAIN` statement are not cleared out. This is used to allow you to break programs into multiple files and pass data from one to another through the common variables. This was used in the era of very limited memory to allow the construction of larger programs. A typical example would be a program with a main menu of several functions, each of which would be put in a different subprogram and `CHAIN`ed together.
+
+#### See also:
+
+* [`COMMON`](#common)
 
 <!-- TOC --><a name="clear-and-clr"></a>
 ### `CLEAR` and `CLR`
@@ -469,6 +481,17 @@ Amstrad CPC BASIC offers the `ERASE` variation which is a `CLEAR` that is applie
 
 Clears the screen. On modern machines with scrollback buffers in the console, the scrolled text will likely still be saved in the buffer. For instance, on the macOS Terminal, the screen will clear and new output will appear from the top as expected, but if the user scrolls upward, older output will still be visible.
 
+<!-- TOC --><a name="cont"></a>
+### `CONT`
+
+Continues execution of the program if it is in a paused state, typically after receiving a `STOP`, the user hit <BREAK>, or an error occured. According to Lien, execution continues at the next line, but most manuals state it occurs at the next statement, not line. RetroBASIC continues at the next statement.
+
+In contrast to most dialects, RetroBASIC will allow you to `CONT`inue in most situations. Most early dialects saved information that would become stale if the user edited the program while it was in the paused state. This is not the case in RetroBASIC, which can successfully follow these changes and allow `CONT` to work in most situations.
+
+#### See also:
+
+* [`STOP`](#stop-sexp)
+
 <!-- TOC --><a name="end"></a>
 ### `END`
 
@@ -477,6 +500,27 @@ Clears the screen. On modern machines with scrollback buffers in the console, th
 #### See also:
 
 * [`STOP`](#stop-sexp)
+
+<!-- TOC --><a name="list-command"></a>
+### `LIST` [*lineno*|*lineno*-*lineno*|*lineno*,*lineno*]
+
+`LIST` prints the program source to the console. It can be used with no arguments to print the entire program, with a single line number to print from that line to the end, or with a range to print only the selected lines.
+
+RetroBASIC supports both dash-separated (MS style) and comma-separated (Atari etc.) ranges:
+
+    LIST 10-20
+    LIST 10,20
+
+<!-- TOC --><a name="load-filename"></a>
+### `LOAD` *filename*
+
+`LOAD` replaces the current program with the contents of the named file. The filename is provided as a string expression, and `~` expansion is supported. When `LOAD` runs, RetroBASIC clears the current variables, functions, and program lines, then parses the file into the interpreter state.
+
+If the file cannot be found or opened, `LOAD` reports an error and stops.
+
+#### See also:
+
+* [`SAVE`](#save-filename)
 
 <!-- TOC --><a name="new-erase-and-scratch"></a>
 ### `NEW`, `ERASE` and `SCRATCH`
@@ -491,18 +535,29 @@ BBC BASIC also offers `OLD`, which recovers an accidentally `NEW`ed program. Thi
 
 Sinclair BASIC on the ZX80 allowed a numeric parameter which reserved that amount of memory for BASIC. This allows the program to set aside a portion of memory for storing machine language routines.
 
-Early versions of Microsoft BASIC, like BASIC-80, used `ERASE` to reset a single array variable. This allowed it to be re-`DIM`med, which was otherwise illegal. This was not widely supported in later versions of MS code, and was eventually replaced with the `REDIM` statement.
+Early versions of Microsoft BASIC, like BASIC-80, used `ERASE` to reset a single array variable. This allowed it to be re-`DIM`med, which was otherwise illegal. This was not widely supported in later versions of MS code, and was eventually replaced with the `REDIM` statement, which RetroBASIC supports.
 
 On the DEC-10 system, `SCRATCH` was used to erase data from a previously `OPEN`ed file, typically to prepare it for writing. On others, like Micropolis BASIC, `SCRATCH` was used to delete files from the disk.
 
 <!-- TOC --><a name="run-aexp"></a>
-### `RUN` [*aexp*]
+### `RUN` [{*aexp*|*sexp*{,*aexp}]
     
-`RUN` begins processing the in-memory program, if one exists. The optional *aexp* starts execution at a particular line. One can also `GOTO` *aexp* to start execution at a line, the difference is that `RUN` clears the values of all variables and arrays before starting, while `GOTO` does not. In RetroBASIC, RUNning occurs automatically, and the `RUN` command does nothing. 
+`RUN` begins processing the in-memory program, if one exists. The optional *aexp* starts execution at a particular line. One can also `GOTO` *aexp* to start execution at a line, the difference is that `RUN` clears the values of all variables and arrays before starting, while `GOTO` does not.
 
-#### Variations:
+RetroBASIC also supports the variation seen in many later versions of BASIC, which takes a string in place of the line number parameter. If a string is found, it `LOAD`s the named program and then `RUN`s it. This variation can also take an optional line number following the filename, in which case it begins execution at that line.
 
-Many later BASICs allowed either a number or string for the optional expression. If the expression is a string, it is assumed to be a file name and the named program will be loaded and run. In some cases, like Apple Business BASIC, the string does not have to be enclosed in quotes. Some of these dialects also allowed a line number to follow the file name, separated by a comma.
+<!-- TOC --><a name="save-filename"></a>
+### `SAVE` *filename*
+
+`SAVE` writes the current program listing to the named file. The filename is provided as a string expression, and the file is overwritten if it already exists. If the filename begins with `~`, RetroBASIC expands it to the current user's home directory where supported.
+
+#### Examples:
+
+    SAVE "~/myprog.bas"
+
+#### See also:
+
+* [`LOAD`](#load-filename)
 
 <!-- TOC --><a name="stop-sexp"></a>
 ### `STOP` [*sexp*]
@@ -511,18 +566,17 @@ Many later BASICs allowed either a number or string for the optional expression.
 
 RetroBASIC adds a feature from Wang and IBM 5100 BASIC, which outputs an optional string. This is useful for saying things like "Stopping for debugging, you should PRINT A". If no expression is included, RetroBASIC instead prints the default message "STOPped at line:" along with the line number.
 
+Lien notes that some varieties of BASIC will branch to the `END` statement when they reach a `STOP`, which means on these dialects the two commands are identical and there is no way to `CONT`inue after a `STOP`. However, which dialects these might be is not noted.
+
 #### Variations:
+
+PDP-8 BASIC and the Tektronics 4051 used `STO` instead.
 
 Harris BASIC-V added the `BREAK` statement, which allowed one to place multiple `STOP` markers in the code in a single statement. For instance, `BREAK 10-50,100` would perform a stop (break) at any line from 10 to 50, or line 100. This is useful as it allows you to easily control debugging without having to edit the entire program, a single statement at the top has the same effect as multiple `STOP` statements spread all over the code. RetroBASIC does not currently support `BREAK`.
 
 #### See also:
 
 * [`END`](#end)
-
-<!-- TOC --><a name="unsupported-commands"></a>
-### Unsupported commands
-
-`LIST` and `CONT` are not (currently) supported.
 
 <!-- TOC --><a name="program-statements"></a>
 ## Program statements
@@ -589,6 +643,17 @@ Enterprise IS-BASIC allows the `TO` keyword to define the upper and lower limits
 
 * [`OPTION BASE`](#option-base-01)
 * [`String slicing`](#string-slicing)
+
+<!-- TOC --><a name="dim-varnexpnexpvarnexpnexp"></a>
+### {`COMMON`|`COM`} *var*[,*var*,...]
+
+`COMMON` is similar to `DIM` in syntax, but allows both array variables and scalars. When encountered, it sets up the variable like a `DIM`, but also marks the variable "common". Any variable marked common is not removed when another program is loaded using `CHAIN`, allowing values to be passed from program to program. They are cleared when `RUN` or `LOAD` is called, and cleared to default values, 0 or "", when `CLEAR` is called.
+
+#### Examples:
+
+    10 COMMON A(100),B,C$
+
+This dimension statement sets up `C` as a vector from 0...100, a normal numeric variable `B`, and the string variable `C$`.
 
 <!-- TOC --><a name="goto-aexp-and-go-to-aexp"></a>
 ### `GOTO` *aexp* and `GO TO` *aexp*
@@ -1509,7 +1574,6 @@ Tymshare SUPER BASIC defines a pseudo-variable `EPS`, short for *epsilon*, which
 #### Availability:
 
 `EQV` and `IMP` were added in 2.0.0.
-
 `MIN` and `MAX` were added in 2.0.0.
 
 <!-- TOC --><a name="string-operators"></a>
@@ -1551,6 +1615,10 @@ In RetroBASIC, `ADR` always returns zero.
 ### `CLOG`(*aexp*)
 
 Returns the logarithm to the base 10, or *common logarithm*, of the variable or expression in parentheses. `CLOG(0)` gives an error, and `CLOG(1)` equals 0.
+
+#### Variations:
+
+BASIC-PLUS uses `LOG10`.
 
 <!-- TOC --><a name="divaexp1aexp2"></a>
 ### `DIV`(*aexp1*,*aexp2*)
@@ -1634,11 +1702,13 @@ Returns the value of *pi*, 3.1415... The (*dexp*) is optional; `A=PI`, `A=PI()` 
 <!-- TOC --><a name="maxaexp"></a>
 ### `MAX`(*aexp*,*aexp*[,...])
 
-Returns the largest number in the provided list, `MAX(7,5)` returns 7. Most implementations only allow two parameters, but RetroBASIC also supports the Tymshare SUPER BASIC and Wang BASIC extension that allows any number of expressions in the parameter list; `MAX(7,5,10,20)` returns 20.
+Returns the largest number in the provided list, `MAX(7,5)` returns 7. Most implementations only allow two parameters, but RetroBASIC also supports the Tymshare SUPER BASIC and Wang BASIC extension that allows any number of expressions in the parameter list; `MAX(5,10,20)` returns 20.
 
 This basic functionality is also available as an operator, where this same call would be written `7 MAX 5`, and only supports two parameters.
 
 RetroBASIC also supports the Micropolis extension that allows the functional version to be used with strings as well. `MAX("Hello","World")` will return "World". Ideally this would have been called `MAX$`.
+
+NOTE: Due to limitations of the RetroBASIC parser, `MAX` and `MIN` are currently limited to a maximum of three parameters.
 
 #### Variations:
 
@@ -1662,6 +1732,8 @@ String parameters were added in 2.2.0.
 ### `MIN`(*aexp*,*aexp*[,...])
 
 Returns the smallest number in the provided list, `MIN(7,5)` returns 5, `MAX(7,2,10,20)` returns 2. This functionality is also available as an operator, where this same call would be written `7 MIN 5`. Strings are also supported
+
+NOTE: Due to limitations of the RetroBASIC parser, `MAX` and `MIN` are currently limited to a maximum of three parameters.
 
 #### Variations:
 
@@ -2410,6 +2482,11 @@ The `LOAD`, `CLEAR`/`CLR`, `NEW` and `RUN` statements close all files. The `CHAI
 As with `OPEN`, most dialects use `CLOSE` without a following `#`, with Atari BASIC being an exception. RetroBASIC allows either format.
 
 Apple Business BASIC has two separate statements, `CLOSE#` with a channel number closes a given file, while `CLOSE` closes all open files. The second variation is not supported in RetroBASIC. 
+
+<!-- TOC --><a name="list-file"></a>
+### `LIST#` *aexp*[,*aexp*{[-|,]*aexp*}}
+
+`LIST#` writes the source code for the current program to the channel. It is identical to using `SAVE` to the same filename.
 
 <!-- TOC --><a name="print-aexpexp"></a>
 ### `PRINT#` *aexp*,[*exp*{|[;|,]}...]
