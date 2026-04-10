@@ -4054,9 +4054,6 @@ REDO_INPUT:
 
       case MATINPUT:
       {
-        // FIXME: this needs to read a line and stop, not keep asking for more input if none is provided
-        char line[MAX_INPUT_LENGTH];
-        
         // reset the counter
         num_input = 0;
 
@@ -4098,71 +4095,108 @@ REDO_INPUT:
             else
               len = POINTER_TO_INT(dest_dimensions->next->data);
 
+            // shared line buffer — read a new line only when the current one is exhausted
+            char linebuf[MAX_INPUT_LENGTH];
+            char *start = linebuf;
+            char *buf_end = linebuf;  // start == buf_end means buffer is empty
+            linebuf[0] = '\0';
+
             // remember to skip zero
             for (int i = 1; i <= len; i++) {
-              fflush(stdout);
-              int r1 = raw_mode_input_line(line, sizeof(line));
-              if (r1 == -1) {
-                /* BREAK detected during MAT INPUT */
-                pause_requested = 1;
-                goto EXIT_MAT_INPUT;
+              // if the buffer is empty, read a new line
+              if (start >= buf_end) {
+                fflush(stdout);
+                int r1 = raw_mode_input_line(linebuf, sizeof(linebuf));
+                if (r1 == -1) {
+                  /* BREAK detected during MAT INPUT */
+                  pause_requested = 1;
+                  goto EXIT_MAT_INPUT;
+                }
+                if (r1 <= 0)
+                  exit(EXIT_FAILURE);
+                // strip trailing newline (fgets non-TTY path includes it)
+                size_t blen = strlen(linebuf);
+                while (blen > 0 && (linebuf[blen-1] == '\n' || linebuf[blen-1] == '\r'))
+                  linebuf[--blen] = '\0';
+                if (blen == 0)
+                  goto EXIT_MAT_INPUT;
+                start = linebuf;
+                buf_end = linebuf + blen;
               }
-              if (r1 <= 0)
-                exit(EXIT_FAILURE);
-              
-              // we got something, so null-terminate the string
-              // that may have been an empty line, so...
-              if (strlen(line) == 0)
-                goto EXIT_MAT_INPUT;
 
-              // read it based on the variable type
+              // read one value from the current position in the buffer
               if (array_store->type == STRING) {
-                array_store->array[i].string = str_new(line);
+                array_store->array[i].string = str_new(strtostr(start, &start));
                 num_input++;
               }
               else {
-                int worked = sscanf(line, "%lg", &array_store->array[i].number);
-                if (worked < 1) {
+                char *next;
+                double val = strtod(start, &next);
+                if (next == start) {
                   handle_error(ern_TYPE_MISMATCH, "MAT INPUT of non-numeric value in numeric array");
-                  break;
+                  goto EXIT_MAT_INPUT;
                 }
+                array_store->array[i].number = val;
                 num_input++;
+                start = next;
+                if (*start == ',' || *start == ' ')
+                  start++;
               }
             }
           }
           else if (dims == 2) {
             int rows = POINTER_TO_INT(dest_dimensions->data);
             int cols = POINTER_TO_INT(dest_dimensions->next->data);
-            
+
+            // shared line buffer — read a new line only when the current one is exhausted
+            char linebuf[MAX_INPUT_LENGTH];
+            char *start = linebuf;
+            char *buf_end = linebuf;  // start == buf_end means buffer is empty
+            linebuf[0] = '\0';
+
             // a matrix goes from 1..rows, 1..cols
             for (int r = 1; r <= rows; r++) {
               for (int c = 1; c <= cols; c++) {
                 int slot = r * (cols + 1) + c; // cols 3 means 4 columns
-                
-                fflush(stdout);
-                int r2 = raw_mode_input_line(line, sizeof(line));
-                if (r2 == -1) {
-                  /* BREAK detected during MAT INPUT */
-                  pause_requested = 1;
-                  goto EXIT_MAT_INPUT;
-                }
-                if (r2 <= 0)
-                  exit(EXIT_FAILURE);
-                
-                if (strlen(line) == 0)
-                  goto EXIT_MAT_INPUT;
 
+                // if the buffer is empty, read a new line
+                if (start >= buf_end) {
+                  fflush(stdout);
+                  int r2 = raw_mode_input_line(linebuf, sizeof(linebuf));
+                  if (r2 == -1) {
+                    /* BREAK detected during MAT INPUT */
+                    pause_requested = 1;
+                    goto EXIT_MAT_INPUT;
+                  }
+                  if (r2 <= 0)
+                    exit(EXIT_FAILURE);
+                  // strip trailing newline (fgets non-TTY path includes it)
+                  size_t blen = strlen(linebuf);
+                  while (blen > 0 && (linebuf[blen-1] == '\n' || linebuf[blen-1] == '\r'))
+                    linebuf[--blen] = '\0';
+                  if (blen == 0)
+                    goto EXIT_MAT_INPUT;
+                  start = linebuf;
+                  buf_end = linebuf + blen;
+                }
+
+                // read one value from the current position in the buffer
                 if (array_store->type == STRING) {
-                  array_store->array[slot].string = str_new(line);
+                  array_store->array[slot].string = str_new(strtostr(start, &start));
                   num_input++;
                 }
                 else {
-                  int worked = sscanf(line, "%lg", &array_store->array[slot].number);
-                  if (worked < 1) {
+                  char *next;
+                  double val = strtod(start, &next);
+                  if (next == start) {
                     handle_error(ern_TYPE_MISMATCH, "MAT INPUT of non-numeric value in numeric array");
-                    break;
+                    goto EXIT_MAT_INPUT;
                   }
+                  array_store->array[slot].number = val;
                   num_input++;
+                  start = next;
+                  if (*start == ',' || *start == ' ')
+                    start++;
                 }
               }
             }
@@ -5272,41 +5306,38 @@ static void reset_variable_value(void *key, void *value, void *unused)
   if (storage == NULL)
     return;
   
-  // check if this is an array variable
+  // fully reset array state so DIM can re-run on the next RUN
   if (storage->actual_dimensions != NULL) {
-    // calculate total number of array elements
-    int total_elements = 1;
-    list_t *dim = lst_first_node(storage->actual_dimensions);
-    while (dim != NULL) {
-      total_elements *= (POINTER_TO_INT(dim->data) + 1);
-      dim = dim->next;
-    }
-    
-    // clear all array elements
-    if (storage->array != NULL) {
+    // free any strings in the array before freeing the array itself
+    if (storage->type == STRING && storage->array != NULL) {
+      int total_elements = 1;
+      list_t *dim = lst_first_node(storage->actual_dimensions);
+      while (dim != NULL) {
+        total_elements *= (POINTER_TO_INT(dim->data) + 1);
+        dim = dim->next;
+      }
       for (int i = 0; i < total_elements; i++) {
-        if (storage->type == STRING) {
-          // free the old string and allocate an empty one
-          if (storage->array[i].string != NULL)
-            free(storage->array[i].string);
-          storage->array[i].string = str_new("");
-        } else {
-          // numeric array element
-          storage->array[i].number = 0.0;
-        }
+        if (storage->array[i].string != NULL)
+          free(storage->array[i].string);
       }
     }
+    free(storage->array);
+    storage->array = NULL;
+    lst_free(storage->actual_dimensions);
+    storage->actual_dimensions = NULL;
   }
-  
+  if (storage->dimed_dimensions != NULL) {
+    lst_free(storage->dimed_dimensions);
+    storage->dimed_dimensions = NULL;
+  }
+
   // clear the simple value
   if (storage->value != NULL) {
     if (storage->type == STRING) {
-      // free the old string and allocate an empty one
       if (storage->value->string != NULL)
         free(storage->value->string);
       storage->value->string = str_new("");
     } else {
-      // numeric variable
       storage->value->number = 0.0;
     }
   }
@@ -5381,7 +5412,18 @@ void interpreter_post_parse(void)
   int first_line = 0;
   while ((first_line < MAX_LINE_NUMBER - 1) && (interpreter_state.lines[first_line] == NULL))
     first_line++;
-  
+
+  // Sever any existing inter-line links left from a previous call (e.g. interactive
+  // re-run after editing a line). lst_concat sets head->prev = tail, so each
+  // lines[j]->prev points to the tail of lines[j-1]. Clearing those links before
+  // re-stitching prevents lst_concat from creating cycles.
+  for (int i = first_line; i < MAX_LINE_NUMBER; i++) {
+    if (interpreter_state.lines[i] != NULL && interpreter_state.lines[i]->prev != NULL) {
+      interpreter_state.lines[i]->prev->next = NULL;
+      interpreter_state.lines[i]->prev = NULL;
+    }
+  }
+
   // that statement is going to be the head of the list when we're done
   list_t *first_statement = interpreter_state.lines[first_line];
   

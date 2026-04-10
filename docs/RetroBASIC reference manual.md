@@ -2925,6 +2925,16 @@ RetroBASIC 3.0 added a simple interactive line editor that allows you to `LOAD`,
 
 `ON BREAK GOTO` allows you to "trap" the break key and create a custom handler. You can return to the program using `CONT`, or alternarely, exit using `BYE`.
 
+`ON BREAK` was not common. It is found in the later DEC dialects like BASIC-PLUS and VAX BASIC, and some smaller varieties like Grundy BASIC. There are other dialects that support the same concept, but do so using other statements, often using `POKE` or similar.
+
+#### Examples:
+
+    10 ON BREAK GOTO 1000
+    20 PRINT "Hello, World!"
+    30 GOTO 20
+    1000 PRINT "You pressed BREAK"
+    1010 END
+
 <!-- TOC --><a name="error-handling"></a>
 ## Error handling
 
