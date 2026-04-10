@@ -46,6 +46,7 @@ BP - DEC BASIC-PLUS
 Debatable:
 
 - PA allows # to define field widths in PRINT, so PRINT A,#3,B,C will print B and C in 3-character widths. All expressions following the format use that format until reset by another # or another PRINT
+  - the problem is that #num normally means "print to this file", and the #3 is normally the first item in PA
 
 - ERASE, clears variables (IBM Advanced BASIC), used as CLR in other dialects
 
@@ -78,6 +79,7 @@ Debatable:
 - add TEN function, alias for HEX found in Apple Business BASIC?
 
 - UK BASICs generally use LN for LOG and LOG for CLOG. Add a switch for this?
+  - likely to interfere with variable names from non-UK programs
 
 - WB uses CONVERT for ASC, which steps on HPs CONVERT. This could be supported by looking at the parameter type.
 
@@ -87,7 +89,9 @@ Debatable:
 
 - backslash for statement separators seen in Multics and BASIC-PLUS. The later requires spaces on either side. Easy to convert to colons, although the formatting in BASIC-PLUS documentation is nice.
 
-- option for INT to be trunc instead of floor? it's this way in early Dartmouth and a few later versions like Benton Harbour, but very rare.
+- option for INT to be trunc instead of floor?
+ - it's this way in early Dartmouth and a few later versions like Benton Harbour, but very rare.
+ - not really worth doing
 
 - add Wang style AND function, AND(string, hex mask), masks string and returns it.
 
@@ -97,7 +101,7 @@ Debatable:
 
 Will not be done:
 
-- CLK should insert colons, seen on some dialects
+- CLK could insert colons, seen on some dialects
 
 - it would not be difficult to allow any variable to hold a string, but in most dialects that is an error.
 
