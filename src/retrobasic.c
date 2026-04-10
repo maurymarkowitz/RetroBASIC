@@ -5072,6 +5072,8 @@ EXIT_MAT_INPUT:
         }
         interpreter_state.running_state = 0;
         interpreter_state.next_statement = NULL;
+        if (!interpreter_state.interactive_mode)
+          interpreter_state.exit_requested = 1;
       }
         break;
 				
