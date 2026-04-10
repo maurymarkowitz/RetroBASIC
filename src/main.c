@@ -26,6 +26,7 @@
 #include "statistics.h"
 #include "parse.h"
 #include "cli.h"
+#include "io.h"
 
 /* simple version info for --version command line option */
 static void print_version(void)
@@ -36,7 +37,7 @@ static void print_version(void)
 static void sigint_handler(int sig)
 {
   (void)sig;
-  pause_requested = 1;
+  terminate_retrobasic(EXIT_SUCCESS);
 }
 
 /* usage short form, just a list of the switches */
@@ -251,10 +252,16 @@ int main(int argc, char *argv[])
   if (strlen(source_file) == 0) {
     interpreter_state.interactive_mode = 1;
     signal(SIGINT, sigint_handler);
+    setup_terminal_for_input();
     interpreter_cli();
+    restore_terminal();
   } else {
-    if (run_program)
+    if (run_program) {
+      // set terminal to raw mode for the run so get_key/peek_key need no per-call toggling
+      setup_terminal_for_input();
       interpreter_run();
+      restore_terminal();
+    }
   }
   
   // we're done, print/write desired stats

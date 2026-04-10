@@ -8,41 +8,38 @@
  * command-line mode used when the interpreter is started without a filename.
  */
 
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "retrobasic.h"
 #include "cli.h"
+#include "io.h"
 #include "list.h"
 #include "strng.h"
 
+static void clear_terminal(void)
+{
+#if defined(WIN32) || defined(_WIN32)
+  system("cls");
+#else
+  if (isatty(STDOUT_FILENO))
+    printf("\x1b[2J\x1b[H");
+#endif
+}
+
 static char *cli_read_line(void)
 {
-  char *line = NULL;
-  size_t size = 0;
-
-  if (getline(&line, &size, stdin) == -1) {
-    if (feof(stdin)) {
-      free(line);
-      return NULL;
-    }
-    if (errno == EINTR) {
-      clearerr(stdin);
-      if (line) free(line);
-      return strdup("");
-    }
-    free(line);
+  char *buf = malloc(1024);
+  if (!buf)
     return NULL;
+  int result = raw_mode_input_line(buf, 1024);
+  if (result <= 0) {
+    free(buf);
+    return (result == 0) ? NULL : strdup("");  /* EOF → NULL, BREAK → empty */
   }
-
-  size_t len = strlen(line);
-  while (len > 0 && (line[len - 1] == '\n' || line[len - 1] == '\r')) {
-    line[--len] = '\0';
-  }
-
-  return line;
+  return buf;
 }
 
 /**
@@ -50,8 +47,8 @@ static char *cli_read_line(void)
  */
 void interpreter_cli(void)
 {
-  printf("RetroBASIC CLI\n");
-  printf("Type RUN to execute, LIST to display the program, or BYE to return to the prompt.\n");
+  clear_terminal();
+  printf("RetroBASIC CLI\n\n");
 
   while (1) {
     printf("%s ", cli_prompt);
@@ -91,5 +88,7 @@ void interpreter_cli(void)
     }
 
     free(raw_input);
+    if (interpreter_state.exit_requested)
+      break;
   }
 }
