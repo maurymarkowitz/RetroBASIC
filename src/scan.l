@@ -133,6 +133,7 @@ TRAP      { return TRAP; }
 ERROR     { return ERROR; }
 ERR       { return ERROR; }
 RAISE     { return RAISE; }
+BREAK     { return BREAK; }
 
  /* math functions */
 ABS       { return ABS; }

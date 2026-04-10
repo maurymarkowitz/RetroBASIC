@@ -8,9 +8,11 @@ RetroBASIC
 ## Contents
 
 * [Introduction](#introduction)
-* [Running RetroBASIC](#running-retrobasic)
+* [Installing RetroBASIC](#installing-retrobasic)
 * [Building RetroBASIC](#building-retrobasic)
-* [Missing features and Erata](#missing-features-and-erata)
+* [Running RetroBASIC with an existing program](#running-retrobasic-with-an-existing-program)
+* [Running RetroBASIC interactively](#running-retrobasic-interactively)
+* [Missing features and Errata](#missing-features-and-errata)
 
 ## Introduction
 
@@ -54,15 +56,13 @@ Windows compatibility is provided using MinGW, which needs to be installed manua
 
 Both platforms support `make install` which adds the manuals to the proper locations, and `make uninstall` to cleanly remove all the parts. `make install` defaults to `/usr/local`; override with `PREFIX` if needed (for example `make PREFIX=/opt/retrobasic install`).
 
-## Running RetroBASIC
+## Running RetroBASIC with an existing program
 
-RetroBASIC is generally used to run existing programs, you can do this using a command similar to this example, replacing the "program.bas" with the name of the text file containing the BASIC program you wish to run:
+RetroBASIC is generally used to run existing programs, saved to a text file normally with the extension `.bas`. You can use it this way using a command similar to this example, replacing the `program.bas` with the name of the text file containing the BASIC program you wish to run:
 
 ```./retrobasic program.bas```
 
 It will accept any text file as input and report (cryptic) errors if it cannot properly parse it. If parsing succeeds, the program (normally) begins running immediately.
-
-If RetroBASIC is launched without a filename, it will enter an interactive state. You can then `LOAD` programs and `RUN` them.
 
 Command-line options include:
 
@@ -85,6 +85,21 @@ Command-line options include:
 If you wish to use RetroBASIC to simply check syntax or collect statistics, use the `-n` and `-p` switches.
 
 Short options with no parameters can be ganged, for instance, `-unp`.
+
+## Running RetroBASIC interactively
+
+Starting in version 3.0, RetroBASIC now includes a simple line-oriented editor that allows you to create and edit programs interactively, as well as `RUN`, `LOAD` and `SAVE` them. For instance, to play a game of Super Star Trek, you can launch RetroBASIC wit no parameters and then use the `LOAD` and `RUN` commands:
+
+```
+./retrobasic
+
+RetroBASIC CLI
+
+> LOAD "bas/superstartrek.bas"
+> RUN
+```
+
+As part of this addition, support for a "break" key was added. This is wired to the `Esc` key on Unix and macOS machines. On Windows machines, you can use both `Esc` as well as the `Pause`/`Break` key above the cursor controls. Break also works in non-interactive mode, but in that case it will exit directly to the shell. In interactive mode, it return sto the line editor, where you can modify the program and then `CONT`inue. If you wish to exit to the shell from interactive mode, use `BYE` or Control-C.
 
 ## Missing features and Errata
 

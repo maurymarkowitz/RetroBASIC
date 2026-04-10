@@ -210,6 +210,7 @@ static expression_t *make_operator(int arity, int o)
 %token RESUME // jumps back to the error line
 %token ERROR  // used in ON ERROR, ONERR and also as a synonym for RAISE
 %token RAISE  // raise an error, for testing
+%token BREAK  // used in ON BREAK
 %token ERR EL ER
 
  /* type definitions added circa 1979 */
@@ -956,6 +957,17 @@ statement:
   {
     statement_t *new = make_statement(ON);
     new->parms.on.type = TRAP;
+    new->parms.on.numbers = $4;
+    $$ = new;
+    
+    linenum_constants_total += lst_length($4);
+    linenum_on_totals++;
+  }
+  |
+  ON BREAK GOTO exprlist
+  {
+    statement_t *new = make_statement(ON);
+    new->parms.on.type = BREAK;
     new->parms.on.numbers = $4;
     $$ = new;
     
