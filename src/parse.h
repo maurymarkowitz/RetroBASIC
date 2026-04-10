@@ -176,48 +176,49 @@
      RESUME = 392,
      ERROR = 393,
      RAISE = 394,
-     ERR = 395,
-     EL = 396,
-     ER = 397,
-     DEFSTR = 398,
-     DEFINT = 399,
-     DEFSNG = 400,
-     DEFDBL = 401,
-     CHANGE = 402,
-     CONVERT = 403,
-     UCASE = 404,
-     LCASE = 405,
-     STRNG = 406,
-     TIME = 407,
-     TIME_STR = 408,
-     HEX = 409,
-     OCT = 410,
-     BIN = 411,
-     HEXSTR = 412,
-     OCTSTR = 413,
-     BINSTR = 414,
-     UBOUND = 415,
-     LBOUND = 416,
-     LABEL = 417,
-     MAT = 418,
-     MATPRINT = 419,
-     MATINPUT = 420,
-     MATREAD = 421,
-     MATGET = 422,
-     MATPUT = 423,
-     MATZER = 424,
-     MATNUL = 425,
-     MATCON = 426,
-     MATIDN = 427,
-     MATTRN = 428,
-     MATINV = 429,
-     MATDET = 430,
-     MATADD = 431,
-     MATSUB = 432,
-     MATMUL = 433,
-     MATSCA = 434,
-     MATFIL = 435,
-     NUM = 436
+     BREAK = 395,
+     ERR = 396,
+     EL = 397,
+     ER = 398,
+     DEFSTR = 399,
+     DEFINT = 400,
+     DEFSNG = 401,
+     DEFDBL = 402,
+     CHANGE = 403,
+     CONVERT = 404,
+     UCASE = 405,
+     LCASE = 406,
+     STRNG = 407,
+     TIME = 408,
+     TIME_STR = 409,
+     HEX = 410,
+     OCT = 411,
+     BIN = 412,
+     HEXSTR = 413,
+     OCTSTR = 414,
+     BINSTR = 415,
+     UBOUND = 416,
+     LBOUND = 417,
+     LABEL = 418,
+     MAT = 419,
+     MATPRINT = 420,
+     MATINPUT = 421,
+     MATREAD = 422,
+     MATGET = 423,
+     MATPUT = 424,
+     MATZER = 425,
+     MATNUL = 426,
+     MATCON = 427,
+     MATIDN = 428,
+     MATTRN = 429,
+     MATINV = 430,
+     MATDET = 431,
+     MATADD = 432,
+     MATSUB = 433,
+     MATMUL = 434,
+     MATSCA = 435,
+     MATFIL = 436,
+     NUM = 437
    };
 #endif
 /* Tokens.  */
@@ -358,48 +359,49 @@
 #define RESUME 392
 #define ERROR 393
 #define RAISE 394
-#define ERR 395
-#define EL 396
-#define ER 397
-#define DEFSTR 398
-#define DEFINT 399
-#define DEFSNG 400
-#define DEFDBL 401
-#define CHANGE 402
-#define CONVERT 403
-#define UCASE 404
-#define LCASE 405
-#define STRNG 406
-#define TIME 407
-#define TIME_STR 408
-#define HEX 409
-#define OCT 410
-#define BIN 411
-#define HEXSTR 412
-#define OCTSTR 413
-#define BINSTR 414
-#define UBOUND 415
-#define LBOUND 416
-#define LABEL 417
-#define MAT 418
-#define MATPRINT 419
-#define MATINPUT 420
-#define MATREAD 421
-#define MATGET 422
-#define MATPUT 423
-#define MATZER 424
-#define MATNUL 425
-#define MATCON 426
-#define MATIDN 427
-#define MATTRN 428
-#define MATINV 429
-#define MATDET 430
-#define MATADD 431
-#define MATSUB 432
-#define MATMUL 433
-#define MATSCA 434
-#define MATFIL 435
-#define NUM 436
+#define BREAK 395
+#define ERR 396
+#define EL 397
+#define ER 398
+#define DEFSTR 399
+#define DEFINT 400
+#define DEFSNG 401
+#define DEFDBL 402
+#define CHANGE 403
+#define CONVERT 404
+#define UCASE 405
+#define LCASE 406
+#define STRNG 407
+#define TIME 408
+#define TIME_STR 409
+#define HEX 410
+#define OCT 411
+#define BIN 412
+#define HEXSTR 413
+#define OCTSTR 414
+#define BINSTR 415
+#define UBOUND 416
+#define LBOUND 417
+#define LABEL 418
+#define MAT 419
+#define MATPRINT 420
+#define MATINPUT 421
+#define MATREAD 422
+#define MATGET 423
+#define MATPUT 424
+#define MATZER 425
+#define MATNUL 426
+#define MATCON 427
+#define MATIDN 428
+#define MATTRN 429
+#define MATINV 430
+#define MATDET 431
+#define MATADD 432
+#define MATSUB 433
+#define MATMUL 434
+#define MATSCA 435
+#define MATFIL 436
+#define NUM 437
 
 
 
@@ -417,7 +419,7 @@ typedef union YYSTYPE
   variable_reference_t *variable;
 }
 /* Line 1529 of yacc.c.  */
-#line 421 "src/parse.tab.h"
+#line 423 "src/parse.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

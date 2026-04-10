@@ -174,8 +174,10 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
 - [Format strings](#format-strings)
    * [MS-BASIC-80 format](#ms-basic-80-format)
    * [HP TimeShare format](#hp-timeshare-format)
+- [Break handling](#break-handling)
+   * [`ON BREAK GOTO` *aexp*](#on-break-goto-aexp)
 - [Error handling](#error-handling)
-   * [{`TRAP`|`ON ERROR GOTO`|`ONERR GOTO`} [*aexp*]](#trapon-error-gotoonerr-goto-aexp)
+   * [{`TRAP`|`ON ERROR GOTO`|`ONERR GOTO`} *aexp*](#trapon-error-gotoonerr-goto-aexp)
    * [{`ERROR`|`RAISE`} *aexp*](#errorraise-aexp)
    * [`RESUME` [`NEXT`, *aexp*]](#resume-next-aexp)
    * [`ERL()`](#erl)
@@ -2661,9 +2663,9 @@ This code reads a vector of 5 values, then a 3 by 3 matrix. It then prints:
 According to *Illustrating BASIC*, some, or many, versions of MAT PRINT add an empty line between the rows of a matrix. Printed examples of code using this statement do not appear to actually do this, so RetroBASIC doesn't either.
 
 <!-- TOC --><a name="mat-input-avaravar"></a>
-### `MAT INPUT` *avar*[,*avar*,...]]
+### `MAT INPUT` *avar*
 
-`MAT INPUT` reads multiple values from the command line, filling the vector or matrix by column and then row. Unlike a normal `INPUT`, no prompt is allowed, and only array variables can be used.
+`MAT INPUT` reads multiple values from the command line, filling the vector or matrix by column and then row. Unlike a normal `INPUT`, no prompt is allowed, only array variables can be used, and only a single variable is allowed.
 
 `MAT INPUT` normally reads a value for every slot in the array, similar to `MAT READ`. However, it parses this data from a single input line, which may not contain enough values to fully populate the array. This would occur, for instance, if you `DIM A(5):MAT INPUT A` and the user types in three values and then presses <return>. In this case, no error is reported, and the remaining slots are simply ignored. These slots will contain any value they did before. It also sets the pseudo-variable `NUM` to the number of items read, so you can check for this case in code.
 
@@ -2688,7 +2690,7 @@ Assigns the values in B to the corresponding slot in A, making a copy of B. A mu
 
     MAT A=B(5,5)
 
-Which assigns the values of B(1,1) through B(5,5) into A. A will now be a 5x5 matrix.
+Which assigns the values of B(1,1) through B(5,5) into A. A will now be a 5x5 matrix, regardless of the original size of B.
 
 RetroBASIC also allows you to use the IBM 5100 version of the subarray specification:
 
@@ -2912,6 +2914,16 @@ In RetroBASIC, the format dialect is automatically detected based on the charact
 - Otherwise, it is treated as MS-BASIC-80 format
 
 This means you can use whichever format you are most comfortable with, and RetroBASIC will handle it appropriately. However, for maximum compatibility with existing programs, use the format that matches your source dialect.
+
+<!-- TOC --><a name="break-handling"></a>
+## Break handling
+
+RetroBASIC 3.0 added a simple interactive line editor that allows you to `LOAD`, `SAVE`, `RUN` and `LIST`, among other commands. As part of this upgrade, program-wide support for the break key was added. On Unix machines, this is implemented on the `Esc` key, on Windows both `Esc` and the `Pause` key can be used. In interactive mode, pressing break returns to the command line, when running non-interactive, that is, when you start with a filename in the command line, pressing break exits the program entirely and returns to the shell.
+
+<!-- TOC --><a name="on-break-goto-aexp"></a>
+### {`ON BREAK GOTO`} [*aexp*]
+
+`ON BREAK GOTO` allows you to "trap" the break key and create a custom handler. You can return to the program using `CONT`, or alternarely, exit using `BYE`.
 
 <!-- TOC --><a name="error-handling"></a>
 ## Error handling

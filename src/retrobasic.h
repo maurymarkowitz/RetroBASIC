@@ -249,8 +249,11 @@ typedef struct {
   list_t *runtime_stack;	        // stack of FOR and GOSUB statements
   int error_num;                  // the last error, 0 if no error or reset
   int error_line;                 // line number where an error occurred, -1 for none
+  int trapped_error_num;          // error number saved when trap fires, so ER works inside the handler
   list_t *error_statement;        // statement where the error occurred, so RESUME can continue properly
   int trap_line;                  // line to TRAP or ON ERROR to, -1 for none
+  int break_trap_line;            // line to ON BREAK to, 0 for none
+  list_t *break_resume_point;     // where to resume after BREAK, for CONT command
   int cursor_column;              // current column of the output cursor
   int running_state;              // is the program running (1), paused/stopped (0), or setting up a function (-1)
   int interactive_mode;           // 1 if started without filename, 0 if batch mode

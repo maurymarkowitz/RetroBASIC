@@ -154,7 +154,10 @@ void handle_error(const int errnum, const char *message)
       fprintf(stderr, "%s at line %d (%s)\n", error_messages[ern_NO_SUCH_LINE], interpreter_state.trap_line, "TRAP/ON ERROR set to non-existent line");
       exit(errnum); // that one is fatal
     }
-    // if the line exists, continue there
+    // Redirect to the trap handler. error_line is already set above so EL works.
+    // Clear error_num so the run loop won't abort — ER reads trapped_error_num instead.
+    interpreter_state.trapped_error_num = interpreter_state.error_num;
+    interpreter_state.error_num = 0;
     interpreter_state.next_statement = find_line(interpreter_state.trap_line);
     return;
   }
@@ -1385,7 +1388,7 @@ value_t evaluate_expression(const expression_t *expression)
             result.number = interpreter_state.error_line;
             break;
           case ER:
-            result.number = interpreter_state.error_num;
+            result.number = interpreter_state.trapped_error_num;
             break;
 
           case FRE:
@@ -2283,8 +2286,18 @@ static int line_for_statement(const list_t *statement)
     if (interpreter_state.lines[i] == NULL)
       continue;
 
-    list_t *node = lst_first_node(interpreter_state.lines[i]);
-    while (node) {
+    // Find where this line ends (the start of the next non-null line)
+    list_t *next_line_start = NULL;
+    for (int j = i + 1; j < MAX_LINE_NUMBER; j++) {
+      if (interpreter_state.lines[j] != NULL) {
+        next_line_start = interpreter_state.lines[j];
+        break;
+      }
+    }
+
+    // Walk only this line's nodes (stop before the next line starts)
+    list_t *node = interpreter_state.lines[i];
+    while (node && node != next_line_start) {
       if (node->data == target_statement)
         return i;
       node = lst_next(node);
@@ -4503,7 +4516,7 @@ EXIT_MAT_INPUT:
         // first, see if this is an ON ERROR, in which case we...
         if (statement->parms.on.type == TRAP) {
           // get the first item, it's the only one in the list in this case
-          expression_t *item = lst_data_at(numslist, 1);
+          expression_t *item = lst_data_at(numslist, 0);
 
           // eval it
           value_t line_val = evaluate_expression(item);
@@ -4518,6 +4531,15 @@ EXIT_MAT_INPUT:
             interpreter_state.trap_line = linenum;
           
           // all done, exit this CASE
+          break;
+        }
+
+        // if this is an ON BREAK, set the break trap line
+        if (statement->parms.on.type == BREAK) {
+          expression_t *item = lst_data_at(numslist, 0);
+          value_t line_val = evaluate_expression(item);
+          int linenum = (int)floor(line_val.number);
+          interpreter_state.break_trap_line = (linenum <= 0) ? 0 : linenum;
           break;
         }
 
@@ -4889,6 +4911,8 @@ EXIT_MAT_INPUT:
       {
         list_t *resume_statement = interpreter_state.next_statement;
         if (resume_statement == NULL)
+          resume_statement = interpreter_state.break_resume_point;
+        if (resume_statement == NULL)
           resume_statement = cli_saved_continuation;
 
         if (interpreter_state.running_state != 0 && resume_statement == NULL)
@@ -4897,6 +4921,7 @@ EXIT_MAT_INPUT:
         if (resume_statement != NULL) {
           interpreter_state.current_statement = resume_statement;
           interpreter_state.next_statement = NULL;
+          interpreter_state.break_resume_point = NULL;
           cli_saved_continuation = NULL;
           cli_program_control_changed = true;
           clear_error();
@@ -5307,6 +5332,8 @@ static void clear_error(void) {
   interpreter_state.error_num = 0;
   interpreter_state.error_line = 0;
   interpreter_state.trap_line = 0;
+  interpreter_state.trapped_error_num = 0;
+  interpreter_state.break_trap_line = 0;
 }
 
 /* set up empty trees to store variables and user functions as we find them */
@@ -5314,6 +5341,7 @@ void interpreter_setup(void)
 {
 	interpreter_state.variable_values = NULL;
 	interpreter_state.functions = NULL;
+  interpreter_state.break_resume_point = NULL;
   clear_error();
 }
 
@@ -5421,7 +5449,7 @@ void interpreter_run(void)
     perform_statement(interpreter_state.current_statement);
 
     // check for break key presses during program execution (works in all modes)
-    if (!pause_requested) {
+    if (!pause_requested && isatty(STDIN_FILENO)) {
       int key = peek_key();
       if (key == 27) {  // Escape only
         (void)get_key();  // consume the key
@@ -5432,7 +5460,14 @@ void interpreter_run(void)
     if (pause_requested) {
       pause_requested = 0;
       printf("\n[BREAK]\n");
-      interpreter_state.running_state = 0;
+      if (interpreter_state.break_trap_line > 0) {
+        interpreter_state.break_resume_point = interpreter_state.next_statement;
+        interpreter_state.next_statement = find_line(interpreter_state.break_trap_line);
+        // don't stop — jump to the ON BREAK handler
+      } else {
+        interpreter_state.break_resume_point = interpreter_state.next_statement;
+        interpreter_state.running_state = 0;
+      }
     }
 
     // stop immediately on error or paused state
