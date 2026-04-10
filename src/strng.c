@@ -186,12 +186,15 @@ char* str_append(char *orig_string, char *new_chars)
 char* str_trim(char *orig_string)
 {
   size_t len = strlen(orig_string);
+  if (len == 0)
+    return orig_string;  // Empty string, nothing to trim
+  
   size_t p = 0, q = len - 1;
 
-  while (isspace(orig_string[p]))
+  while (isspace(orig_string[p]) && p < len)
     p++;
   
-  while (isspace(orig_string[q]))
+  while (q > 0 && isspace(orig_string[q]))
     q--;
   
   size_t after_len = q + 1 - p;

@@ -47,6 +47,60 @@ int _isatty(int fd);
 FILE* file_handle_map[MAX_FILE_NUM]; //!< maps the file numbers to C handles
 char file_name_map[MAX_FILE_NUM][PATH_MAX]; //!< maps the file numbers to C handles
 
+#if !defined(WIN32) && !defined(_WIN32)
+static struct termios original_terminal_attrs;
+static bool terminal_raw_mode = false;
+static int buffered_key = -1;
+#endif
+
+/*
+ * Sets up the terminal for non-blocking raw input. Called once at startup
+ * so that get_key() and peek_key() never need to touch terminal settings.
+ */
+void setup_terminal_for_input(void)
+{
+#if !defined(WIN32) && !defined(_WIN32)
+  if (terminal_raw_mode)
+    return;
+  struct termios raw;
+  if (tcgetattr(STDIN_FILENO, &original_terminal_attrs) < 0) {
+    // stdin is not a TTY (e.g., piped input), skip terminal setup
+    return;
+  }
+  raw = original_terminal_attrs;
+  raw.c_lflag &= ~(ICANON | ECHO);  // non-canonical, no echo
+  raw.c_oflag |= (OPOST | ONLCR);   // ensure output processing and \n to \r\n conversion
+  // ISIG is intentionally left set so Ctrl-C/Ctrl-\ still raise signals
+  raw.c_cc[VMIN]  = 0;
+  raw.c_cc[VTIME] = 0;
+  tcsetattr(STDIN_FILENO, TCSANOW, &raw);
+  terminal_raw_mode = true;
+#endif
+}
+
+/*
+ * Restores the terminal to its original canonical state. Call this before
+ * any fgets(stdin) so that the user gets normal line-editing, then call
+ * setup_terminal_for_input() again afterwards.
+ */
+void restore_terminal(void)
+{
+#if !defined(WIN32) && !defined(_WIN32)
+  if (!terminal_raw_mode)
+    return;
+  tcsetattr(STDIN_FILENO, TCSANOW, &original_terminal_attrs);
+  terminal_raw_mode = false;
+#endif
+}
+
+void terminate_retrobasic(int status)
+{
+#if !defined(WIN32) && !defined(_WIN32)
+  restore_terminal();
+#endif
+  exit(status);
+}
+
 /*
  * Returns the file pointer for a given channel.
  */
@@ -328,53 +382,155 @@ bool delete_file(const char *file)
 
 /*
  * Waits for a single character. Used for GET.
+ * The terminal must already be in raw mode via setup_terminal_for_input().
  */
-int getbyte(void)
+int get_byte(void)
 {
 #if defined(_WIN32) || defined(WIN32)
   return _getch();
 #else
-  int ch;
-  struct termios old_attrs, new_attrs;
-  tcgetattr(STDIN_FILENO, &old_attrs);
-  new_attrs = old_attrs;
-  new_attrs.c_lflag &= ~(ICANON | ECHO);
-  tcsetattr(STDIN_FILENO, TCSANOW, &new_attrs);
-  system("stty -echo"); //shell out to kill echo
-  ch = getchar();
-  system("stty echo");
-  tcsetattr(STDIN_FILENO, TCSANOW, &old_attrs);
-  return ch;
+  if (buffered_key >= 0) {
+    int key = buffered_key;
+    buffered_key = -1;
+    return key;
+  }
+  unsigned char buf[1];
+  int ch = (int)read(STDIN_FILENO, buf, 1);
+  return (ch > 0) ? buf[0] : -1;
 #endif
 }
 
 /*
- * Gets a single keystroke, or null if no key is pressed. Used for INKEY$.
+ * Gets a single keystroke, or 0 if no key is pressed. Used for INKEY$ and GET.
+ * The terminal must already be in raw mode via setup_terminal_for_input().
  */
-int getkey(void)
+int get_key(void)
 {
 #if _WIN32
-  if (kbhit) {
-    return getch();
-  } else {
-    return 0;
-  }
+  return kbhit() ? getch() : 0;
 #else
-  int ch;
+  if (buffered_key >= 0) {
+    int key = buffered_key;
+    buffered_key = -1;
+    if (key == 3 || key == 24)
+      terminate_retrobasic(EXIT_SUCCESS);
+    return key;
+  }
   unsigned char buf[1];
-  struct termios old_attrs, new_attrs;
-  tcgetattr(STDIN_FILENO, &old_attrs);
-  new_attrs = old_attrs;
-  cfmakeraw(&new_attrs);
-  new_attrs.c_cc[VMIN] = 0;
-  new_attrs.c_cc[VTIME] = 0;
-  new_attrs.c_lflag &= ~(ICANON | ECHO);
-  //  newt.c_cc[VMIN] = 0;
-  tcsetattr(STDIN_FILENO, TCSANOW, &new_attrs);
-  ch = (int)read(STDIN_FILENO, buf, 1);
-  if (ch > 0)
-    ch = buf[0];
-  tcsetattr(STDIN_FILENO, TCSANOW, &old_attrs);
-  return ch;
+  int ch = (int)read(STDIN_FILENO, buf, 1);
+  if (ch > 0) {
+    if (buf[0] == 3 || buf[0] == 24)
+      terminate_retrobasic(EXIT_SUCCESS);
+    return buf[0];
+  }
+  return 0;
+#endif
+}
+
+/*
+ * Returns the next key without consuming it, or 0 if no key is pending.
+ * The terminal must already be in raw mode via setup_terminal_for_input().
+ */
+int peek_key(void)
+{
+#if _WIN32
+  return kbhit() ? 1 : 0;
+#else
+  if (buffered_key >= 0)
+    return buffered_key;
+  unsigned char buf[1];
+  int ch = (int)read(STDIN_FILENO, buf, 1);
+  if (ch > 0) {
+    if (buf[0] == 3 || buf[0] == 24)
+      terminate_retrobasic(EXIT_SUCCESS);
+    buffered_key = buf[0];
+    return buf[0];
+  }
+  return 0;
+#endif
+}
+
+/*
+ * Reads a line from stdin in raw mode, supporting basic editing and detecting ESC for BREAK.
+ * Returns 1 on success (line in buffer), 0 on EOF, -1 if ESC/BREAK detected.
+ */
+int raw_mode_input_line(char *buffer, size_t size)
+{
+#if defined(_WIN32) || defined(WIN32)
+  /* Windows falls back to canonical fgets behavior for INPUT */
+  return (fgets(buffer, size, stdin) == buffer) ? 1 : 0;
+#else
+  /* If stdin is not a TTY, use fgets instead of raw mode */
+  if (!isatty(STDIN_FILENO)) {
+    return (fgets(buffer, size, stdin) == buffer) ? 1 : 0;
+  }
+  
+  size_t pos = 0;
+  unsigned char c;
+  
+  while (pos < size - 1) {
+    /* If peek_key() buffered a character, consume it first */
+    if (buffered_key >= 0) {
+      c = (unsigned char)buffered_key;
+      buffered_key = -1;
+    } else {
+      /* Use select to wait for input */
+      fd_set rfds;
+      struct timeval tv;
+      FD_ZERO(&rfds);
+      FD_SET(STDIN_FILENO, &rfds);
+      tv.tv_sec = 0;
+      tv.tv_usec = 100000;  /* 100ms timeout to check for BREAK periodically */
+
+      int sel = select(STDIN_FILENO + 1, &rfds, NULL, NULL, &tv);
+      if (sel < 0) {
+        buffer[pos] = '\0';
+        return -1;  /* error */
+      }
+      if (sel == 0) {
+        /* Timeout - loop again */
+        continue;
+      }
+
+      /* Data available, read one character */
+      int ch = read(STDIN_FILENO, &c, 1);
+      if (ch <= 0) {
+        buffer[pos] = '\0';
+        return (ch == 0) ? 0 : -1;  /* EOF or error */
+      }
+    }
+    
+    if (c == 27) {  /* ESC */
+      buffer[pos] = '\0';
+      return -1;     /* BREAK */
+    }
+    if (c == 3 || c == 24) {  /* Ctrl-C or Ctrl-X */
+      buffer[pos] = '\0';
+      terminate_retrobasic(EXIT_SUCCESS);
+    }
+    
+    if (c == '\n' || c == '\r') {
+      buffer[pos] = '\0';
+      write(STDOUT_FILENO, "\n", 1);
+      return 1;      /* success */
+    }
+    
+    if (c == 127 || c == 8) {  /* DEL or backspace */
+      if (pos > 0) {
+        pos--;
+        write(STDOUT_FILENO, "\b \b", 3);  /* erase character */
+      }
+      continue;
+    }
+    
+    if (c >= 32 && c < 127) {  /* printable ASCII */
+      buffer[pos++] = c;
+      write(STDOUT_FILENO, &c, 1);  /* echo */
+    }
+    /* ignore other control chars */
+  }
+  
+  buffer[pos] = '\0';
+  return 1;  /* buffer full */
 #endif
 }

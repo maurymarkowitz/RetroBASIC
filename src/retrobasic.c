@@ -1434,7 +1434,7 @@ value_t evaluate_expression(const expression_t *expression)
             // currently being pressed. it relies on the terminal settings having
             // buffering turned of when this code is entered.
             char buff[2];
-            int key = getkey();
+            int key = get_key();
             
             if (key > 0) {
               buff[0] = (char)key;
@@ -2459,6 +2459,7 @@ static void perform_statement(list_t *statement_entry)
         // statistics and cleanup still occur.
         interpreter_state.running_state = 0;
         interpreter_state.next_statement = NULL;
+        interpreter_state.exit_requested = 1;
         break;
         
       case CALL:
@@ -2677,7 +2678,7 @@ static void perform_statement(list_t *statement_entry)
           free(path);
         } else {
           close_all_files();
-          delete_variables();
+          clear_variables();   // reset values but keep symbol table (variables were inserted at parse time)
           delete_functions();
           clear_stack();
           interpreter_state.runtime_stack = NULL;
@@ -2692,27 +2693,25 @@ static void perform_statement(list_t *statement_entry)
           }
 
           evaluate_labels_in_lines();
-          list_t *program = build_program_copy();
-          if (program == NULL) {
-            handle_error(ern_NO_SUCH_LINE, "No program loaded to RUN");
-            break;
-          }
-          cli_run_program_copy = program;
+          interpreter_post_parse();
           interpreter_state.current_data_statement = interpreter_state.lines[interpreter_state.first_line];
           interpreter_state.current_data_element = NULL;
           if (start_line_number >= 0) {
-            start_statement = find_program_copy_line(program, start_line_number);
+            start_statement = find_line(start_line_number);
             if (start_statement == NULL) {
               handle_error(ern_NO_SUCH_LINE, "No such starting line for RUN");
               break;
             }
           } else {
-            start_statement = program;
+            start_statement = interpreter_state.lines[interpreter_state.first_line];
           }
         }
 
-        interpreter_state.next_statement = start_statement;
-        cli_program_control_changed = true;
+        // Execute the program directly using interpreter_run
+        // Make sure current_statement is set to the first statement
+        interpreter_state.current_statement = start_statement;
+        interpreter_state.running_state = 1;
+        interpreter_run();
       }
       break;
       case LOAD:
@@ -3469,7 +3468,7 @@ static void perform_statement(list_t *statement_entry)
         // read a single character from the keyboard or file
         char buff[2];
         if (fp == NULL) {
-          int key = getkey();
+          int key = get_key();
           
           // put into a string and null terminate
           if (key > 0) {
@@ -3605,16 +3604,20 @@ REDO_INPUT:
           // see if we can get some data, we should at least get a return
           char line[MAX_INPUT_LENGTH];
           fflush(stdout);
-          if (fgets(line, sizeof(line), stdin) != line)
+          int input_result = raw_mode_input_line(line, sizeof(line));
+          if (input_result == -1) {
+            /* BREAK detected during INPUT */
+            pause_requested = 1;
+            break;
+          }
+          if (input_result <= 0)
             exit(EXIT_FAILURE);
           
-          // test to see if the input is zero length or is a newline, if so,
+          // test to see if the input is zero length, if so,
           // exit INPUT and continue running the program with the old values
-          if (strlen(line) == 0 || *line == '\r' || *line == '\n')
+          if (strlen(line) == 0)
             break;
           
-          // null-terminate the string
-          line[strlen(line) - 1] = '\0';
           size_t len = strlen(line);
           
           // optionally convert to upper case
@@ -4085,13 +4088,17 @@ REDO_INPUT:
             // remember to skip zero
             for (int i = 1; i <= len; i++) {
               fflush(stdout);
-              if (fgets(line, sizeof(line), stdin) != line)
+              int r1 = raw_mode_input_line(line, sizeof(line));
+              if (r1 == -1) {
+                /* BREAK detected during MAT INPUT */
+                pause_requested = 1;
+                goto EXIT_MAT_INPUT;
+              }
+              if (r1 <= 0)
                 exit(EXIT_FAILURE);
               
               // we got something, so null-terminate the string
-              line[strlen(line) - 1] = '\0';
-              
-              // that may have only been the return at the end of the line, so...
+              // that may have been an empty line, so...
               if (strlen(line) == 0)
                 goto EXIT_MAT_INPUT;
 
@@ -4120,10 +4127,15 @@ REDO_INPUT:
                 int slot = r * (cols + 1) + c; // cols 3 means 4 columns
                 
                 fflush(stdout);
-                if (fgets(line, sizeof(line), stdin) != line)
+                int r2 = raw_mode_input_line(line, sizeof(line));
+                if (r2 == -1) {
+                  /* BREAK detected during MAT INPUT */
+                  pause_requested = 1;
+                  goto EXIT_MAT_INPUT;
+                }
+                if (r2 <= 0)
                   exit(EXIT_FAILURE);
                 
-                line[strlen(line) - 1] = '\0';
                 if (strlen(line) == 0)
                   goto EXIT_MAT_INPUT;
 
@@ -4736,8 +4748,13 @@ EXIT_MAT_INPUT:
 						interpreter_state.cursor_column = 0; // and reset this!
 					}
 				}
-      } //print
-        break;
+        // ensure output is flushed in case we're in raw mode
+        if (fp == stdout)
+          fflush(stdout);
+        else
+          fflush(fp);
+      }
+      break;
         
       case RAISE:
       {
@@ -5403,13 +5420,19 @@ void interpreter_run(void)
     // run the one we're on
     perform_statement(interpreter_state.current_statement);
 
-    // optionally pause on Ctrl+C when in interactive CLI mode
+    // check for break key presses during program execution (works in all modes)
+    if (!pause_requested) {
+      int key = peek_key();
+      if (key == 27) {  // Escape only
+        (void)get_key();  // consume the key
+        pause_requested = 1;
+      }
+    }
+
     if (pause_requested) {
       pause_requested = 0;
-      if (interpreter_state.interactive_mode) {
-        printf("\n[PAUSED]\n");
-        interpreter_state.running_state = 0;
-      }
+      printf("\n[BREAK]\n");
+      interpreter_state.running_state = 0;
     }
 
     // stop immediately on error or paused state
