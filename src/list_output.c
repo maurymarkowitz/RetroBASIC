@@ -270,7 +270,7 @@ static void append_variable_reference(string_builder_t *sb, variable_reference_t
     bool first = true;
     for (list_t *item = lst_first_node(variable->subscripts); item != NULL; item = lst_next(item)) {
       if (!first)
-        sb_append(sb, ", ");
+        sb_append(sb, ",");
       append_expression(sb, item->data, 0);
       first = false;
     }
@@ -342,7 +342,7 @@ static void append_expression(string_builder_t *sb, expression_t *expression, in
     bool first = true;
     for (list_t *item = lst_first_node(func->subscripts); item != NULL; item = lst_next(item)) {
       if (!first)
-        sb_append(sb, ", ");
+        sb_append(sb, ",");
       append_expression(sb, item->data, 0);
       first = false;
     }
@@ -377,7 +377,7 @@ static void append_expression(string_builder_t *sb, expression_t *expression, in
       sb_append_char(sb, '(');
       for (int i = 0; i < expression->parms.op.arity; i++) {
         if (i > 0)
-          sb_append(sb, ", ");
+          sb_append(sb, ",");
         append_expression(sb, expression->parms.op.p[i], 0);
       }
       sb_append_char(sb, ')');
@@ -394,7 +394,7 @@ static void append_varlist(string_builder_t *sb, list_t *list)
   bool first = true;
   for (list_t *item = lst_first_node(list); item != NULL; item = lst_next(item)) {
     if (!first)
-      sb_append(sb, ", ");
+      sb_append(sb, ",");
     append_variable_reference(sb, item->data);
     first = false;
   }
@@ -405,7 +405,7 @@ static void append_exprlist(string_builder_t *sb, list_t *list)
   bool first = true;
   for (list_t *item = lst_first_node(list); item != NULL; item = lst_next(item)) {
     if (!first)
-      sb_append(sb, ", ");
+      sb_append(sb, ",");
     append_expression(sb, item->data, 0);
     first = false;
   }
@@ -425,7 +425,7 @@ static void append_printlist(string_builder_t *sb, list_t *list)
       append_expression(sb, print_item->expression, 0);
     }
     if (print_item->separator == ',') {
-      sb_append(sb, ", ");
+      sb_append(sb, ",");
     } else if (print_item->separator == ';') {
       sb_append_char(sb, ';');
     }
@@ -526,7 +526,7 @@ static char *statement_to_string(statement_t *statement)
     case INPUT_FILE:
       sb_append(&sb, "INPUT #");
       append_expression(&sb, statement->parms.generic.generic_parameter, 0);
-      sb_append(&sb, ", ");
+      sb_append(&sb, ",");
       append_printlist(&sb, statement->parms.input);
       break;
     case INPUT_LINE:
@@ -534,7 +534,7 @@ static char *statement_to_string(statement_t *statement)
       if (statement->parms.generic.generic_parameter) {
         sb_append(&sb, "#");
         append_expression(&sb, statement->parms.generic.generic_parameter, 0);
-        sb_append(&sb, ", ");
+        sb_append(&sb, ",");
       }
       append_printlist(&sb, statement->parms.input);
       break;
@@ -561,9 +561,10 @@ static char *statement_to_string(statement_t *statement)
       append_variable_reference(&sb, statement->parms.label.variable);
       break;
     case LET:
-      sb_append(&sb, "LET ");
+      if (statement->let_explicit)
+        sb_append(&sb, "LET ");
       append_variable_reference(&sb, statement->parms.let.variable);
-      sb_append(&sb, " = ");
+      sb_append(&sb, "=");
       append_expression(&sb, statement->parms.let.expression, 0);
       break;
     case NEXT:
@@ -587,10 +588,10 @@ static char *statement_to_string(statement_t *statement)
       sb_append(&sb, "OPEN ");
       if (statement->parms.generic.generic_parameter) {
         append_expression(&sb, statement->parms.generic.generic_parameter, 0);
-        sb_append(&sb, ", ");
+        sb_append(&sb, ",");
       }
       append_expression(&sb, statement->parms.generic.generic_parameter2, 0);
-      sb_append(&sb, ", ");
+      sb_append(&sb, ",");
       append_expression(&sb, statement->parms.generic.generic_parameter3, 0);
       break;
     case OPTION:
@@ -607,32 +608,47 @@ static char *statement_to_string(statement_t *statement)
     case POKE:
       sb_append(&sb, "POKE ");
       append_expression(&sb, statement->parms.generic.generic_parameter, 0);
-      sb_append(&sb, ", ");
+      sb_append(&sb, ",");
       append_expression(&sb, statement->parms.generic.generic_parameter2, 0);
       break;
     case POP:
       sb_append(&sb, "POP");
       break;
     case PRINT:
-      sb_append(&sb, "PRINT ");
-      if (statement->parms.print.format) {
-        sb_append(&sb, "USING ");
-        append_expression(&sb, statement->parms.print.format, 0);
-        sb_append(&sb, "; ");
+    {
+      bool has_format = statement->parms.print.format != NULL;
+      bool has_items = statement->parms.print.item_list != NULL;
+      sb_append(&sb, "PRINT");
+      if (has_format || has_items) {
+        sb_append_char(&sb, ' ');
+        if (has_format) {
+          sb_append(&sb, "USING ");
+          append_expression(&sb, statement->parms.print.format, 0);
+          if (has_items)
+            sb_append(&sb, "; ");
+        }
+        append_printlist(&sb, statement->parms.print.item_list);
       }
-      append_printlist(&sb, statement->parms.print.item_list);
+    }
       break;
     case PRINT_FILE:
+    {
+      bool has_format = statement->parms.print.format != NULL;
+      bool has_items = statement->parms.print.item_list != NULL;
       sb_append(&sb, "PRINT #");
       append_expression(&sb, statement->parms.print.channel, 0);
-      if (statement->parms.print.format) {
-        sb_append(&sb, " USING ");
-        append_expression(&sb, statement->parms.print.format, 0);
-        sb_append(&sb, "; ");
-      } else {
-        sb_append(&sb, ", ");
+      if (has_format || has_items) {
+        if (has_format) {
+          sb_append(&sb, " USING ");
+          append_expression(&sb, statement->parms.print.format, 0);
+          if (has_items)
+            sb_append(&sb, "; ");
+        } else if (has_items) {
+          sb_append(&sb, ", ");
+        }
+        append_printlist(&sb, statement->parms.print.item_list);
       }
-      append_printlist(&sb, statement->parms.print.item_list);
+    }
       break;
     case PUT:
       sb_append(&sb, "PUT ");
@@ -921,7 +937,7 @@ char *list_output_program(int start_line, int end_line)
         continue;
 
       if (!first_statement)
-        sb_append(&sb, " : ");
+        sb_append(&sb, ":");
 
       char *statement_text = statement_to_string(statement);
       sb_append(&sb, statement_text);

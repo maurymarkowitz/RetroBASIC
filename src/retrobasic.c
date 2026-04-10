@@ -2250,8 +2250,9 @@ static void print_value(value_t v, const char *format, FILE* fp)
       {
         // for some reason, PRINT adds a space at the end of numbers
         char* a = number_to_string(v.number);
-        interpreter_state.cursor_column += fprintf(out, "%s ", a); // note the trailing space
-      }
+        interpreter_state.cursor_column += fprintf(out, "%s", a);
+              interpreter_state.cursor_column += fprintf(out, "%s ", a); // note the trailing space
+        }
         break;
       case STRING:
         // printf will print "(null)" when used with a specifier, so...

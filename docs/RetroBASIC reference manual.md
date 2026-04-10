@@ -506,12 +506,9 @@ In contrast to most dialects, RetroBASIC will allow you to `CONT`inue in most si
 <!-- TOC --><a name="list-command"></a>
 ### `LIST` [*lineno*|*lineno*-*lineno*|*lineno*,*lineno*]
 
-`LIST` prints the program source to the console. It can be used with no arguments to print the entire program, with a single line number to print from that line to the end, or with a range to print only the selected lines.
+`LIST` prints the program source to the console. It can be used with no arguments to print the entire program, with a single line number to print from that line to the end, or with two numbers to print only the lines between (and including) those two. RetroBASIC supports both dash-separated (MS style), `LIST 10-20`, and comma-separated (Atari etc.) ranges, `LIST 10,20`.
 
-RetroBASIC supports both dash-separated (MS style) and comma-separated (Atari etc.) ranges:
-
-    LIST 10-20
-    LIST 10,20
+The `LIST` does not preserve the original formatting of the file as it was read in or `LOAD`ed, it will reformat it to a cannonical format. This includes things like all keywords being forced to uppercase, adding or removing spaces in various places, and so forth.
 
 <!-- TOC --><a name="load-filename"></a>
 ### `LOAD` *filename*

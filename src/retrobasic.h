@@ -141,6 +141,7 @@ typedef struct {
  */
 typedef struct statement_struct {
   int type; // the enum for this is in parse.h
+  bool let_explicit;            // true for explicit LET, false for invisible LET
   union {
     struct {
       variable_reference_t *generic_variable;
