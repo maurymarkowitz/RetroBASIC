@@ -737,6 +737,7 @@ statement:
   LET variable '=' expression /* explicit LET, implicit LET is at the bottom */
   {
     statement_t *new = make_statement(LET);
+    new->let_explicit = true;
     new->parms.let.variable = $2;
     new->parms.let.expression = $4;
     $$ = new;
@@ -1244,6 +1245,7 @@ statement:
   variable '=' expression
   {
     statement_t *new = make_statement(LET);
+    new->let_explicit = false;
     new->parms.let.variable = $1;
     new->parms.let.expression = $3;
     $$ = new;
