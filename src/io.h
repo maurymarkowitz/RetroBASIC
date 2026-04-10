@@ -27,6 +27,8 @@ Boston, MA 02111-1307, USA.  */
   #include <conio.h>
 #else
   #include <sys/termios.h>
+  #include <sys/select.h>
+  #include <sys/time.h>
 #endif
 
 #include <unistd.h>
@@ -135,7 +137,7 @@ bool delete_file(const char *file);
  * @param fd, the file descriptor, typically STDIN_FILENO.
  * @return the keycode, NULL if an error occurred.
  */
-int getbyte(void);
+int get_byte(void);
 
 /**
  * Gets a single keystroke, or null if no key is pressed. Used for INKEY$.
@@ -145,6 +147,42 @@ int getbyte(void);
  *
  * See: https://stackoverflow.com/questions/1798511/how-to-avoid-pressing-enter-with-getchar-for-reading-a-single-character-only
  */
-int getkey(void);
+int get_key(void);
+
+/**
+ * Checks whether a key is pending without consuming it.
+ * The next call to get_key() will return the same key.
+ *
+ * @return the keycode, or 0 if no key is pending.
+ */
+int peek_key(void);
+
+/**
+ * Sets up the terminal for non-blocking raw input.
+ * Must be called once before the interpreter loop begins.
+ */
+void setup_terminal_for_input(void);
+
+/**
+ * Restores the terminal to canonical (line-buffered) mode.
+ * Call before fgets(stdin) and follow with setup_terminal_for_input().
+ */
+void restore_terminal(void);
+
+/**
+ * Restores the terminal and exits the application cleanly.
+ */
+void terminate_retrobasic(int status);
+
+/**
+ * Reads a line in raw mode, detecting ESC for BREAK.
+ * Terminal must be in raw mode via setup_terminal_for_input().
+ * Supports basic editing (backspace). Echoes characters as typed.
+ *
+ * @param buffer, buffer to store the line (without trailing newline).
+ * @param size, size of the buffer.
+ * @return 1 if line successfully read, 0 if EOF, -1 if BREAK (ESC) detected.
+ */
+int raw_mode_input_line(char *buffer, size_t size);
 
 #endif /* io_h */

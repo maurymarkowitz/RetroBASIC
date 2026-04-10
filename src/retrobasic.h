@@ -254,6 +254,7 @@ typedef struct {
   int cursor_column;              // current column of the output cursor
   int running_state;              // is the program running (1), paused/stopped (0), or setting up a function (-1)
   int interactive_mode;           // 1 if started without filename, 0 if batch mode
+  int exit_requested;             // set by BYE to signal the CLI loop to exit
 } interpreterstate_t;
 
 /* and here's the link to an instance of interpreterstate_t defined in the c side */
