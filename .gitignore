@@ -24,3 +24,4 @@ parse.output
 */.obj
 tests/
 
+.DS_Store
