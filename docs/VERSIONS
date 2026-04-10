@@ -2,12 +2,17 @@ RetroBASIC version history
 
 Version 3.0.0 - 7 April 2026
 
-Major release. Adds an interactive line editor that gives RetroBASIC the complete functionality of most BASICs of the 1980s.
+Major release. Adds an interactive line editor that gives RetroBASIC the complete functionality
+ of most BASICs of the 1980s. This required significant changes to the input handling, so be alternate
+ for issues related to INPUT and similar functionality.
 
 - added LIST, LOAD and SAVE
 - added RUN and CONT
 - added CHAIN and COMMON
 - added --prompt to customize the CLI
+- added support for BREAK key, which works inside INPUT and INKEY and such
+- added ON BREAK to allow you to handle the BREAK in BASIC
+- MAT INPUT finally allows multiple inputs on a line
 
 Version 2.2.0 - 6 April 2026
 
