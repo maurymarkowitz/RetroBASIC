@@ -35,8 +35,12 @@ Boston, MA 02111-1307, USA.  */
 #include <limits.h> // gives INT_MAX
 #include <signal.h> // for sig_atomic_t and signal handling
 
-#if defined(__MINGW32__) || defined(__MINGW64__)
+#if defined(_WIN32) || defined(_WIN64) || defined(__MINGW32__) || defined(__MINGW64__)
   #include <io.h>
+  #include <unistd.h>
+  #ifndef STDIN_FILENO
+    #define STDIN_FILENO 0
+  #endif
 #else
   #include <unistd.h>
 #endif
