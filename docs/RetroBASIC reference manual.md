@@ -510,6 +510,10 @@ In contrast to most dialects, RetroBASIC will allow you to `CONT`inue in most si
 
 The `LIST` does not preserve the original formatting of the file as it was read in or `LOAD`ed, it will reformat it to a cannonical format. This includes things like all keywords being forced to uppercase, adding or removing spaces in various places, and so forth.
 
+#### See also:
+
+* [`LIST#`](#list-file)
+
 <!-- TOC --><a name="load-filename"></a>
 ### `LOAD` *filename*
 
