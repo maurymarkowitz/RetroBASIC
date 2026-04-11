@@ -210,6 +210,45 @@ static const char *operator_token_name(int opcode)
 static const char *function_token_name(int opcode)
 {
   switch (opcode) {
+    case ABS: return "ABS";
+    case SGN: return "SGN";
+    case CLOG: return "CLOG";
+    case EXP: return "EXP";
+    case LOG: return "LOG";
+    case SQR: return "SQR";
+    case PI: return "PI";
+    case RND: return "RND";
+    case INT: return "INT";
+    case FIX: return "FIX";
+    case FRAC: return "FRAC";
+    case ROUND: return "ROUND";
+    case CINT: return "CINT";
+    case CSNG: return "CSNG";
+    case CDBL: return "CDBL";
+    case COS: return "COS";
+    case SIN: return "SIN";
+    case ATN: return "ATN";
+    case ACS: return "ACS";
+    case ASN: return "ASN";
+    case TAN: return "TAN";
+    case COSH: return "COSH";
+    case SINH: return "SINH";
+    case TANH: return "TANH";
+    case ASC: return "ASC";
+    case VAL: return "VAL";
+    case LEN: return "LEN";
+    case SEG: return "SEG";
+    case SUBSTR: return "SUBSTR";
+    case INSTR: return "INSTR";
+    case ADR: return "ADR";
+    case FRE: return "FRE";
+    case SPC: return "SPC";
+    case TAB: return "TAB";
+    case POS: return "POS";
+    case USR: return "USR";
+    case LIN: return "LIN";
+    case UBOUND: return "UBOUND";
+    case LBOUND: return "LBOUND";
     case LEFT: return "LEFT$";
     case RIGHT: return "RIGHT$";
     case MID: return "MID$";
@@ -357,11 +396,14 @@ static void append_expression(string_builder_t *sb, expression_t *expression, in
       sb_append_char(sb, '(');
 
     int opcode = expression->parms.op.opcode;
-    if (expression_is_infix(expression)) {
+
+    if (opcode == '^' && expression->parms.op.arity == 2) {
       append_expression(sb, expression->parms.op.p[0], precedence);
-      sb_append(sb, " ");
+      sb_append(sb, "^");
+      append_expression(sb, expression->parms.op.p[1], precedence);
+    } else if (expression_is_infix(expression)) {
+      append_expression(sb, expression->parms.op.p[0], precedence);
       sb_append(sb, operator_token_name(opcode));
-      sb_append(sb, " ");
       append_expression(sb, expression->parms.op.p[1], precedence);
     } else if (opcode == NOT) {
       sb_append(sb, "NOT ");
@@ -468,7 +510,7 @@ static char *statement_to_string(statement_t *statement)
     case DEF:
       sb_append(&sb, "DEF ");
       append_variable_reference(&sb, statement->parms.def.signature);
-      sb_append(&sb, " = ");
+      sb_append(&sb, "=");
       append_expression(&sb, statement->parms.def.formula, 0);
       break;
     case DEFSTR:
@@ -500,7 +542,7 @@ static char *statement_to_string(statement_t *statement)
     case FOR:
       sb_append(&sb, "FOR ");
       append_variable_reference(&sb, statement->parms._for.variable);
-      sb_append(&sb, " = ");
+      sb_append(&sb, "=");
       append_expression(&sb, statement->parms._for.begin, 0);
       sb_append(&sb, " TO ");
       append_expression(&sb, statement->parms._for.end, 0);
@@ -718,7 +760,7 @@ static char *statement_to_string(statement_t *statement)
     case TIME_STR:
       sb_append(&sb, "TIME$");
       if (statement->parms.generic.generic_parameter) {
-        sb_append(&sb, " = ");
+        sb_append(&sb, "=");
         append_expression(&sb, statement->parms.generic.generic_parameter, 0);
       }
       break;
@@ -742,7 +784,7 @@ static char *statement_to_string(statement_t *statement)
     case MAT:
       sb_append(&sb, "MAT ");
       append_variable_reference(&sb, statement->parms.mat.variable);
-      sb_append(&sb, " = ");
+      sb_append(&sb, "=");
       if (statement->parms.mat.variable2) {
         append_variable_reference(&sb, statement->parms.mat.variable2);
       } else if (statement->parms.mat.expression) {
@@ -754,7 +796,7 @@ static char *statement_to_string(statement_t *statement)
     case MATADD:
       sb_append(&sb, "MAT ");
       append_variable_reference(&sb, statement->parms.mat.variable);
-      sb_append(&sb, " = ");
+      sb_append(&sb, "=");
       append_variable_reference(&sb, statement->parms.mat.variable2);
       sb_append(&sb, " + ");
       append_variable_reference(&sb, statement->parms.mat.variable3);
@@ -762,7 +804,7 @@ static char *statement_to_string(statement_t *statement)
     case MATSUB:
       sb_append(&sb, "MAT ");
       append_variable_reference(&sb, statement->parms.mat.variable);
-      sb_append(&sb, " = ");
+      sb_append(&sb, "=");
       append_variable_reference(&sb, statement->parms.mat.variable2);
       sb_append(&sb, " - ");
       append_variable_reference(&sb, statement->parms.mat.variable3);
@@ -778,7 +820,7 @@ static char *statement_to_string(statement_t *statement)
     case MATMUL:
       sb_append(&sb, "MAT ");
       append_variable_reference(&sb, statement->parms.mat.variable);
-      sb_append(&sb, " = ");
+      sb_append(&sb, "=");
       append_variable_reference(&sb, statement->parms.mat.variable2);
       sb_append(&sb, " * ");
       append_variable_reference(&sb, statement->parms.mat.variable3);
