@@ -787,6 +787,28 @@ statement:
     $$ = new;
   }
   |
+  LIST '-' NUMBER
+  {
+    statement_t *new = make_statement(LIST);
+    expression_t *end = make_expression(number);
+    end->parms.number = $3;
+    new->parms.generic.generic_parameter = NULL;
+    new->parms.generic.generic_parameter2 = end;
+    new->parms.generic.generic_parameter3 = NULL;
+    $$ = new;
+  }
+  |
+  LIST NUMBER '-'
+  {
+    statement_t *new = make_statement(LIST);
+    expression_t *start = make_expression(number);
+    start->parms.number = $2;
+    new->parms.generic.generic_parameter = start;
+    new->parms.generic.generic_parameter2 = NULL;
+    new->parms.generic.generic_parameter3 = NULL;
+    $$ = new;
+  }
+  |
   LIST NUMBER ',' NUMBER
   {
     statement_t *new = make_statement(LIST);
@@ -795,6 +817,17 @@ statement:
     start->parms.number = $2;
     end->parms.number = $4;
     new->parms.generic.generic_parameter = start;
+    new->parms.generic.generic_parameter2 = end;
+    new->parms.generic.generic_parameter3 = NULL;
+    $$ = new;
+  }
+  |
+  LIST ',' NUMBER
+  {
+    statement_t *new = make_statement(LIST);
+    expression_t *end = make_expression(number);
+    end->parms.number = $3;
+    new->parms.generic.generic_parameter = NULL;
     new->parms.generic.generic_parameter2 = end;
     new->parms.generic.generic_parameter3 = NULL;
     $$ = new;
@@ -810,6 +843,28 @@ statement:
   }
   |
   LIST HASH expression NUMBER
+  {
+    statement_t *new = make_statement(LIST_FILE);
+    new->parms.generic.generic_parameter = $3;
+    expression_t *start = make_expression(number);
+    start->parms.number = $4;
+    new->parms.generic.generic_parameter2 = start;
+    new->parms.generic.generic_parameter3 = NULL;
+    $$ = new;
+  }
+  |
+  LIST HASH expression '-' NUMBER
+  {
+    statement_t *new = make_statement(LIST_FILE);
+    new->parms.generic.generic_parameter = $3;
+    expression_t *end = make_expression(number);
+    end->parms.number = $5;
+    new->parms.generic.generic_parameter2 = NULL;
+    new->parms.generic.generic_parameter3 = end;
+    $$ = new;
+  }
+  |
+  LIST HASH expression NUMBER '-'
   {
     statement_t *new = make_statement(LIST_FILE);
     new->parms.generic.generic_parameter = $3;
@@ -842,6 +897,17 @@ statement:
     start->parms.number = $4;
     end->parms.number = $6;
     new->parms.generic.generic_parameter2 = start;
+    new->parms.generic.generic_parameter3 = end;
+    $$ = new;
+  }
+  |
+  LIST HASH expression ',' NUMBER
+  {
+    statement_t *new = make_statement(LIST_FILE);
+    new->parms.generic.generic_parameter = $3;
+    expression_t *end = make_expression(number);
+    end->parms.number = $5;
+    new->parms.generic.generic_parameter2 = NULL;
     new->parms.generic.generic_parameter3 = end;
     $$ = new;
   }
