@@ -26,6 +26,9 @@
 #include <ctype.h>
 #include <string.h>
 #include <sys/time.h> // for run timers
+#if defined(_WIN32) || defined(__MINGW32__) || defined(__MINGW64__)
+#include <io.h>
+#endif
 #include <unistd.h>   // used for sleep
 #ifndef _WIN32
 #include <pwd.h>
