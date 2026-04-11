@@ -33,6 +33,7 @@ Boston, MA 02111-1307, USA.  */
 #include <errno.h>  // used only while opening the program file, could be removed?
 #include <math.h>   // fmax, fabs, etc.
 #include <limits.h> // gives INT_MAX
+#include <signal.h> // for sig_atomic_t and signal handling
 
 #include <time.h>   // used for TIME and DATE in main and stats
 
