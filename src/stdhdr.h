@@ -41,6 +41,7 @@ Boston, MA 02111-1307, USA.  */
   #ifndef STDIN_FILENO
     #define STDIN_FILENO 0
   #endif
+  int isatty(int);
 #else
   #include <unistd.h>
 #endif
