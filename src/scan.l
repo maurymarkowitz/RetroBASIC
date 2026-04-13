@@ -121,7 +121,6 @@ RANDOMIZE { return RANDOMIZE; }
 TIMER     { return RANDOMIZE; } // this returns the RANDOMIZE token instead of making a new one
 SYS       { return SYS; }     // same as CALL
 SYSTEM    { return SYS; }     // same as CALL
-USING     { return USING; }
 VARLIST   { return VARLIST; }
 PAUSE     { return PAUSE; }
 PRESERVE  { return PRESERVE; }
