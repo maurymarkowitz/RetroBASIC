@@ -7,8 +7,12 @@ LEX = flex
 LFLAGS = -lfl
 YAC = bison
 YFLAGS =-dtv
-CC = gcc -g
-CFLAGS = -DYYDEBUG=1
+CC = gcc
+DEBUG ?= 0
+CFLAGS ?=
+ifeq ($(DEBUG),1)
+  CFLAGS += -g -DYYDEBUG=1
+endif
 CLIBS = -ly -ll
 
 rm=/bin/rm -f
@@ -20,7 +24,7 @@ SRC_DIR = src
 
 # the final program has three inputs: generated lex/yacc sources and the interpreter source
 $(TARGET): $(wildcard $(SRC_DIR)/*.c) $(SRC_DIR)/parse.tab.c $(SRC_DIR)/lex.yy.c
-	$(CC) -I$(SRC_DIR) $^ -o $(TARGET) -lm
+	$(CC) $(CFLAGS) -I$(SRC_DIR) $^ -o $(TARGET) -lm
 
 # if the lex or .tab.h file is changed, run lex again
 $(SRC_DIR)/lex.yy.c: $(SRC_DIR)/scan.l $(SRC_DIR)/parse.tab.h
@@ -52,7 +56,10 @@ else
     DOCDIR ?= $(PREFIX)/share/doc/retrobasic
 endif
 
-.PHONY: install uninstall
+.PHONY: install uninstall all debug
+
+debug:
+	$(MAKE) DEBUG=1 all
 
 install: $(TARGET)
 ifeq ($(OS),Windows_NT)

@@ -210,7 +210,6 @@ int main(int argc, char *argv[])
 #if YYDEBUG
   yydebug = 1;
 #endif
-#define YYDEBUG 1
 
   // parse the options and make sure we got a filename somewhere
   parse_options(argc, argv);

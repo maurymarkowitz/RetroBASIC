@@ -32,8 +32,6 @@ Boston, MA 02111-1307, USA.  */
 #include "retrobasic.h"
 #include "statistics.h"
 
-#define YYDEBUG 1
-
  /* used to track the line number being processed so
     that errors can report it */
 static double errline;
