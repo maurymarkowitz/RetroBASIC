@@ -1428,8 +1428,8 @@ value_t evaluate_expression(const expression_t *expression)
 						int m = (elapsed_secs - (3600 * h)) / 60;
 						int s = (elapsed_secs - (3600 * h) - (m * 60));
 						
-						char buff[7];
-						sprintf(buff, "%02d%02d%02d", h, m, s);
+						char buff[16];
+						snprintf(buff, sizeof buff, "%02d%02d%02d", h, m, s);
 						result.string = str_new(buff);
 					}
 						break;
