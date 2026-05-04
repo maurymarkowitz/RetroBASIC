@@ -99,7 +99,7 @@ RetroBASIC CLI
 > RUN
 ```
 
-As part of this addition, support for a "break" key was added. This is wired to the `Esc` key on Unix and macOS machines. On Windows machines, you can use both `Esc` as well as the `Pause`/`Break` key above the cursor controls. Break also works in non-interactive mode, but in that case it will exit directly to the shell. In interactive mode, it return sto the line editor, where you can modify the program and then `CONT`inue. If you wish to exit to the shell from interactive mode, use `BYE` or Control-C.
+As part of this work, support for a "break" key was added. This is wired to the `Esc` key on Unix and macOS machines. On Windows machines, you can use both `Esc` as well as the `Pause`/`Break` key above the cursor controls. Break also works in non-interactive mode, but in that case it will exit directly to the shell. This is still useful when you find the program is stuck in a loop. In interactive mode, it returns to the line editor, where you can modify the program and then `CONT`inue. If you wish to exit to the shell from interactive mode, use `BYE` or Control-C.
 
 ## Missing features and Errata
 
