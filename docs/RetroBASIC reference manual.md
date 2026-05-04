@@ -506,7 +506,7 @@ In contrast to most dialects, RetroBASIC will allow you to `CONT`inue in most si
 <!-- TOC --><a name="list-command"></a>
 ### `LIST` [*lineno*|*lineno*-*lineno*|*lineno*,*lineno*]
 
-`LIST` prints the program source to the console. It can be used with no arguments to print the entire program, with a single line number to print from that line to the end, or with two numbers to print only the lines between (and including) those two. RetroBASIC supports both dash-separated (MS style), `LIST 10-20`, and comma-separated (Atari etc.) ranges, `LIST 10,20`.
+`LIST` prints the program source to the console. It can be used with no arguments to print the entire program, with a single line number to print from that line to the end, or with two numbers to print only the lines between (and including) those two. RetroBASIC supports both dash-separated range definitions (MS style), `LIST 10-20`, and comma-separated (Atari etc.), `LIST 10,20`.
 
 The `LIST` does not preserve the original formatting of the file as it was read in or `LOAD`ed, it will reformat it to a cannonical format. This includes things like all keywords being forced to uppercase, adding or removing spaces in various places, and so forth.
 
@@ -569,11 +569,11 @@ RetroBASIC also supports the variation seen in many later versions of BASIC, whi
 
 RetroBASIC adds a feature from Wang and IBM 5100 BASIC, which outputs an optional string. This is useful for saying things like "Stopping for debugging, you should PRINT A". If no expression is included, RetroBASIC instead prints the default message "STOPped at line:" along with the line number.
 
-Lien notes that some varieties of BASIC will branch to the `END` statement when they reach a `STOP`, which means on these dialects the two commands are identical and there is no way to `CONT`inue after a `STOP`. However, which dialects these might be is not noted.
+Lien notes that some varieties of BASIC will branch to the `END` statement when they reach a `STOP`, which means on these dialects the two commands are identical and there is no way to `CONT`inue after a `STOP`. However, which dialects these might be is not noted, and no examples have been found.
 
 #### Variations:
 
-PDP-8 BASIC and the Tektronics 4051 used `STO` instead, although whether this was simply an abbreviated input and `STOP` would work as well is not clear in the documentation.
+PDP-8 BASIC and the Tektronics 4051 used `STO`, although whether this was simply an abbreviated input and `STOP` would work as well is not clear in the documentation.
 
 Harris BASIC-V added the `BREAK` statement, which allowed one to place multiple `STOP` markers in the code in a single statement. For instance, `BREAK 10-50,100` would perform a stop (break) at any line from 10 to 50, or line 100. This is useful as it allows you to easily control debugging without having to edit the entire program, a single statement at the top has the same effect as multiple `STOP` statements spread all over the code. RetroBASIC does not currently support `BREAK`.
 
