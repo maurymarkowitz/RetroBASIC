@@ -497,7 +497,7 @@ In contrast to most dialects, RetroBASIC will allow you to `CONT`inue in most si
 <!-- TOC --><a name="end"></a>
 ### `END`
 
-`END` stops the execution of the program and exits RetroBASIC, returning you to the console shell. `END` is optional in most dialects, but adding an `END` was considered good form. `END` does not have to be at the end of the source code, it was often found higher in the code with subroutines below it, preventing them from running unless explicitly called. It can also be called anywhere in the code to exit the program based on user input.
+`END` stops the execution of the program and exits RetroBASIC, returning you to the console shell or interactive prompt. `END` is optional in most dialects, but adding an `END` was considered good form. `END` does not have to be at the end of the source code, it was often found higher in the code with subroutines below it, preventing them from running unless explicitly called. It can also be called anywhere in the code to exit the program based on user input.
 
 #### See also:
 
@@ -565,7 +565,7 @@ RetroBASIC also supports the variation seen in many later versions of BASIC, whi
 <!-- TOC --><a name="stop-sexp"></a>
 ### `STOP` [*sexp*]
 
-`STOP` is similar to `END` in that the program stops executing and the user is returned to the shell. It is intended to stop execution in the middle of the program and keep the data intact so the user can `CONT`inue running after it stops. It is mostly used for debugging purposes.
+`STOP` is similar to `END` in that the program stops executing and the user is returned to the shell or interactive prompt. It is intended to stop execution in the middle of the program and keep the data intact so the user can `CONT`inue running after it stops. It is mostly used for debugging purposes.
 
 RetroBASIC adds a feature from Wang and IBM 5100 BASIC, which outputs an optional string. This is useful for saying things like "Stopping for debugging, you should PRINT A". If no expression is included, RetroBASIC instead prints the default message "STOPped at line:" along with the line number.
 
@@ -573,7 +573,7 @@ Lien notes that some varieties of BASIC will branch to the `END` statement when 
 
 #### Variations:
 
-PDP-8 BASIC and the Tektronics 4051 used `STO` instead.
+PDP-8 BASIC and the Tektronics 4051 used `STO` instead, although whether this was simply an abbreviated input and `STOP` would work as well is not clear in the documentation.
 
 Harris BASIC-V added the `BREAK` statement, which allowed one to place multiple `STOP` markers in the code in a single statement. For instance, `BREAK 10-50,100` would perform a stop (break) at any line from 10 to 50, or line 100. This is useful as it allows you to easily control debugging without having to edit the entire program, a single statement at the top has the same effect as multiple `STOP` statements spread all over the code. RetroBASIC does not currently support `BREAK`.
 
