@@ -45,14 +45,14 @@ int yylex(void);
 
 static statement_t *make_statement(int t)
 {
-  statement_t *new = malloc(sizeof(*new));
+  statement_t *new = calloc(1, sizeof(*new));
   new->type = t;
   return new;
 }
 
 static expression_t *make_expression(expression_type_t t)
 {
-  expression_t *new = malloc(sizeof(*new));
+  expression_t *new = calloc(1, sizeof(*new));
   new->type = t;
   return new;
 }
