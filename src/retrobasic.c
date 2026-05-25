@@ -401,6 +401,11 @@ void insert_typed_variable(const variable_reference_t *variable, int type)
     
     // now calloc the storage for the value itself
     storage->value = calloc(1, sizeof(storage->value[0]));
+    if (type == STRING) {
+      storage->value->string = str_new("");
+    } else {
+      storage->value->number = 0.0;
+    }
     
     // and insert it into the values tree
     interpreter_state.variable_values = lst_insert_with_key_sorted(interpreter_state.variable_values, storage, variable->name);
