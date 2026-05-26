@@ -109,11 +109,6 @@ void parse_options(int argc, char *argv[])
     if (c == -1) break;
     
     switch (c) {
-      case 0:
-        // flag-setting options return 0 - these are s, p and n
-        if (program_options[option_index].flag != 0)
-          break;
-        
       case 'h':
         print_help(argv);
         printed_help = true;
