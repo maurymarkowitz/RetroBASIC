@@ -16,6 +16,7 @@ DerivedData/
 retrobasic
 *.o
 *.out
+parse.h
 parse.tab.c
 parse.tab.h
 lex.yy.c
