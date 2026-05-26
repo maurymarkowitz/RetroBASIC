@@ -6,12 +6,13 @@
 LEX = flex
 LFLAGS = -lfl
 YAC = bison
-YFLAGS =-dtv
+YFLAGS =-d
 CC = gcc
 DEBUG ?= 0
 CFLAGS ?=
 ifeq ($(DEBUG),1)
-  CFLAGS += -g -DYYDEBUG=1
+  CFLAGS += -g -DYYDEBUG=1 -DYYDEBUG_VERBOSE
+  YFLAGS +=-tv
 endif
 CLIBS = -ly -ll
 
