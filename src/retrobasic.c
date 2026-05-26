@@ -1277,7 +1277,7 @@ value_t evaluate_expression(const expression_t *expression)
 			original_definition = lst_data_with_key(interpreter_state.functions, func_name);
       if (original_definition == NULL) {
         char buffer[80];
-        sprintf(buffer, "User-defined function '%s' is being called but has not been defined", func_name);
+        snprintf(buffer, sizeof buffer, "User-defined function '%s' is being called but has not been defined", func_name);
         handle_error(ern_DEF_UNKNOWN, buffer);
         result.type = NUMBER;
         result.number = 0;
@@ -1286,7 +1286,7 @@ value_t evaluate_expression(const expression_t *expression)
       // if we found the function, check that it has the same number of parameters as this function call
       if (lst_length(original_definition->parameters) != lst_length(expression->parms.variable->subscripts)) {
         char buffer[80];
-        sprintf(buffer, "User-defined function '%s' is being called with the wrong number of parameters", func_name);
+        snprintf(buffer, sizeof buffer, "User-defined function '%s' is being called with the wrong number of parameters", func_name);
         handle_error(ern_DEF_UNKNOWN, buffer);
         break;
       }
@@ -1346,7 +1346,7 @@ value_t evaluate_expression(const expression_t *expression)
       p = function_expression(expression->parms.variable, p);
       if (p == NULL) {
         char buffer[80];
-        sprintf(buffer, "User-defined function '%s' is being called but has not been defined", expression->parms.variable->name);
+        snprintf(buffer, sizeof buffer, "User-defined function '%s' is being called but has not been defined", expression->parms.variable->name);
         handle_error(ern_DEF_UNKNOWN, buffer);
       } else {
         result = evaluate_expression(p);
@@ -2400,7 +2400,7 @@ static list_t *find_line(int linenumber)
   
   // negative numbers are not allowed
   if (linenumber < 0) {
-    sprintf(buffer, "Negative target line %i in branch", linenumber);
+    snprintf(buffer, sizeof buffer, "Negative target line %i in branch", linenumber);
     handle_error(ern_NO_SUCH_LINE, buffer);
     return NULL;
   }
@@ -2420,7 +2420,7 @@ static list_t *find_line(int linenumber)
   } else {
     // in MS-like BASICs, any null target line returns an error
     if (interpreter_state.lines[linenumber] == NULL) {
-      sprintf(buffer, "Undefined target line %i in branch", linenumber);
+      snprintf(buffer, sizeof buffer, "Undefined target line %i in branch", linenumber);
       handle_error(ern_NO_SUCH_LINE, buffer);
       return NULL;
     }
@@ -2468,7 +2468,7 @@ static void perform_statement(list_t *statement_entry)
 						array_base = (int)baseval.number;
 					else {
 						char buffer[80];
-						sprintf(buffer, "OPTION BASE with invalid parameter %g", baseval.number);
+						snprintf(buffer, sizeof buffer, "OPTION BASE with invalid parameter %g", baseval.number);
 						handle_error(ern_ILLEGAL_VALUE, buffer);
 					}
 				} else {
