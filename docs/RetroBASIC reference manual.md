@@ -486,7 +486,7 @@ Clears the screen. On modern machines with scrollback buffers in the console, th
 <!-- TOC --><a name="cont"></a>
 ### `CONT`
 
-Continues execution of the program if it is in a paused state, typically after receiving a `STOP`, the user hit <BREAK>, or an error occured. According to Lien, execution continues at the next line, but most manuals state it occurs at the next statement, not line. RetroBASIC continues at the next statement.
+Continues execution of the program if it is in a paused state, typically after receiving a `STOP`, the user hit &lt;BREAK&gt;, or an error occured. According to Lien, execution continues at the next line, but most manuals state it occurs at the next statement, not line. RetroBASIC continues at the next statement.
 
 In contrast to most dialects, RetroBASIC will allow you to `CONT`inue in most situations. Most early dialects saved information that would become stale if the user edited the program while it was in the paused state. This is not the case in RetroBASIC, which can successfully follow these changes and allow `CONT` to work in most situations.
 
