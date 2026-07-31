@@ -851,12 +851,21 @@ static value_t read_next_data_value(void)
   
   // look for the next valid DATA item
   if (interpreter_state.current_data_element == NULL) {
-    interpreter_state.current_data_statement = lst_next(interpreter_state.current_data_statement);
+    if (interpreter_state.current_data_statement != NULL &&
+        interpreter_state.current_data_statement->data != NULL &&
+        ((statement_t *)(interpreter_state.current_data_statement->data))->type != DATA) {
+      interpreter_state.current_data_statement = lst_next(interpreter_state.current_data_statement);
+    }
     while (interpreter_state.current_data_statement != NULL) {
       if ((interpreter_state.current_data_statement->data != NULL) &&
           (((statement_t *)(interpreter_state.current_data_statement->data))->type == DATA))
         break;
       interpreter_state.current_data_statement = lst_next(interpreter_state.current_data_statement);
+    }
+    if (interpreter_state.current_data_statement == NULL) {
+      handle_error(ern_OUT_OF_DATA, "No more DATA for READ");
+      data_value.type = 0;
+      return data_value;
     }
     interpreter_state.current_data_element = lst_first_node(((statement_t *)(interpreter_state.current_data_statement->data))->parms.data);
   }
@@ -2258,9 +2267,8 @@ static void print_value(value_t v, const char *format, FILE* fp)
       {
         // for some reason, PRINT adds a space at the end of numbers
         char* a = number_to_string(v.number);
-        interpreter_state.cursor_column += fprintf(out, "%s", a);
-              interpreter_state.cursor_column += fprintf(out, "%s ", a); // note the trailing space
-        }
+        interpreter_state.cursor_column += fprintf(out, "%s ", a);
+      }
         break;
       case STRING:
         // printf will print "(null)" when used with a specifier, so...

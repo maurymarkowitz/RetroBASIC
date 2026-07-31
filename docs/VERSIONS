@@ -1,5 +1,9 @@
 RetroBASIC version history
 
+Version 3.0.3 - 31 July 2026
+- fixed issue that caused numbers to print out twice
+- fixed segfault issue when DATA pointer had not been setup up
+
 Version 3.0.0 - 7 April 2026
 
 Major release. Adds an interactive line editor that gives RetroBASIC the complete functionality
