@@ -16,7 +16,7 @@ RetroBASIC
 
 ## Introduction
 
-RetroBASIC is an interpreter for programs written using 1970s/80s variations of BASIC. It is patterned mostly on MS-BASIC as seen on Commodore machines and Apple II (and many others). It also includes the alternate string manipulation methods from Dartmouth BASIC v4 and HP Timeshared BASIC, the latter of which was widely used in early microcomputer interpreters. The ultimate goal is to support almost any dialect from the era, including Dartmouth BASIC, Tiny BASIC (including Palo Alto), MS-BASIC (Altair, Commodore, etc.), HP Timeshared BASIC (Northstar, Apple, Atari, Sinclair, etc.) and others. 
+RetroBASIC is an interpreter for programs written using 1970s/80s variations of BASIC. It is patterned mostly on MS-BASIC as seen on Commodore machines, Apple II's, and many other platforms. It also includes the alternate string manipulation methods from Dartmouth BASIC v4 and HP Timeshared BASIC, the latter of which was widely used in early microcomputer interpreters. The ultimate goal is to support almost any dialect from the era, including Dartmouth BASIC, Tiny BASIC (including Palo Alto), MS-BASIC (Altair, Commodore, etc.), HP Timeshared BASIC (Northstar, Apple, Atari, Sinclair, etc.) and others. 
 
 RetroBASIC also includes a simple static analyzer that (optionally) prints statistics for the program after it completes. This includes the length of the program and its line number range, the number and types of variables used, and similar details. The original impetus for RetroBASIC was to collect statistics on common programs to provide hints to the retrocomputing field, where new BASICs continue to be developed.
 
