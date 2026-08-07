@@ -269,6 +269,53 @@ int interpreter_parse_cli_input(const char *input, list_t **statements)
     length = strlen(buffer);
   }
 
+  /* If this is a program line edit (not immediate execution), sever all concatenation links
+     that may have been created by a previous RUN command BEFORE we parse the new line.
+     
+     This must happen BEFORE parsing because the parser will overwrite lines[edited_line],
+     and we need to find the old data to know what to sever.
+   */
+  if (!use_zero_line) {
+    /* Sever ALL concatenation links to restore independent line chains */
+    for (int i = 0; i < MAX_LINE_NUMBER - 1; i++) {
+      if (interpreter_state.lines[i] != NULL) {
+        /* Find statements in this line's chain and check if any link to another line */
+        list_t *last_stmt = interpreter_state.lines[i];
+        while (last_stmt && last_stmt->next != NULL) {
+          /* Check if next points to another line's entry point */
+          bool found_next_line = false;
+          for (int j = i + 1; j < MAX_LINE_NUMBER; j++) {
+            if (interpreter_state.lines[j] != NULL && interpreter_state.lines[j] == last_stmt->next) {
+              /* This statement points to another line - sever the connection */
+              list_t *next_node = last_stmt->next;
+              last_stmt->next = NULL;
+              if (next_node != NULL) {
+                next_node->prev = NULL;
+              }
+              found_next_line = true;
+              break;
+            }
+          }
+          
+          if (!found_next_line) {
+            last_stmt = last_stmt->next;
+          } else {
+            break;
+          }
+        }
+        
+        /* Also break the prev link for the first statement in each line */
+        if (interpreter_state.lines[i]->prev != NULL) {
+          list_t *prev_node = interpreter_state.lines[i]->prev;
+          interpreter_state.lines[i]->prev = NULL;
+          if (prev_node != NULL) {
+            prev_node->next = NULL;
+          }
+        }
+      }
+    }
+  }
+  
   YY_BUFFER_STATE yybuf = yy_scan_string(buffer);
   int result = yyparse();
   yy_delete_buffer(yybuf);

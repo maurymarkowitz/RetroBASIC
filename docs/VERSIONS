@@ -1,9 +1,15 @@
 RetroBASIC version history
 
 Version 3.0.4 - 7 August 2026
-- fixed issue #17: implemented MS-BASIC-80 format string parser (previously a stub)
+- fixed issue #16: concatenation links left from previous RUN were causing edited lines to be merged when listing without running
+  - problem: after RUN, line statements were concatenated into a single chain for execution
+  - when user edited a line in CLI without running, old concatenation links caused LIST to display merged lines
+  - solution: sever all inter-line next/prev links before parsing any edited line in interactive CLI mode
+- fixed issue #17: implemented MS-BASIC-80 format string parser (previously a stub returning 0 format specs)
+  - format strings like "#.##E+##" now properly parse and generate correct output
 - implemented QBasic format string parser with full feature support
-- updated PRINT USING, IMAGE, and USING$ documentation
+  - exponential notation (^^^^), currency formats ($$, ****$), and string formats (!, &, \...\)
+- updated PRINT USING, IMAGE, and USING$ documentation to reflect all three dialect support
 
 Version 3.0.3 - 31 July 2026
 - fixed issue that caused numbers to print out twice
@@ -11,8 +17,10 @@ Version 3.0.3 - 31 July 2026
 
 Version 3.0.0 - 7 April 2026
 
-Major release. Adds an interactive line editor that gives RetroBASIC the complete functionality
- of most BASICs of the 1980s. This required significant changes to the input handling, so be alternate
+** Major release. **
+
+Adds an interactive line editor that gives RetroBASIC the complete functionality
+ of most BASICs of the 1980s. This required significant changes to the input handling, so be alert
  for issues related to INPUT and similar functionality.
 
 - added LIST, LOAD and SAVE
