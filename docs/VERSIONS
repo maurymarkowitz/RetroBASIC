@@ -1,5 +1,10 @@
 RetroBASIC version history
 
+Version 3.0.4 - 7 August 2026
+- fixed issue #17: implemented MS-BASIC-80 format string parser (previously a stub)
+- implemented QBasic format string parser with full feature support
+- updated PRINT USING, IMAGE, and USING$ documentation
+
 Version 3.0.3 - 31 July 2026
 - fixed issue that caused numbers to print out twice
 - fixed segfault issue when DATA pointer had not been setup up

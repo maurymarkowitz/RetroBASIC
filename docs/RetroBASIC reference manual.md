@@ -173,6 +173,7 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
    * [`DET`[(*aexp*)]](#detaexp)
 - [Format strings](#format-strings)
    * [MS-BASIC-80 format](#ms-basic-80-format)
+   * [QBasic format](#qbasic-format)
    * [HP TimeShare format](#hp-timeshare-format)
 - [Break handling](#break-handling)
    * [`ON BREAK GOTO` *aexp*](#on-break-goto-aexp)
@@ -1312,7 +1313,7 @@ Neither of these is currently supported in RetroBASIC, although `PRINT USING` ca
 <!-- TOC --><a name="print-using-expexp"></a>
 ### `PRINT USING` [*exp*]{,|;}*exp*[{|[;|,]},...]]
 
-`PRINT USING` is a variation of the `PRINT` statement that adds a *format string* or *image* that defines how the following expressions should be formatted. This can define, for instance, how floating point numbers should be printed, including the number of digits after the decimal point, or to add a dollar sign at the front. There are a wide variety of formatting strings supported by various dialects, as well as different ways to specify them in the statement. RetroBASIC does its best to support as many of these as possible.
+`PRINT USING` is a variation of the `PRINT` statement that adds a *format string* or *image* that defines how the following expressions should be formatted. This can define, for instance, how floating point numbers should be printed, including the number of digits after the decimal point, or to add a dollar sign at the front. There are a wide variety of formatting strings supported by various dialects, including HP TimeShare, MS-BASIC-80, and QBasic. RetroBASIC automatically detects and supports all three styles.
 
 The most common variations allow a string constant to be placed directly after the `USING`. The string contains special characters that indicate what should be printed at that location. Other characters found in the image are output as-is. One of the most commonly used special characters is the hash, `#`, which indicates a digit should be printed in that location. Values can be forced to integer format using an image string like `"####`" or currency format with `"###.##"`. Because other characters are output as-is, a typical image mixes both normal characters and special, for instance, `"The price is $####.## per pound."`
 
@@ -1320,7 +1321,7 @@ While a number of dialects require the image to be specified as a string constan
 
 One curiosity to note is that `PRINT USING` *always* prints a \<return\> at the end of the line, ignoring the normal behaviour when a comma or semicolon is found at the end of the expression list.
 
-For a complete description of the formatting strings and especially the complex possibilities of the HP style, see the section on [Format strings](#format-strings).
+For a complete description of the formatting strings, including HP, MS-BASIC-80, and QBasic styles, see the section on [Format strings](#format-strings).
 
 #### Examples:
 
@@ -1341,7 +1342,7 @@ MAI Basic Four does not use the `USING` keyword, instead, any `PRINT` statement 
 
 *Illustrating BASIC* notes that "one BASIC uses % not :" for specifying an `IMAGE` line, but the book does not specify which BASIC that is. It also notes that "N.C.C Standard BASIC" suggests the separator between the image specification and expression list is a colon, although no dialect that actually followed that rule can be found. N.C.C likely refers to the UK's National Curriculum Council, which may mean this was a suggested standard that was never implemented in actual code.
 
-BASIC75 contains a very different `USING` keyword statement. It acts like a `GOSUB` that returns after that single line is complete, in a fashion similar to JOSS and FOCAL's `Do line` statement. This appears to be used to make a `SELECT CASE...` like statement, but why one would not just use `ON...GOSUB...` for this is not clear.
+BASIC75 contains a very different `USING` keyword statement. It acts like a `GOSUB` that returns after that single line is complete, in a fashion similar to JOSS and FOCAL's `Do line` statement. This appears to be used to make a `SELECT CASE...` like statement, but why one would not just use `ON...GOSUB...` for this is not clear. While it would be possible to support this variation, RetroBASIC currently does not do so.
 
 #### See also:
 
@@ -1351,11 +1352,11 @@ BASIC75 contains a very different `USING` keyword statement. It acts like a `GOS
 <!-- TOC --><a name="image-statement"></a>
 ### `IMAGE` *lineno*
 
-The `IMAGE` statement defines a format string separately from the `PRINT` statement, allowing the format to be reused or separated from the output logic. The line number given by *lineno* identifies a later line containing the format image, and `PRINT USING` can refer back to it.
+The `IMAGE` statement defines a format string separately from the `PRINT` statement, allowing the format to be reused or separated from the output logic. The line number given by *lineno* identifies the line containing the format image, and `PRINT USING` can refer back to it.
 
-This style comes from HP TimeShare BASIC and some other dialects. In RetroBASIC, the `IMAGE` statement is primarily used with HP-style `PRINT USING` formats, where the image line contains the HP IMAGE directives such as `D`, `A`, `X`, `S`, and literal text. RetroBASIC allows `IMAGE` to also be used for MS-style format strings, although these would be unlikely to be found in the wild.
+This style comes from HP TimeShare BASIC and some other dialects. In RetroBASIC, the `IMAGE` statement is primarily used with HP-style `PRINT USING` formats, where the image line contains the HP IMAGE directives such as `D`, `A`, `X`, `S`, and literal text. RetroBASIC also allows `IMAGE` to be used with MS-BASIC-80 and QBasic-style format strings, although these would be unlikely to be found in the wild since they are typically used inline with `PRINT USING`.
 
-For a complete description of the formatting strings that `IMAGE` supports, see the section on [format strings](#format-strings).
+For a complete description of the formatting strings that `IMAGE` supports (HP, MS-BASIC-80, and QBasic styles), see the section on [format strings](#format-strings).
 
 #### Examples:
 
@@ -2156,7 +2157,7 @@ Produces:
 
 <!-- TOC --><a name="usingdollar"></a>
 ### `USING$`(*sexp*, *exp*[,*exp*...])
-`USING$`, introduced in BASIC-PLUS, uses DEC/MS style format strings to format output. This offers an alternative way to perform complex formatting for output, and allows the formatted output to be used in an other statement. For instance, one might use this to format the prompt string for an `INPUT`, which would otherwise not support this feature.
+`USING$`, introduced in BASIC-PLUS, uses DEC/MS style format strings to format output. This offers an alternative way to perform complex formatting for output, and allows the formatted output to be used in an other statement. For instance, one might use this to format the prompt string for an `INPUT`, which would otherwise not support this feature. RetroBASIC's `USING$` supports MS-BASIC-80 and QBasic-style format strings.
 
 For a complete description of the formatting strings that `USING$` supports, see the section on [format strings](#format-strings).
 
@@ -2767,7 +2768,7 @@ An alternative form of `MAT A$=ZER` used in Dartmouth and DEC dialects to set al
 <!-- TOC --><a name="format-strings"></a>
 ## Format strings
 
-Format strings, or "images", are used with the `PRINT USING` statement and `USING$` function to control how numeric and string values are displayed. Different BASIC dialects developed different format specification systems, and RetroBASIC supports the two most common, HP TimeShare BASIC format and MS-BASIC-80 format.
+Format strings, or "images", are used with the `PRINT USING` statement and `USING$` function to control how numeric and string values are displayed. Different BASIC dialects developed different format specification systems, and RetroBASIC supports the three most common: HP TimeShare BASIC format, MS-BASIC-80 format, and QBasic format.
 
 <!-- TOC --><a name="ms-basic-80-format"></a>
 ### MS-BASIC-80 format
@@ -2849,6 +2850,76 @@ PRINT USING "\TOTAL: \$###.##"; 15.75    ! Output: "TOTAL: $15.75"
 !    3    $31.50
 ```
 
+<!-- TOC --><a name="qbasic-format"></a>
+### QBasic format
+
+QBasic is a modern dialect of BASIC that extends and enhances the MS-BASIC-80 format specification system with additional features. QBasic format shares most codes with MS-BASIC-80 but adds support for alternative exponential notation and enhanced currency formatting.
+
+#### Numeric format codes
+
+- **#** — Digit position (blank for leading zeros unless using `*` fill)
+- **0** — Force leading zeros (unlike `#`, which blanks them)
+- **.** — Decimal point position (in the format string, shows where decimal will appear)
+- **,** — Thousands separator (appears in formatted output every 3 digits)
+- **+** — Force sign display (appears before positive numbers)
+- **-** — Force trailing sign (sign after the number)
+- **$** or **$$** — Currency symbol prefix (single or double dollar sign)
+- **e** or **E** — Exponential notation (produces e.g., "1.23e+03")
+- **^^^^** — Exponential format with carets (QBasic-specific, produces same result as E)
+- **%** — Percent sign (placed at end for percentage format)
+
+#### Special numeric decorators
+
+- **\*\*** — Asterisk fill (pads with asterisks instead of blanks, typically for dollar amounts)
+- **\*\*$** — Asterisk fill with currency symbol
+- **\*\*\*\*$** — Asterisk fill with double dollar (QBasic-specific)
+- **_** — Underscore (forces literal output of next character)
+
+#### String format codes
+
+- **!** — First character only of the string, the rest is ignored
+- **&** — Full variable-length string with no padding
+- **\...\** — String delimiters (everything between backslashes is literal)
+
+#### QBasic format examples
+
+```
+10 X = 1234.5
+20 PRINT USING "####.##"; X          ! Output: "1234.50"
+30 PRINT USING "#.##e+##"; X         ! Output: "1.23e+03"
+40 PRINT USING "#.##^^^^"; X         ! Output: "1.23e+03" (alternate form)
+50 PRINT USING "$$###.##"; 99.9      ! Output: "$99.90"
+60 PRINT USING "!"; "HELLO"          ! Output: "H" (first character only)
+70 PRINT USING "&"; "WORLD"          ! Output: "WORLD" (variable-width)
+80 PRINT USING "\NAME: \&"; "JOHN"   ! Output: "NAME: JOHN"
+```
+
+#### Common usage patterns
+
+**Exponential notation:**
+```
+PRINT USING "#.##E+##"; 1234.5       ! Output: "1.23e+03"
+PRINT USING "#.##^^^^"; 0.00123      ! Output: "1.23e-03"
+```
+
+**Currency with asterisk fill:**
+```
+PRINT USING "**$###.##"; 42.50       ! Output: "**$42.50"
+PRINT USING "****$###.##"; 99.99     ! Output: "****$99.99"
+```
+
+**String extraction:**
+```
+PRINT USING "!"; "ABBREVIATION"      ! Output: "A"
+PRINT USING "&"; "FULL STRING"       ! Output: "FULL STRING"
+```
+
+**Mixing literals with formats:**
+```
+PRINT USING "\AMOUNT: \$###.##"; 15.75    ! Output: "AMOUNT: $15.75"
+PRINT USING "\DATE: \##-##-##"; 123456    ! Output: "DATE: 12-34-56"
+```
+
 <!-- TOC --><a name="hp-timeshare-format"></a>
 ### HP TimeShare format
 
@@ -2912,6 +2983,7 @@ MAI Basic Four used a concept similar to the one in TB, allowing you to insert a
 In RetroBASIC, the format dialect is automatically detected based on the characters used:
 
 - If the format contains `D`, `A`, `X`, or `S` characters, it is treated as HP TimeShare format
+- If the format contains QBasic-specific characters like `^`, `!`, `&`, `**`, `$$`, backslash literals, or carriage control modifiers, it is treated as QBasic format
 - Otherwise, it is treated as MS-BASIC-80 format
 
 This means you can use whichever format you are most comfortable with, and RetroBASIC will handle it appropriately. However, for maximum compatibility with existing programs, use the format that matches your source dialect.
