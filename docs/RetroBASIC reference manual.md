@@ -3000,6 +3000,8 @@ RetroBASIC 3.0 added a simple interactive line editor that allows you to `LOAD`,
 
 `ON BREAK` was not common. It is found in the later DEC dialects like BASIC-PLUS and VAX BASIC, and some smaller varieties like Grundy BASIC. There are other dialects that support the same concept, but do so using other statements, often using `POKE` or similar.
 
+`ON BREAK` can be problematic. It was often used to prevent users from breaking and then `LIST`ing the program as a simple form of copy protection. However, this often resulted in programs that could not be fixed when bugs arose, because the programmer themselves could not break and examine the problem. Use with caution!
+
 #### Examples:
 
     10 ON BREAK GOTO 1000
@@ -3011,13 +3013,15 @@ RetroBASIC 3.0 added a simple interactive line editor that allows you to `LOAD`,
 <!-- TOC --><a name="error-handling"></a>
 ## Error handling
 
-Some versions of BASIC provide rudimentary error handling using the `TRAP` or `ON ERROR` statements. These will both be referred to here as *traps*. When a trap is turned on and an error occurs, or is *raised*, instead of printing the error message and stopping the program, the system branches to the indicated line and execution continues.
+Some versions of BASIC provide rudimentary error handling using the `TRAP` or `ON ERROR` statements. These will both be referred to here as *traps*. When a trap is turned on and an error occurs, or is *raised*, instead of printing the error message and stopping the program, the program branches to the indicated line and execution continues. The code at this line is known as an *error handler*. The handler allows the program to examine the error and decide how to continue.
 
-The code at this line is known as an *error handler*. When an error occurs, the error number and line number are saved in memory and then the system performs a `GOTO` into the handler. The handler allows the program to examine the error and decide how to continue. Most dialects save the values in system variables, which allow the error number line number where the error occurred to be examined. Jumping into the handler does not clear these values out, and they generally cannot be set directly using a `LET`. This is the purpose of the `RESUME` statement seen in some dialects, which clears the error codes and returns to the point where the error occurred. A `NEW`, `CLR` and `RUN` also clear out these values.
+In order to allow the handler to fix the problem and the continue execution, when the trap is called the system saves the error number and line number are saved in memory, and then the system performs the equivalent to a `GOTO` into the handler. It was up to the program to decide where to continue execution, or whether it should `STOP`.
 
-Dialects differ significantly on the details of how these features are turned on and off, and how the error can be examined and recovered. For instance, in Applesoft BASIC, which supports the `ONERR` statement, the error number is discovered using `PEEK(222)`. On the Atari, which uses `TRAP` to turn them on, you use `PEEK(195)` to get the number. One of the few widely used dialects that directly supported reading the error number were the later versions of Commodore BASIC, which used a system variable `ER` that was set to the error number, and `EL` which held the line number. Attempting to assign a value to either would cause an error. Unfortunately, these are valid variable names, which meant that programs that used these as normal variables would cause errors when run under 3.5. RetroBASIC implements these as functions instead of variables, `ERR()` for error number and `ERL()` for error line, which avoids this problem.
+How to decide what to do varied greatly. Some dialects required to user to to use `PEEK` to find these error and line number. For instance, in Applesoft BASIC, which supports the `ONERR` statement, the error number is discovered using `PEEK(222)`. On the Atari, which uses `TRAP` to turn them on, you use `PEEK(195)` to get the number. Later versions of Commodore BASIC, 3.5 and later, added the system variable `ER` that was set to the error number, and `EL` which held the line number. Unfortunately, these are valid user variables, so it was easy to cause problems in code written before these were added. Others dialects used functions for this, typically `ERN()` to examine the error number, and `ERL()` for the line where it occured. RetroBASIC supports these functions.
 
-The simple trap concept used in BASIC is subject to a number of problems. Among these is that if an error occurs *in* the handler, then it can trap back into itself and cause an infinite loop. Additionally, few, if any, dialects allow specific errors to be trapped, it's normally all or nothing. This means the handler has to be very generic as it might receive any error, not just the ones it was written to handle.
+Among the additions in more advanced dialects was the `RESUME` statement, which was essentialy a `RETURN` that branched back to the error line, instead of the user having to figure that out in code using `EL` or `ERL()`. `RESUME` also reset the system values for the error line and number, resetting the system to a pristine state. In most dialects, that did not occur until a  `NEW`, `CLR` or `RUN` was issued, meaning that if code outside the handler examined them they might see values even if the error had been handled.
+
+The simple trap concept used in BASIC is subject to a number of problems. Among these is that if an error occurs *in* the handler, then it can trap back into itself and cause an infinite loop. Additionally, few, if any, dialects allow specific errors to be trapped, it's normally all or nothing. This means the handler code has to be very generic as it might receive any error, not just the ones it was written to handle.
 
 <!-- TOC --><a name="trapon-error-gotoonerr-goto-aexp"></a>
 ### {`TRAP`|`ON ERROR GOTO`|`ONERR GOTO`} [*aexp*]
@@ -3059,7 +3063,7 @@ Some versions of HP BASIC use `ERRN` instead of `ERR`. This is not currently sup
 <!-- TOC --><a name="erraexp"></a>
 ### `ERR$(`*aexp*`)`
 
-Returns a string with the error message for a given error number. This function can be called at any time, an error does not have to be trapped for it to work. A list of the codes and their messages follows.
+Returns a string with the error message for a given error number. This function can be called at any time, an error does not have to be trapped for it to work, so one can `PRINT ERR$(10)` without an error having to occur first. A list of the codes and their messages follows.
 
 <!-- TOC --><a name="example"></a>
 ### Example
@@ -3081,12 +3085,12 @@ This program starts by setting a trap and then raising a syntax error, error 21.
 <!-- TOC --><a name="error-codes"></a>
 ## Error codes
 
-RetroBASIC's error codes are mostly modelled on Commodore BASIC 3.5 seen on the Commodore 128, as their list is fairly generic. A few additional errors have been added to handle new functionality. Others are not used as they apply to specific tasks like operating the cassette tape. Not all of these codes can occur in RetroBASIC, but have been added for completeness.
+RetroBASIC's error codes are mostly modelled on Commodore BASIC 3.5 seen on the Commodore 128, as their list is fairly generic. A few additional errors have been added to handle new functionality. Others are not used as they apply to specific tasks like operating the cassette tape. Not all of these codes can occur in RetroBASIC, but they have been added for completeness.
 
 <!-- This simulates a definition list by placing two spaces behind the first two lines of each entry. Be careful with edits! -->
 0  
 (none)  
-There is no current error code. Commodore BASIC 3.5 used -1 for this.
+There is no current error code. Commodore BASIC 3.5 used -1 for this, but 0 is more common in other dialects.
 
 1  
 TOO MANY FILES  
@@ -3126,7 +3130,7 @@ Attempt to open a file on a non-existent device. Not used in RetroBASIC.
 
 14  
 BREAK  
-Indicates that the BREAK key was pressed and entered the handler. Not used in RetroBASIC.
+Indicates that the BREAK key was pressed and entered the handler. Not used in RetroBASIC, `ON BREAK` is used for this instead.
 
 15  
 EXTRA IGNORED  
@@ -3134,7 +3138,7 @@ More items were entered during an INPUT than there are variables to hold it. Ext
 
 16  
 REDO FROM START  
-The input cannot be converted to a number, and the INPUT statement asks for the same value again.
+The input cannot be converted to a number. Execution continues with the INPUT statement asking for the same value again.
 
 20  
 NEXT WITHOUT FOR  
@@ -3154,7 +3158,7 @@ A READ statement is asking for more data, but there are no remaining DATA values
 
 24  
 ILLEGAL QUANTITY  
-Any parameter in a statement or function that is out-of-range, like a MID with a start parameter outside the string.
+Any parameter in a statement or function that is out-of-range, like a MID with a start parameter past the end of a string.
 
 25  
 OVERFLOW  
@@ -3174,7 +3178,7 @@ Array indexes are outside the DIMmed range.
 
 29  
 REDIM'D ARRAY  
-DIM being called on an already DIMed variable.
+DIM being called on an already DIMed variable. RetroBASIC does allow this concept, using `REDIM`.
 
 30  
 DIVISION BY ZERO  
@@ -3190,11 +3194,11 @@ A number was provided to a string parameter or vice versa.
 
 33  
 STRING TOO LONG  
-Unused in RetroBASIC, string sizes are effectively unlimited.
+Unused in RetroBASIC, where string sizes are effectively unlimited.
 
 34  
 FILE DATA  
-An INPUT or GET from a file returned numeric data for a string or vice versa. Not used in RetroBASIC, 32 will be returned in this case.
+An INPUT or GET from a file returned numeric data for a string or vice versa. Not used in RetroBASIC, 32 will be returned in this case, `TYPE MISMATCH`.
 
 35  
 FORMULA TOO COMPLEX  
