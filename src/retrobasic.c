@@ -3697,6 +3697,13 @@ REDO_INPUT:
           
           size_t len = strlen(line);
           
+          // the last item on fgets is likely a newline, if so remove it
+          // (this is important for Windows and non-TTY inputs which use fgets)
+          if (line[len - 1] == '\n') {
+            line[len - 1] = '\0';
+            len--;
+          }
+          
           // optionally convert to upper case
           if (upper_case) {
             str_toupper(line);
