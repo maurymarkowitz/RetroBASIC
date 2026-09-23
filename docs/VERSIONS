@@ -1,8 +1,12 @@
 RetroBASIC version history
 
-Version 3.0.6
+Version 3.0.6 - 23 September 2026
+- added CLK() function, which returns fractional hours since midnight (from BASIC-PLUS)
+- fixed an issue in string comparisons
+- fixed an issue after early exits and then re-entering FOR loops
 
-Version 3.0.5 -
+Version 3.0.5 - 21 September 2026
+- fixed issue in INPUT that caused the ?EXTRA IGNORED warning to appear on any non-string values
 
 Version 3.0.4 - 7 August 2026
 - fixed issue #16: concatenation links left from previous RUN were causing edited lines to be merged when listing without running
