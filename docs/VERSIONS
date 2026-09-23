@@ -3,7 +3,8 @@ RetroBASIC version history
 Version 3.0.6 - 23 September 2026
 - issue #22: added CLK() function, which returns fractional hours since midnight (from BASIC-PLUS)
 - issue #19: fixed an issue in string comparisons
-- issue #21: fixed an issue after early exits and then re-entering FOR loops
+- issue #21: fixed an issue after early exits and then re-entering FOR loops with the same index var
+- add the version number to the CLI header line
 
 Version 3.0.5 - 21 September 2026
 - issue #18: fixed issue in INPUT that caused the ?EXTRA IGNORED warning to appear on any non-string values

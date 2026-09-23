@@ -3,7 +3,7 @@ RetroBASIC Language Reference Manual
 
 **Copyright © 2023 Maury Markowitz**
 
-Version 3.0.0
+Version 3.0.5
 
 [![GPL license](http://img.shields.io/badge/license-GPL-brightgreen.svg)](https://opensource.org/licenses/gpl-license)
 
@@ -29,6 +29,8 @@ When starting RetroBASIC without a filename, the interpreter enters an interacti
 ### What RetroBASIC is not
 
 The goal of RetroBASIC is to allow you to run popular BASIC programs written during the language's Golden Age. As such, it does not include any platform-specific instructions like sound or graphics, as these are not portable.
+
+Likewise, file handling varies not only from dialect to dialect but even from machine to machine running the same BASIC. RetroBASIC does not attempt to be compatible with any system, and is unlikely to run any programs that include file commands. It instead offers a set of generic file commands with the goal of making porting as easy as possible.
 
 ## Contents
 
@@ -200,21 +202,21 @@ This manual is a listing of the operators, commands and statements in the RetroB
 
 The following abbreviations will be used in this manual:
 
-- *ncon* - a numeric constant
+-*statmnt* - any complete statement
+- *lineno* - a line number
+ *ncon* - a numeric constant
 - *scon* - a string constant
 - *con* - either of the constant types above
 - *nvar* - a numeric variable
 - *svar* - a string variable
-- *avar* - an array variable (matrix)
 - *var* - any of the variable types above
+- *avar* - an array variable (matrix) of any type
 - *aexp* - arithmetic expression
 - *sexp* - string expression
 - *lexp* - logical expression
 - *exp* - any of the expression types above
 - *dexp* - dummy expression, seen in some functions
-- *statmnt* - any complete statement
-- *lineno* - a line number
-
+- 
 <!-- TOC --><a name="formatting-and-notation"></a>
 ### Formatting and notation
 
@@ -231,14 +233,14 @@ For example:
 
 `PRINT` [*exp*{|[;|,]},...]]
 
-This indicates that the PRINT statement consists of the statement keyword `PRINT` followed by zero or more optional expressions separated by nothing, a semicolon, or a comma. The *exp* indicates that any expression type may be used, numeric or string.
+This indicates that the PRINT statement consists of the keyword `PRINT` followed by zero or more optional expressions separated by nothing, a semicolon, or a comma. The *exp* indicates that any expression type may be used, numeric or string.
 
 Note that the line number is not indicated at the front, nor are the `<return>` or `<enter>` characters at the end, as these are assumed to be in the source code you provide.
 
 <!-- TOC --><a name="some-underlying-concepts"></a>
 ## Some underlying concepts
 
-Programming languages, in general, use English language words and common mathematical symbols to describe a number of instructions that will be carried out in order to produce a desired result. This textual description is known as the **source code**. These instructions have to be converted into an internal format that the computer understands. The result of the conversion is the *machine code* or *p-code* depending on how the system works. This internal language can then be *executed*, or in BASIC lingo, *run*, causing the series of instructions to be carried out.
+Programming languages, in general, use English language words and common mathematical symbols to describe a number of instructions that will be carried out in order to produce a desired result, the *program*. The textual description of a program is known as the **source code**. These instructions have to be converted into an internal format that the computer understands. The result of the conversion is the *machine code* or *p-code* depending on how the system works. This internal language can then be *executed*, or in BASIC lingo, *run*, causing the series of instructions to be carried out.
 
 Like most computer languages, BASIC has a number of **keywords** that are reserved by the language. In BASIC, the list of keywords is normally static, meaning that users cannot add new keywords or modify the actions of existing ones. This contrasts with programming languages like ALGOL (and most modern languages) which are based around the idea of creating new keywords in code. As new keywords cannot be created in most BASIC dialects, BASIC tends to have many more reserved keywords than other languages in order to ensure the functionality you need is present.
 

@@ -48,7 +48,7 @@ static char *cli_read_line(void)
 void interpreter_cli(void)
 {
   clear_terminal();
-  printf("RetroBASIC CLI\n\n");
+  printf("RetroBASIC CLI %s\n\n", VERSION_STRING);
 
   while (1) {
     printf("%s ", cli_prompt);
