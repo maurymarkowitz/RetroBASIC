@@ -1,23 +1,17 @@
 RetroBASIC version history
 
 Version 3.0.6 - 23 September 2026
-- added CLK() function, which returns fractional hours since midnight (from BASIC-PLUS)
-- fixed an issue in string comparisons
-- fixed an issue after early exits and then re-entering FOR loops
+- issue #22: added CLK() function, which returns fractional hours since midnight (from BASIC-PLUS)
+- issue #19: fixed an issue in string comparisons
+- issue #21: fixed an issue after early exits and then re-entering FOR loops
 
 Version 3.0.5 - 21 September 2026
-- fixed issue in INPUT that caused the ?EXTRA IGNORED warning to appear on any non-string values
+- issue #18: fixed issue in INPUT that caused the ?EXTRA IGNORED warning to appear on any non-string values
 
 Version 3.0.4 - 7 August 2026
-- fixed issue #16: concatenation links left from previous RUN were causing edited lines to be merged when listing without running
-  - problem: after RUN, line statements were concatenated into a single chain for execution
-  - when user edited a line in CLI without running, old concatenation links caused LIST to display merged lines
-  - solution: sever all inter-line next/prev links before parsing any edited line in interactive CLI mode
-- fixed issue #17: implemented MS-BASIC-80 format string parser (previously a stub returning 0 format specs)
-  - format strings like "#.##E+##" now properly parse and generate correct output
-- implemented QBasic format string parser with full feature support
-  - exponential notation (^^^^), currency formats ($$, ****$), and string formats (!, &, \...\)
-- updated PRINT USING, IMAGE, and USING$ documentation to reflect all three dialect support
+- issue #16: if you edited a program and then LISTed without RUNning, all the edits were run together into one line
+- issue #17: implemented full MS-BASIC-80 format strings (like "#.##E+##") and QBASIC formats (^^^^,****$) , \...\m etc.)
+- updated PRINT USING, IMAGE, and USING$ documentation to reflect the new formats
 
 Version 3.0.3 - 31 July 2026
 - fixed issue that caused numbers to print out twice
