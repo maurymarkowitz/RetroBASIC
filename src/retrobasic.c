@@ -3529,6 +3529,21 @@ static void perform_statement(list_t *statement_entry)
         
       case FOR:
       {
+        // Before creating a new FOR entry, check if there's already a FOR entry
+        // for this variable on the stack. If so, remove it to prevent corruption
+        // when re-entering a FOR loop via a GOTO that bypasses the NEXT.
+        list_t *stack_node = lst_first_node(interpreter_state.runtime_stack);
+        while (stack_node != NULL) {
+          list_t *next_node = lst_next(stack_node);
+          stack_entry_t *entry = (stack_entry_t *)stack_node->data;
+          if (entry->type == for_entry && 
+              strcmp(entry->_for.index_variable->name, statement->parms._for.variable->name) == 0) {
+            interpreter_state.runtime_stack = lst_remove_node_with_data(interpreter_state.runtime_stack, stack_node);
+            free(entry);
+          }
+          stack_node = next_node;
+        }
+        
         stack_entry_t *new_for = calloc(1, sizeof(*new_for));
         interpreter_state.runtime_stack = lst_append(interpreter_state.runtime_stack, new_for);
         
