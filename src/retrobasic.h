@@ -38,7 +38,7 @@
 
 
 /** current version string */
-#define VERSION_STRING "3.0.4"
+#define VERSION_STRING "3.0.6"
 
 /** retrobasic allows line numbers up to FF */
 #define MAX_LINE_NUMBER 65535

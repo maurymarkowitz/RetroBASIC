@@ -1,5 +1,9 @@
 RetroBASIC version history
 
+Version 3.0.6
+
+Version 3.0.5 -
+
 Version 3.0.4 - 7 August 2026
 - fixed issue #16: concatenation links left from previous RUN were causing edited lines to be merged when listing without running
   - problem: after RUN, line statements were concatenated into a single chain for execution

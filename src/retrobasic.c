@@ -26,6 +26,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <sys/time.h> // for run timers
+#include <time.h>     // for CLK(x)
 #if defined(_WIN32) || defined(__MINGW32__) || defined(__MINGW64__)
 #include <io.h>
 #endif
@@ -1495,6 +1496,22 @@ value_t evaluate_expression(const expression_t *expression)
 					}
 						break;
 
+					// returns fractional hours since midnight (arity-0 version)
+					case CLK:
+					{
+						time_t now = time(NULL);
+						struct tm *local_time = localtime(&now);
+						
+						// calculate seconds since midnight
+						int seconds_since_midnight = local_time->tm_hour * 3600 + 
+						                               local_time->tm_min * 60 + 
+						                               local_time->tm_sec;
+						
+						// convert to fractional hours
+						result.number = (double)seconds_since_midnight / 3600.0;
+					}
+						break;
+
           case INKEY:
           {
             // INKEY returns a string containing either nothing or the character
@@ -1578,6 +1595,22 @@ value_t evaluate_expression(const expression_t *expression)
             break;
           case CLOG:
             result.number = log10(a);
+            break;
+          case CLK:
+          {
+            // CLK(x) returns fractional hours since midnight
+            // the parameter x is ignored (dummy parameter)
+            time_t now = time(NULL);
+            struct tm *local_time = localtime(&now);
+            
+            // calculate seconds since midnight
+            int seconds_since_midnight = local_time->tm_hour * 3600 + 
+                                         local_time->tm_min * 60 + 
+                                         local_time->tm_sec;
+            
+            // convert to fractional hours
+            result.number = (double)seconds_since_midnight / 3600.0;
+          }
             break;
           case _EOF:
           {

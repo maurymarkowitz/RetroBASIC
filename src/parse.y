@@ -226,6 +226,7 @@ static expression_t *make_operator(int arity, int o)
  /* time and date patterned on MS style */
 %token TIME
 %token TIME_STR
+%token CLK
 
  /* hex, oct and binary strings */
 %token HEX OCT BIN
@@ -1762,6 +1763,7 @@ fn_0:
   RND { $$ = RND; } |
   TIME { $$ = TIME; } |
   TIME_STR { $$ = TIME_STR; } |
+  CLK { $$ = CLK; } |
   EL { $$ = EL; } |
   ER { $$ = ER; } |
   MATDET { $$ = MATDET; }
@@ -1775,6 +1777,7 @@ fn_1:
   BIN  { $$ = BIN; } |
   BINSTR { $$ = BINSTR; } |
   CHR  { $$ = CHR; } |
+  CLK  { $$ = CLK; } |
   CLOG { $$ = CLOG;} |
   COS  { $$ = COS; } |
   _EOF  { $$ = _EOF; } |

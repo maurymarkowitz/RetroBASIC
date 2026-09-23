@@ -191,34 +191,35 @@
      STRNG = 407,
      TIME = 408,
      TIME_STR = 409,
-     HEX = 410,
-     OCT = 411,
-     BIN = 412,
-     HEXSTR = 413,
-     OCTSTR = 414,
-     BINSTR = 415,
-     UBOUND = 416,
-     LBOUND = 417,
-     LABEL = 418,
-     MAT = 419,
-     MATPRINT = 420,
-     MATINPUT = 421,
-     MATREAD = 422,
-     MATGET = 423,
-     MATPUT = 424,
-     MATZER = 425,
-     MATNUL = 426,
-     MATCON = 427,
-     MATIDN = 428,
-     MATTRN = 429,
-     MATINV = 430,
-     MATDET = 431,
-     MATADD = 432,
-     MATSUB = 433,
-     MATMUL = 434,
-     MATSCA = 435,
-     MATFIL = 436,
-     NUM = 437
+     CLK = 410,
+     HEX = 411,
+     OCT = 412,
+     BIN = 413,
+     HEXSTR = 414,
+     OCTSTR = 415,
+     BINSTR = 416,
+     UBOUND = 417,
+     LBOUND = 418,
+     LABEL = 419,
+     MAT = 420,
+     MATPRINT = 421,
+     MATINPUT = 422,
+     MATREAD = 423,
+     MATGET = 424,
+     MATPUT = 425,
+     MATZER = 426,
+     MATNUL = 427,
+     MATCON = 428,
+     MATIDN = 429,
+     MATTRN = 430,
+     MATINV = 431,
+     MATDET = 432,
+     MATADD = 433,
+     MATSUB = 434,
+     MATMUL = 435,
+     MATSCA = 436,
+     MATFIL = 437,
+     NUM = 438
    };
 #endif
 /* Tokens.  */
@@ -374,34 +375,35 @@
 #define STRNG 407
 #define TIME 408
 #define TIME_STR 409
-#define HEX 410
-#define OCT 411
-#define BIN 412
-#define HEXSTR 413
-#define OCTSTR 414
-#define BINSTR 415
-#define UBOUND 416
-#define LBOUND 417
-#define LABEL 418
-#define MAT 419
-#define MATPRINT 420
-#define MATINPUT 421
-#define MATREAD 422
-#define MATGET 423
-#define MATPUT 424
-#define MATZER 425
-#define MATNUL 426
-#define MATCON 427
-#define MATIDN 428
-#define MATTRN 429
-#define MATINV 430
-#define MATDET 431
-#define MATADD 432
-#define MATSUB 433
-#define MATMUL 434
-#define MATSCA 435
-#define MATFIL 436
-#define NUM 437
+#define CLK 410
+#define HEX 411
+#define OCT 412
+#define BIN 413
+#define HEXSTR 414
+#define OCTSTR 415
+#define BINSTR 416
+#define UBOUND 417
+#define LBOUND 418
+#define LABEL 419
+#define MAT 420
+#define MATPRINT 421
+#define MATINPUT 422
+#define MATREAD 423
+#define MATGET 424
+#define MATPUT 425
+#define MATZER 426
+#define MATNUL 427
+#define MATCON 428
+#define MATIDN 429
+#define MATTRN 430
+#define MATINV 431
+#define MATDET 432
+#define MATADD 433
+#define MATSUB 434
+#define MATMUL 435
+#define MATSCA 436
+#define MATFIL 437
+#define NUM 438
 
 
 
@@ -419,7 +421,7 @@ typedef union YYSTYPE
   variable_reference_t *variable;
 }
 /* Line 1529 of yacc.c.  */
-#line 423 "src/parse.tab.h"
+#line 425 "src/parse.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
