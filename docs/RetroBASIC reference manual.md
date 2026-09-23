@@ -603,7 +603,7 @@ This section explains the statements associated with loops, conditional and unco
 
 #### Variations:
 
-DEC EduSystem BASICs did allow statements to follow the remark; if a `\` was encountered within a remark it was considered to be a statement separator and the text following it was a new statement. The manual is not clear whether this applies to `REM` or only `'` remarks.
+DEC EduSystem BASICs did allow statements to follow the remark; if a `\` was encountered within a remark it was considered to be a statement separator and the text following it was a new statement. The manual is not clear whether this applies to `REM` or only `'` remarks. This is not currently supported in RetroBASIC; a backslash in a remark is remark text.
 
 <!-- TOC --><a name="let-varexpr"></a>
 ### [`LET`] *var*`=`*expr*
