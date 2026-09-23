@@ -195,7 +195,9 @@ ERN       { return ER; }
 ERR\$     { return ERR; }
 
  /* various operators and punctuation */
-[:,;()\[\]\^=+\-*/\<\>\&]     { return yytext[0]; }
+ /* DEC EduSystem dialects use backslash as a statement separator */
+\\                              { return ':'; }
+ [:,;()\[\]\^=+\-*/\<\>\&]     { return yytext[0]; }
 MOD       { return MOD; }
 DIV       { return DIV; }
 MAX       { return MAX; }
