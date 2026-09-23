@@ -149,6 +149,7 @@ The goal of RetroBASIC is to allow you to run popular BASIC programs written dur
    * [`LIN`(*aexp*)](#linaexp)
    * [`TAB`(*aexp*)](#tabaexp)
    * [`TIME`[(*dexp*)] and `TIME=`*aexp*](#timedexp-and-timeaexp)
+   * [`CLK`](#clk)
    * [`TIME$`(*dexp*) and `CLK$`](#timedexp-and-clk)
    * [`USR`(*aexp*)](#usraexp)
 - [File handling](#file-handling)
@@ -2396,14 +2397,44 @@ The definition of a jiffy is platform-dependant. For instance, on Atari machines
 
 #### Variations:
 
-Univac 1100 BASIC offered both `TIME` and `CLK`. The latter returns the value of the real-time clock, typically he number of jiffies since the computer was last reset. The former returns the number of jiffies since the *program* started, which is a useful modification, but one that is not supported in RetroBASIC to maintain broader compatibility. When porting from this platform, adding `TI=0` at the top of the program will address this.
+Univac 1100 BASIC offered both `TIME` and `CLK`. On that platform, `TIME` returns the number of jiffies since the *program* started, not the system restart or midnight. This has its uses, but one that is not supported in RetroBASIC to maintain broader compatibility. When porting from this platform, adding `TI=0` at the top of the program will address this.
 
 BASIC75 uses the parameter as *aexp*, with the numeric value changing which part of the time is returned. For instance, `TIME(0)` returns a two-digit year, while `TIME(-8)` returns the number of seconds since this session logged in. Although this is a rather obscure dialect, many of its features are taken from other versions, notably Data General, so this may be more widespread.
+
+<!-- TOC --><a name="clk"></a>
+### `CLK`(*dexp*)
+
+`CLK` that returns the current time as fractional hours since midnight. The function can be called either as `CLK` (arity-0, no parentheses) or `CLK(x)` (arity-1, where the parameter is ignored). This form is found in BASIC-PLUS and Univac System 9.
+
+#### Examples:
+
+    PRINT CLK
+
+Might produce:
+
+     10.4156
+
+This means it is approximately 10:25 AM (10.4156 * 60 = 24.94 minutes past 10 AM).
+
+    10 B3 = CLK(0)
+    20 REM ... some code ...
+    30 B1 = CLK(0)
+    40 PRING "ELAPSED = ";(B1 - B3) * 3600
+
+This measures the elapsed time in seconds between two points in the program.
+
+#### Notes:
+
+This function was originally only known to exist in Univac 1100 BASIC and was not supported in RetroBASIC due to the rarity of programs in this dialect. However, a user noted it was also used in the original version of Oregon Trail and was part of BASIC-PLUS, so it may have been more widespread than initially thought.
+
+#### Availability:
+
+CLK was added in 3.0.5.
 
 <!-- TOC --><a name="timedexp-and-clk"></a>
 ### `TIME$`(*dexp*) and `CLK$`
 
-Returns the real-time clock's time value formatted for printing. RetroBASIC uses the MS format, with a two-digit hour in 24-hour format, two-digit minutes, and two-digit seconds. `CLK$` is the alternative spelling found in BASIC-PLUS-2 and the Texas Instruments 990, which inserted colons between the three values, so where MS would return "102456", these would return "10:24:56".
+`TIME$` returns the real-time clock's time value formatted for printing. RetroBASIC uses the MS format, with a two-digit hour in 24-hour format, two-digit minutes, and two-digit seconds. `CLK$` is the alternative spelling found in BASIC-PLUS-2 and the Texas Instruments 990, which inserted colons between the three values, so where MS would return "102456", these would return "10:24:56".
 
 #### Examples:
 
