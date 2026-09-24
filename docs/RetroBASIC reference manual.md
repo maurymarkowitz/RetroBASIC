@@ -2431,7 +2431,7 @@ This function was originally only known to exist in Univac 1100 BASIC and was no
 
 #### Availability:
 
-CLK was added in 3.0.5.
+CLK was added in 3.0.6.
 
 <!-- TOC --><a name="timedexp-and-clk"></a>
 ### `TIME$`(*dexp*) and `CLK$`
