@@ -196,6 +196,9 @@ static expression_t *make_operator(int arity, int o)
 %token CMP_LE CMP_GE CMP_NE
 %token HASH /* we keep hash separate for LISTing purposes */
 
+/* DEC EduSystem dialects use backslash as a statement separator */
+%token STMT_SEP
+
  /* system functions */
 %token ADR
 %token FRE
@@ -291,6 +294,11 @@ statements:
   }
   |
   statement ':' statements
+  {
+    $$ = lst_prepend($3, $1);
+  }
+  |
+  statement STMT_SEP statements
   {
     $$ = lst_prepend($3, $1);
   }
