@@ -196,7 +196,7 @@ ERR\$     { return ERR; }
 
  /* various operators and punctuation */
  /* DEC EduSystem dialects use backslash as a statement separator */
-\\                              { return ':'; }
+ \\                              { return STMT_SEP; }
  [:,;()\[\]\^=+\-*/\<\>\&]     { return yytext[0]; }
 MOD       { return MOD; }
 DIV       { return DIV; }
