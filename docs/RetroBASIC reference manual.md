@@ -263,7 +263,7 @@ In most dialects, variables can contain either a number value or a string value 
 
 BASIC programs are generally organized over multiple **lines**, each of which contains one or more statements. A line starts with a **line number**, which acts as a label so other parts of the program can refer to it. This was also used as a way for various editing tools to allow the user to indicate which lines they wish to edit. After the line number, there is a statement keyword and then any expressions that keyword may use, forming a complete statement.
 
-Some dialects allow more than one statement on a line, sometimes known as **compound statements**. In most dialects, the statements are separated by colons, `:`. DEC EduSystem dialects mostly used backslashes, `\`, DEC's BASIC-PLUS and Data General BASIC uses the ampersand, `&`, and MAI Basic Four and Wang BASIC use semicolons, `;`.
+Some dialects allow more than one statement on a line, sometimes known as **compound statements**. In most dialects, the statements are separated by colons, `:`. DEC EduSystem dialects mostly used backslashes, `\`, DEC's BASIC-PLUS and Data General BASIC uses the ampersand, `&`, and MAI Basic Four and Wang BASIC use semicolons, `;`. RetroBASIC accepts the colon and the backslash as a statement separator.
 
 Execution normally starts with the first statement on the lowest-numbered line in the program, and then continues statement by statement until it reaches the end of the program. Some statements can change this normally linear progression. These are known as **branches**, although sometimes they are referred to as **control flow** or **transfer of control** statements. In BASIC, branches are performed by providing a line number for the program to move to.
 
@@ -603,7 +603,7 @@ This section explains the statements associated with loops, conditional and unco
 
 #### Variations:
 
-DEC EduSystem BASICs did allow statements to follow the remark; if a `\` was encountered within a remark it was considered to be a statement separator and the text following it was a new statement. The manual is not clear whether this applies to `REM` or only `'` remarks.
+DEC EduSystem BASICs did allow statements to follow the remark; if a `\` was encountered within a remark it was considered to be a statement separator and the text following it was a new statement. The manual is not clear whether this applies to `REM` or only `'` remarks. This is not currently supported in RetroBASIC; a backslash in a remark is remark text.
 
 <!-- TOC --><a name="let-varexpr"></a>
 ### [`LET`] *var*`=`*expr*
