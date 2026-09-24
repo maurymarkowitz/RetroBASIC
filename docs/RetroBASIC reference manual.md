@@ -935,7 +935,7 @@ This program will produce:
 
 In home computer interpreters, `FOR/NEXT` loops are much faster than loops constructed using `IF/THEN`. This is because the values of the *aexpr*s are calculated only once when the loop is first encountered, and then cached on the runtime stack for future reference. This avoids having to calculate them or look them up every time through the loop, which is how the same loop using an `IF` would work.
 
-Additionally, the starting position of the loop is saved on the stack in the same manner as a `GOSUB`, meaning the loop does not have to search through the list of statements to find the top of the loop. If the loop is not yet complete, which is typically the majority of times, it can move back to the correct statement immediately. This feature can dramatically increase performance over the same loop using an IF/THEN.
+Additionally, the starting position of the loop is saved on the stack in the same manner as a `GOSUB`, meaning the loop does not have to search through the list of statements to find the top of the loop. If the loop is not yet complete, which is the majority of times through the loop, it can move back to the correct statement immediately. This feature can dramatically increase performance over the same loop using an IF/THEN.
 
 Even in compiled versions, which calculate the statement locations for all branches and thus makes branching much faster, skipping the repeated calculations of the *aexpr*s in the IF can still result in noticeable performance improvements.
 
@@ -961,7 +961,7 @@ On Dartmouth derived versions, the loop body is not performed and the the output
 
     LOOP COMPLETE
 
-This style of execution is not currently supported in RetroBASIC.
+By default, RetroBASIC follows the MS-BASIC behavior, executing the loop once. To support Dartmouth-style behavior, you can use the `--dartmouth-loops` command-line flag, which will skip exhausted loops entirely. For the example above, using `retrobasic --dartmouth-loops program.bas` would produce Dartmouth-style output.
 
 Univac 1100 BASIC allows an alternate form with single statement following the `FOR` without a separator, in which case the `NEXT` is not required. For instance, `FOR I=1 TO 10 PRINT I" will print 1 to 10. This is not currently supported in RetroBASIC.
 
