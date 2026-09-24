@@ -1,6 +1,7 @@
 RetroBASIC version history
 
 Version 3.0.6 - 23 September 2026
+- added support for --dartmouth-loops/-l which skips the loop body if the exit condition is met on entry, like FOR I=1 TO 0
 - added support for \ as a statement separator, used in DEC dilects
 - added CLK() function, which returns fractional hours since midnight, from BASIC-PLUS
 - fixed an issue in string comparisons

@@ -76,6 +76,7 @@ bool string_slicing = false;					// are references like A$(1,1) referring to an 
 bool goto_next_highest = false;				// if a branch targets an non-existant line, should we go to the next highest?
 bool ansi_on_boundaries = false;			// if the value for an ON statement <1 or >num entries, should it continue or error?
 bool ansi_tab_behaviour = false;			// if a TAB < current column, ANSI inserts a CR, MS does not
+bool dartmouth_loops = false;				// skip FOR loop body if bounds are exhausted (Dartmouth behavior)
 
 char *source_file = "";
 char *input_file = "";
@@ -3545,7 +3546,6 @@ static void perform_statement(list_t *statement_entry)
         }
         
         stack_entry_t *new_for = calloc(1, sizeof(*new_for));
-        interpreter_state.runtime_stack = lst_append(interpreter_state.runtime_stack, new_for);
         
         new_for->type = for_entry;
         new_for->_for.head = statement_entry; // unlike a gosub, we return to the front of the FOR
@@ -3567,10 +3567,44 @@ static void perform_statement(list_t *statement_entry)
         else
           new_for->_for.step = 1;
         
-        // update the variable in storage to the starting value
-        int type = 0;
-        either_t *loop_value = variable_value(new_for->_for.index_variable, &type);
-        loop_value->number = new_for->_for.begin;
+        // Check if the FOR loop bounds are exhausted
+        // This happens when: (step > 0 and begin > end) OR (step < 0 and begin < end)
+        bool loop_exhausted = (new_for->_for.step > 0 && new_for->_for.begin > new_for->_for.end) ||
+                              (new_for->_for.step < 0 && new_for->_for.begin < new_for->_for.end);
+        
+        // If exhausted and flag is set, skip to matching NEXT instead of executing body
+        if (loop_exhausted && dartmouth_loops) {
+          // Free the FOR entry we created since we're not using it
+          free(new_for);
+          
+          // Find the matching NEXT statement
+          list_t *test_statement = lst_next(statement_entry);
+          int nesting_level = 1;
+          while (test_statement != NULL && nesting_level > 0) {
+            statement_t *stmt = (statement_t *)test_statement->data;
+            if (stmt->type == FOR)
+              nesting_level++;
+            else if (stmt->type == NEXT) {
+              nesting_level--;
+              if (nesting_level == 0)
+                break;
+            }
+            test_statement = lst_next(test_statement);
+          }
+          
+          // Jump past the NEXT statement
+          if (test_statement != NULL && ((statement_t *)test_statement->data)->type == NEXT) {
+            interpreter_state.next_statement = lst_next(test_statement);
+          }
+        } else {
+          // Normal case: push FOR entry to stack and execute body
+          interpreter_state.runtime_stack = lst_append(interpreter_state.runtime_stack, new_for);
+          
+          // update the variable in storage to the starting value
+          int type = 0;
+          either_t *loop_value = variable_value(new_for->_for.index_variable, &type);
+          loop_value->number = new_for->_for.begin;
+        }
       }
         break;
         

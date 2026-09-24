@@ -81,6 +81,7 @@ Command-line options include:
 `--no_run`, `-n`: do not run the BASIC program, simply read and parse it and then exit  
 `--print_statistics`, `-p`: send a selection of statistics to the console  
 `--write_statistics`, `-w`: write the statistics to the named file in a machine readable format  
+`--dartmouth-loops`, `-l`: skip FOR loop body if bounds are exhausted (Dartmouth behavior), default is to execute once (MS-BASIC behavior)  
 
 If you wish to use RetroBASIC to simply check syntax or collect statistics, use the `-n` and `-p` switches.
 

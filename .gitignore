@@ -1,3 +1,6 @@
+# VS Code settings
+.vscode/
+
 # Xcode user and build artifacts
 RetroBASIC.xcodeproj
 RetroBASIC.xcodeproj/project.xcworkspace

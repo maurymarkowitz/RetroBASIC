@@ -58,6 +58,7 @@ extern int array_base;                  // lower bound of arrays, can also be se
 extern bool string_slicing;             // are references like A$(1,1) referring to an array entry or doing slicing?
 extern bool goto_next_highest;          // if a branch targets a non-existent line, should we go to the next line?
 extern bool ansi_on_boundaries;         // if the value for an ON statement <1 or >num entries, should it continue, or error?
+extern bool dartmouth_loops;            // skip FOR loop body if bounds are exhausted (Dartmouth behavior)
 extern bool ansi_tab_behaviour;         // if a TAB < current column, ANSI inserts a CR, MS does not
 extern int random_seed;                 // reset with RANDOMIZE, if -1 then auto-seeds
 

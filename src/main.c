@@ -43,13 +43,13 @@ static void sigint_handler(int sig)
 /* usage short form, just a list of the switches */
 static void print_usage(char *argv[])
 {
-  printf("Usage: %s [-hvsngut] [-a number] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] [FILE]\n", argv[0]);
+  printf("Usage: %s [-hvsngutl] [-a number] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] [FILE]\n", argv[0]);
 }
 
 /* full usage notes, both for the user and for documenting the code below */
 static void print_help(char *argv[])
 {
-  printf("Usage: retrobasic [-hvsngut] [-a number] [-tabs spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] [FILE]\n");
+  printf("Usage: retrobasic [-hvsngutl] [-a number] [-tabs spaces] [-r seed] [-p | -w stats_file] [-o output_file] [-i input_file] [FILE]\n");
   puts("\nOptions:");
   puts("  -h, --help: print this description");
   puts("  -v, --version: print version info");
@@ -66,6 +66,7 @@ static void print_help(char *argv[])
   puts("  -o, --output-file: redirect PRINT and PUT to the named file");
   puts("  -i, --input-file: redirect INPUT and GET from the named file");
   puts("      --prompt: set the interactive prompt string (default is >)");
+  puts("  -l, --dartmouth-loops: skip FOR loop body if bounds are exhausted (Dartmouth behavior)");
 }
 
 static struct option program_options[] =
@@ -85,6 +86,7 @@ static struct option program_options[] =
   {"write-stats", required_argument, NULL, 'w'},
   {"prompt", required_argument, NULL, 501},
   {"no-run", no_argument, NULL, 'n'},
+  {"dartmouth-loops", no_argument, NULL, 'l'},
   {0, 0, 0, 0}
 };
 
@@ -105,7 +107,7 @@ void parse_options(int argc, char *argv[])
   
   while (1) {
     // eat an option and exit if we're done
-    int c = getopt_long(argc, argv, "hvuta:r:i:o:w:spn", program_options, &option_index); // should match the items above, but with flag-setters excluded
+    int c = getopt_long(argc, argv, "hvuta:r:i:o:w:spnl", program_options, &option_index); // should match the items above, but with flag-setters excluded
     if (c == -1) break;
     
     switch (c) {
@@ -178,6 +180,10 @@ void parse_options(int argc, char *argv[])
         if (test == optarg)
           optind--;
         
+        break;
+        
+      case 'l':
+        dartmouth_loops = true;
         break;
         
       default:
