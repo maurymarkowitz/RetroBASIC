@@ -1,17 +1,18 @@
 RetroBASIC version history
 
 Version 3.0.6 - 23 September 2026
-- issue #22: added CLK() function, which returns fractional hours since midnight (from BASIC-PLUS)
-- issue #19: fixed an issue in string comparisons
-- issue #21: fixed an issue after early exits and then re-entering FOR loops with the same index var
+- added support for \ as a statement separator, used in DEC dilects
+- added CLK() function, which returns fractional hours since midnight, from BASIC-PLUS
+- fixed an issue in string comparisons
+- fixed an issue after early exits and then re-entering FOR loops with the same index var
 - add the version number to the CLI header line
 
 Version 3.0.5 - 21 September 2026
-- issue #18: fixed issue in INPUT that caused the ?EXTRA IGNORED warning to appear on any non-string values
+- fixed issue in INPUT that caused the ?EXTRA IGNORED warning to appear on any non-string values
 
 Version 3.0.4 - 7 August 2026
-- issue #16: if you edited a program and then LISTed without RUNning, all the edits were run together into one line
-- issue #17: implemented full MS-BASIC-80 format strings (like "#.##E+##") and QBASIC formats (^^^^,****$) , \...\m etc.)
+- if you edited a program and then LISTed without RUNning, all the edits were run together into one line
+- implemented full MS-BASIC-80 format strings (like "#.##E+##") and QBASIC formats (^^^^,****$) , \...\m etc.)
 - updated PRINT USING, IMAGE, and USING$ documentation to reflect the new formats
 
 Version 3.0.3 - 31 July 2026
