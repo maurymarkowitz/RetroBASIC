@@ -845,9 +845,9 @@ The FOR/NEXT loop performs a sequence of statements a set number of times. The s
 
 *avar*, known in this context as the *index variable*, is initially set to the value of *aexpr1*. It then continues execution at the next statement, continuing as normal until it reaches the `NEXT`. At that point, it adds the value in *aexpr3*, the *step*, to *avar*. If the result in *avar* is now equal to or larger than *aexpr2*, execution continues with the statement after the `NEXT`. If the value is smaller, execution returns to the statement after the `FOR`, continuing the loop.
 
-When a `FOR` is encountered at runtime, the system calculates the values of all of the provided *aexpr*s. This means that if the *aexpr*s are based on variables, changing those variables after the loop has started will not change the number of times the loop is performed. `STEP` is optional, and if it is missing, *aexpr3* is set to 1.
+When a `FOR` is encountered at runtime, the system calculates the values of all of the provided *aexpr*s. This means that if the *aexpr*s are based on variables, changing those variables after the loop has started will not change the number of times the loop is performed. For instance, if a loop is set to `1 TO A` and the value of A is 10, the loop will run 10 times even if the program changes the value of A inside the loop. `STEP` is optional, and if it is missing, *aexpr3* is assumed to be 1.
 
-In most cases, FOR/NEXT loops are used where a pre-determined number of executions is desired. However, it is possible to change the normal behavior, either by assigning a value into *avar* to cause it to exit at the `NEXT`, or alternately, branching out of the body using a `GOTO` or `IF`. Branching out may cause errors later in execution, and some dialects offer solutions for this, like `POP`.
+In most cases, FOR/NEXT loops are used where a pre-determined number of executions is desired. However, it is possible to change the normal behavior, either by assigning a value into the index variable to cause it to exit at the `NEXT`, or alternately, branching out of the body using a `GOTO` or `IF`. Branching out may cause errors later in execution, and some dialects offer solutions for this, like `POP`.
 
 Many dialects allow the variable name to be left off the `NEXT`, although this is sometimes considered bad form. Others, like later versions of Microsoft BASIC, allow multiple comma-separated variable names, so a single `NEXT` can close multiple loops. RetroBASIC supports all of these forms.
     
@@ -904,7 +904,19 @@ This program will print:
     2
     3
 
-Although line 40 changes the end value in A, the ending value is only calculated when the loop is first set up. In this case it will perform the loop three times despite the variable being changed to 10.
+Although line 40 changes the end value in A, the ending value is only calculated when the loop is first set up. In this case it will perform the loop three times despite the variable being changed to 10. Note that this is not true for the index variable, which is calculated every time through the loop and can be changed:
+
+    10 A=3
+    20 FOR X=1 TO A
+    30 PRINT X
+    40 X=10
+    50 NEXT
+
+This program will print:
+
+    1
+
+That is because when the program reaches the `NEXT` on line 50, it has to decide whether to return to the top of the loop at line 30, or to exit the loop and continue. It does this by comparing the value in the index variable, `X`, to the pre-recorded value in *aexp2*. Since `X` now holds 10, and that is greater than 3, it exits the loop after a single pass.
 
 Loops can be *nested* inside another loop:
 
@@ -934,13 +946,15 @@ This program will produce:
 
 #### Notes:
 
-In home computer interpreters, `FOR/NEXT` loops are much faster than loops constructed using `IF/THEN`. This is because the values of the *aexpr*s are calculated only once when the loop is first encountered, and then cached on the runtime stack for future reference. This avoids having to calculate them or look them up every time through the loop, which is how the same loop using an `IF` would work.
+In home computer interpreters, `FOR/NEXT` loops are much faster than loops constructed using `IF/THEN`. This is because the values of the *aexpr*s are calculated only once when the loop is first encountered, and then cached on the runtime stack for future reference. This avoids having to calculate them or look them up every time through the loop, which is how the same loop using an `IF` would work. Only the index variable has to be updated, which is simple addition.
 
-Additionally, the starting position of the loop is saved on the stack in the same manner as a `GOSUB`, meaning the loop does not have to search through the list of statements to find the top of the loop. If the loop is not yet complete, which is the majority of times through the loop, it can move back to the correct statement immediately. This feature can dramatically increase performance over the same loop using an IF/THEN.
+Some dialects from the early microcomputer era do not have FOR/NEXT loops, the most prominent example being Tiny BASIC. Code for these interpreters will use IF/THEN for looping, and run very slow as a result.
+
+Additional performance comes from saving the starting *position* of the loop on the stack in the same manner as a `GOSUB`, not the line number. This means the loop does not have to search through the list of lines to find the top of the loop. If the loop is not yet complete, which is the majority of times through a typical loop, it can branch back to the correct statement immediately. This feature can dramatically increase performance over the same loop using an IF/THEN.
 
 Even in compiled versions, which calculate the statement locations for all branches and thus makes branching much faster, skipping the repeated calculations of the *aexpr*s in the IF can still result in noticeable performance improvements.
 
-Some dialects from the early microcomputer era do not have FOR/NEXT loops, the most prominent example being Tiny BASIC. Code for these interpreters will use IF/THEN for looping, and run very slow as a result. A few dialects, notably Atari and Sinclair, do not cache the memory location of the first statement in the block, but cache the line number instead. These dialects also run slowly, as they have to search through the entire program to find the top of the loop over and over again. This led to various platform-specific tricks intended to improve performance.
+A few dialects, notably Atari and Sinclair, do not cache the memory location of the first statement in the loop, but cache the line number instead. These dialects also run slowly, as they have to search through the entire program to find the top of the loop over and over again. This led to various platform-specific tricks intended to improve performance.
 
 All of these run essentially instantaneously in RetroBASIC as it can access any line directly, so no tricks need to be used to improve performance.
 
@@ -953,16 +967,16 @@ Dartmouth and most other compilers, as well as the later ANSI Full BASIC, do not
     30 NEXT X
     40 PRINT "LOOP COMPLETE"
 
-On most interpreted dialects, the output will be:
+On most interpreted dialects, including MS BASICs, the output will be:
 
     1
     LOOP COMPLETE
 
-On Dartmouth derived versions, the loop body is not performed and the the output would be:
+On Dartmouth derived versions, the loop body is not performed and the output would be:
 
     LOOP COMPLETE
 
-By default, RetroBASIC follows the MS-BASIC behavior, executing the loop once. To support Dartmouth-style behavior, you can use the `--dartmouth-loops` command-line flag, which will skip exhausted loops entirely. For the example above, using `retrobasic --dartmouth-loops program.bas` would produce Dartmouth-style output.
+By default, RetroBASIC follows the MS-BASIC behavior, executing the loop once. To support Dartmouth-style behavior, you can use the `--dartmouth-loops` command-line flag (-l for short). For the example above, using `retrobasic --dartmouth-loops program.bas` would produce Dartmouth-style output.
 
 Univac 1100 BASIC allows an alternate form with single statement following the `FOR` without a separator, in which case the `NEXT` is not required. For instance, `FOR I=1 TO 10 PRINT I" will print 1 to 10. This is not currently supported in RetroBASIC.
 
@@ -997,7 +1011,7 @@ Depending on the order of operations and the sequence of calls, the result will 
 
     2010 IF A=5 THEN POP:GOTO 1020
 
-The `POP` will remove the last entry on the stack, the dangling subroutine call, and then GOTO to code on 1020 and return to the correct location.
+The `POP` will remove the last entry on the stack, the dangling subroutine call, and then GOTO to code on 1020, and return to the correct location.
 
 #### Variations:
 
@@ -1202,11 +1216,11 @@ IBM 5100 BASIC requires the user to type single quotes around string entries mad
 
 North Star and Digital Group BASIC have the `INPUT1` variation, which suppresses the <return> at the end of the user's entry, similar to a `PRINT` ending in a semicolon. This happens even if the user types a <return>, in which case it is stripped off. This allows the next `PRINT` to be placed on the same line in the console, to allow you to prompt for multiple inputs on a single line. `INPUT1` is not supported in RetroBASIC, but the same result can be achieved using multiple prompt strings between the variables.
 
-According to Lien, some versions of MS-BASIC include an `INPUT$` which is a function, not a statement. This reads a specified number of characters without echoing them to the screen. For instance, `A$=INPUT$(3)` would read up to 3 characters. However, this function is not found in any of the manuals from that period, and not included in RetroBASIC.
+According to Lien, some versions of MS-BASIC include an `INPUT$` which is a function, not a statement. This reads a specified number of characters without echoing them to the screen. For instance, `A$=INPUT$(3)` would read up to 3 characters. However, this function has not been found in any of the available manuals from that period, and not included in RetroBASIC.
 
 A number of BASICs have a variation that allows you to define how long to wait for user input. One example is BASIC75 from Evergreen College, which used `ENTER 5,A` to give the user five seconds to enter a value that would be put into A.
 
-BASIC-PLUS uses a separate statement for this, `WAIT` with a number of seconds, which has to run before the `INPUT`, and if the timer expires it raises an error. As this command applies to all `INPUT`s, a separate `WAIT 0` is needed if you want to turn this off again. `WAIT` is not currently supported in RetroBASIC. 
+BASIC-PLUS uses a separate statement for this, `WAIT` with a number of seconds, which has to run before the `INPUT`. If the timer expires it raises an error. As this command applies to all `INPUT`s, a separate `WAIT 0` is needed if you want to turn this off again. `WAIT` is not currently supported in RetroBASIC. 
 
 ### {`LINPUT`|`LINE INPUT`|`INPUT LINE`} [*var*,...]
 
@@ -1214,7 +1228,7 @@ BASIC-PLUS uses a separate statement for this, `WAIT` with a number of seconds, 
 
 Some dialects offered the "line input" statement to fill this need. The most common variation is `LINPUT`, which is found in a number of dialects. QBASIC/GW-BASIC used `LINE INPUT` while TSC Extended BASIC and PRIME BASIC/VM used `INPUT LINE`. RetroBASIC accepts all of these variations, and allows the two words to be separated or connected - `LINE INPUT` and `LINEINPUT` are equivalent.
 
-`LINPUT` almost always suppresses the ? prompt, in keeping with its main role, reading lines from files. An exception is PRIME and TSC's `INPUTLINE` which used their normal ! prompt. This is not supported in RetroBASIC, but should have no effect on programs written in this dialects.
+`LINPUT` almost always suppresses the ? prompt, in keeping with its main role, reading lines from files. An exception is PRIME and TSC's `INPUTLINE` which used their normal ! prompt. This is not supported in RetroBASIC, but should have no effect on programs written in these dialects.
 
 #### Examples:
 
@@ -1321,7 +1335,7 @@ Neither of these is currently supported in RetroBASIC, although `PRINT USING` ca
 
 The most common variations allow a string constant to be placed directly after the `USING`. The string contains special characters that indicate what should be printed at that location. Other characters found in the image are output as-is. One of the most commonly used special characters is the hash, `#`, which indicates a digit should be printed in that location. Values can be forced to integer format using an image string like `"####`" or currency format with `"###.##"`. Because other characters are output as-is, a typical image mixes both normal characters and special, for instance, `"The price is $####.## per pound."`
 
-While a number of dialects require the image to be specified as a string constant, some allow the image to be stored in a string variable. Additionally, most dialects supported some way to specify the image on a separate line, as was the case in Fortran where this feature originates. The most common syntax was to place a colon directly after a line number, and then refer to that in the `USING` clause by that line number. HP BASIC used the `IMAGE` statement which worked in a similar fashion, but used different format characters.
+While a number of dialects require the image to be specified as a string constant, some allow the image to be stored in a string variable and called with something like `PRINT USING A$;`. Additionally, most dialects supported some way to specify the image on a separate line, as was the case in Fortran where this feature originates. The most common syntax was to place a colon directly after a line number, and then refer to that in the `USING` clause by that line number. HP BASIC instead used the `IMAGE` statement which worked in a similar fashion, but used different format characters.
 
 One curiosity to note is that `PRINT USING` *always* prints a \<return\> at the end of the line, ignoring the normal behaviour when a comma or semicolon is found at the end of the expression list.
 
@@ -1335,7 +1349,8 @@ For a complete description of the formatting strings, including HP, MS-BASIC-80,
     PRINT USING "#,###.##";1987.654
      1,987.65
 
-    PRINT USING "##.##";10.2;5.3;66.789;.234
+    A$="##.##"
+    PRINT USING A$;10.2;5.3;66.789;.234
      10.20 5.30 66.79 0.23
 
 #### Variations:
@@ -1356,9 +1371,9 @@ BASIC75 contains a very different `USING` keyword statement. It acts like a `GOS
 <!-- TOC --><a name="image-statement"></a>
 ### `IMAGE` *lineno*
 
-The `IMAGE` statement defines a format string separately from the `PRINT` statement, allowing the format to be reused or separated from the output logic. The line number given by *lineno* identifies the line containing the format image, and `PRINT USING` can refer back to it.
+The `IMAGE` statement defines a format string separately from the `PRINT` statement, allowing the format to be reused or separated from the output logic. The line number given by *lineno* identifies the line containing the format image, and `PRINT USING` can refer back to it. This style comes from HP TimeShare BASIC and some other dialects, which are mirroring the way this functionality worked in Fortran, where one defined the format string in a `FORMAT` statement and then referred to it by line number.
 
-This style comes from HP TimeShare BASIC and some other dialects. In RetroBASIC, the `IMAGE` statement is primarily used with HP-style `PRINT USING` formats, where the image line contains the HP IMAGE directives such as `D`, `A`, `X`, `S`, and literal text. RetroBASIC also allows `IMAGE` to be used with MS-BASIC-80 and QBasic-style format strings, although these would be unlikely to be found in the wild since they are typically used inline with `PRINT USING`.
+In RetroBASIC, the `IMAGE` statement is primarily used with HP-style `PRINT USING` formats, where the image line contains the HP IMAGE directives such as `D`, `A`, `X`, `S`, and literal text. RetroBASIC also allows `IMAGE` to be used with MS-BASIC-80 and QBasic-style format strings, although these would be unlikely to be found in the wild since they are typically used inline with `PRINT USING`.
 
 For a complete description of the formatting strings that `IMAGE` supports (HP, MS-BASIC-80, and QBasic styles), see the section on [format strings](#format-strings).
 
