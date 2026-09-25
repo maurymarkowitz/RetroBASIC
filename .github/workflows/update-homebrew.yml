@@ -55,5 +55,11 @@ jobs:
           git remote set-url origin "https://x-access-token:${{ secrets.HOMEBREW_AND_SCOOP_TOKEN }}@github.com/maurymarkowitz/homebrew-tap.git"
 
           git add Formula/retrobasic.rb
-          git commit -m "Update retrobasic to ${TAG}"
-          git push
+          
+          # Only commit and push if there are changes
+          if git diff --cached --quiet; then
+            echo "No changes to commit - formula already has the latest version"
+          else
+            git commit -m "Update retrobasic to ${TAG}"
+            git push
+          fi
