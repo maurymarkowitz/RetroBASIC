@@ -23,7 +23,7 @@ jobs:
           # Always construct the URL manually to ensure we get the correct tarball
           # Don't use github.event.release.tarball_url as it may be cached
           URL="https://github.com/maurymarkowitz/RetroBASIC/archive/refs/tags/${TAG}.tar.gz"
-          curl -L --no-cache -o source.tar.gz "${URL}"
+          curl -L -o source.tar.gz "${URL}"
 
       - name: Compute SHA256
         id: sha
