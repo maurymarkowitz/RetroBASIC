@@ -3539,7 +3539,7 @@ static void perform_statement(list_t *statement_entry)
           stack_entry_t *entry = (stack_entry_t *)stack_node->data;
           if (entry->type == for_entry && 
               strcmp(entry->_for.index_variable->name, statement->parms._for.variable->name) == 0) {
-            interpreter_state.runtime_stack = lst_remove_node_with_data(interpreter_state.runtime_stack, stack_node);
+            interpreter_state.runtime_stack = lst_remove_node_with_data(interpreter_state.runtime_stack, entry);
             free(entry);
           }
           stack_node = next_node;
