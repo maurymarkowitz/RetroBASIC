@@ -20,12 +20,10 @@ jobs:
       - name: Download release tarball
         run: |
           TAG="${{ github.event.release.tag_name || github.event.inputs.tag_name }}"
-          if [ -n "${{ github.event.release.tarball_url }}" ]; then
-            URL="${{ github.event.release.tarball_url }}"
-          else
-            URL="https://github.com/maurymarkowitz/RetroBASIC/archive/refs/tags/${TAG}.tar.gz"
-          fi
-          curl -L -o source.tar.gz "${URL}"
+          # Always construct the URL manually to ensure we get the correct tarball
+          # Don't use github.event.release.tarball_url as it may be cached
+          URL="https://github.com/maurymarkowitz/RetroBASIC/archive/refs/tags/${TAG}.tar.gz"
+          curl -L --no-cache -o source.tar.gz "${URL}"
 
       - name: Compute SHA256
         id: sha
