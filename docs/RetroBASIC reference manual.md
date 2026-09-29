@@ -19,7 +19,7 @@ RetroBASIC is a multi-dialect version of the BASIC programming language intended
 - HP Timeshared BASIC
 - DEC BASIC-PLUS and its better-known cousin, Microsoft BASIC
 
-The goal of RetroBASIC is to run any program written for these dialects and their many offshoots. For instance, RetroBASIC can run the version of Super Star Trek found in *BASIC Computer Games* in Microsoft BASIC, but it can also run the (non-Super) Star Trek found in the earlier *101 BASIC Games*, written for DEC BASIC. It can also run most programs from *What to do After You Hit Return*, written in HP BASIC. Practically any major program should run properly without conversion.
+The combination of features from these different versions means that RetroBASIC can run the version of Super Star Trek found in *BASIC Computer Games* in Microsoft BASIC, but it can also run the (non-Super) Star Trek found in the earlier *101 BASIC Games*, written for DEC BASIC, and even the original Star Trek from the HP 2000. Practically any major program from any major platform should run properly without conversion.
 
 Programs must be provided in plain text, better known as "source code". Small computers, including almost all home computers, normally stored BASIC programs in a compressed binary format. RetroBASIC cannot read these binary files directly, but there are a variety of programs available that will read these files and output text, which can then be run in RetroBASIC.
 
@@ -30,7 +30,7 @@ When starting RetroBASIC without a filename, the interpreter enters an interacti
 
 The goal of RetroBASIC is to allow you to run popular BASIC programs written during the language's Golden Age. As such, it does not include any platform-specific instructions like sound or graphics, as these are not portable.
 
-Likewise, file handling varies not only from dialect to dialect but even from machine to machine running the same BASIC. RetroBASIC does not attempt to be compatible with any system, and is unlikely to run any programs that include file commands. It instead offers a set of generic file commands with the goal of making porting as easy as possible.
+Likewise, file handling varies not only from dialect to dialect but even from machine to machine running the same dialect. For instance, MS BASIC on the PET has different file handling than the C64, let alone Applesoft on the Apple II. RetroBASIC does not attempt to be compatible with any single system, and is unlikely to run any programs that include file commands. It instead offers a set of generic file commands with the goal of making porting as easy as possible.
 
 ## Contents
 
