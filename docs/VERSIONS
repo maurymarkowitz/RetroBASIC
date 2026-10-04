@@ -2,6 +2,7 @@ RetroBASIC version history
 
 Version 3.0.7 - 4 October 2026
 - added ? as a PRINT alias in program lines, before it only worked in immediate mode
+- fixed an issue in PRINT USING where format strings containing the letter 'e' (like "Number:##") were missing the 'e' in output
 
 Version 3.0.6 - 23 September 2026
 - added support for --dartmouth-loops/-l which skips the loop body if the exit condition is met on entry, like FOR I=1 TO 0

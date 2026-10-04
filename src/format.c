@@ -1034,7 +1034,28 @@ static format_string_t* parse_msbasic80_format(const char *format_str)
             
             /* Ensure we parsed at least something numeric */
             if (before_decimal == 0 && after_decimal == 0 && pos == spec_start) {
-                /* This might be a literal character, skip it */
+                /* This might be a literal character - create a literal spec for it */
+                format_spec_t lit;
+                lit.type = SPEC_TYPE_LITERAL;
+                lit.detail.literal.length = 1;
+                lit.detail.literal.text = (char*)malloc(2);
+                if (!lit.detail.literal.text) {
+                    format_free(fmt);
+                    return NULL;
+                }
+                lit.detail.literal.text[0] = c;
+                lit.detail.literal.text[1] = '\0';
+                
+                if (fmt->num_specs >= fmt->capacity) {
+                    fmt->capacity *= 2;
+                    format_spec_t *new_specs = REALLOC_SPECS(fmt->specs, fmt->capacity);
+                    if (!new_specs) {
+                        format_free(fmt);
+                        return NULL;
+                    }
+                    fmt->specs = new_specs;
+                }
+                fmt->specs[fmt->num_specs++] = lit;
                 pos++;
                 continue;
             }
@@ -1414,6 +1435,28 @@ static format_string_t* parse_qbasic_format(const char *format_str)
             
             /* Ensure we parsed at least something numeric */
             if (before_decimal == 0 && after_decimal == 0 && pos == spec_start) {
+                /* This might be a literal character - create a literal spec for it */
+                format_spec_t lit;
+                lit.type = SPEC_TYPE_LITERAL;
+                lit.detail.literal.length = 1;
+                lit.detail.literal.text = (char*)malloc(2);
+                if (!lit.detail.literal.text) {
+                    format_free(fmt);
+                    return NULL;
+                }
+                lit.detail.literal.text[0] = c;
+                lit.detail.literal.text[1] = '\0';
+                
+                if (fmt->num_specs >= fmt->capacity) {
+                    fmt->capacity *= 2;
+                    format_spec_t *new_specs = REALLOC_SPECS(fmt->specs, fmt->capacity);
+                    if (!new_specs) {
+                        format_free(fmt);
+                        return NULL;
+                    }
+                    fmt->specs = new_specs;
+                }
+                fmt->specs[fmt->num_specs++] = lit;
                 pos++;
                 continue;
             }
