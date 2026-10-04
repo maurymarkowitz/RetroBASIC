@@ -96,6 +96,7 @@ OF        { return OF; }
 ON        { return ON; }
 POKE      { return POKE; }
 PRINT     { return PRINT; }
+\?        { return PRINT; }  /* ? is an alias for PRINT in many BASIC dialects */
 READ      { return READ; }
 REDIM     { return REDIM; }
 RESTORE   { return RESTORE; }
