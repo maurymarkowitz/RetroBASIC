@@ -1560,7 +1560,7 @@ This program produces:
 
     The ASCII codes for the string 'hello' are: 104       101       108       108       111
 
-The length of the string is stored in the zero slot, so if the string length changes this slot has to be changed as well. For instance, we can modify the code above to add "world" to the end of the string:
+The length of the string is stored in the zero slot, so if the code changes the string length, this slot has to be changed as well. For instance, we can modify the code above to add "world" to the end of the string:
 
     80 X(6)=119:X(7)=111:X(8)=114:X(9)=108:X(10)=100
     90 X(0)=10
@@ -1577,9 +1577,9 @@ RetroBASIC supports the standard set of arithmetic operators: `+` for addition, 
 
 `DIV` is used for integer division, which produces the result with any fractional part left off, so `7 DIV 3` returns 2. The `MOD` operator returns the remainder of the division, so that `A = 7.5 MOD 3.5` produces 0.5. Some dialects perform an `INT` on the result, so `7.5 MOD 3.5` returns 0, not 0.5. Others support this functionality using functions, not operators, as detailed in the function section below.
 
-RetroBASIC also supports the operator-style `MIN` and `MAX`, found in DG and BASIC75 (among others), which return the smaller or larger of the two expressions. `A = A MAX 5` will set A to either the current value of A if it is larger than 5, or 5 if A is currently smaller than 5. See the sections on the functional versions of these statements for more information.
+RetroBASIC also supports the operator-style `MIN` and `MAX`, found in Data General and BASIC75 (among others), which return the smaller or larger of the two expressions. `B = A MAX 5` will set A to either the current value of B if it is larger than 5, or 5 if B is currently smaller than 5. See the sections on the functional versions of these statements for more information.
 
-RetroBASIC follows MS's conventions for operator precedence, with parenthetical items and then exponents, multiplication and division, and finally addition and subtraction.
+RetroBASIC follows MS's conventions for operator precedence, with parenthetical items and then exponents, multiplication and division, and finally addition and subtraction. This may result in odd behavior when running programs from dialects that had different precedence, but these tend to be relatively rare.
 
 <!-- TOC --><a name="logical-operators"></a>
 ### Logical operators

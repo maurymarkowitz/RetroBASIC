@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=RetroBASIC
+Comment=Multi-dialect BASIC interpreter for running classic BASIC programs
+Exec=retrobasic %f
+Terminal=true
+Categories=Development;Utility;
+Icon=accessories-text-editor
+StartupNotify=true
+MimeType=text/x-basic;
