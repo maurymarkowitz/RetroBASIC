@@ -1,5 +1,9 @@
 RetroBASIC version history
 
+Version 3.0.8 - 5 October 2026
+- added .desktop file for Linux desktop integration (launch from applications menu, open .bas files directly)
+- moved .desktop file to src/ directory for cleaner repository structure
+
 Version 3.0.7 - 4 October 2026
 - added ? as a PRINT alias in program lines, before it only worked in immediate mode
 - fixed an issue in PRINT USING where format strings containing the letter "e" (like "Number:##") were missing the "e" in the output because it thought it was the exponent marker
@@ -7,7 +11,7 @@ Version 3.0.7 - 4 October 2026
 
 Version 3.0.6 - 23 September 2026
 - added support for --dartmouth-loops/-l which skips the loop body if the exit condition is met on entry, like FOR I=1 TO 0
-- added support for \ as a statement separator, used in DEC dilects
+- added support for \ as a statement separator, used in DEC dialects
 - added CLK() function, which returns fractional hours since midnight, from BASIC-PLUS
 - fixed an issue in string comparisons
 - fixed an issue after early exits and then re-entering FOR loops with the same index var
@@ -192,54 +196,3 @@ Version 1.7.0 - 30 May 2023
 
 - initial support for string slicing dialects like HP and Atari, use -s flag
 - added missing comparison operators for strings, <, >, <=, >=
-
-Version 1.6.3 - 2 January 2023
-
-- fix SEG, which uses start and end positions, not a length
-
-Version 1.6.2 - 2 January 2023
-
-- added SEG and SUBSTR, aliases for MID found in PDP-8 and others
-
-Version 1.6 - 31 December 2022
-
-- added code to check real DIM limits even if defaulted to 11
-
-Version 1.5 - 22 October 2022
-
-- using stdbool instead of rolling my own boolean enum
-- added CLR, the MS analog of CLEAR
-- added TIME, TIME$, and the ability to reset the clock
-- added unDIMed variables, all subscripts now have a minimum dimension of 11 (0 to 10)
-
-Version 1.4 - 2 September 2022
-
-- removing POSIX and GNU calls to make it more compatible with MSVC
-
-Version 1.3 - 18 August 2022
-
-- removed GList, GTree and the GLib library itself
-- added UCASE and LCASE
-- added CHANGE command from Dartmouth v4, which required...
-- arrays/matrices now have an index 0 no matter the value of OPTION BASE.
-    this is because the length of the string is placed in index 0.
-    a 1-based system that accesses 0 will no longer cause an error but
-    this should not occur in known-good code
-- added several changes to allow building using the makefile (thanks SK!)
-
-Version 1.2 - 19 July 2022
-
-- removed GString and replaced them with normal C char-based strings
-
-Version 1.1 - 2 June 2022
-
-- added support for ANSI and HP style string slicing
-- user defined functions correctly use local variables and expressions
-- refactored code into a more canonical C form
-
-Version 1.0 - initial release, 2020
-
-- basic functionality needed to run all games in BASIC Computer Games
-- limited to the syntax and features of early MS BASICS like Commodore BASIC 1.x
-- user defined functions do not substitute parameter values, they calculate
-    based on the value of the same named global variable (**bug**)
