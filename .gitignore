@@ -28,4 +28,7 @@ parse.output
 */.obj
 tests/
 
+# test files
+test_*.bas
+
 .DS_Store
