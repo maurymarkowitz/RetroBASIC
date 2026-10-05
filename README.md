@@ -56,6 +56,11 @@ Windows compatibility is provided using MinGW, which needs to be installed manua
 
 Both platforms support `make install` which adds the manuals to the proper locations, and `make uninstall` to cleanly remove all the parts. `make install` defaults to `/usr/local`; override with `PREFIX` if needed (for example `make PREFIX=/opt/retrobasic install`).
 
+On Linux systems, `make install` also installs a `.desktop` file that enables:
+- Launching RetroBASIC from the application menu
+- Opening `.bas` files directly with RetroBASIC from the file manager
+- Double-clicking the executable to launch RetroBASIC in a terminal window
+
 ## Running RetroBASIC with an existing program
 
 RetroBASIC is generally used to run existing programs, saved to a text file normally with the extension `.bas`. You can use it this way using a command similar to this example, replacing the `program.bas` with the name of the text file containing the BASIC program you wish to run:

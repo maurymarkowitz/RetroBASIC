@@ -30,6 +30,11 @@ Optional install, which adds documentation, examples and the man entry:
 make install
 ```
 
+On Linux systems, `make install` also installs the `.desktop` file to `$(PREFIX)/share/applications/`, which enables:
+- Launching RetroBASIC from the application menu
+- Opening `.bas` files with RetroBASIC from the file manager
+- Integration with the Linux desktop environment
+
 Optional uninstall:
 
 ```sh
