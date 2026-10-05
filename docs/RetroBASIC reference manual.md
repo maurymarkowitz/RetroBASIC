@@ -1436,9 +1436,9 @@ As the separator is the comma, strings that contains commas have to be quoted:
 <!-- TOC --><a name="read-varvar"></a>
 ### `READ` *var*[,*var*...]
 
-When the program first encounters a `READ` statement, it searches through the program for the first `DATA` statement and sets a pointer to the first value in that statement. The value at the pointer is then read into the associated *var*. One or more variables can be read in a single `READ`, with the variables separated by commas. As each variable is read, the pointer is moved forward one location in the list of values. This process continues across statements and lines until it reaches the last value in the last `DATA` statement in the program, at which point any further `READ`s will cause an error.
+When the program first encounters a `READ` statement, it searches through the program for the first `DATA` statement and sets a pointer to the first value in that statement. The value at the pointer is then read into the associated *var*. One or more variables can be read in a single `READ`, with the variables separated by commas. As each variable is read, the pointer is moved forward one location in the list of values. This process continues across statements and lines until it reaches the last value in the last `DATA` statement in the program, at which point any further `READ`s will raise an error.
 
-`READ` does not care about the type of the data in the `DATA` statement, that is determined by the variable type. It will only return an error if the variable is numeric and the data item cannot be converted to a number, like `1x5`. In the opposite case, where a string variable reads what looks like a numeric value in the `DATA`, it will be treated as an unquoted string. That is, the number `1.2345` will be treated as `"1.2345"`.
+`READ` does not care about the type of the data in the `DATA` statement, that is determined by the variable type. It will return an error if the variable is numeric and the data item cannot be converted to a number, like `1x5`. In the opposite case, where a string variable reads what looks like a numeric value in the `DATA`, it will be treated as an unquoted string. That is, the number `1.2345` will be treated as `"1.2345"`.
 
 #### Examples:
 
@@ -1512,13 +1512,13 @@ A number of later BASICs added a variation on `POKE` that allowed a 16-bit value
 <!-- TOC --><a name="randomize-aexptimer"></a>
 ### `RANDOMIZE` [{*aexp*|`TIMER`}]
 
-In most dialects of BASIC, random numbers returned by the `RND` function are based on an internal mathematical function that produces a new value based on the last one. When a program is first `RUN`, the first number in the sequence is normally zero, and thus every time the program is run, it will produce the same series of values. For a program that is using `RND`, this is generally the opposite of what is desired.
+In most dialects of BASIC, random numbers returned by the `RND` function are based on an internal mathematical function that produces a new value based on the last one. When a program is first `RUN`, the first number in the sequence is normally zero and every time the program is run it will produce the same series of values. Since programs using `RND` are generally trying to produce different values every time, this is the opposite of what is desired.
 
-To address this problem, some dialects include the `RANDOMIZE` statement to set this initial value, or *seed*. When used alone, with no *aexp*, it uses a platform-specific solution to generate a new starting number so it is not zero. With a `RANDOMIZE` statement near the top, the program will produce a different series of numbers with `RND` every time the program is run, which is what is desired.
+To address this problem, some dialects include the `RANDOMIZE` statement to set this initial value, or *seed*. When used alone, with no *aexp*, it uses a platform-specific solution to generate a new starting number so it is not zero. These generally work by generating a seed by applying a formula to some internal hardware value, normally using the internal realtime clock or a timer on the video circuitry. With a `RANDOMIZE` statement near the top of the program, the program will produce a different series of numbers with `RND` every time it runs.
 
-Although `RANDOMIZE` is generally used to produce random seed values, it is also extremely useful during testing and debugging when the opposite is desired. Using the optional *aexp* to set the seed to a specific value will cause the same series of numbers to be returned every time, which makes it much easier to track down problems without the behavior of the program changing every time it runs. In these cases, a `RANDOMIZE 0` near the top of the program is very common.
+Although `RANDOMIZE` is generally used to produce randomized seed values, it is also extremely useful during testing and debugging when the opposite is desired. Using the optional *aexp* to set the seed to a specific value will cause the same series of numbers to be returned every time, which makes it much easier to track down problems without the behavior of the program changing every time it runs. In these cases, a `RANDOMIZE 0` near the top of the program is very common.
 
-Later dialects, those developed for home computers, often lack the `RANDOMIZE` statement. Instead, they generate random numbers by applying a formula to some internal hardware value, normally a timer on the video circuitry or the internal realtime clock. This makes the random number system very simple to implement, it runs quickly, and there is no need to `RANDOMIZE` as even the shortest delays when `RUN`ning the program will be sufficient to produce completely random values. `RANDOMIZE` is still useful in the debugging cases, so some dialects included it, while others allowed negative inputs to `RND` to produce `RANDOMIZE`-like results. See `RND` for further details.
+Later dialects, including most of those developed for home computers, normally lack the `RANDOMIZE` statement. Instead, they use a modified version of `RND` that offers the same basic functionality by putting different values in the parameter. `RANDOMIZE` is still useful in the debugging cases, so some dialects included it, while others allowed negative inputs to `RND` to produce `RANDOMIZE`-like results. See `RND` for further details.
 
 #### Variations:
 
@@ -1526,7 +1526,7 @@ Sinclair BASICs use `RAND` as a short form for `RANDOMIZE`.
 
 GW-BASIC has the additional oddity that if the *aexp* is left out, it will pause and ask the user for a seed value in a fashion similar to an `INPUT` statement. This is not supported in RetroBASIC, as too many dialects interpret this as set-seed-to-random-value.
 
-In GW, to get the same behavior as other dialects that use the clock as a seed, one uses the `RANDOMIZE TIMER` variation. This is almost always found in GW programs. This *is* supported in RetroBASIC.
+In GW, to get the same behavior as other dialects that use the clock as a seed, one uses the `RANDOMIZE TIMER` variation. This is almost always found in GW programs, the parameter-less version appears to be non-existant in real-world programs. This *is* supported in RetroBASIC.
 
 #### Notes:
 
