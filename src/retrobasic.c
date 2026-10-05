@@ -2346,9 +2346,9 @@ static void print_value(value_t v, const char *format, FILE* fp)
     switch (v.type) {
       case NUMBER:
       {
-        // for some reason, PRINT adds a space at the end of numbers
+        // BASIC adds a space before numbers (for the sign) but not after
         char* a = number_to_string(v.number);
-        interpreter_state.cursor_column += fprintf(out, "%s ", a);
+        interpreter_state.cursor_column += fprintf(out, "%s", a);
       }
         break;
       case STRING:
