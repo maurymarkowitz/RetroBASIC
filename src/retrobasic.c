@@ -5015,9 +5015,13 @@ EXIT_MAT_INPUT:
         // odd. To get the Dartmouth behaviour in GW, one uses RANDOMIZE TIMER
         // which is even more odd.
         
-        // see if there's a parameter, if not, seed time
-        if (statement->parms.generic.generic_parameter == NULL)
-          srand((unsigned int)time(NULL));
+        // see if there's a parameter, if not, seed time -- unless -r gave
+        // an explicit seed for regression testing, which a clock reseed
+        // would silently discard (random_seed defaults to -1, "not passed")
+        if (statement->parms.generic.generic_parameter == NULL) {
+          if (random_seed == -1)
+            srand((unsigned int)time(NULL));
+        }
         else {
           value_t seed_value = evaluate_expression(statement->parms.generic.generic_parameter);
           if (seed_value.type == NUMBER) {
@@ -5025,7 +5029,8 @@ EXIT_MAT_INPUT:
           }
           else if (seed_value.type == STRING) {
               if (strcmp(str_toupper(seed_value.string), "TIMER")) {
-                srand((unsigned int)time(NULL));
+                if (random_seed == -1)
+                  srand((unsigned int)time(NULL));
               } else{
                 handle_error(ern_TYPE_MISMATCH, "RANDOMIZE being called with string value");
                 break;
