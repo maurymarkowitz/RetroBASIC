@@ -1,8 +1,10 @@
 RetroBASIC version history
 
+Version 3.0.9 - 7 October 2026
+- reverting change to PRINT spacing after numbers
+
 Version 3.0.8 - 5 October 2026
 - added .desktop file for Linux desktop integration (launch from applications menu, open .bas files directly)
-- moved .desktop file to src/ directory for cleaner repository structure
 
 Version 3.0.7 - 4 October 2026
 - added ? as a PRINT alias in program lines, before it only worked in immediate mode
