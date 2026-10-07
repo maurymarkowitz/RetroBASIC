@@ -4919,6 +4919,13 @@ EXIT_MAT_INPUT:
 				}
 				// No format string, use traditional PRINT behavior
 				else {
+					// a number prints with a leading space (for the sign) but no trailing one,
+					// so a number followed by a string runs together; remember the previous
+					// value so that separator can be restored without bringing back the
+					// trailing space that 3.0.7 deliberately removed
+					bool previous_was_number = false;
+					int previous_separator = 0;
+					
 					// now loop over the items in the print list
 					for (list_t *I = statement->parms.print.item_list; I != NULL; I = lst_next(I)) {
 						pp = I->data;
@@ -4927,7 +4934,16 @@ EXIT_MAT_INPUT:
 						// but the separator itself will be handled below, so for now we just need
 						// to see if there is an expression to print
 						if (pp->expression != NULL) {
-							print_expression(pp->expression, NULL, fp);
+							value_t v = evaluate_expression(pp->expression);
+							
+							// number followed by a string on a semi-list: put back the missing separator
+							if (previous_was_number && previous_separator == ';' && v.type == STRING) {
+								fprintf(fp, " ");
+								interpreter_state.cursor_column++;
+							}
+							
+							print_value(v, NULL, fp);
+							previous_was_number = (v.type == NUMBER);
 						}
 						
 						// for each item in the list, look at the separator, if there is one
@@ -4938,6 +4954,8 @@ EXIT_MAT_INPUT:
 								fprintf(fp, " ");
 								interpreter_state.cursor_column++;
 							}
+						
+						previous_separator = pp->separator;
 					}
 					
 					// now get the last item in the list so we can see if it's a ; or ,
