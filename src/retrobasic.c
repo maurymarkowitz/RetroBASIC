@@ -5081,8 +5081,8 @@ EXIT_MAT_INPUT:
         break;
         
       case RESTORE:
-        // resets the DATA pointer
       {
+        // resets the DATA pointer
         int linenum;
         if (statement->parms.generic.generic_parameter != NULL) {
           value_t line = evaluate_expression(statement->parms.generic.generic_parameter);
@@ -5101,6 +5101,9 @@ EXIT_MAT_INPUT:
         
       case CONT:
       {
+        // only fails if there is no statement to resume from,
+        // which means it will continue with old data in the case of
+        // FOR loops or GOSUBs, 
         list_t *resume_statement = interpreter_state.next_statement;
         if (resume_statement == NULL)
           resume_statement = interpreter_state.break_resume_point;

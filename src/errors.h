@@ -84,7 +84,7 @@
 #define ern_LOAD_ERROR        38     // program failed to load from cassette. unused in RetroBASIC
 #define ern_VERIFY_ERROR      39     // program failed to verify on saving to cassette. unused in RetroBASIC
 #define ern_OUT_OF_STACK      40     // unused in RetroBASIC
-#define ern_CANT_CONTINUE     41     // RetroBASIC does not support CONTinue
+#define ern_CANT_CONTINUE     41     // RetroBASIC can normally continue, this only happens if not RUN
 #define ern_POP_NO_STACK      42     // a POP/EXIT/DISPOSE was called with nothing on the stack
 #define ern_OUT_OF_TEXT       43     // loading a file larger than 64. unused in RetroBASIC
 #define ern_RES_NO_TRAP       44     // a RESUME was encountered with no corresponding TRAP

@@ -1785,7 +1785,6 @@ fn_1:
   BIN  { $$ = BIN; } |
   BINSTR { $$ = BINSTR; } |
   CHR  { $$ = CHR; } |
-  CLK  { $$ = CLK; } |
   CLOG { $$ = CLOG;} |
   COS  { $$ = COS; } |
   _EOF  { $$ = _EOF; } |
