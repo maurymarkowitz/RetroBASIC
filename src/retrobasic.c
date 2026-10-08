@@ -5103,17 +5103,26 @@ EXIT_MAT_INPUT:
       {
         // only fails if there is no statement to resume from,
         // which means it will continue with old data in the case of
-        // FOR loops or GOSUBs, 
+        // FOR loops or GOSUBs
+        //
+        // if we're already running there's nothing to do
+        if (interpreter_state.running_state != 0)
+          break;
+
+        // ok we're not running, so make sure we have one
         list_t *resume_statement = interpreter_state.next_statement;
         if (resume_statement == NULL)
           resume_statement = interpreter_state.break_resume_point;
         if (resume_statement == NULL)
           resume_statement = cli_saved_continuation;
 
-        if (interpreter_state.running_state != 0 && resume_statement == NULL)
+        // if there's no statement to resume from, report an error
+        if (resume_statement == NULL) {
+          handle_error(ern_CANT_CONTINUE, "CONT being called without a break point");
           break;
+        }
 
-        if (resume_statement != NULL) {
+        // all good
           interpreter_state.current_statement = resume_statement;
           interpreter_state.next_statement = NULL;
           interpreter_state.break_resume_point = NULL;
@@ -5122,7 +5131,6 @@ EXIT_MAT_INPUT:
           clear_error();
           interpreter_state.running_state = 1;
           interpreter_run();
-        }
       }
         break;
 
