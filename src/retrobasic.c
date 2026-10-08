@@ -5020,7 +5020,7 @@ EXIT_MAT_INPUT:
         // would silently discard (random_seed defaults to -1, "not passed")
         if (statement->parms.generic.generic_parameter == NULL) {
           if (random_seed == -1)
-            srand((unsigned int)time(NULL) | (getpid() << 8));
+            srand((unsigned int)time(NULL) ^ (getpid() << 8));
         }
         else {
           value_t seed_value = evaluate_expression(statement->parms.generic.generic_parameter);
