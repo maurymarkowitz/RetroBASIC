@@ -107,6 +107,16 @@ static list_t *find_line(int linenumber);
 static int line_for_statement(const list_t *s);
 static int current_line(void);
 static int compute_first_line(void);
+/**
+ * Seeds the RNG from the clock and the process id, used at startup and by RANDOMIZE.
+ * The pid matters because time() has one-second resolution: without it, two runs started
+ * in the same second draw the identical stream.
+ */
+void seed_from_clock(void)
+{
+  srand((unsigned int)time(NULL) ^ (getpid() << 8));
+}
+
 static void perform_statement(list_t *statement_entry);
 
 static void print_variables(void);
@@ -5020,7 +5030,7 @@ EXIT_MAT_INPUT:
         // would silently discard (random_seed defaults to -1, "not passed")
         if (statement->parms.generic.generic_parameter == NULL) {
           if (random_seed == -1)
-            srand((unsigned int)time(NULL) ^ (getpid() << 8));
+            seed_from_clock();
         }
         else {
           value_t seed_value = evaluate_expression(statement->parms.generic.generic_parameter);
