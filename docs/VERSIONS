@@ -2,6 +2,8 @@ RetroBASIC version history
 
 Version 3.0.9 - 7 October 2026
 - reverting change to PRINT spacing after numbers
+- report "Can't continue" if there is no break
+- RANDOMIZE "TIMER" is now a type mismatch, as it should be
 
 Version 3.0.8 - 5 October 2026
 - added .desktop file for Linux desktop integration (launch from applications menu, open .bas files directly)

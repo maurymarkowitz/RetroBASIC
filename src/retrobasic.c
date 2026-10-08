@@ -5026,15 +5026,9 @@ EXIT_MAT_INPUT:
           value_t seed_value = evaluate_expression(statement->parms.generic.generic_parameter);
           if (seed_value.type == NUMBER) {
             srand(seed_value.number);
-          }
-          else if (seed_value.type == STRING) {
-              if (strcmp(str_toupper(seed_value.string), "TIMER")) {
-                if (random_seed == -1)
-                  srand((unsigned int)time(NULL) | (getpid() << 8));
-              } else{
-                handle_error(ern_TYPE_MISMATCH, "RANDOMIZE being called with string value");
-                break;
-              }
+          } else {
+            handle_error(ern_TYPE_MISMATCH, "RANDOMIZE being called with string value");
+            break; // so we don't do the RANDs below
           }
         }
 				
