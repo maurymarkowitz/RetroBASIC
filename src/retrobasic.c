@@ -5038,7 +5038,7 @@ EXIT_MAT_INPUT:
         // would silently discard (random_seed defaults to -1, "not passed")
         if (statement->parms.generic.generic_parameter == NULL) {
           if (random_seed == -1)
-            srand((unsigned int)time(NULL) | (getpid() << 8));
+            srand((unsigned int)time(NULL) ^ (getpid() << 8));
         }
         else {
           value_t seed_value = evaluate_expression(statement->parms.generic.generic_parameter);
@@ -5048,7 +5048,7 @@ EXIT_MAT_INPUT:
           else if (seed_value.type == STRING) {
               if (strcmp(str_toupper(seed_value.string), "TIMER")) {
                 if (random_seed == -1)
-                  srand((unsigned int)time(NULL) | (getpid() << 8));
+                  srand((unsigned int)time(NULL) ^ (getpid() << 8));
               } else{
                 handle_error(ern_TYPE_MISMATCH, "RANDOMIZE being called with string value");
                 break;
