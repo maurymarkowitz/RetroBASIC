@@ -171,14 +171,25 @@ void parse_options(int argc, char *argv[])
         break;
         
       case 'r':
-        test = optarg;
-        random_seed = (int)strtol(optarg, &test, 10);
-        
-        // now see if we actually read anything, we might have been handed the
-        // next switch or option rather than a number. if so, use zero as the
-        // seed and back up the optind so it can read it correctly
-        if (test == optarg)
-          optind--;
+        // only treat -r as an override when it has a valid numeric value,
+        // filter out the case where there is something following but it's
+        // not the parameter
+        if (optarg != NULL) {
+          long parsed_seed = strtol(optarg, &test, 10);
+
+          // if getopt handed us the next token (for example a filename),
+          // give it back so normal option/file parsing can continue
+          if (test == optarg) {
+            optind--;
+            random_seed = -1;
+          } else if (*test == '\0') {
+            random_seed = (int)parsed_seed;
+          } else {
+            random_seed = -1;
+          }
+        } else {
+          random_seed = -1;
+        }
         
         break;
         
@@ -238,15 +249,7 @@ int main(int argc, char *argv[])
   }
   
   // seed the random with the provided number or randomize it
-  if (random_seed > -1)
-    srand(random_seed);
-  else
-    srand((unsigned int)time(NULL) ^ (getpid() << 8));
-  
-  // now call rand to prime the pump, see:
-  // https://stackoverflow.com/questions/76367489/srand-rand-slowly-changing-starting-value/76367884#76367884
-  (void)rand();
-  (void)rand();
+  reseed_random((double)random_seed);
 
   // enter CLI when no file was provided
   if (strlen(source_file) == 0) {

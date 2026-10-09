@@ -109,6 +109,22 @@ static int current_line(void);
 static int compute_first_line(void);
 static void perform_statement(list_t *statement_entry);
 
+/** @copydoc reseed_random */
+void reseed_random(double seed_value)
+{
+  unsigned int seed;
+
+  if (seed_value == -1.0) {
+    seed = (unsigned int)time(NULL) ^ (getpid() << 8);
+  } else {
+    seed = (unsigned int)((int)seed_value);
+  }
+
+  srand(seed);
+  (void)rand();
+  (void)rand();
+}
+
 static void print_variables(void);
 static void delete_variables(void);
 static void delete_noncommon_variables(void);
@@ -1664,12 +1680,10 @@ value_t evaluate_expression(const expression_t *expression)
             // this is the more common version of RND, with one parameter, possibly a dummy
           case RND:
           {
-            // if the parameter is negative, perform a randomize with that value
-            if (parameters[0].number < 0.0) {
-              srand(parameters[0].number);
-              // prime the RNG, see notes in main loop
-              (void)rand();
-              (void)rand();
+            // if -r was not passed and the parameter is negative, reseed with absolute value
+            // this handles the MS case where -ve values in RND are used instead of RANDOMIZE
+            if ((random_seed == -1) && (parameters[0].number < 0.0)) {
+              reseed_random(fabs(parameters[0].number));
             }
             
             // get a value between 0..<1
@@ -5012,29 +5026,38 @@ EXIT_MAT_INPUT:
         // GW BASIC and Dartmouth work differently. In Dartmouth, RANDOMIZE with no
         // parameter is supposed to select a random seed, which is what happens here.
         // in GW, it will display a prompt asking for the value, which seems
-        // odd. To get the Dartmouth behaviour in GW, one uses RANDOMIZE TIMER
+        // odd. To get the Dartmouth behaviour in GW, one uses RANDOMIZE TIMER,
         // which is even more odd.
-        
-        // see if there's a parameter, if not, seed time -- unless -r gave
-        // an explicit seed for regression testing, which a clock reseed
-        // would silently discard (random_seed defaults to -1, "not passed")
-        if (statement->parms.generic.generic_parameter == NULL) {
-          if (random_seed == -1)
-            srand((unsigned int)time(NULL) ^ (getpid() << 8));
-        }
-        else {
-          value_t seed_value = evaluate_expression(statement->parms.generic.generic_parameter);
-          if (seed_value.type == NUMBER) {
-            srand(seed_value.number);
-          } else {
-            handle_error(ern_TYPE_MISMATCH, "RANDOMIZE being called with string value");
-            break; // so we don't do the RANDs below
+        //
+        // This code follows the Dartmouth way, and ignores the TIMER if there is one.
+        // If someone does run a GW code with a bare RANDOMIZE, this will not ask the
+        // user for the value, and continues as if it had a TIMER. Looking on the web,
+        // I cannot find any examples of any (real) programs not using TIMER so I think
+        // this is safe.
+        //
+        // also note that if the user supplied an explicit seed via the -r parameter,
+        // it will override any RANDOMIZE value passed here.
+
+        // see if there was an -r parameter, and if so, use that value no matter what the
+        // statement's parameter is set to. this allows the user to override any RANDOMIZE
+        // call in the code, so they can test it without having to edit the program itself.
+        double seed = random_seed;
+
+        // if that was -1, check if there is a parameter here in the statement
+        if (seed == -1) {
+          if (statement->parms.generic.generic_parameter != NULL) {
+            value_t seed_value = evaluate_expression(statement->parms.generic.generic_parameter);
+            if (seed_value.type == NUMBER) {
+              seed = seed_value.number;
+            } else {
+              handle_error(ern_TYPE_MISMATCH, "RANDOMIZE being called with string value");
+              break;
+            }
           }
         }
-				
-				// prime the RNG, see notes in main loop
-				(void)rand();
-				(void)rand();
+
+        // we should have a valid seed now, likely -1 but...
+        reseed_random(seed);
       }
         break;
 

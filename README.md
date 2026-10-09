@@ -78,7 +78,7 @@ Command-line options include:
 `--trace`, `-t`: turn on line number tracing  
 `--tabs`: set the number of spaces for comma-separated items, defaults to 10  
 `--goto-next`, `-g`: if a branch is to a non-existent line, should it go to the next line or return an error?  
-`--random`, `-r`: seed the random number generator  
+`--random`, `-r`: seed the random number generator. the value overrides in-program `RANDOMIZE` statements and negative-seed `RND` reseeding unless they also have an expicit value  
 `--slicing`, `-s`: enable string slicing like HP, Integer, Atari, etc.  
 `--prompt`: set the interactive prompt string, default is `>`  
 `--output-file`, `-o`: redirect PRINT to the named file  

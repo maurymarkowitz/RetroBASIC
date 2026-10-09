@@ -1526,11 +1526,11 @@ Sinclair BASICs use `RAND` as a short form for `RANDOMIZE`.
 
 GW-BASIC has the additional oddity that if the *aexp* is left out, it will pause and ask the user for a seed value in a fashion similar to an `INPUT` statement. This is not supported in RetroBASIC, as too many dialects interpret this as set-seed-to-random-value.
 
-In GW, to get the same behavior as other dialects that use the clock as a seed, one uses the `RANDOMIZE TIMER` variation. This is almost always found in GW programs, the parameter-less version appears to be non-existant in real-world programs. This *is* supported in RetroBASIC.
+In GW, to get the same behavior as other dialects that use the clock as a seed, one uses the `RANDOMIZE TIMER` variation. This is almost always found in GW, the parameter-less version appears to be non-existant in real-world programs. This *is* supported in RetroBASIC.
 
 #### Notes:
 
-Because `RANDOMIZE` is so useful for debugging, and many programs do not include this statement, RetroBASIC allows the seed to be set on the command line using the `--random` switch. This allows you to set the seed without modifying the original program. This is especially useful for debugging.
+Because `RANDOMIZE` is so useful for debugging, and many programs do not include this statement, RetroBASIC allows the seed to be set on the command line using the `--random` switch. This allows you to set the seed without modifying the original program. This is especially useful for debugging. If `--random` is passed, that seed overrides any in-program `RANDOMIZE` values.
 
 #### See also:
 
@@ -1811,7 +1811,7 @@ Some home computer dialects, like Atari BASIC, used an internal hardware timer t
 
 Because this common series of operations to produce a random integer takes some time to complete, a number of dialects offered ways to generate integer values directly in a single step. Unfortunately, there is no standard solution for this functionality. Some use a separate function like `RAND`, while others modify `RND`. Among those that use `RND`, one common solution is that if the *aexp* produces any value between 0 and 1 it returns a floating point value as above, whereas larger positive values produce an integer value from 1 to the provided number. PA Tiny BASIC, Apple's Integer BASIC and BBC BASIC are examples of this style.
 
-Another common variation is found in Microsoft BASICs, although these vary across implementations. In these, a negative *aexp* is equivalent to a `RANDOMIZE` with the positive value, followed by a `RND` with a dummy value. Thus, `X=RND(-2)` performs the same operations as `RANDOMIZE 2:X=RND(1)`. As almost every other dialect uses only positive values in *aexp*, or ignores *aexp* completely, this MS-style functionality is highly compatible, and is supported in RetroBASIC.
+Another common variation is found in Microsoft BASICs, although these vary across implementations. In these, a negative *aexp* is equivalent to a `RANDOMIZE` with the positive value, followed by a `RND` with a dummy value. Thus, `X=RND(-2)` performs the same operations as `RANDOMIZE 2:X=RND(1)`. As almost every other dialect uses only positive values in *aexp*, or ignores *aexp* completely, this MS-style functionality is highly compatible, and is supported in RetroBASIC when no command-line random seed is provided. If `--random` is passed, that seed takes precedence and negative *aexp* reseeding is ignored.
 
 Because there is no way to know which of these optional varieties is being used from the source code itself, it is suggested that you use `RND(1)` in any case where it is not clearly specified.
 

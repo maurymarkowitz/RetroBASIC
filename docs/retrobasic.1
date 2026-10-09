@@ -57,7 +57,7 @@ Branches to a non-existent lines will continue on the next line, instead of rais
 .TP
 .BI -r num
 .BI --random num
-Seed the random number generator, passing 0 causes it to randomize.
+Seed the random number generator to the given value, passing nothing causes it to randomize to the internal clock. When set to a value, it overrides in-program RANDOMIZE statements and negative-seed RND reseeding.
 .TP
 .B \-s,
 .B \--slicing
@@ -108,6 +108,11 @@ option, which parses the program and then immediately exits without running the 
 may also be used for regression testing using the
 .BR -r , -i and -o
 options. The first seeds the random number generator to a given value so that subsequent runs will create the same series of events, the next reads inputs from a file recording previous interactive inputs, and the final one writes all output to another file. Diff'ing the resulting output from different versions of a program can be used to find changes.
+When
+.B -r
+is provided, that value overrides any in-program
+.B RANDOMIZE
+statement.
 
 .SH STRING HANDLING
 One area where BASIC dialects vary widely is their support for string manipulation. The original Dartmouth versions did not include string variables or functions, and new dialects ofted added their own string features.
