@@ -77,7 +77,7 @@ else
 	mkdir -p $(BINDIR) $(MANDIR)/man1 $(DOCDIR) $(DESKTOPDIR)
 	install -m 755 $(TARGET) $(BINDIR)/
 	install -m 644 docs/retrobasic.1 $(MANDIR)/man1/ 2>/dev/null || true
-	if [ -f src/retrobasic.desktop ]; then install -m 644 src/retrobasic.desktop $(DESKTOPDIR)/; fi
+	install -m 644 src/retrobasic.desktop $(DESKTOPDIR)/ 2>/dev/null || true
 	cp -r docs $(DOCDIR)/
 	@echo "Installation complete!"
 endif
