@@ -10,8 +10,6 @@ WB = Wang BASIC
 PA = Palo Alto Tiny BASIC
 BP - DEC BASIC-PLUS
 
-- "If the SPC is the last item on the line in a PRINT statement, the carriage return that would normally be inserted at the end will be suppressed. This is also true for the TAB function, as well as trailing commas or semicolons."
-
 - add parameter checking to functions, currently most of them don't check that they were passed a string/number
 
 - test and error on incorrect nesting of FOR loops, which we currently ignore
