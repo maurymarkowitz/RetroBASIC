@@ -26,7 +26,10 @@ lex.yy.c
 plans/
 parse.output
 */.obj
-tests/
+
+tests/*
+!tests/run.sh
+!tests/cases/
 
 # test files
 test_*.bas
