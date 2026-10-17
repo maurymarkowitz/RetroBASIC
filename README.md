@@ -99,7 +99,7 @@ Starting in version 3.0, RetroBASIC now includes a simple line-oriented editor t
 ```
 ./retrobasic
 
-RetroBASIC CLI 3.0.0
+RetroBASIC CLI 3.1.0
 
 > LOAD "bas/superstartrek.bas"
 > RUN
