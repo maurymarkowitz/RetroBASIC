@@ -265,6 +265,15 @@ typedef struct {
 /* and here's the link to an instance of interpreterstate_t defined in the c side */
 extern interpreterstate_t interpreter_state;
 
+/* called by main to set up the interpreter state */
+void interpreter_setup(void);
+
+/* perform post-parse setup */
+void interpreter_post_parse(void);
+
+/* the interpreter entry point */
+void interpreter_run(void);
+
 /* the only piece of the interpreter the parser needs to know about is the variable table */
 void insert_variable(const variable_reference_t *variable);
 
@@ -272,20 +281,12 @@ void insert_variable(const variable_reference_t *variable);
 int variable_type(const variable_reference_t *variable);
 value_t evaluate_expression(const expression_t *expression);
 
-/* called by main to set up the interpreter state */
-void interpreter_setup(void);
-
 /* seeds the RNG from time and process ID when seed_value is -1.
  * For any other value, the seed is converted to an int and used directly.
- * In both cases, it then calls rand() twice to stabilize the values.
+ * In both cases, it then calls rand() twice to stabilize the values. Needs
+ * to be public 
  */
 void reseed_random(double seed_value);
-
-/* perform post-parse setup */
-void interpreter_post_parse(void);
-
-/* the interpreter entry point */
-void interpreter_run(void);
 
 /* CLI helper functions */
 int interpreter_parse_cli_input(const char *input, list_t **statements);

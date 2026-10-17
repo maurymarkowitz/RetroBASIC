@@ -19,18 +19,22 @@ RetroBASIC is a multi-dialect version of the BASIC programming language intended
 - HP Timeshared BASIC
 - DEC BASIC-PLUS and its better-known cousin, Microsoft BASIC
 
-The combination of features from these different versions means that RetroBASIC can run the version of Super Star Trek found in *BASIC Computer Games* in Microsoft BASIC, but it can also run the (non-Super) Star Trek found in the earlier *101 BASIC Games*, written for DEC BASIC, and even the original Star Trek from the HP 2000. Practically any major program from any major platform should run properly without conversion.
+The combination of features from these different versions means that RetroBASIC can run the version of Super Star Trek found in *BASIC Computer Games* written in Microsoft BASIC, but it can also run the (non-Super) Star Trek found in the earlier *101 BASIC Games*, written for DEC BASIC, and even the original Star Trek from the HP 2000. Practically any major program from any major platform should run properly without conversion.
 
-Programs must be provided in plain text, better known as "source code". Small computers, including almost all home computers, normally stored BASIC programs in a compressed binary format. RetroBASIC cannot read these binary files directly, but there are a variety of programs available that will read these files and output text, which can then be run in RetroBASIC.
+If RetroBASIC is started with a filename, it reads that file and RUNs it. When started RetroBASIC without a filename, the interpreter enters an interactive CLI. Here you can enter new lines of code, run common statements, LOAD and SAVE the program, etc. The prompt shown at each command line may be customized with the `--prompt` command line switch.
 
-When starting RetroBASIC without a filename, the interpreter enters an interactive CLI. The prompt shown at each command line may be customized with the `--prompt` command line switch. Here you can enter new lines of code, run common statements, load and save the program, etc.
+In both modes, programs must be provided in plain text, better known as "source code". Small computers, including almost all home computers, normally stored BASIC programs in a compressed binary format. RetroBASIC cannot read these binary files directly, but there are a variety of programs available that will read these files and output text, which can then be run in RetroBASIC.
 
 <a name="what-retrobasic-is-not"></a>
 ### What RetroBASIC is not
 
 The goal of RetroBASIC is to allow you to run popular BASIC programs written during the language's Golden Age. As such, it does not include any platform-specific instructions like sound or graphics, as these are not portable.
 
-Likewise, file handling varies not only from dialect to dialect but even from machine to machine running the same dialect. For instance, MS BASIC on the PET has different file handling than the C64, let alone Applesoft on the Apple II. RetroBASIC does not attempt to be compatible with any single system, and is unlikely to run any programs that include file commands. It instead offers a set of generic file commands with the goal of making porting as easy as possible.
+Likewise, file handling is not portable. It varies not only from dialect to dialect but even from machine to machine running the same dialect. For instance, MS BASIC on the PET has different file handling than the C64, let alone Applesoft on the Apple II. RetroBASIC does not attempt to be compatible with any single system, and is unlikely to run any programs that include file commands. It instead offers a set of generic file commands with the goal of making porting as easy as possible.
+
+### Bug reports andfeature suggestions
+
+If you have a problem or would like to see a new feature, please [file a report on GitHub](https://github.com/maurymarkowitz/RetroBASIC/issues).
 
 ## Contents
 
@@ -50,19 +54,19 @@ Likewise, file handling varies not only from dialect to dialect but even from ma
    * [`BYE`](#bye)
    * [`CLEAR` and `CLR`](#clear-and-clr)
    * [`CLS`](#cls)
-   * [`CLS`](#cls)
-   * [`CONT`](#CONT)
+   * [`CONT`](#cont)
+   * [`CHAIN`](#chain)
    * [`LIST`](#list-command)
    * [`LOAD`](#load-filename)
    * [`NEW`, `ERASE` and `SCRATCH`](#new-erase-and-scratch)
    * [`RUN` [*aexp*]](#run-aexp)
    * [`SAVE`](#save-filename)
    * [`STOP` [*sexp*]](#stop-sexp)
-   * [Unsupported commands](#unsupported-commands)
 - [Program statements](#program-statements)
    * [{`REM`|`'`|`!`} [*scon*]](#rem-scon)
    * [[`LET`] *var*`=`*expr*](#let-varexpr)
    * [`DIM` *var*(*nexp*[,*nexp*...])[,*var*(*nexp*[,*nexp*...])...]](#dim-varnexpnexpvarnexpnexp)
+   * [`COMMON` *var*[,*var*,*...]](#common)
    * [`GOTO` *aexp* and `GO TO` *aexp*](#goto-aexp-and-go-to-aexp)
    * [`GOSUB`, `GO SUB` and `RETURN` [{*lineno*|*aexp*}]](#gosub-go-sub-and-return-linenoaexp)
    * [`IF` *lexp* `THEN` {*lineno*|*statmnt*[:*statmnt*:...]}](#if-lexp-then-linenostatmntstatmnt)
@@ -88,7 +92,7 @@ Likewise, file handling varies not only from dialect to dialect but even from ma
 - [Other statements](#other-statements)
    * [`POKE` *aexp1*,*aexp2*](#poke-aexp1aexp2)
    * [`RANDOMIZE` [*aexp*|`TIMER`]](#randomize-aexptimer)
-   * [[`CHANGE`|`CONVERT`] {*avar*|*svar*} `TO` {*svar*|*avar*}](#changeconvert-avarsvar-to-svaravar)
+   * [{`CHANGE`|`CONVERT`} {*avar*|*svar*} `TO` {*svar*|*avar*}](#changeconvert-avarsvar-to-svaravar)
 - [Operators](#operators)
    * [Mathematical operators (arithmetic)](#mathematical-operators-arithmetic)
    * [Logical operators](#logical-operators)
@@ -240,7 +244,7 @@ Note that the line number is not indicated at the front, nor are the `<return>` 
 <!-- TOC --><a name="some-underlying-concepts"></a>
 ## Some underlying concepts
 
-Programming languages, in general, use English language words and common mathematical symbols to describe a number of instructions that will be carried out in order to produce a desired result, the *program*. The textual description of a program is known as the **source code**. These instructions have to be converted into an internal format that the computer understands. The result of the conversion is the *machine code* or *p-code* depending on how the system works. This internal language can then be *executed*, or in BASIC lingo, *run*, causing the series of instructions to be carried out.
+Programming languages, in general, use English language words and common mathematical symbols to describe a number of instructions that will be carried out in order to produce a desired result. This sequence of operations is known as a *program*. The textual description of a program is known as the **source code**. These instructions have to be converted into an internal format that the computer understands. The result of the conversion is the *machine code* or *p-code* depending on how the system works. This internal language can then be *executed*, or in BASIC lingo, *run*, causing the series of instructions to be carried out.
 
 Like most computer languages, BASIC has a number of **keywords** that are reserved by the language. In BASIC, the list of keywords is normally static, meaning that users cannot add new keywords or modify the actions of existing ones. This contrasts with programming languages like ALGOL (and most modern languages) which are based around the idea of creating new keywords in code. As new keywords cannot be created in most BASIC dialects, BASIC tends to have many more reserved keywords than other languages in order to ensure the functionality you need is present.
 
@@ -248,7 +252,7 @@ In BASIC, the series of instructions that makes up a program are known as **stat
 
 So in this manual, `PRINT` is a *statement keyword* that defines a *PRINT statement*.
 
-In most dialects, a subset of the statement keywords can only be used in certain circumstances. These are known as **commands**. Commands *are* statements, and like other statement keywords, commands are normally followed by zero or more expressions to produce a complete statement. The difference between commands and other statements is largely historical, and some dialects do not have any real distinction between them.
+In most dialects, a subset of the statement keywords can only be used in certain circumstances. These are known as **commands**. Commands *are* statements, and like other statement keywords, commands are normally followed by zero or more expressions to produce a complete statement. The difference between commands and other statements is largely historical, and some dialects do not have any real distinction between them. RetroBASIC is one of these, and generally will not refer to commands.
 
 The purpose of an **expression** is to provide data to be acted on by the statements. There are many different types of expressions and much of a program's complexity is found within them. The primary types of expressions are classified by type:
 
@@ -261,7 +265,7 @@ The purpose of an **expression** is to provide data to be acted on by the statem
 
 In most dialects, variables can contain either a number value or a string value but cannot change from one to another. This split was introduced in Dartmouth BASIC, which required the user to add a dollar sign suffix to variables that wanted to hold a string value. These are known as **string variables**. Non-string variables are sometimes, but not always, referred to as **numeric variables**. A few dialects allow any variable to store any value, and these generally lack the dollar sign. This is not supported in RetroBASIC, because most dialects consider assigning one to the other to be an error, and RetroBASIC needs to report these errors.
 
-BASIC programs are generally organized over multiple **lines**, each of which contains one or more statements. A line starts with a **line number**, which acts as a label so other parts of the program can refer to it. This was also used as a way for various editing tools to allow the user to indicate which lines they wish to edit. After the line number, there is a statement keyword and then any expressions that keyword may use, forming a complete statement.
+BASIC programs are generally organized over multiple **lines**, each of which contains one or more statements. A line starts with a **line number**, which acts as a label so other parts of the program can refer to it. This was also used as a way for various editing tools to let the user indicate which lines they wanted to edit. After the line number, there is a statement keyword and then any expressions that keyword may use, forming a complete statement.
 
 Some dialects allow more than one statement on a line, sometimes known as **compound statements**. In most dialects, the statements are separated by colons, `:`. DEC EduSystem dialects mostly used backslashes, `\`, DEC's BASIC-PLUS and Data General BASIC uses the ampersand, `&`, and MAI Basic Four and Wang BASIC use semicolons, `;`. RetroBASIC accepts the colon and the backslash as a statement separator.
 
@@ -291,7 +295,7 @@ Line 40 shows an example of *overloading*, where a keyword may mean different th
 
 Line 50 is an example of a logical comparison, which is indicated by the `IF` statement keyword. This is followed by a **logical expression** (*lexp*) using the larger-than operator, which calculates the results of expressions on both sides of the operator, compares them, and then, depending on the outcome of the comparison, optionally performs the statement following the `THEN`. As `C` will hold the value 15 at this point, and 15 is larger than 10, the statement after `THEN` *will* be performed and print `C is > 10` to the console.
 
-Line 60 is the `END` statement, which takes no expression and stops the execution of the program. `END` is optional in most dialects.
+Line 60 is the `END` statement, which takes no expression and stops the execution of the program. `END` is optional in most dialects, including RetroBASIC, which simply stops if it runs out of lines.
 
 So when this program runs, it will produce:
 
@@ -308,7 +312,7 @@ One important oddity of BASIC is that it does not require delimiters between key
     50IFC>10THENPRINT"C is > 10"
     60END
 
-RetroBASIC can process many programs that are found in this "compressed" format, but the technology it is based on, flex and bison, will have problems in certain cases. Please [file a bug report on GitHub](https://github.com/maurymarkowitz/RetroBASIC/issues) if you find an example of such code that will not parse correctly. The code in the following documentation always includes spaces for clarity.
+RetroBASIC can process many programs that are found in this "compressed" format, but the technology it is based on, flex and bison, will have problems in certain cases. The code in the following documentation always includes spaces for clarity.
 
 <!-- TOC --><a name="data-in-basic-programs"></a>
 ## Data in BASIC programs
@@ -322,7 +326,7 @@ The types, capabilities and syntax of constants and variables are fairly constan
 <!-- TOC --><a name="numbers"></a>
 ### Numbers
 
-Most BASIC interpreters of the RetroBASIC era store numbers using the equivalent of a *single* type, or what would normally be known as a "decimal number" or "floating point". Unless otherwise indicated, any value will default to this type. Thus, an `I` found in a program would refer to a variable with the name "I" that holds a numeric value, initially zero. The internal format used to store the value was chosen to balance the need to save memory while maximizing precision. Microcomputers generally used 32-bit or 40-bit numeric formats, as larger formats would use up too much of the extremely limited memory available in these machines. Mainframe and minicomputer dialects generally used that platform's "natural" format, which varied widely.
+Most BASIC interpreters of the RetroBASIC era store numbers using the equivalent of a *single* type, or what would normally be known as a "decimal number" or "floating point". Unless otherwise indicated, any variable will default to this type. Thus, an `I` found in a program would refer to a variable with the name "I" that holds a numeric value, initially zero. The internal format used to store the value was chosen to balance the need to save memory while maximizing precision. Microcomputers generally used 32-bit or 40-bit numeric formats, as larger formats would use up too much of the extremely limited memory available in these machines. Mainframe and minicomputer dialects generally used that platform's "natural" format, which varied widely. Today practically everything uses a 64-bit format.
 
 Some dialects had a second number format, *integer*, or what would normally be called a "counting number" or "whole number". Later versions of Microsoft BASIC added support for integers, so this feature is widely available in home computer dialects. MS used 16-bit values for integers, potentially saving considerable amounts of memory in programs with large numbers of numeric constants. To indicate that a variable should store the value in integer format, the percent sign, `%`, was added to the end of the variable name. So, `I` would store a value in the default format, normally a 40-bit floating point value, while `I%` would store the value as a 16-bit integer. Although integer support was common on later machines, it was not backwardly compatible with earlier dialects, so it was rarely used in programs. 
 
@@ -425,9 +429,9 @@ Two dimensional arrays are fairly common, for instance:
 
 Dialects also vary based on what they consider to be the first entry in the array. Early versions of Dartmouth had slot 1 as the first entry in the array, but this was soon realized to be a mistake as it made it difficult to represent polynomials, which often have a zeroth entry. Later versions of Dartmouth added a zero to every array to correct for this. Thus, the `DIM A(10)` statement above produces an array with 11 entries in it, not 10. Debate over whether to use 0 or 1 for the first slot ran into the 1980s, but this was largely moot as MS variations always included a 0 slot and this was the *de facto* standard.
 
-As there is no indication of whether a particular program expects 0 or 1 as the first index, RetroBASIC always sets up a 0 slot just in case. This has (almost) no effect on programs; if they use index 0, it works; if not, it works. The only effect is on the `LBOUND` function, which returns the first index. This normally returns 0, but can be told to return 1 by setting the command-line switch `--array_base=1` or using the `OPTION BASE 1` statement within a program. As most dialects did not include the `LBOUND` function, it is unlikely this feature will have any effect one way or another in any real program.
+As there is no indication of whether a particular program expects 0 or 1 as the first index, RetroBASIC always sets up a 0 slot just in case. This has (almost) no effect on programs; if they use index 0, it works; if not, it works. The only effect is on the `LBOUND` function, which returns the lowest index value of an array. This normally returns 0, but can be told to return 1 by setting the command-line switch `--array_base=1` or using the `OPTION BASE 1` statement within a program. As most dialects did not include the `LBOUND` function, it is unlikely this will have any effect one way or another in any real program.
 
-There is another oddity to consider. Dartmouth sets aside a 0...10 block of memory for every numeric variable, even if it is not `DIM`med. In the example program above, A is defined to have 11 slots, and then it assigns values to the slots. This program will also work if line 10 is left out, because A will always have the default 11 slots. This is a *very* odd feature and entirely non-obvious to the point that it is rarely implemented in non-MS dialects. DEC BASIC's did copy this feature, and that did move to MS, although to this day it remains pretty much unknown and unmentioned. RetroBASIC does implement this "feature" in case there are programs that use it. To date, only one program found in the wild has made use of this feature, in every other example the arrays are `DIM`med.
+There is another oddity to consider. Dartmouth sets aside a 0...10 block of memory for every numeric variable, even if it is not `DIM`med. In the example program above, A is defined to have 11 slots, and then it assigns values to the slots. This program will also work if line 10 is left out, because A will always have the default 11 slots. This is a *very* odd feature and entirely non-obvious to the point that it is rarely implemented in non-MS dialects. DEC BASIC's did copy this feature, and that did move to MS, although to this day it remains pretty much unknown and unmentioned. RetroBASIC does implement this "feature" in case there are programs that use it. To date, only one program found in the wild has made use of this, in every other example the arrays are `DIM`med.
 
 Finally, there is the additional oddity that the parens are part of the variable name. That is, the variable `A` is a different variable than the one in `A(0)`. One can assign values to either, and they will be held separately in memory, at least in MS-derived dialects. RetroBASIC follows this convention.
 
@@ -651,7 +655,7 @@ Enterprise IS-BASIC allows the `TO` keyword to define the upper and lower limits
 * [`OPTION BASE`](#option-base-01)
 * [`String slicing`](#string-slicing)
 
-<!-- TOC --><a name="dim-varnexpnexpvarnexpnexp"></a>
+<!-- TOC --><a name="common"></a>
 ### {`COMMON`|`COM`} *var*[,*var*,...]
 
 `COMMON` is similar to `DIM` in syntax, but allows both array variables and scalars. When encountered, it sets up the variable like a `DIM`, but also marks the variable "common". Any variable marked common is not removed when another program is loaded using `CHAIN`, allowing values to be passed from program to program. They are cleared when `RUN` or `LOAD` is called, and cleared to default values, 0 or "", when `CLEAR` is called.
@@ -1331,7 +1335,7 @@ Neither of these is currently supported in RetroBASIC, although `PRINT USING` ca
 <!-- TOC --><a name="print-using-expexp"></a>
 ### `PRINT USING` [*exp*]{,|;}*exp*[{|[;|,]},...]]
 
-`PRINT USING` is a variation of the `PRINT` statement that adds a *format string* or *image* that defines how the following expressions should be formatted. This can define, for instance, how floating point numbers should be printed, including the number of digits after the decimal point, or to add a dollar sign at the front. There are a wide variety of formatting strings supported by various dialects, including HP TimeShare, MS-BASIC-80, and QBasic. RetroBASIC automatically detects and supports all three styles.
+`PRINT USING` is a variation of the `PRINT` statement that adds a *format string* or *image* that defines how the following expressions should be formatted. This can define, for instance, how floating point numbers should be printed, including the number of digits after the decimal point, or to add a dollar sign at the front. There are a wide variety of formatting strings supported by various dialects, but the most common styles are found in HP TimeShare, MS-BASIC-80, and QBasic. RetroBASIC automatically detects and supports all three styles.
 
 The most common variations allow a string constant to be placed directly after the `USING`. The string contains special characters that indicate what should be printed at that location. Other characters found in the image are output as-is. One of the most commonly used special characters is the hash, `#`, which indicates a digit should be printed in that location. Values can be forced to integer format using an image string like `"####`" or currency format with `"###.##"`. Because other characters are output as-is, a typical image mixes both normal characters and special, for instance, `"The price is $####.## per pound."`
 
@@ -1361,7 +1365,7 @@ MAI Basic Four does not use the `USING` keyword, instead, any `PRINT` statement 
 
 *Illustrating BASIC* notes that "one BASIC uses % not :" for specifying an `IMAGE` line, but the book does not specify which BASIC that is. It also notes that "N.C.C Standard BASIC" suggests the separator between the image specification and expression list is a colon, although no dialect that actually followed that rule can be found. N.C.C likely refers to the UK's National Curriculum Council, which may mean this was a suggested standard that was never implemented in actual code.
 
-BASIC75 contains a very different `USING` keyword statement. It acts like a `GOSUB` that returns after that single line is complete, in a fashion similar to JOSS and FOCAL's `Do line` statement. This appears to be used to make a `SELECT CASE...` like statement, but why one would not just use `ON...GOSUB...` for this is not clear. While it would be possible to support this variation, RetroBASIC currently does not do so.
+BASIC75 contains a very different `USING` keyword statement. It acts like a `GOSUB` that returns after that single line is complete, in a fashion similar to JOSS and FOCAL's `Do line` statement. It appears this was intended to be used to make a `SELECT CASE...` like statement, but why one would not just use `ON...GOSUB...` for this is not clear. While it would be possible to support this variation, RetroBASIC currently does not do so.
 
 #### See also:
 
@@ -1373,7 +1377,7 @@ BASIC75 contains a very different `USING` keyword statement. It acts like a `GOS
 
 The `IMAGE` statement defines a format string separately from the `PRINT` statement, allowing the format to be reused or separated from the output logic. The line number given by *lineno* identifies the line containing the format image, and `PRINT USING` can refer back to it. This style comes from HP TimeShare BASIC and some other dialects, which are mirroring the way this functionality worked in Fortran, where one defined the format string in a `FORMAT` statement and then referred to it by line number.
 
-In RetroBASIC, the `IMAGE` statement is primarily used with HP-style `PRINT USING` formats, where the image line contains the HP IMAGE directives such as `D`, `A`, `X`, `S`, and literal text. RetroBASIC also allows `IMAGE` to be used with MS-BASIC-80 and QBasic-style format strings, although these would be unlikely to be found in the wild since they are typically used inline with `PRINT USING`.
+In RetroBASIC, the `IMAGE` statement is primarily used with HP-style `PRINT USING` formats, where the image line contains the HP IMAGE directives such as `D`, `A`, `X`, `S`, and literal text. RetroBASIC also allows `IMAGE` to be used with MS-BASIC-80 and QBasic-style format strings as well, although these would be unlikely to be found in the wild since they are typically used inline with `PRINT USING`.
 
 For a complete description of the formatting strings that `IMAGE` supports (HP, MS-BASIC-80, and QBasic styles), see the section on [format strings](#format-strings).
 
@@ -1408,12 +1412,14 @@ Writes a single byte from *var* to the screen. If *var* is a numeric variable it
 
 `DATA`, `READ` and `RESTORE` statements are used to store and process multiple constants in the program source code.
 
-Early versions of Dartmouth BASIC lacked the ability to work with data files, which made it difficult to store data for use in a program. While one could implement this using multiple assignment statements, this made the code lengthy and difficult to understand. To solve this problem, the `DATA` statement was introduced, which allows constant values to be stored in a compact format. The `READ` statement retrieves these values, and `RESTORE` resets the `READ` to the first `DATA`. The system simulates reading data from a file that can only read forward and then be re-wound to the start.
+Early versions of Dartmouth BASIC lacked the ability to work with data files, which made it difficult to store data for use in a program. While one could implement this using multiple assignment statements, this made the code lengthy and difficult to understand.
+
+To solve this problem, the `DATA` statement was introduced, which allows constant values to be stored in a compact format. The `READ` statement retrieves these values, and `RESTORE` resets the `READ` to the first `DATA`. The system simulates reading data from a file that can only read forward and then be re-wound to the start.
 
 <!-- TOC --><a name="data-concon"></a>
 ### `DATA` *con*[,*con*...]
 
-`DATA` is followed by a comma-separated list of constants, either strings or numbers. There can be any number of `DATA` statements in a program and any number of values per statement, up to the maximum line length on that platform. One curiosity of the syntax is that any leading or trailing whitespace will be removed. Another is that string values do not require quote delimiters, unless the string contains a comma, colon, or deliberate whitespace at the start or end.
+`DATA` is followed by a comma-separated list of constants, either strings or numbers. There can be any number of `DATA` statements in a program and any number of values per statement, up to the maximum line length on that platform. One curiosity of the syntax is that any leading or trailing whitespace between the values will be removed. Another is that string values do not require quote delimiters, unless the string contains a comma, colon, or deliberate whitespace at the start or end.
 
 #### Examples:
 
@@ -2199,7 +2205,7 @@ This will print "H", as the "!" format string means "return first character only
 
 String slicing is an alternative way to manipulate strings and produce substrings. A "slice" is a substring defined as a starting and ending location within an existing string. Although slicing instructions are not functions in the traditional sense, they produce results similar to the `MID/LEFT/RIGHT` functions seen in the DEC and Microsoft dialects. The major difference between the slicing concept and string functions is that the functions take a location and length, not start and end locations. This can result in off-by-one errors when converting code from one system to another.
 
-Slicing syntax is generally similar to accessing a slot in an array, but the exact syntax varies across dialects. For instance, in most dialects `A$(1,5)` returns a slice with the first five characters of A$, which produces the same result as `MID$(A$,1,5)` or `LEFT(A$,5)`. They also vary in the way the parameters are separated, most dialects use a comma, but Sinclair uses the `TO` keyword, like `A$(1 TO 5)` and the (little used) Full BASIC used the colon, `A$(1:5)`.
+Slicing syntax is generally similar to accessing a slot in an array, but the exact syntax varies across dialects. For instance, in most slicing dialects `A$(1,5)` returns a slice with the first five characters of A$, which produces the same result as `MID$(A$,1,5)` or `LEFT(A$,5)`. They also vary in the way the parameters are separated, most dialects use a comma, but Sinclair uses the `TO` keyword, like `A$(1 TO 5)` and the (little used) Full BASIC used the colon, `A$(1:5)`.
 
 Most slicing implementations allow one or two parameters, with the second parameter optional. Generally, if there is only one parameter it indicates a single character at that location, thus `A$(5)` is the fifth character in the string. To access the portion of the string after a given location, most dialects allowed the second parameter to be empty, `A$(5,)` means "character 5 to the end of the string". This is very useful, as it means you don't have to know the length of the string when performing common manipulations.
 
@@ -2308,7 +2314,7 @@ The TRS-80 II and Genie/Color Genie uses `MEM` for this function, while `FRE` al
 
 `NUM` is a function with two completely different uses.
 
-The main purpose of this function is to return the number of items typed into the last `INPUT` or `MAT INPUT` statement. This was initially introduced in dialects that had matrix support, as it was common for users to enter a blank value in order to stop the `INPUT` statement in the case of large matrices - they may only want to type in five values for a 10 by 10 matrix for instance. The program could then use `NUM` to test whether the entire matrix had been filled out, and then, for instance, fill out the slots for any non-entered values with zero or some other value.
+The main purpose of this function is to return the number of items typed into the last `INPUT` or `MAT INPUT` statement. This was initially introduced in dialects that had matrix support, as it was common for users to enter a blank value in order to stop the `INPUT` statement in the case of large matrices - they may only want to type in five values for a 10 by 10 matrix for instance. The program could use `NUM` to test whether the entire matrix had been filled out, and then, for instance, fill out the slots for any non-entered values with zero or some other value.
 
 In RetroBASIC, the functionality of `NUM` has been expanded to also work with conventional `INPUT` statements. Early dialects of BASIC generally stopped execution if the user entered an empty value, typically by pressing <return>. Commodore BASIC on the PET is an example. Later versions mostly allowed empty inputs and simply continued execution from that point. The C64 is an example of this style. In this latter case, `NUM` is just as useful in normal `INPUT` statements as it is in `MAT`.
 
@@ -2367,7 +2373,7 @@ Produces:
 <!-- TOC --><a name="tabaexp"></a>
 ### `TAB`(*aexp*)
 
-`TAB` is used to line up output in tabular format, by specifying the same *aexp* for values that should be aligned. In most dialects, it can only be used in `PRINT` statements.
+`TAB` is used to line up output in tabular format, by specifying the same *aexp* for values that should be aligned. For instance, one can align a column of numbers by using `TAB(10)`.
 
 In most dialects, `TAB` is a pseudo-function that does not return a value; instead, it directly advances the cursor to the column given by *aexp*. For instance, in MS dialects, `A$=TAB(10)` will return a syntax error when run. In RetroBASIC, `TAB` *does* return a string, one containing enough spaces to advance from the current `POS` to the indicated column.
 
@@ -2422,7 +2428,7 @@ BASIC75 uses the parameter as *aexp*, with the numeric value changing which part
 <!-- TOC --><a name="clk"></a>
 ### `CLK`(*dexp*)
 
-`CLK` that returns the current time as fractional hours since midnight. The function can be called either as `CLK` (arity-0, no parentheses) or `CLK(x)` (arity-1, where the parameter is ignored). This form is found in BASIC-PLUS and Univac System 9.
+`CLK` returns the current time as fractional hours since midnight. The function can be called either as `CLK` (arity-0, no parentheses) or `CLK(x)` (arity-1, where the parameter is ignored). This form is found in BASIC-PLUS and Univac System 9.
 
 #### Examples:
 
@@ -3143,7 +3149,7 @@ There is no current error code. Commodore BASIC 3.5 used -1 for this, but 0 is m
 
 1  
 TOO MANY FILES  
-The program is attempting to open a file with too many already open.
+The program is attempting to open a file with too many already open. RetroBASIC allows up to sixteen open files, other dialects are generally similar values.
 
 2  
 FILE OPEN  
@@ -3159,7 +3165,7 @@ Attempt to open a file but the file cannot be found at the provided path, or the
 
 5  
 DEVICE NOT PRESENT  
-The file is on a device that is not responding. Not used in RetroBASIC.
+The file is on a device that is not responding. Not used in RetroBASIC, where all devices are files and a FILE NOT FOUND will be returned in these cases.
 
 6  
 FILE NOT INPUT  
@@ -3179,11 +3185,11 @@ Attempt to open a file on a non-existent device. Not used in RetroBASIC.
 
 14  
 BREAK  
-Indicates that the BREAK key was pressed and entered the handler. Not used in RetroBASIC, `ON BREAK` is used for this instead.
+Indicates that the BREAK key was pressed and entered the handler. Not used in RetroBASIC, `ON BREAK` is used for this instead and no error code is set when the BREAK key is pressed.
 
 15  
 EXTRA IGNORED  
-More items were entered during an INPUT than there are variables to hold it. Extra items at the end are ignored.
+More items were entered during an INPUT than there are variables to hold it. Extra items at the end were ignored. This is reported to the terminal, but unlike most errors, does not stop the program.
 
 16  
 REDO FROM START  
@@ -3219,7 +3225,7 @@ The system has run out of memory, or the runtime stack has run out of room. Not 
 
 27  
 UNDEFINED STATEMENT  
-Branch (THEN/GOTO/GOSUB) to a non-existing line.
+Branch (THEN/GOTO/GOSUB) to a non-existing line. This will not occur if the `--goto-next` (`-g`) command line switch is turned on.
 
 28  
 BAD SUBSCRIPT  
@@ -3235,7 +3241,7 @@ Any division by zero, including integer division, MOD, etc.
 
 31  
 ILLEGAL DIRECT  
-A statement was entered in direct mode that can only be used in program mode. Examples are INPUT and GET. Not currently supported.
+A statement was entered in direct mode that can only be used in program mode. Examples are INPUT and GET. Not currently used.
 
 32  
 TYPE MISMATCH  
@@ -3243,7 +3249,7 @@ A number was provided to a string parameter or vice versa.
 
 33  
 STRING TOO LONG  
-Unused in RetroBASIC, where string sizes are effectively unlimited.
+A string has been constructed that is too long for that dialect. This is often 256 characters, or a smaller value selected by the user at startup. Unused in RetroBASIC, where string sizes are effectively unlimited.
 
 34  
 FILE DATA  

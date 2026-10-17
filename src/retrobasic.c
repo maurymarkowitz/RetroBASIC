@@ -5643,7 +5643,6 @@ void interpreter_post_parse(void)
 /* the main loop for the program */
 void interpreter_run(void)
 {
-
   // the cursor starts in col 0
   interpreter_state.cursor_column = 0;
   
