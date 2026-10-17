@@ -31,4 +31,7 @@ tests/
 # test files
 test_*.bas
 
+# Copilot instructions (workspace-specific, do not commit)
+copilot-instructions.md
+
 .DS_Store
