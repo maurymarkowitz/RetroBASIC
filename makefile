@@ -79,7 +79,7 @@ else
 	mkdir -p $(BINDIR) $(MANDIR)/man1 $(DOCDIR)
 	ifeq ($(shell uname -s),Linux)
 		mkdir -p $(DESKTOPDIR)
-		install -m 644 src/retrobasic.desktop $(DESKTOPDIR)/
+		if [ -f src/retrobasic.desktop ]; then install -m 644 src/retrobasic.desktop $(DESKTOPDIR)/; fi
 	endif
 	install -m 755 $(TARGET) $(BINDIR)/
 	install -m 644 docs/retrobasic.1 $(MANDIR)/man1/ 2>/dev/null || true
