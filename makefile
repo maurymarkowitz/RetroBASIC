@@ -55,7 +55,9 @@ else
     BINDIR ?= $(PREFIX)/bin
     MANDIR ?= $(PREFIX)/share/man
     DOCDIR ?= $(PREFIX)/share/doc/retrobasic
-    DESKTOPDIR ?= $(PREFIX)/share/applications
+    ifeq ($(shell uname -s),Linux)
+        DESKTOPDIR ?= $(PREFIX)/share/applications
+    endif
 endif
 
 .PHONY: install uninstall all debug
@@ -74,10 +76,13 @@ ifeq ($(OS),Windows_NT)
 	@echo Installation complete!
 else
 	@echo "Installing RetroBASIC to $(PREFIX)..."
-	mkdir -p $(BINDIR) $(MANDIR)/man1 $(DOCDIR) $(DESKTOPDIR)
+	mkdir -p $(BINDIR) $(MANDIR)/man1 $(DOCDIR)
+	ifeq ($(shell uname -s),Linux)
+		mkdir -p $(DESKTOPDIR)
+		install -m 644 src/retrobasic.desktop $(DESKTOPDIR)/
+	endif
 	install -m 755 $(TARGET) $(BINDIR)/
 	install -m 644 docs/retrobasic.1 $(MANDIR)/man1/ 2>/dev/null || true
-	if [ -f src/retrobasic.desktop ]; then install -m 644 src/retrobasic.desktop $(DESKTOPDIR)/; fi
 	cp -r docs $(DOCDIR)/
 	@echo "Installation complete!"
 endif
@@ -93,7 +98,9 @@ else
 	@echo "Uninstalling RetroBASIC from $(PREFIX)..."
 	rm -f $(BINDIR)/$(TARGET)
 	rm -f $(MANDIR)/man1/retrobasic.1
-	rm -f $(DESKTOPDIR)/retrobasic.desktop
+	ifeq ($(shell uname -s),Linux)
+		rm -f $(DESKTOPDIR)/retrobasic.desktop
+	endif
 	rm -rf $(DOCDIR)
 	@echo "Uninstall complete!"
 endif
