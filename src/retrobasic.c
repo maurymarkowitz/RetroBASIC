@@ -3394,6 +3394,11 @@ static void perform_statement(list_t *statement_entry)
 						value_t v;
 						for (list_t *L = var->subscripts; L != NULL; L = lst_next(L)) {
 							v = evaluate_expression(L->data);
+							// validate that dimension is numeric
+							if (v.type == STRING) {
+								handle_error(ern_TYPE_MISMATCH, "DIM requires numeric dimensions");
+								break;
+							}
 							storage->dimed_dimensions = lst_append(storage->dimed_dimensions, INT_TO_POINTER(v.number));
 						}
             
@@ -3528,6 +3533,12 @@ static void perform_statement(list_t *statement_entry)
           int new_size = 1;
           for (list_t *L = var->subscripts; L != NULL; L = lst_next(L)) {
             value_t v = evaluate_expression(L->data);
+            // validate that dimension is numeric
+            if (v.type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "REDIM requires numeric dimensions");
+              lst_free(new_dimensions);
+              break;
+            }
             int dim_val = (int)v.number;
             new_dimensions = lst_append(new_dimensions, INT_TO_POINTER(dim_val));
             new_size *= (dim_val + 1);
@@ -3769,8 +3780,24 @@ static void perform_statement(list_t *statement_entry)
         new_for->type = for_entry;
         new_for->_for.head = statement_entry; // unlike a gosub, we return to the front of the FOR
         new_for->_for.index_variable = statement->parms._for.variable;
-        new_for->_for.begin = evaluate_expression(statement->parms._for.begin).number;
-        new_for->_for.end = evaluate_expression(statement->parms._for.end).number;
+        
+        // validate that begin, end, and step are numeric
+        value_t begin_val = evaluate_expression(statement->parms._for.begin);
+        if (begin_val.type == STRING) {
+          handle_error(ern_TYPE_MISMATCH, "FOR requires numeric bounds");
+          free(new_for);
+          break;
+        }
+        
+        value_t end_val = evaluate_expression(statement->parms._for.end);
+        if (end_val.type == STRING) {
+          handle_error(ern_TYPE_MISMATCH, "FOR requires numeric bounds");
+          free(new_for);
+          break;
+        }
+        
+        new_for->_for.begin = begin_val.number;
+        new_for->_for.end = end_val.number;
         
         // the original gnbasic code would set the step to -1 if the second parameter was smaller
         // than the first. This is definitely NOT standard and caused problems in SST. The ANSI
@@ -3785,6 +3812,16 @@ static void perform_statement(list_t *statement_entry)
           new_for->_for.step = evaluate_expression(statement->parms._for.step).number;
         else
           new_for->_for.step = 1;
+        
+        // validate that step is numeric
+        if (statement->parms._for.step) {
+          value_t step_val = evaluate_expression(statement->parms._for.step);
+          if (step_val.type == STRING) {
+            handle_error(ern_TYPE_MISMATCH, "FOR requires numeric step");
+            free(new_for);
+            break;
+          }
+        }
         
         // Check if the FOR loop bounds are exhausted
         // This happens when: (step > 0 and begin > end) OR (step < 0 and begin < end)
@@ -3833,7 +3870,13 @@ static void perform_statement(list_t *statement_entry)
         // default to STDIN unless this is a GET_FILE
         FILE* fp = stdin;
         if (statement->type == GET_FILE) {
-          int channel = floor(evaluate_expression(statement->parms.generic.generic_parameter).number);
+          value_t channel_val = evaluate_expression(statement->parms.generic.generic_parameter);
+          // validate channel is numeric
+          if (channel_val.type == STRING) {
+            handle_error(ern_TYPE_MISMATCH, "GET requires numeric channel");
+            break;
+          }
+          int channel = floor(channel_val.number);
           fp = handle_for_channel(channel);
           if (fp == NULL) {
             handle_error(ern_FILE_NOT_OPEN, "Attempt to GET from a file that has not been OPENed");
@@ -5196,7 +5239,13 @@ EXIT_MAT_INPUT:
         // default to STDOUT unless this is a PUT_FILE
         FILE* fp = stdout;
         if (statement->type == PUT_FILE) {
-          int channel = floor(evaluate_expression(statement->parms.generic.generic_parameter).number);
+          value_t channel_val = evaluate_expression(statement->parms.generic.generic_parameter);
+          // validate channel is numeric
+          if (channel_val.type == STRING) {
+            handle_error(ern_TYPE_MISMATCH, "PUT requires numeric channel");
+            break;
+          }
+          int channel = floor(channel_val.number);
           fp = handle_for_channel(channel);
           if (fp == NULL) {
             handle_error(ern_FILE_NOT_OPEN, "Attempt to PUT to a file that has not been OPENed");
