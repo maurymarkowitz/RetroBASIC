@@ -9,6 +9,7 @@ on:
 jobs:
   build-linux:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - name: Install build deps
@@ -22,6 +23,9 @@ jobs:
       - name: Smoke test
         run: |
           ./retrobasic --help
+      - name: Run tests
+        run: |
+          make test
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -30,6 +34,7 @@ jobs:
 
   build-macos:
     runs-on: macos-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - name: Install build deps
@@ -43,6 +48,9 @@ jobs:
       - name: Smoke test
         run: |
           ./retrobasic --help
+      - name: Run tests
+        run: |
+          make test
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -51,6 +59,7 @@ jobs:
 
   build-windows:
     runs-on: windows-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - name: Setup MSYS2 / MINGW64
@@ -64,6 +73,7 @@ jobs:
             make
             flex
             bison
+            diffutils
       - name: Build (MINGW64)
         shell: msys2 {0}
         run: |
@@ -73,6 +83,10 @@ jobs:
         shell: msys2 {0}
         run: |
           ./retrobasic.exe --help
+      - name: Run tests (MINGW64)
+        shell: msys2 {0}
+        run: |
+          make test
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:

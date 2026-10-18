@@ -20,7 +20,11 @@ rm=/bin/rm -f
 mv=/bin/mv -f
 
 # our program name
-TARGET = retrobasic
+ifeq ($(OS),Windows_NT)
+    TARGET = retrobasic.exe
+else
+    TARGET = retrobasic
+endif
 SRC_DIR = src
 
 # the final program has three inputs: generated lex/yacc sources and the interpreter source
@@ -60,7 +64,7 @@ else
     endif
 endif
 
-.PHONY: install uninstall all debug
+.PHONY: install uninstall all debug test
 
 debug:
 	$(MAKE) DEBUG=1 all
@@ -90,7 +94,7 @@ endif
 uninstall:
 ifeq ($(OS),Windows_NT)
 	@echo Uninstalling RetroBASIC from $(PREFIX)...
-	@if exist "$(BINDIR)\$(TARGET).exe" del /Q "$(BINDIR)\$(TARGET).exe"
+	@if exist "$(BINDIR)\$(TARGET)" del /Q "$(BINDIR)\$(TARGET)"
 	@if exist "$(MANDIR)\retrobasic.1" del /Q "$(MANDIR)\retrobasic.1"
 	@if exist "$(DOCDIR)" rmdir /S /Q "$(DOCDIR)"
 	@echo Uninstall complete!
@@ -105,4 +109,7 @@ else
 	@echo "Uninstall complete!"
 endif
 
-all: retrobasic
+all: $(TARGET)
+
+test: $(TARGET)
+	sh tests/run.sh

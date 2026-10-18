@@ -61,6 +61,8 @@ On Linux systems, `make install` also installs a `.desktop` file that enables:
 - Opening `.bas` files directly with RetroBASIC from the file manager
 - Double-clicking the executable to launch RetroBASIC in a terminal window
 
+Run `make test` to execute the small regression suite in `tests/` (compares program output against checked-in expected output).
+
 ## Running RetroBASIC with an existing program
 
 RetroBASIC is generally used to run existing programs, saved to a text file normally with the extension `.bas`. You can use it this way using a command similar to this example, replacing the `program.bas` with the name of the text file containing the BASIC program you wish to run:
