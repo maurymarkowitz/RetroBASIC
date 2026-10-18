@@ -46,6 +46,16 @@ for bas in tests/cases/*.bas; do
         continue
     fi
 
+    # the interpreter reports errors on stderr and still exits 0, so a matching
+    # stdout alone does not mean the program ran cleanly
+    if [ -s "$err" ]; then
+        echo "FAIL $name (unexpected stderr)"
+        cat "$err"
+        fail=$((fail + 1))
+        rm -rf "$workdir"
+        continue
+    fi
+
     expected_norm="$workdir/expected"
     tr -d '\r' < "$expected" > "$expected_norm"
     diffout="$workdir/diff"
