@@ -3,6 +3,7 @@ RetroBASIC version history
 Version 3.1.0 - 18 October 2026
 - (attempted) fixes for problems in homebrew with the retrobasic.desktop file
 - merged in new tests from GH
+- added parameter type checking to 40+ built-in functions for robustness
 
 Version 3.0.9 - 7 October 2026
 - reverting change to PRINT spacing after numbers

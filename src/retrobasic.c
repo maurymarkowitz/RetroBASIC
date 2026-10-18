@@ -1587,22 +1587,42 @@ value_t evaluate_expression(const expression_t *expression)
             result.number = ~(int)a;
             break;
           case ABS:
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "ABS requires numeric parameter");
+              break;
+            }
             result.number = fabs(a);
             break;
           case ADR:
             result.number = 0.0;
             break;
           case ATN:
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "ATN requires numeric parameter");
+              break;
+            }
             result.number = atan(a);
             break;
           case ACS:
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "ACS requires numeric parameter");
+              break;
+            }
             result.number = acos(a);
             break;
           case ASN:
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "ASN requires numeric parameter");
+              break;
+            }
             result.number = asin(a);
             break;
           case CHR:
           {
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "CHR requires numeric parameter");
+              break;
+            }
             char c[2];
             c[0] = (char)a;
             c[1] = '\0';
@@ -1611,6 +1631,10 @@ value_t evaluate_expression(const expression_t *expression)
           }
             break;
           case CLOG:
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "CLOG requires numeric parameter");
+              break;
+            }
             result.number = log10(a);
             break;
           case CLK:
@@ -1639,41 +1663,84 @@ value_t evaluate_expression(const expression_t *expression)
           }
             break;
           case EXP:
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "EXP requires numeric parameter");
+              break;
+            }
             result.number = exp(a);
             break;
-          case LEN: // this is the only arity-1 function that takes a string parameter
-            // the string may never have been assigned, so...
-            if (parameters[0].string == NULL)
-              result.number = 0;
-            else
-              result.number = strlen(parameters[0].string);
+          case LEN:
+            if (parameters[0].type <= STRING) {
+              if (parameters[0].string == NULL)
+                result.number = 0;
+              else
+                result.number = strlen(parameters[0].string);
+            } else {
+              handle_error(ern_TYPE_MISMATCH, "LEN requires string parameter");
+            }
             break;
           case STR:
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "STR requires numeric parameter");
+              break;
+            }
             result.type = STRING;
             result.string = str_new(number_to_string(a));
             break;
           case LOG:
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "LOG requires numeric parameter");
+              break;
+            }
             result.number = log(a);
             break;
           case SIN:
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "SIN requires numeric parameter");
+              break;
+            }
             result.number = sin(a);
             break;
           case SINH:
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "SINH requires numeric parameter");
+              break;
+            }
             result.number = sinh(a);
             break;
           case COS:
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "COS requires numeric parameter");
+              break;
+            }
             result.number = cos(a);
             break;
           case COSH:
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "COSH requires numeric parameter");
+              break;
+            }
             result.number = cosh(a);
             break;
           case FIX:
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "FIX requires numeric parameter");
+              break;
+            }
             result.number = trunc(a);
             break;
           case FRAC:
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "FRAC requires numeric parameter");
+              break;
+            }
             result.number = a - trunc(a);
             break;
           case INT:
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "INT requires numeric parameter");
+              break;
+            }
             result.number = floor(a);
             break;
             
@@ -1697,13 +1764,24 @@ value_t evaluate_expression(const expression_t *expression)
             break;
 
           case ROUND:
-            result.number = round(a); // this is the 1-arity case
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "ROUND requires numeric parameter");
+              break;
+            }
+            result.number = round(a);
             break;
          case SQR:
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "SQR requires numeric parameter");
+              break;
+            }
             result.number = sqrt(a);
             break;
           case SGN:
-            // early MS variants return 1 for 0, this implements the newer version where 0 returns 0
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "SGN requires numeric parameter");
+              break;
+            }
             if (a < 0)
               result.number = -1;
             else if (a == 0)
@@ -1712,15 +1790,26 @@ value_t evaluate_expression(const expression_t *expression)
               result.number = 1;
             break;
           case TAN:
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "TAN requires numeric parameter");
+              break;
+            }
             result.number = tan(a);
             break;
           case TANH:
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "TANH requires numeric parameter");
+              break;
+            }
             result.number = tanh(a);
             break;
           case VAL:
           case NUM:
-            // this version of NUM is from Digital Group and is a val,
-            // the dartmouth-style zero-param version is above
+            if (parameters[0].type != STRING) {
+              handle_error(ern_TYPE_MISMATCH, "VAL requires string parameter");
+              result.number = 0;
+              break;
+            }
             result.number = atof(parameters[0].string);
             break;
           case PEEK:
@@ -1733,11 +1822,10 @@ value_t evaluate_expression(const expression_t *expression)
             result.number = (double)interpreter_state.cursor_column; //FIXME: should this be +1?
             break;
           case TAB:
-            // MS basics do nothing if the current cursor position is past the number being passed in,
-            // otherwise it adds spaces to move the cursor to that column number. ANSI will insert a
-            // CR and go to that column of the next line. ANSI columns start at 1, MS at 0.
-            // note that in "real" basic this is a psuedo-function that simply moves the cursor
-            //   and doesn't return anything, but here it works by returning a string
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "TAB requires numeric parameter");
+              break;
+            }
             result.type = STRING;
             result.string = str_new("");
             int tabs = (int)parameters[0].number;
@@ -1781,12 +1869,24 @@ value_t evaluate_expression(const expression_t *expression)
 						// these are out of order to keep them closer to the string functions below
 					case LCASE:
 					{
+						if (parameters[0].type != STRING) {
+							handle_error(ern_TYPE_MISMATCH, "LCASE requires string parameter");
+							result.type = STRING;
+							result.string = str_new("");
+							break;
+						}
 						result.type = STRING;
 						result.string = str_new(str_tolower(parameters[0].string));
 					}
 						break;
 					case UCASE:
 					{
+						if (parameters[0].type != STRING) {
+							handle_error(ern_TYPE_MISMATCH, "UCASE requires string parameter");
+							result.type = STRING;
+							result.string = str_new("");
+							break;
+						}
 						result.type = STRING;
 						result.string = str_new(str_toupper(parameters[0].string));
 					}
@@ -1795,34 +1895,67 @@ value_t evaluate_expression(const expression_t *expression)
             // clustered these for clarity
           case BIN:
           {
+            if (parameters[0].type != STRING) {
+              handle_error(ern_TYPE_MISMATCH, "BIN requires string parameter");
+              result.number = 0;
+              break;
+            }
             result.number = (double)strtoul(parameters[0].string, NULL, 2);
           }
             break;
           case OCT:
           {
+            if (parameters[0].type != STRING) {
+              handle_error(ern_TYPE_MISMATCH, "OCT requires string parameter");
+              result.number = 0;
+              break;
+            }
             result.number = (double)strtoul(parameters[0].string, NULL, 8);
           }
             break;
           case HEX:
           {
+            if (parameters[0].type != STRING) {
+              handle_error(ern_TYPE_MISMATCH, "HEX requires string parameter");
+              result.number = 0;
+              break;
+            }
             result.number = (double)strtoul(parameters[0].string, NULL, 16);
           }
             break;
 
           case BINSTR:
           {
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "BINSTR requires numeric parameter");
+              result.type = STRING;
+              result.string = str_new("");
+              break;
+            }
             result.type = STRING;
             result.string = str_new(number_to_bin_string(parameters[0].number));
           }
             break;
           case OCTSTR:
           {
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "OCTSTR requires numeric parameter");
+              result.type = STRING;
+              result.string = str_new("");
+              break;
+            }
             result.type = STRING;
             result.string = str_new(number_to_oct_string(parameters[0].number));
           }
             break;
           case HEXSTR:
           {
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "HEXSTR requires numeric parameter");
+              result.type = STRING;
+              result.string = str_new("");
+              break;
+            }
             result.type = STRING;
             result.string = str_new(number_to_hex_string(parameters[0].number));
           }
@@ -2028,6 +2161,16 @@ value_t evaluate_expression(const expression_t *expression)
             break;
 
           case ROUND: { // this is the 2-arity case
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "ROUND requires numeric parameter");
+              result.number = 0;
+              break;
+            }
+            if (parameters[1].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "ROUND requires numeric parameter for decimals");
+              result.number = 0;
+              break;
+            }
             double t = a * pow(10, b);
             t = round(t);
             t = t / pow(10, b);
@@ -2039,6 +2182,18 @@ value_t evaluate_expression(const expression_t *expression)
             // NOTE: the strings in BASIC start on index 1, so we have to adjust that here for C
             //   so the starting-point parameters need to be shifted back one
           case LEFT:
+            if (parameters[0].type != STRING) {
+              handle_error(ern_TYPE_MISMATCH, "LEFT requires string parameter");
+              result.type = STRING;
+              result.string = str_new("");
+              break;
+            }
+            if (parameters[1].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "LEFT requires numeric parameter for length");
+              result.type = STRING;
+              result.string = str_new("");
+              break;
+            }
             result.type = STRING;
           {
             size_t len = strlen(parameters[0].string);
@@ -2047,6 +2202,18 @@ value_t evaluate_expression(const expression_t *expression)
           }
             break;
           case RIGHT:
+            if (parameters[0].type != STRING) {
+              handle_error(ern_TYPE_MISMATCH, "RIGHT requires string parameter");
+              result.type = STRING;
+              result.string = str_new("");
+              break;
+            }
+            if (parameters[1].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "RIGHT requires numeric parameter for length");
+              result.type = STRING;
+              result.string = str_new("");
+              break;
+            }
             result.type = STRING;
           {
             size_t len = strlen(parameters[0].string);
@@ -2054,8 +2221,19 @@ value_t evaluate_expression(const expression_t *expression)
             str_fruncate(result.string, len - b);
           }
             break;
-          case MID: // this is the two-parameter version, three follows
-            // this version returns the right side of the string starting at b-1
+          case MID:
+            if (parameters[0].type != STRING) {
+              handle_error(ern_TYPE_MISMATCH, "MID requires string parameter");
+              result.type = STRING;
+              result.string = str_new("");
+              break;
+            }
+            if (parameters[1].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "MID requires numeric parameter for position");
+              result.type = STRING;
+              result.string = str_new("");
+              break;
+            }
             result.type = STRING;
           {
             size_t len = strlen(parameters[0].string);
@@ -2064,15 +2242,18 @@ value_t evaluate_expression(const expression_t *expression)
           }
             break;
 					case STRNG:
-						// makes N copies of the given string or ASCII char
+						if (parameters[0].type == STRING) {
+							handle_error(ern_TYPE_MISMATCH, "STRNG requires numeric parameter for length");
+							result.type = STRING;
+							result.string = str_new("");
+							break;
+						}
 						result.type = STRING;
 						result.string = str_new("");
             
-            // the length is in the first parameter
             int len = parameters[0].number;
             
-            // the second parameter can be a string or an ASCII value
-						char *temp;
+            char *temp;
 						if (parameters[1].type == STRING)
 							temp = parameters[1].string;
 						else {
@@ -2119,23 +2300,24 @@ value_t evaluate_expression(const expression_t *expression)
             // the right axis
           case UBOUND:
           {
+            if (parameters[1].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "UBOUND requires numeric parameter for axis");
+              result.number = 0.0;
+              break;
+            }
             result.type = NUMBER;
             
             variable_reference_t *exp = expression->parms.op.p[0]->parms.variable;
             int axis = parameters[1].number;
             
-            // munge the name
             variable_storage_t *array_store = lst_data_with_key(interpreter_state.variable_values, exp->name);
             
-            // so first, let's just check the bounds now, to simplify the following
-            // remember: basic is 1-based!
             if (lst_length(array_store->actual_dimensions) < axis - 1 && lst_length(array_store->dimed_dimensions) < axis - 1) {
               handle_error(ern_ILLEGAL_VALUE, "UBOUND called with index greater than variable dimensions");
               result.number = 0.0;
               break;
             }
             
-            // the index is OK, get that dimension and return it
             list_t *dim;
             if (lst_length(array_store->actual_dimensions) <= axis) {
               dim = lst_first_node(array_store->actual_dimensions);
@@ -2177,7 +2359,7 @@ value_t evaluate_expression(const expression_t *expression)
             // check for validity and parse out the parameters
             int start;
             char *src, *pat;
-            if (parameters[0].type > STRING) {
+            if (parameters[0].type == STRING) {
               if (parameters[1].type > STRING || parameters[2].type > STRING) {
                 handle_error(ern_TYPE_MISMATCH, "INSTR/INDEX/POS called with non-string inputs");
                 break;
@@ -2270,16 +2452,33 @@ value_t evaluate_expression(const expression_t *expression)
 					case SEG:
 					case SUBSTR:
           {
+            if (parameters[0].type != STRING) {
+              handle_error(ern_TYPE_MISMATCH, "MID/SEG/SUBSTR requires string parameter");
+              result.type = STRING;
+              result.string = str_new("");
+              break;
+            }
+            if (parameters[1].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "MID/SEG/SUBSTR requires numeric parameter for position");
+              result.type = STRING;
+              result.string = str_new("");
+              break;
+            }
+            if (parameters[2].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "MID/SEG/SUBSTR requires numeric parameter for length");
+              result.type = STRING;
+              result.string = str_new("");
+              break;
+            }
             double b = parameters[1].number;
-            double c = parameters[2].number; // yeah, these could be ints
+            double c = parameters[2].number;
 
             result.type = STRING;
             result.string = str_new(parameters[0].string);
-						
-						// SEG is based on positions, not lengths, so adjust parameter c
+					
 						if (expression->parms.op.opcode == SEG)
 							c = c - b + 1;
-						
+					
             str_erase(result.string, b - 1, c);
           }
             break;
