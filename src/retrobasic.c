@@ -1670,14 +1670,16 @@ value_t evaluate_expression(const expression_t *expression)
             result.number = exp(a);
             break;
           case LEN:
-            if (parameters[0].type <= STRING) {
-              if (parameters[0].string == NULL)
-                result.number = 0;
-              else
-                result.number = strlen(parameters[0].string);
-            } else {
-              handle_error(ern_TYPE_MISMATCH, "LEN requires string parameter");
+            // this is the only arity-1 function that takes a string parameter
+            if (parameters[0].type > STRING) {
+                handle_error(ern_TYPE_MISMATCH, "LEN requires string parameter");
+                break;
             }
+            // the string may never have been assigned, so...
+            if (parameters[0].string == NULL)
+              result.number = 0;
+            else
+              result.number = strlen(parameters[0].string);
             break;
           case STR:
             if (parameters[0].type == STRING) {
@@ -1778,6 +1780,7 @@ value_t evaluate_expression(const expression_t *expression)
             result.number = sqrt(a);
             break;
           case SGN:
+            // early MS variants return 1 for 0, this implements the newer version where 0 returns 0
             if (parameters[0].type == STRING) {
               handle_error(ern_TYPE_MISMATCH, "SGN requires numeric parameter");
               break;
@@ -1805,6 +1808,8 @@ value_t evaluate_expression(const expression_t *expression)
             break;
           case VAL:
           case NUM:
+            // this version of NUM is from Digital Group and is a val,
+            // the dartmouth-style zero-param version is above
             if (parameters[0].type != STRING) {
               handle_error(ern_TYPE_MISMATCH, "VAL requires string parameter");
               result.number = 0;
@@ -2476,7 +2481,8 @@ value_t evaluate_expression(const expression_t *expression)
             result.type = STRING;
             result.string = str_new(parameters[0].string);
 					
-						if (expression->parms.op.opcode == SEG)
+						// SEG is based on positions, not lengths, so adjust parameter c
+            if (expression->parms.op.opcode == SEG)
 							c = c - b + 1;
 					
             str_erase(result.string, b - 1, c);
