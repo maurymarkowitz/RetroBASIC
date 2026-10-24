@@ -1815,17 +1815,17 @@ Some home computer dialects, like Atari BASIC, used an internal hardware timer t
 
 `RND` is very common in BASIC programs, especially in games. In most cases, the program actually desires an integer value, choosing a value between 1 and X. To produce such a value, code to the effect of `INT(RND(0)*X+0.5)` can be found in many programs. This bit of code is so common that some programs use a user-defined function to make references to this sequence of operations shorter; an example is *Super Star Trek*, which defines a function called `FNR` near the top of the program and then calls it from many locations, making the code more compact.
 
-Because this common series of operations to produce a random integer takes some time to complete, a number of dialects offered ways to generate integer values directly in a single step. Unfortunately, there is no standard solution for this functionality. Some use a separate function like `RAND`, while others modify `RND`. Among those that use `RND`, one common solution is that if the *aexp* produces any value between 0 and 1 it returns a floating point value as above, whereas larger positive values produce an integer value from 1 to the provided number. PA Tiny BASIC, Apple's Integer BASIC and BBC BASIC are examples of this style.
+Because this common series of operations to produce a random integer takes some time to complete, a number of dialects offered ways to generate integer values directly in a single step. Unfortunately, there is no standard solution for this functionality. Some use a separate function like `RAND`, while others modify `RND`. Among those that use `RND`, one common solution is that if the *aexp* produces any value between 0 and 1 it returns a floating point value as above, whereas larger positive values produce an integer value from 1 to the provided number. PA Tiny BASIC, Apple's Integer BASIC and BBC BASIC are examples of this style. RetroBASIC supports this syntax, so `RND(0)` or `RND(1)` will produce values between 0 and 1, but `RND(10)` will produce integer values between 1 and 10.
 
 Another common variation is found in Microsoft BASICs, although these vary across implementations. In these, a negative *aexp* is equivalent to a `RANDOMIZE` with the positive value, followed by a `RND` with a dummy value. Thus, `X=RND(-2)` performs the same operations as `RANDOMIZE 2:X=RND(1)`. As almost every other dialect uses only positive values in *aexp*, or ignores *aexp* completely, this MS-style functionality is highly compatible, and is supported in RetroBASIC when no command-line random seed is provided. If `--random` is passed, that seed takes precedence and negative *aexp* reseeding is ignored.
 
-Because there is no way to know which of these optional varieties is being used from the source code itself, it is suggested that you use `RND(1)` in any case where it is not clearly specified.
+Because there is no way to know which of these optional varieties is being used from the source code itself, it is suggested that you use `RND(1)` in any case where it is not clearly specified. This should work in any dialect.
 
 #### Variations:
 
 ANSI BASIC *requires* the parameter to be empty. Very few dialects followed this rule, although DEC and the APF Imagination Machine are two known to do so.
 
-It is generally the case that any dialect that has the `RANDOMIZE` statement will treat the *aexp* in `RND` as a dummy. RetroBASIC is an exception, as it supports setting the seed in `RANDOMIZE` or `RND`. Those dialects that do use `RANDOMIZE` generally have no parameter or use a standard one like 0 or 1, and will thus run fine without modification.
+It is generally the case that any dialect that has the `RANDOMIZE` statement will treat the *aexp* in `RND` as a dummy. RetroBASIC is an exception, as it supports setting the seed in `RANDOMIZE` *or* `RND`. Those dialects that do use `RANDOMIZE` generally have no parameter or use a standard one like 0 or 1, and will thus run fine without modification.
 
 Apple's Integer BASIC produces only integer values, as these were the only numbers it could work with. The system always returns a value between 0 and *aexp*-1, which made it an analog of the more typical floating point versions that never returned the upper bound. To simulate rolling dice, for instance, one would use `LET ROLL=RND(6)+1`.
 
@@ -1845,6 +1845,7 @@ BBC BASIC supports the integer value syntax for *aexp* larger than zero, and thi
 
 Support for negative values seeding the sequence was added in 1.9.1.
 Support for integer values for *aexp* > 1 was added in 1.9.1.
+Making integer values > 1 *actually work* came in 3.1.1.
 
 <!-- TOC --><a name="sgnaexp"></a>
 ### `SGN`(*aexp*)
