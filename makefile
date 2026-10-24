@@ -81,7 +81,7 @@ ifeq ($(OS),Windows_NT)
 else
 	@echo "Installing RetroBASIC to $(PREFIX)..."
 	mkdir -p $(BINDIR) $(MANDIR)/man1 $(DOCDIR)
-	if [ "`uname -s`" = "Linux" ]; then \
+	@if [ "`uname -s`" = "Linux" ]; then \
 		mkdir -p $(DESKTOPDIR); \
 		if [ -f src/retrobasic.desktop ]; then install -m 644 src/retrobasic.desktop $(DESKTOPDIR)/; fi; \
 	fi
@@ -102,7 +102,7 @@ else
 	@echo "Uninstalling RetroBASIC from $(PREFIX)..."
 	rm -f $(BINDIR)/$(TARGET)
 	rm -f $(MANDIR)/man1/retrobasic.1
-	if [ "`uname -s`" = "Linux" ]; then \
+	@if [ "`uname -s`" = "Linux" ]; then \
 		rm -f $(DESKTOPDIR)/retrobasic.desktop; \
 	fi
 	rm -rf $(DOCDIR)
