@@ -1748,6 +1748,10 @@ value_t evaluate_expression(const expression_t *expression)
             
             // this is the more common version of RND, with one parameter, possibly a dummy
           case RND:
+            if (parameters[0].type == STRING) {
+              handle_error(ern_TYPE_MISMATCH, "RND requires numeric parameter");
+              break;
+            }
           {
             // if -r was not passed and the parameter is negative, reseed with absolute value
             // this handles the MS case where -ve values in RND are used instead of RANDOMIZE
@@ -1759,7 +1763,7 @@ value_t evaluate_expression(const expression_t *expression)
             result.number = ((double)rand() / (double)RAND_MAX); // don't forget the cast!
             
             // and if the parameter > 1, multiply it and floor to get 0..x
-            if (parameters[0].number >= 1.0) {
+            if (parameters[0].number > 1.0) {
               result.number = floor(result.number * floor(parameters[0].number));
             }
           }

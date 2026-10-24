@@ -1708,9 +1708,16 @@ function:
   |
   fn_0 '(' expression ')'
   {
-    expression_t *new = make_operator(0, $1);
-    new->parms.op.p[0] = $3;
-    $$ = new;
+    /* Special case: RND with argument should be arity-1 */
+    if ($1 == RND) {
+      expression_t *new = make_operator(1, $1);
+      new->parms.op.p[0] = $3;
+      $$ = new;
+    } else {
+      expression_t *new = make_operator(0, $1);
+      new->parms.op.p[0] = $3;
+      $$ = new;
+    }
   }
   |
   fn_1 '(' expression ')'
