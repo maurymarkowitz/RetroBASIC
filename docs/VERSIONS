@@ -1,5 +1,9 @@
 RetroBASIC version history
 
+Version 3.1.2 - 3 November 2026
+- properly document differences in RND(10) between BBC and others
+- merge in some pulls for better test cases on RND
+
 Version 3.1.1 - 24 October 2026
 - fixes an issue in RND
 - also turns on RND(10) support, which was there but didn't work (see ref manual for RND)
