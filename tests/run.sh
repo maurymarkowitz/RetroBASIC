@@ -1,6 +1,9 @@
 #!/bin/sh
 # Minimal regression harness for RetroBASIC.
 # Runs each tests/cases/*.bas program and compares stdout to tests/cases/*.expected.
+# A case may pass CLI flags to the interpreter via an optional tests/cases/<name>.args
+# file (whitespace-separated). Note that --random's argument is optional, so it must
+# be attached: write --random=42 (or -r42), not "--random 42".
 # Requires `diff` (provided by diffutils). Line endings are normalized (CRLF -> LF).
 set -u
 
@@ -34,7 +37,16 @@ for bas in tests/cases/*.bas; do
     actual="$workdir/actual"
     err="$workdir/err"
     raw="$workdir/raw"
-    "$BIN" "$bas" >"$raw" 2>"$err"
+
+    # optional per-case CLI flags for the interpreter, whitespace-separated
+    set --
+    if [ -f "tests/cases/$name.args" ]; then
+        set -f # don't glob-expand the flag list
+        set -- $(tr -d '\r' < "tests/cases/$name.args")
+        set +f
+    fi
+
+    "$BIN" "$@" "$bas" >"$raw" 2>"$err"
     rc=$?
     tr -d '\r' < "$raw" > "$actual"
 
