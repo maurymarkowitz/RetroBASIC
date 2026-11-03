@@ -96,7 +96,7 @@ Short options with no parameters can be ganged, for instance, `-unp`.
 
 ## Running RetroBASIC interactively
 
-Starting in version 3.0, RetroBASIC now includes a simple line-oriented editor that allows you to create and edit programs interactively, as well as `RUN`, `LOAD` and `SAVE` them. For instance, to play a game of *Super Star Trek*, you can launch RetroBASIC with no parameters and then use the `LOAD` and `RUN` commands:
+Starting in version 3.0, RetroBASIC now includes a simple line-oriented editor that allows you to create and edit programs interactively, as well as `RUN`, `LOAD` and `SAVE` them. For instance, to play a game of *Super Star Trek*, you can launch RetroBASIC with no parameters and then use the `LOAD` and `RUN` commands (the `> ` is the default prompt):
 
 ```
 ./retrobasic
@@ -107,9 +107,11 @@ RetroBASIC CLI 3.1.0
 > RUN
 ```
 
-As part of this work, support for a "break" key was added, which stops execution and returns to the command prompt. Break also works in non-interactive mode, but in that case it will exit directly to the shell. This is still useful when you find the program is stuck in a loop. In interactive mode, it returns to the line editor, where you can modify the program and then `CONT`inue. If you wish to exit to the shell from interactive mode, use `BYE` or Control-C.
+As part of this addition, support for a "break" key was added, which stops execution and returns to the command prompt. Break is wired to the `Esc` key on Unix and macOS machines. On Windows machines, you can use either `Esc` or the `Pause`/`Break` key above the cursor controls. 
 
-Break is wired to the `Esc` key on Unix and macOS machines. On Windows machines, you can use either `Esc` or the `Pause`/`Break` key above the cursor controls. 
+In interactive mode, pressing break returns you to the line editor, where you can modify the program and then `CONT`inue. If you wish to exit to the shell from interactive mode, use `BYE` or Control-C.
+
+Break also works in non-interactive mode, but in that case it will exit directly to the shell. This is still useful when you find the program is stuck in a loop.
 
 ## Missing features and Errata
 
