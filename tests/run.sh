@@ -4,6 +4,9 @@
 # A case may pass CLI flags to the interpreter via an optional tests/cases/<name>.args
 # file (whitespace-separated). Note that --random's argument is optional, so it must
 # be attached: write --random=42 (or -r42), not "--random 42".
+# A case may also have an optional tests/cases/<name>.stderr file marking it as an
+# expected-error case: its stderr is compared to that file instead of requiring
+# empty stderr and a zero exit code (error paths exit 0 or non-zero inconsistently).
 # Requires `diff` (provided by diffutils). Line endings are normalized (CRLF -> LF).
 set -u
 
@@ -50,22 +53,40 @@ for bas in tests/cases/*.bas; do
     rc=$?
     tr -d '\r' < "$raw" > "$actual"
 
-    if [ "$rc" -ne 0 ]; then
-        echo "FAIL $name (exit $rc)"
-        cat "$err"
-        fail=$((fail + 1))
-        rm -rf "$workdir"
-        continue
-    fi
+    stderr_expected="tests/cases/$name.stderr"
+    if [ -s "$stderr_expected" ]; then
+        # expected-error case: compare stderr to the .stderr file (CR-normalized
+        # like the other files) instead of requiring it to be empty; the exit code
+        # is not asserted, error paths exit 0 or non-zero inconsistently
+        err_norm="$workdir/err_norm"
+        stderr_norm="$workdir/stderr_norm"
+        tr -d '\r' < "$err" > "$err_norm"
+        tr -d '\r' < "$stderr_expected" > "$stderr_norm"
+        if ! diff -u --label expected-stderr --label actual-stderr "$stderr_norm" "$err_norm" >"$workdir/stderr_diff"; then
+            echo "FAIL $name (stderr mismatch)"
+            cat "$workdir/stderr_diff"
+            fail=$((fail + 1))
+            rm -rf "$workdir"
+            continue
+        fi
+    else
+        if [ "$rc" -ne 0 ]; then
+            echo "FAIL $name (exit $rc)"
+            cat "$err"
+            fail=$((fail + 1))
+            rm -rf "$workdir"
+            continue
+        fi
 
-    # the interpreter reports errors on stderr and still exits 0, so a matching
-    # stdout alone does not mean the program ran cleanly
-    if [ -s "$err" ]; then
-        echo "FAIL $name (unexpected stderr)"
-        cat "$err"
-        fail=$((fail + 1))
-        rm -rf "$workdir"
-        continue
+        # the interpreter reports errors on stderr and still exits 0, so a matching
+        # stdout alone does not mean the program ran cleanly
+        if [ -s "$err" ]; then
+            echo "FAIL $name (unexpected stderr)"
+            cat "$err"
+            fail=$((fail + 1))
+            rm -rf "$workdir"
+            continue
+        fi
     fi
 
     expected_norm="$workdir/expected"
