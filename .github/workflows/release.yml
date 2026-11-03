@@ -17,7 +17,7 @@ jobs:
   build-linux-x86_64:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install build deps
         run: sudo apt-get update && sudo apt-get install -y build-essential flex bison zip
       - name: Build (x86_64)
@@ -40,7 +40,7 @@ jobs:
   build-macos-x86_64:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install build deps
         run: brew update && brew install flex bison zip
       - name: Build (x86_64)
@@ -63,7 +63,7 @@ jobs:
   build-macos-arm64:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install build deps
         run: brew update && brew install flex bison zip
       - name: Build (arm64)
@@ -86,7 +86,7 @@ jobs:
   build-linux-aarch64:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install build deps
         run: sudo apt-get update && sudo apt-get install -y build-essential flex bison zip gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
       - name: Build (aarch64)
@@ -109,7 +109,7 @@ jobs:
   build-windows-x86_64:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Setup MSYS2 / MINGW64 and install deps
         uses: msys2/setup-msys2@v2
         with:
