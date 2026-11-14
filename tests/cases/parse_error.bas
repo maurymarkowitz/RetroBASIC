@@ -1,0 +1,2 @@
+10 X = RANDOMIZE
+20 END
